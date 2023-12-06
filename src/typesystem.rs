@@ -140,6 +140,10 @@ impl DataType {
         self.nature.is_numerical()
     }
 
+    pub fn is_bool(&self) -> bool {
+        self.information.is_bool()
+    }
+
     pub fn is_real(&self) -> bool {
         self.nature.is_real()
     }

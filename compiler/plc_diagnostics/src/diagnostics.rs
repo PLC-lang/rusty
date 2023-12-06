@@ -808,6 +808,14 @@ impl Diagnostic {
         let range = if let Some(range) = location { vec![range] } else { vec![SourceLocation::internal()] };
         Diagnostic::SemanticError { message, range, err_no: ErrNo::plc_json__invalid }
     }
+
+    pub fn temp(range: SourceLocation) -> Diagnostic {
+        // TODO(volsa): Improve the error message with actual slices once https://github.com/PLC-lang/rusty/issues/998 is merged
+        Diagnostic::ImprovementSuggestion {
+            message: format!("This statement has no effect, did you mean to use `:=`"),
+            range: vec![range],
+        }
+    }
 }
 
 // Necessary in-between step to convert serde error to diagnostics, since there is
