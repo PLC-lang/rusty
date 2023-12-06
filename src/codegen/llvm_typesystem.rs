@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::values::BasicValue;
 use inkwell::{
     context::Context,
     types::{FloatType, IntType},
