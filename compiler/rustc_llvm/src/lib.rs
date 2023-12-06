@@ -23,11 +23,7 @@ impl RustString {
 
 /// Appending to a Rust string -- used by RawRustStringOstream.
 #[no_mangle]
-pub unsafe extern "C" fn LLVMRustStringWriteImpl(
-    sr: &RustString,
-    ptr: *const c_char,
-    size: size_t,
-) {
+pub unsafe extern "C" fn LLVMRustStringWriteImpl(sr: &RustString, ptr: *const c_char, size: size_t) {
     let slice = slice::from_raw_parts(ptr as *const u8, size as usize);
 
     sr.bytes.borrow_mut().extend_from_slice(slice);
