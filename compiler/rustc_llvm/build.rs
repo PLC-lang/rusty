@@ -46,12 +46,12 @@ fn detect_llvm_link() -> (&'static str, &'static str) {
 // perfect -- we might actually want to see something from Cargo's added library paths -- but
 // for now it works.
 fn restore_library_path() {
-    let key = tracked_env_var_os("REAL_LIBRARY_PATH_VAR").expect("REAL_LIBRARY_PATH_VAR");
-    if let Some(env) = tracked_env_var_os("REAL_LIBRARY_PATH") {
-        env::set_var(&key, &env);
-    } else {
-        env::remove_var(&key);
-    }
+    // let key = tracked_env_var_os("REAL_LIBRARY_PATH_VAR").expect("REAL_LIBRARY_PATH_VAR");
+    // if let Some(env) = tracked_env_var_os("REAL_LIBRARY_PATH") {
+    //     env::set_var(&key, &env);
+    // } else {
+    //     env::remove_var(&key);
+    // }
 }
 
 /// Reads an environment variable and adds it to dependencies.
@@ -63,12 +63,8 @@ fn tracked_env_var_os<K: AsRef<OsStr> + Display>(key: K) -> Option<OsString> {
 }
 
 fn rerun_if_changed_anything_in_dir(dir: &Path) {
-    let mut stack = dir
-        .read_dir()
-        .unwrap()
-        .map(|e| e.unwrap())
-        .filter(|e| &*e.file_name() != ".git")
-        .collect::<Vec<_>>();
+    let mut stack =
+        dir.read_dir().unwrap().map(|e| e.unwrap()).filter(|e| &*e.file_name() != ".git").collect::<Vec<_>>();
     while let Some(entry) = stack.pop() {
         let path = entry.path();
         if entry.file_type().unwrap().is_dir() {
@@ -114,13 +110,8 @@ fn main() {
     let llvm_config =
         tracked_env_var_os("LLVM_CONFIG").map(|x| Some(PathBuf::from(x))).unwrap_or_else(|| {
             if let Some(dir) = tracked_env_var_os("CARGO_TARGET_DIR").map(PathBuf::from) {
-                let to_test = dir
-                    .parent()
-                    .unwrap()
-                    .parent()
-                    .unwrap()
-                    .join(&target)
-                    .join("llvm/bin/llvm-config");
+                let to_test =
+                    dir.parent().unwrap().parent().unwrap().join(&target).join("llvm/bin/llvm-config");
                 if Command::new(&to_test).output().is_ok() {
                     return Some(to_test);
                 }
@@ -319,11 +310,12 @@ fn main() {
     let llvm_use_libcxx = tracked_env_var_os("LLVM_USE_LIBCXX");
 
     let stdcppname = if target.contains("openbsd") {
-        if target.contains("sparc64") { "estdc++" } else { "c++" }
-    } else if target.contains("darwin")
-        || target.contains("freebsd")
-        || target.contains("windows-gnullvm")
-    {
+        if target.contains("sparc64") {
+            "estdc++"
+        } else {
+            "c++"
+        }
+    } else if target.contains("darwin") || target.contains("freebsd") || target.contains("windows-gnullvm") {
         "c++"
     } else if target.contains("netbsd") && llvm_static_stdcpp.is_some() {
         // NetBSD uses a separate library when relocation is required
