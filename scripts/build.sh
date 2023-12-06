@@ -5,12 +5,12 @@ vendor=0
 offline=0
 check=0
 check_style=0
-build=0
+build=1
 doc=0
 test=0
 coverage=0
 release=0
-debug=0
+debug=1
 container=0
 assume_linux=0
 junit=0
@@ -18,8 +18,7 @@ package=0
 target=""
 
 CONTAINER_NAME='rust-llvm'
-# There may be a better way to set these
-export REAL_LIBRARY_PATH_VAR="/usr/lib/llvm-14/lib"
+# There may be a better way to set these (i.e. in Dockerfile)
 export PATH="$PATH:/usr/lib/llvm-14/bin"
 
 source "${BASH_SOURCE%/*}/common.sh"
@@ -67,6 +66,11 @@ function run_build() {
 	# Run cargo build with release or debug flags
 	echo "Build starting"
 	echo "-----------------------------------"
+# # export REAL_LIBRARY_PATH_VAR="/usr/lib/llvm-14/lib"
+# # export PATH="$PATH:/usr/lib/llvm-14/bin"
+# 	cmd="REAL_LIBRARY_PATH_VAR=/usr/lib/llvm-14/lib PATH=$PATH:/usr/lib/llvm-14/bin cargo build -p rustc_llvm_coverage $CARGO_OPTIONS " 
+# 	eval "$cmd"
+
 	cmd="cargo build $CARGO_OPTIONS " 
 	log "Running $cmd" 
 	eval "$cmd"
@@ -475,8 +479,10 @@ fi
 
 if [[ $build -ne 0 ]]; then
 	run_build
+	# Test a program
+	./target/debug/plc ./examples/simple_program.st
 	#Build the standard functions
-	run_std_build
+	# run_std_build
 fi
 
 if [[ $package -ne 0 ]]; then
