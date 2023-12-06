@@ -21,7 +21,7 @@ plc_source = { path = "./compiler/plc_source" }
 plc_ast = { path = "./compiler/plc_ast" }
 plc_util = { path = "./compiler/plc_util" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics" }
-rustc_llvm = { path = "./compiler/rustc_llvm" }
+rustc_llvm_coverage = { path = "./compiler/rustc_llvm_coverage" }
 logos = "0.12.0"
 thiserror = "1.0"
 clap = { version = "3.0", features = ["derive"] }
@@ -71,6 +71,7 @@ members = [
 	"compiler/plc_xml",
 	"compiler/plc_derive",
 	"compiler/rustc_llvm",
+	"compiler/rustc_llvm_coverage",
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 

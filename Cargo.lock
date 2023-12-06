@@ -2250,6 +2250,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustc_llvm_coverage"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "rustc_llvm",
+]
+
+[[package]]
 name = "rustix"
 version = "0.37.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2304,7 +2312,7 @@ dependencies = [
  "plc_xml",
  "pretty_assertions",
  "regex",
- "rustc_llvm",
+ "rustc_llvm_coverage",
  "serde",
  "serde_json",
  "serial_test",
