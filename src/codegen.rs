@@ -38,6 +38,7 @@ use inkwell::{
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use rustc_llvm_coverage;
 
 mod debug;
 pub(crate) mod generators;
@@ -211,6 +212,9 @@ impl<'ink> CodeGen<'ink> {
 
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
+
+        println!("Done generating POUs");
+        println!("Cov mapping version: {}", rustc_llvm_coverage::mapping_version());
 
         #[cfg(feature = "verify")]
         {
