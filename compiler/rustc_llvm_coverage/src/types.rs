@@ -7,6 +7,24 @@
 // - [`rustc_codegen_llvm/src/coverageinfo/ffi.rs`](https://github.com/rust-lang/rust/blob/56278a6e2824acc96b222e5816bf2d74e85dab93/compiler/rustc_codegen_llvm/src/coverageinfo/ffi.rs#L4)
 // - [`rustc_middle/src/mir/coverage.rs`](https://github.com/rust-lang/rust/blob/56278a6e2824acc96b222e5816bf2d74e85dab93/compiler/rustc_middle/src/mir/coverage.rs#L9)
 //
+
+use std::cell::RefCell;
+
+#[repr(C)]
+pub struct RustString {
+    pub bytes: RefCell<Vec<u8>>,
+}
+
+impl RustString {
+    pub fn len(&self) -> usize {
+        self.bytes.borrow().len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.bytes.borrow().is_empty()
+    }
+}
+
 #[derive(Hash, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct CounterId(u32);
 

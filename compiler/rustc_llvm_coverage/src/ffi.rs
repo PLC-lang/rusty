@@ -6,13 +6,10 @@
 //
 use libc::{c_char, c_uint, c_void, size_t};
 
-use rustc_llvm::RustString;
-
 use super::types::*;
 
 #[repr(C)]
 pub struct Module(c_void);
-
 #[repr(C)]
 pub struct Value(c_void);
 
