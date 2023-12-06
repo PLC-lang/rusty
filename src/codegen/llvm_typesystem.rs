@@ -185,10 +185,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
 
                 cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
             }
-            _ => {
-                self.as_basic_value_enum()
-                // unreachable!("Cannot cast integer value to {}", cast_data.target_type.get_name())
-            }
+            _ => unreachable!("Cannot cast integer value to {}", cast_data.target_type.get_name()),
         }
     }
 }

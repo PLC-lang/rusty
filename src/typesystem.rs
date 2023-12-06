@@ -176,6 +176,10 @@ impl DataType {
         self.get_type_information().is_aggregate()
     }
 
+    pub fn is_string(&self) -> bool {
+        self.get_type_information().is_string()
+    }
+
     pub fn get_nature(&self) -> TypeNature {
         self.nature
     }

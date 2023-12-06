@@ -722,11 +722,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 } else {
                     // by val
                     if !parameter.is_empty_statement() {
-                        if parameter_info.is_some_and(|it| !it.0.is_by_ref()) {
-                            self.generate_argument_by_val2(type_name, parameter)?
-                        } else {
-                            self.generate_argument_by_val(type_name, parameter)?
-                        }
+                        self.generate_argument_by_val(type_name, parameter)?
                     } else if let Some(param) = declared_parameters.get(i) {
                         self.generate_empty_expression(param)?
                     } else {
@@ -763,50 +759,53 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
     }
 
-    fn generate_argument_by_val2(
-        &self,
-        type_name: &str,
-        param_statement: &AstNode,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        Ok(match self.index.find_effective_type_by_name(type_name) {
-            Some(type_info) if type_info.information.is_string() => {
-                self.generate_string_argument(type_info, param_statement)?
-            }
-            Some(type_info) if type_info.is_aggregate_type() && !type_info.is_vla() => {
-                // First attempt, bit-cast the pointer to an array
-                // let res = self.generate_expression(param_statement)?;
-                let deref = self.generate_expression_value(param_statement)?;
-                if deref.get_basic_value_enum().is_pointer_value() {
-                    let ty = self.llvm_index.get_associated_type(type_name)?;
-                    let cast = dbg!(self.llvm.builder.build_bitcast(
-                        deref.get_basic_value_enum(),
-                        ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                        ""
-                    ));
-                    self.llvm.builder.build_load(
-                        cast.into_pointer_value(),
-                        &self.get_load_name(param_statement).unwrap_or_default(),
-                    )
-                } else {
-                    self.generate_expression(param_statement)?
-                }
-            }
-
-            _ => self.generate_expression(param_statement)?,
-        })
-    }
-
     fn generate_argument_by_val(
         &self,
         type_name: &str,
         param_statement: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        Ok(match self.index.find_effective_type_by_name(type_name) {
-            Some(type_info) if type_info.information.is_string() => {
-                self.generate_string_argument(type_info, param_statement)?
+        let Some(type_info) = self.index.find_effective_type_by_name(type_name) else {
+            return self.generate_expression(param_statement);
+        };
+
+        if type_info.is_string() {
+            return self.generate_string_argument(type_info, param_statement);
+        }
+
+        // https://github.com/PLC-lang/rusty/issues/1037:
+        // This if-statement covers the case where we want to convert a pointer into its actual
+        // type, e.g. if an argument is passed into a function A by-ref (INOUT) which in turn is
+        // passed into another function B by-val (INPUT) then the pointer argument in function A has
+        // to be bit-cast into its actual type before passing it into function B.
+        if type_info.is_aggregate_type() && !type_info.is_vla() {
+            let deref = self.generate_expression_value(param_statement)?;
+
+            if deref.get_basic_value_enum().is_pointer_value() {
+                let ty = self.llvm_index.get_associated_type(type_name)?;
+                let cast = self.llvm.builder.build_bitcast(
+                    deref.get_basic_value_enum(),
+                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    "",
+                );
+
+                let load = self.llvm.builder.build_load(
+                    cast.into_pointer_value(),
+                    &self.get_load_name(param_statement).unwrap_or_default(),
+                );
+
+                if let Some(target_ty) = self.annotations.get_type_hint(param_statement, self.index) {
+                    let actual_ty = self.annotations.get_type_or_void(param_statement, self.index);
+                    let annotation = self.annotations.get(param_statement);
+
+                    return Ok(cast_if_needed!(self, target_ty, actual_ty, load, annotation));
+                }
+
+                return Ok(load);
             }
-            _ => self.generate_expression(param_statement)?,
-        })
+        }
+
+        // Fallback
+        self.generate_expression(param_statement)
     }
 
     /// Before passing a string to a function, it is copied to a new string with the
