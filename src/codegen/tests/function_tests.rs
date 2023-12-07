@@ -370,3 +370,36 @@ fn return_variable_in_nested_call() {
     // we want a call passing the return-variable as apointer (actually the adress as a LWORD)
     insta::assert_snapshot!(codegen(src));
 }
+
+#[test]
+fn argument_fed_by_ref_then_by_val() {
+    let result = codegen(
+        "
+        TYPE MyType : ARRAY[1..5] OF DWORD; END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                arr : MyType;
+            END_VAR
+
+            fn_by_ref(arr);
+        END_FUNCTION
+
+        FUNCTION fn_by_ref : DINT
+            VAR_IN_OUT
+                arg_by_ref : MyType;
+            END_VAR
+
+            fn_by_val(arg_by_ref);
+        END_FUNCTION
+
+        FUNCTION fn_by_val : DINT
+            VAR_INPUT
+                arg_by_val : MyType;
+            END_VAR
+        END_FUNCTION
+    ",
+    );
+
+    insta::assert_snapshot!(result)
+}
