@@ -1,13 +1,15 @@
 // use rustc_llvm::RustString;
 
 mod ffi;
-mod types;
+pub mod types;
+
+use types::*;
 
 // use crate::abi::Abi;
 // use crate::llvm;
 // use libc::c_uint;
 
-// use std::ffi::CString;
+use std::ffi::CString;
 
 // /*
 //  * Many of the functions in this file have been adapted from the
@@ -31,15 +33,15 @@ mod types;
 // //     unsafe { llvm::LLVMRustCoverageCreatePGOFuncNameVar(llfn, mangled_fn_name.as_ptr()) }
 // // }
 
-// pub(crate) fn write_filenames_section_to_buffer<'a>(
-//     filenames: impl IntoIterator<Item = &'a CString>,
-//     buffer: &RustString,
-// ) {
-//     let c_str_vec = filenames.into_iter().map(|cstring| cstring.as_ptr()).collect::<Vec<_>>();
-//     unsafe {
-//         llvm::LLVMRustCoverageWriteFilenamesSectionToBuffer(c_str_vec.as_ptr(), c_str_vec.len(), buffer);
-//     }
-// }
+pub fn write_filenames_section_to_buffer<'a>(
+    filenames: impl IntoIterator<Item = &'a CString>,
+    buffer: &RustString,
+) {
+    let c_str_vec = filenames.into_iter().map(|cstring| cstring.as_ptr()).collect::<Vec<_>>();
+    unsafe {
+        ffi::LLVMRustCoverageWriteFilenamesSectionToBuffer(c_str_vec.as_ptr(), c_str_vec.len(), buffer);
+    }
+}
 
 // pub(crate) fn write_mapping_to_buffer(
 //     virtual_file_mapping: Vec<u32>,
@@ -60,14 +62,14 @@ mod types;
 //     }
 // }
 
-// pub(crate) fn hash_str(strval: &str) -> u64 {
-//     let strval = CString::new(strval).expect("null error converting hashable str to C string");
-//     unsafe { llvm::LLVMRustCoverageHashCString(strval.as_ptr()) }
-// }
+pub fn hash_str(strval: &str) -> u64 {
+    let strval = CString::new(strval).expect("null error converting hashable str to C string");
+    unsafe { ffi::LLVMRustCoverageHashCString(strval.as_ptr()) }
+}
 
-// pub(crate) fn hash_bytes(bytes: Vec<u8>) -> u64 {
-//     unsafe { llvm::LLVMRustCoverageHashByteArray(bytes.as_ptr().cast(), bytes.len()) }
-// }
+pub fn hash_bytes(bytes: Vec<u8>) -> u64 {
+    unsafe { ffi::LLVMRustCoverageHashByteArray(bytes.as_ptr().cast(), bytes.len()) }
+}
 
 pub fn mapping_version() -> u32 {
     unsafe { ffi::LLVMRustCoverageMappingVersion() }

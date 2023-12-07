@@ -5,15 +5,25 @@
 // Function interface definitions are taken from [here](https://github.com/rust-lang/rust/blob/84c898d65adf2f39a5a98507f1fe0ce10a2b8dbc/compiler/rustc_codegen_llvm/src/llvm/ffi.rs#L1864).
 //
 use libc::{c_char, c_uint, c_void, size_t};
+use std::slice;
 
 use super::types::*;
 
 #[repr(C)]
 pub struct Module(c_void);
+
 #[repr(C)]
 pub struct Value(c_void);
 
-#[link(name = "llvm-wrapper")]
+/// Appending to a Rust string -- used by RawRustStringOstream.
+#[no_mangle]
+pub unsafe extern "C" fn LLVMRustStringWriteImpl(sr: &RustString, ptr: *const c_char, size: size_t) {
+    let slice = slice::from_raw_parts(ptr as *const u8, size as usize);
+
+    sr.bytes.borrow_mut().extend_from_slice(slice);
+}
+
+#[link(name = "llvm-wrapper", kind = "static")]
 extern "C" {
     #[allow(improper_ctypes)]
     pub fn LLVMRustCoverageWriteFilenamesSectionToBuffer(
