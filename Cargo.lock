@@ -1243,8 +1243,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f4fcb4a4fa0b8f7b4178e24e6317d6f8b95ab500d8e6e1bd4283b6860e369c1"
+source = "git+https://github.com/corbanvilla/inkwell.git?branch=v2.0#3cff0db5e9bd0bb3d16e65e1fc049feced71f220"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -1257,8 +1256,7 @@ dependencies = [
 [[package]]
 name = "inkwell_internals"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b185e7d068d6820411502efa14d8fbf010750485399402156b72dd2a548ef8e9"
+source = "git+https://github.com/corbanvilla/inkwell.git?branch=v2.0#3cff0db5e9bd0bb3d16e65e1fc049feced71f220"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
@@ -2253,7 +2251,9 @@ dependencies = [
 name = "rustc_llvm_coverage"
 version = "0.1.0"
 dependencies = [
+ "inkwell",
  "libc",
+ "llvm-sys",
  "rustc_llvm",
 ]
 
