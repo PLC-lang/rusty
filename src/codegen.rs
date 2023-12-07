@@ -224,7 +224,7 @@ impl<'ink> CodeGen<'ink> {
         let filenames = vec![CString::new("test.c").unwrap()];
         rustc_llvm_coverage::write_filenames_section_to_buffer(&filenames, &rust_string);
         // print buffer
-        println!("Filenames: {:#?}", rust_string.bytes.borrow());
+        // println!("Filenames: {:#?}", rust_string.bytes.borrow());
         // print buffer as hex string
         println!(
             "Filenames: {:#?}",
@@ -236,6 +236,15 @@ impl<'ink> CodeGen<'ink> {
                 .collect::<Vec<String>>()
                 .join("")
         );
+
+        // println!("{:#?}", llvm_index);
+        let prg_func = llvm_index.find_associated_implementation("prg").expect("Unable to get prg");
+        println!("prg: {:#?}", prg_func);
+        let global_func_var = rustc_llvm_coverage::create_pgo_func_name_var(&prg_func);
+        println!("global_func_var: {:#?}", global_func_var);
+
+        let global_vars: Vec<_> = self.module.get_globals().collect();
+        println!("global_vars: {:#?}", global_vars);
 
         #[cfg(feature = "verify")]
         {

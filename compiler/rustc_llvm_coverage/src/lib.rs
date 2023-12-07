@@ -1,37 +1,34 @@
-// use rustc_llvm::RustString;
+/*
+ * Many of the functions in this file have been adapted from the
+ * `rustc` implementation of LLVM code coverage.
+ *
+ * https://github.com/rust-lang/rust/blob/84c898d65adf2f39a5a98507f1fe0ce10a2b8dbc/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs#L220-L221
+ */
 
 mod ffi;
 pub mod types;
 
 use types::*;
 
-// use crate::abi::Abi;
-// use crate::llvm;
-// use libc::c_uint;
-
+use inkwell::values::{AsValueRef, FunctionValue, GlobalValue};
 use std::ffi::CString;
 
-// /*
-//  * Many of the functions in this file have been adapted from the
-//  * `rustc` implementation of LLVM code coverage.
-//  *
-//  * https://github.com/rust-lang/rust/blob/84c898d65adf2f39a5a98507f1fe0ce10a2b8dbc/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs#L220-L221
-//  */
-// /// Calls llvm::createPGOFuncNameVar() with the given function instance's
-// /// mangled function name. The LLVM API returns an llvm::GlobalVariable
-// /// containing the function name, with the specific variable name and linkage
-// /// required by LLVM InstrProf source-based coverage instrumentation. Use
-// /// `bx.get_pgo_func_name_var()` to ensure the variable is only created once per
-// /// `Instance`.
-// // fn create_pgo_func_name_var<'ll, 'tcx>(
-// //     cx: &CodegenCx<'ll, 'tcx>,
-// //     instance: Instance<'tcx>,
-// // ) -> &'ll llvm::Value {
-// //     let mangled_fn_name =
-// //         CString::new(cx.tcx.symbol_name(instance).name).expect("error converting function name to C string");
-// //     let llfn = cx.get_fn(instance);
-// //     unsafe { llvm::LLVMRustCoverageCreatePGOFuncNameVar(llfn, mangled_fn_name.as_ptr()) }
-// // }
+/// Calls llvm::createPGOFuncNameVar() with the given function instance's
+/// mangled function name. The LLVM API returns an llvm::GlobalVariable
+/// containing the function name, with the specific variable name and linkage
+/// required by LLVM InstrProf source-based coverage instrumentation. Use
+/// `bx.get_pgo_func_name_var()` to ensure the variable is only created once per
+/// `Instance`.
+pub fn create_pgo_func_name_var<'ctx>(func: &FunctionValue<'ctx>) -> GlobalValue<'ctx> {
+    // let mangled_fn_name =
+    //     CString::new(cx.tcx.symbol_name(instance).name).expect("error converting function name to C string");
+    let mangled_fn_name = CString::new("asdf_fake_program").unwrap();
+    // let llfn = cx.get_fn(instance);
+    let llvm_val_ref =
+        unsafe { ffi::LLVMRustCoverageCreatePGOFuncNameVar(func.as_value_ref(), mangled_fn_name.as_ptr()) };
+    assert!(!llvm_val_ref.is_null());
+    unsafe { GlobalValue::new(llvm_val_ref) }
+}
 
 pub fn write_filenames_section_to_buffer<'a>(
     filenames: impl IntoIterator<Item = &'a CString>,

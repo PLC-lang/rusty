@@ -8,12 +8,13 @@ use libc::{c_char, c_uint, c_void, size_t};
 use std::slice;
 
 use super::types::*;
+use llvm_sys::prelude::LLVMValueRef;
 
 #[repr(C)]
 pub struct Module(c_void);
 
-#[repr(C)]
-pub struct Value(c_void);
+// #[repr(C)]
+// pub struct Value(c_void);
 
 /// Appending to a Rust string -- used by RawRustStringOstream.
 #[no_mangle]
@@ -43,7 +44,7 @@ extern "C" {
         BufferOut: &RustString,
     );
 
-    pub fn LLVMRustCoverageCreatePGOFuncNameVar(F: &Value, FuncName: *const c_char) -> &Value;
+    pub fn LLVMRustCoverageCreatePGOFuncNameVar(F: LLVMValueRef, FuncName: *const c_char) -> LLVMValueRef;
     pub fn LLVMRustCoverageHashCString(StrVal: *const c_char) -> u64;
     pub fn LLVMRustCoverageHashByteArray(Bytes: *const c_char, NumBytes: size_t) -> u64;
 
