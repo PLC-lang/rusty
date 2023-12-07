@@ -1,35 +1,35 @@
-#![doc(html_root_url = "https://doc.rust-lang.org/nightly/nightly-rustc/")]
+// #![doc(html_root_url = "https://doc.rust-lang.org/nightly/nightly-rustc/")]
 
-// NOTE: This crate only exists to allow linking on mingw targets.
+// // NOTE: This crate only exists to allow linking on mingw targets.
 
-use libc::{c_char, size_t};
-use std::cell::RefCell;
-use std::slice;
+// use libc::{c_char, size_t};
+// use std::cell::RefCell;
+// use std::slice;
 
-// NOTE: Trying to import this RustString will result in a BAD TIME.
-// Use the definition from `rustc_llvm_coverage` instead!
-#[repr(C)]
-pub struct RustString {
-    pub bytes: RefCell<Vec<u8>>,
-}
+// // NOTE: Trying to import this RustString will result in a BAD TIME.
+// // Use the definition from `rustc_llvm_coverage` instead!
+// #[repr(C)]
+// pub struct RustString {
+//     pub bytes: RefCell<Vec<u8>>,
+// }
 
-impl RustString {
-    pub fn len(&self) -> usize {
-        self.bytes.borrow().len()
-    }
+// impl RustString {
+//     pub fn len(&self) -> usize {
+//         self.bytes.borrow().len()
+//     }
 
-    pub fn is_empty(&self) -> bool {
-        self.bytes.borrow().is_empty()
-    }
-}
+//     pub fn is_empty(&self) -> bool {
+//         self.bytes.borrow().is_empty()
+//     }
+// }
 
-/// Appending to a Rust string -- used by RawRustStringOstream.
-#[no_mangle]
-pub unsafe extern "C" fn LLVMRustStringWriteImpl(sr: &RustString, ptr: *const c_char, size: size_t) {
-    let slice = slice::from_raw_parts(ptr as *const u8, size as usize);
+// /// Appending to a Rust string -- used by RawRustStringOstream.
+// #[no_mangle]
+// pub unsafe extern "C" fn LLVMRustStringWriteImpl(sr: &RustString, ptr: *const c_char, size: size_t) {
+//     let slice = slice::from_raw_parts(ptr as *const u8, size as usize);
 
-    sr.bytes.borrow_mut().extend_from_slice(slice);
-}
+//     sr.bytes.borrow_mut().extend_from_slice(slice);
+// }
 
 // /// Initialize targets enabled by the build script via `cfg(llvm_component = "...")`.
 // /// N.B., this function can't be moved to `rustc_codegen_llvm` because of the `cfg`s.
