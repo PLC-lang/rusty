@@ -1338,26 +1338,3 @@ fn invalid_cast_statement_causes_error() {
 
     assert_validation_snapshot!(diagnostics);
 }
-
-#[test]
-fn temp() {
-    let diagnostics = parse_and_validate_buffered(
-        "
-        PROGRAM main
-        VAR
-            val_dint : DINT;
-
-            arr_bool : ARRAY[1..5] OF BOOL := [1 = 1, 2 = 2, 3 = 3, 4 = 4, 5 = 10];
-            arr_dint : ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5 = 5];
-        END_VAR
-
-
-            val_dint = 1;
-            val_dint := 1 = 1;
-        END_PROGRAM
-        ",
-    );
-
-    assert_snapshot!(diagnostics);
-    todo!("Think of some more test cases and update test name");
-}

@@ -524,15 +524,6 @@ fn visit_binary_expression<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     match operator {
-        Operator::Equal => {
-            let hint = context.annotations.get_type_hint(statement, context.index);
-            if !hint.is_some_and(|it| it.is_bool() || it.is_numerical()) {
-                // TODO: It'd be cooler if we could pass the location of the operator here
-                validator.push_diagnostic(Diagnostic::temp(statement.get_location()));
-            }
-
-            validate_binary_expression(validator, statement, operator, left, right, context)
-        }
         Operator::NotEqual => {
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context)
         }
