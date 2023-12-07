@@ -744,6 +744,13 @@ impl Diagnostic {
             err_no: ErrNo::var__invalid_enum_variant,
         }
     }
+
+    pub fn temp(range: SourceLocation) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!("This statement has no effect, did you mean `:=`?"),
+            range: vec![range],
+        }
+    }
 }
 
 // CFC related diagnostics

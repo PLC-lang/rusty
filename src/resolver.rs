@@ -82,85 +82,61 @@ pub struct VisitorContext<'s> {
 
     // what's the current strategy for resolving
     resolve_strategy: Vec<ResolvingScope>,
+
+    enter_if: bool,
 }
 
 impl<'s> VisitorContext<'s> {
     /// returns a copy of the current context and changes the `current_qualifier` to the given qualifier
     fn with_qualifier(&self, qualifier: String) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: Some(qualifier),
-            lhs: self.lhs,
-            constant: false,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-        }
+        let mut ctx = self.clone();
+        ctx.qualifier = Some(qualifier);
+        ctx.constant = false; // TODO:
+        ctx
     }
 
     /// returns a copy of the current context and changes the `current_pou` to the given pou
     fn with_pou(&self, pou: &'s str) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: Some(pou),
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: false,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-        }
+        let mut ctx = self.clone();
+        ctx.pou = Some(pou);
+        ctx.constant = false; // TODO:
+        ctx
     }
 
     /// returns a copy of the current context and changes the `lhs_pou` to the given pou
     fn with_lhs(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: Some(lhs_pou),
-            constant: false,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-        }
+        let mut ctx = self.clone();
+        ctx.lhs = Some(lhs_pou);
+        ctx.constant = false; // TODO:
+        ctx
     }
 
     /// returns a copy of the current context and changes the `is_call` to true
     fn with_const(&self, const_state: bool) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: const_state,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-        }
+        let mut ctx = self.clone();
+        ctx.constant = const_state;
+        ctx
     }
 
     // returns a copy of the current context and sets the in_body field to true
     fn enter_body(&self) -> Self {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: self.constant,
-            in_body: true,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-        }
+        let mut ctx = self.clone();
+        ctx.in_body = true;
+        ctx
+    }
+
+    fn enter_if(&self) -> Self {
+        let mut ctx = self.clone();
+        ctx.enter_if = true;
+        ctx
     }
 
     // returns a copy of the current context and sets the resolve_strategy field to the given strategies
     fn with_resolving_strategy(&self, resolve_strategy: Vec<ResolvingScope>) -> Self {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: self.constant,
-            in_body: true,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy,
-        }
+        let mut ctx = self.clone();
+        ctx.in_body = true;
+        ctx.resolve_strategy = resolve_strategy;
+        ctx
     }
 
     fn is_in_a_body(&self) -> bool {
@@ -762,6 +738,7 @@ impl<'i> TypeAnnotator<'i> {
             in_body: false,
             id_provider,
             resolve_strategy: ResolvingScope::default_scopes(),
+            enter_if: false,
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -1244,54 +1221,56 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, expr);
                 self.inherit_annotations(statement, expr);
             }
-            AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
-                stmt.blocks.iter().for_each(|b| {
-                    self.visit_statement(ctx, b.condition.as_ref());
-                    b.body.iter().for_each(|s| self.visit_statement(ctx, s));
-                });
-                stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
-            }
-            AstStatement::ControlStatement(AstControlStatement::ForLoop(stmt), ..) => {
-                visit_all_statements!(self, ctx, &stmt.counter, &stmt.start, &stmt.end);
-                if let Some(by_step) = &stmt.by_step {
-                    self.visit_statement(ctx, by_step);
-                }
-                //Hint annotate start, end and step with the counter's real type
-                if let Some(type_name) = self
-                    .annotation_map
-                    .get_type(&stmt.counter, self.index)
-                    .map(typesystem::DataType::get_name)
-                {
-                    let annotation = StatementAnnotation::value(type_name);
-                    self.annotation_map.annotate_type_hint(&stmt.start, annotation.clone());
-                    self.annotation_map.annotate_type_hint(&stmt.end, annotation.clone());
-                    if let Some(by_step) = &stmt.by_step {
-                        self.annotation_map.annotate_type_hint(by_step, annotation);
+            AstStatement::ControlStatement(control) => {
+                match control {
+                    AstControlStatement::If(stmt) => {
+                        stmt.blocks.iter().for_each(|b| {
+                            self.visit_statement(&ctx.enter_if(), b.condition.as_ref());
+                            b.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                        });
+                        stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
+                    }
+                    AstControlStatement::ForLoop(stmt) => {
+                        visit_all_statements!(self, ctx, &stmt.counter, &stmt.start, &stmt.end);
+                        if let Some(by_step) = &stmt.by_step {
+                            self.visit_statement(ctx, by_step);
+                        }
+                        //Hint annotate start, end and step with the counter's real type
+                        if let Some(type_name) = self
+                            .annotation_map
+                            .get_type(&stmt.counter, self.index)
+                            .map(typesystem::DataType::get_name)
+                        {
+                            let annotation = StatementAnnotation::value(type_name);
+                            self.annotation_map.annotate_type_hint(&stmt.start, annotation.clone());
+                            self.annotation_map.annotate_type_hint(&stmt.end, annotation.clone());
+                            if let Some(by_step) = &stmt.by_step {
+                                self.annotation_map.annotate_type_hint(by_step, annotation);
+                            }
+                        }
+                        stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                    }
+                    AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
+                        self.visit_statement(&ctx.enter_if(), &stmt.condition);
+                        stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                    }
+                    AstControlStatement::Case(stmt) => {
+                        self.visit_statement(ctx, &stmt.selector);
+                        let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
+                        stmt.case_blocks.iter().for_each(|b| {
+                            self.visit_statement(ctx, b.condition.as_ref());
+                            if let Some(selector_type) = &selector_type {
+                                self.update_expected_types(selector_type, b.condition.as_ref());
+                            }
+                            b.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                        });
+                        stmt.else_block.iter().for_each(|s| self.visit_statement(ctx, s));
                     }
                 }
-                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
-            AstStatement::ControlStatement(AstControlStatement::WhileLoop(stmt), ..)
-            | AstStatement::ControlStatement(AstControlStatement::RepeatLoop(stmt), ..) => {
-                self.visit_statement(ctx, &stmt.condition);
-                stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
-            }
-            AstStatement::ControlStatement(AstControlStatement::Case(stmt), ..) => {
-                self.visit_statement(ctx, &stmt.selector);
-                let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
-                stmt.case_blocks.iter().for_each(|b| {
-                    self.visit_statement(ctx, b.condition.as_ref());
-                    if let Some(selector_type) = &selector_type {
-                        self.update_expected_types(selector_type, b.condition.as_ref());
-                    }
-                    b.body.iter().for_each(|s| self.visit_statement(ctx, s));
-                });
-                stmt.else_block.iter().for_each(|s| self.visit_statement(ctx, s));
-            }
+
             AstStatement::CaseCondition(condition, ..) => self.visit_statement(ctx, condition),
-            _ => {
-                self.visit_statement_expression(ctx, statement);
-            }
+            _ => self.visit_statement_expression(ctx, statement),
         }
     }
 
@@ -1399,7 +1378,11 @@ impl<'i> TypeAnnotator<'i> {
                 };
 
                 if let Some(statement_type) = statement_type {
-                    self.annotate(statement, StatementAnnotation::value(statement_type));
+                    self.annotate(statement, StatementAnnotation::value(statement_type.clone()));
+                    if ctx.enter_if {
+                        self.annotation_map
+                            .annotate_type_hint(statement, StatementAnnotation::value(statement_type))
+                    }
                 }
             }
             AstStatement::UnaryExpression(data, ..) => {
@@ -1435,7 +1418,7 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
             AstStatement::Assignment(data, ..) => {
-                self.visit_statement(ctx, &data.right);
+                self.visit_statement(&ctx.enter_if(), &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), &data.left);
