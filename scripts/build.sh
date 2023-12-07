@@ -480,7 +480,10 @@ fi
 if [[ $build -ne 0 ]]; then
 	run_build
 	# Test a program
+	echo "-----------------------------------"
+	echo "Running on example program:"
 	./target/debug/plc ./examples/simple_program.st
+	echo "-----------------------------------"
 	#Build the standard functions
 	# run_std_build
 fi
