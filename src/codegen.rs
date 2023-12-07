@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
     cell::RefCell,
+    ffi::CString,
     ops::Deref,
     path::{Path, PathBuf},
 };
@@ -215,6 +216,26 @@ impl<'ink> CodeGen<'ink> {
 
         println!("Done generating POUs");
         println!("Cov mapping version: {}", rustc_llvm_coverage::mapping_version());
+        println!("Hash string: {:#?}", rustc_llvm_coverage::hash_str("asdf"));
+        let byte_string: Vec<u8> = vec![0x01, 0x02, 0x03, 0x04];
+        println!("Hash bytes: {:#?}", rustc_llvm_coverage::hash_bytes(byte_string));
+
+        let rust_string = rustc_llvm_coverage::types::RustString { bytes: RefCell::new(Vec::new()) };
+        let filenames = vec![CString::new("test.c").unwrap()];
+        rustc_llvm_coverage::write_filenames_section_to_buffer(&filenames, &rust_string);
+        // print buffer
+        println!("Filenames: {:#?}", rust_string.bytes.borrow());
+        // print buffer as hex string
+        println!(
+            "Filenames: {:#?}",
+            rust_string
+                .bytes
+                .borrow()
+                .iter()
+                .map(|it| format!("{:02x}", it))
+                .collect::<Vec<String>>()
+                .join("")
+        );
 
         #[cfg(feature = "verify")]
         {
