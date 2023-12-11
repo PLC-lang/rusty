@@ -75,15 +75,16 @@ pub struct VisitorContext<'s> {
     /// e.g. true for `a.b.c` if either a,b or c is declared in a constant block
     constant: bool,
 
-    /// true the visitor entered a body (so no declarations)
+    /// true if the visitor entered a body (so no declarations)
     in_body: bool,
+
+    /// true if the visitor entered a control statement
+    in_control: bool,
 
     pub id_provider: IdProvider,
 
     // what's the current strategy for resolving
     resolve_strategy: Vec<ResolvingScope>,
-
-    enter_if: bool,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -125,9 +126,9 @@ impl<'s> VisitorContext<'s> {
         ctx
     }
 
-    fn enter_if(&self) -> Self {
+    fn enter_control(&self) -> Self {
         let mut ctx = self.clone();
-        ctx.enter_if = true;
+        ctx.in_control = true;
         ctx
     }
 
@@ -738,7 +739,7 @@ impl<'i> TypeAnnotator<'i> {
             in_body: false,
             id_provider,
             resolve_strategy: ResolvingScope::default_scopes(),
-            enter_if: false,
+            in_control: false,
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -1225,7 +1226,7 @@ impl<'i> TypeAnnotator<'i> {
                 match control {
                     AstControlStatement::If(stmt) => {
                         stmt.blocks.iter().for_each(|b| {
-                            self.visit_statement(&ctx.enter_if(), b.condition.as_ref());
+                            self.visit_statement(&ctx.enter_control(), b.condition.as_ref());
                             b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                         });
                         stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
@@ -1251,7 +1252,7 @@ impl<'i> TypeAnnotator<'i> {
                         stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
                     }
                     AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-                        self.visit_statement(&ctx.enter_if(), &stmt.condition);
+                        self.visit_statement(&ctx.enter_control(), &stmt.condition);
                         stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
                     }
                     AstControlStatement::Case(stmt) => {
@@ -1379,7 +1380,11 @@ impl<'i> TypeAnnotator<'i> {
 
                 if let Some(statement_type) = statement_type {
                     self.annotate(statement, StatementAnnotation::value(statement_type.clone()));
-                    if ctx.enter_if {
+
+                    // https://github.com/PLC-lang/rusty/issues/939: We rely on type-hints in order
+                    // to identify `=` operations that have no effect (e.g. `foo = bar;`) hence
+                    // type-hint the conditions of control statements to eliminate false-positives.
+                    if ctx.in_control {
                         self.annotation_map
                             .annotate_type_hint(statement, StatementAnnotation::value(statement_type))
                     }
@@ -1418,7 +1423,7 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
             AstStatement::Assignment(data, ..) => {
-                self.visit_statement(&ctx.enter_if(), &data.right);
+                self.visit_statement(&ctx.enter_control(), &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), &data.left);
