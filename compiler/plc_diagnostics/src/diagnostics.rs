@@ -747,7 +747,7 @@ impl Diagnostic {
 
     pub fn assignment_instead_of_equal(range: SourceLocation) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
-            message: format!("This statement has no effect, did you mean to use `:=`?"),
+            message: "This statement has no effect, did you mean to use `:=`?".to_string(),
             range: vec![range],
         }
     }
