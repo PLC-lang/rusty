@@ -92,7 +92,7 @@ impl<'s> VisitorContext<'s> {
     fn with_qualifier(&self, qualifier: String) -> VisitorContext<'s> {
         let mut ctx = self.clone();
         ctx.qualifier = Some(qualifier);
-        ctx.constant = false; // TODO:
+        ctx.constant = false;
         ctx
     }
 
@@ -100,7 +100,7 @@ impl<'s> VisitorContext<'s> {
     fn with_pou(&self, pou: &'s str) -> VisitorContext<'s> {
         let mut ctx = self.clone();
         ctx.pou = Some(pou);
-        ctx.constant = false; // TODO:
+        ctx.constant = false;
         ctx
     }
 
@@ -108,7 +108,7 @@ impl<'s> VisitorContext<'s> {
     fn with_lhs(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
         let mut ctx = self.clone();
         ctx.lhs = Some(lhs_pou);
-        ctx.constant = false; // TODO:
+        ctx.constant = false;
         ctx
     }
 

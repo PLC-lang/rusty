@@ -382,7 +382,7 @@ fn type_initializers_in_structs_are_validated() {
 }
 
 #[test]
-fn temp() {
+fn assignment_suggestion_for_equal_operation_with_no_effect() {
     let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM main
