@@ -380,3 +380,42 @@ fn type_initializers_in_structs_are_validated() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn temp() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                value       : DINT;
+                condition   : BOOL;
+
+                // These Should work
+                arr_dint : ARRAY[0..5] OF DINT := [1 = 1, 2, 3, 4, 5 = 5];
+                arr_bool : ARRAY[1..5] OF BOOL := [1 = 1, 2 = 2, 3 = 3, 4 = 4, 5 = 10];
+            END_VAR
+
+            // These should work
+            value := (condition = TRUE);
+
+            IF   condition = TRUE   THEN (* ... *) END_IF
+            IF  (condition = TRUE)  THEN (* ... *) END_IF
+            IF ((condition = TRUE)) THEN (* ... *) END_IF
+
+            IF   condition = TRUE  AND  condition = TRUE    THEN (* ... *) END_IF
+            IF  (condition = TRUE) AND (condition = TRUE)   THEN (* ... *) END_IF
+            IF ((condition = TRUE) AND (condition = TRUE))  THEN (* ... *) END_IF
+
+            // These should NOT work
+            value = 1;
+            value = condition AND condition;
+            value = condition AND (condition = TRUE);
+
+            IF TRUE THEN value = 1; END_IF
+            WHILE TRUE DO value = 1; END_WHILE
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}

@@ -1,0 +1,41 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+expression: diagnostics
+---
+warning: This statement has no effect, did you mean `:=`?
+   ┌─ <internal>:24:13
+   │
+24 │             value = 1;
+   │             ^^^^^^^^^ This statement has no effect, did you mean `:=`?
+
+warning: This statement has no effect, did you mean `:=`?
+   ┌─ <internal>:25:13
+   │
+25 │             value = condition AND condition;
+   │             ^^^^^^^^^^^^^^^^^ This statement has no effect, did you mean `:=`?
+
+warning: This statement has no effect, did you mean `:=`?
+   ┌─ <internal>:26:13
+   │
+26 │             value = condition AND (condition = TRUE);
+   │             ^^^^^^^^^^^^^^^^^ This statement has no effect, did you mean `:=`?
+
+warning: This statement has no effect, did you mean `:=`?
+   ┌─ <internal>:26:36
+   │
+26 │             value = condition AND (condition = TRUE);
+   │                                    ^^^^^^^^^^^^^^^^ This statement has no effect, did you mean `:=`?
+
+warning: This statement has no effect, did you mean `:=`?
+   ┌─ <internal>:28:26
+   │
+28 │             IF TRUE THEN value = 1; END_IF
+   │                          ^^^^^^^^^ This statement has no effect, did you mean `:=`?
+
+warning: This statement has no effect, did you mean `:=`?
+   ┌─ <internal>:29:27
+   │
+29 │             WHILE TRUE DO value = 1; END_WHILE
+   │                           ^^^^^^^^^ This statement has no effect, did you mean `:=`?
+
+
