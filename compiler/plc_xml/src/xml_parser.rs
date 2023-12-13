@@ -68,12 +68,12 @@ pub(crate) fn visit(content: &str) -> Result<Project, Error> {
 }
 
 pub fn parse_file(
-    source: SourceCode,
+    source: &'static SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
 ) -> CompilationUnit {
-    let (unit, errors) = parse(&source, linkage, id_provider);
+    let (unit, errors) = parse(source, linkage, id_provider);
     //Register the source file with the diagnostician
     diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string());
     diagnostician.handle(&errors);
@@ -81,7 +81,7 @@ pub fn parse_file(
 }
 
 fn parse(
-    source: &SourceCode,
+    source: &'static SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {

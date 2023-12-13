@@ -3,8 +3,8 @@ use crate::{pipelines::ParsedProject, CompileOptions};
 use ast::provider::IdProvider;
 use plc::codegen::{CodegenContext, GeneratedModule};
 use plc_diagnostics::diagnostician::Diagnostician;
-use project::project::Project;
-use source_code::Compilable;
+use project::project::{LibraryInformation, Project};
+use source_code::{Compilable, SourceContainer, SourceMap};
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -28,8 +28,27 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
     let project = Project::new("TestProject".to_string()).with_sources(source);
     let mut diagnostician = Diagnostician::null_diagnostician();
     let id_provider = IdProvider::default();
-    let parsed_project =
-        ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician).unwrap();
+
+    let sm = SourceMap::leaking();
+    for source in project.get_sources() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    for source in project.get_includes() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    let parsed_project = ParsedProject::parse(&project, sm, id_provider.clone(), &mut diagnostician).unwrap();
     let indexed_project = parsed_project.index(id_provider.clone()).unwrap();
     let annotated_project = indexed_project.annotate(id_provider, &diagnostician).unwrap();
     let compile_options = CompileOptions {

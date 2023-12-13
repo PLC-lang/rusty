@@ -5,6 +5,7 @@ use plc_ast::ast::{
 };
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use plc_source::SourceCode;
 use pretty_assertions::assert_eq;
 
 use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
@@ -1339,7 +1340,8 @@ fn a_program_pou_is_indexed() {
             END_ACTION
         END_ACTIONS
     "#;
-    let source_location_factory = SourceLocationFactory::for_source(&src.into());
+    let source = SourceCode::from(src).leak();
+    let source_location_factory = SourceLocationFactory::for_source(source);
 
     // WHEN the code is indexed
     let (_, index) = index(src);

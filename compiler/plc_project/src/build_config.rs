@@ -63,7 +63,7 @@ pub struct ProjectConfig {
 impl ProjectConfig {
     /// Returns a project from the given json-source
     /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
-    pub fn try_parse(source: BuildDescriptionSource) -> Result<Self, Diagnostic> {
+    pub fn try_parse(source: &'static BuildDescriptionSource) -> Result<Self, Diagnostic> {
         let content = source.source.as_str();
         let content = resolve_environment_variables(content)?;
         let config: ProjectConfig = serde_json::from_str(&content).map_err(|err| {
@@ -78,7 +78,7 @@ impl ProjectConfig {
     pub(crate) fn from_file(config: &Path) -> Result<Self, Diagnostic> {
         //read from file
         let content = fs::read_to_string(config)?;
-        let content = BuildDescriptionSource::new(content, config);
+        let content = BuildDescriptionSource::new(content, config).leak();
 
         //convert file to Object
         let project = ProjectConfig::try_parse(content)?;

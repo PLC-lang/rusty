@@ -4,7 +4,7 @@ use ast::provider::IdProvider;
 use plc::DebugLevel;
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::Project;
-use source_code::SourceContainer;
+use source_code::{SourceContainer, SourceMap};
 
 use crate::{pipelines, CompileOptions};
 
@@ -38,6 +38,19 @@ where
     let mut diagnostician = Diagnostician::null_diagnostician();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
+    let sm = SourceMap::leaking();
+    for source in project.get_sources() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    for source in project.get_includes() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
     //Parse
     let id_provider = IdProvider::default();
     let compile_options = CompileOptions {
@@ -46,7 +59,7 @@ where
         optimization: plc::OptimizationLevel::None,
         ..Default::default()
     };
-    pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
+    pipelines::ParsedProject::parse(&project, sm, id_provider.clone(), &mut diagnostician)?
         //Index
         .index(id_provider.clone())?
         //Resolve

@@ -37,7 +37,7 @@ pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
 pub fn parse_file(
-    source: SourceCode,
+    source: &'static SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
@@ -50,7 +50,7 @@ pub fn parse_file(
     );
     //Register the source file with the diagnostician
     //TODO: We should reduce the clone here
-    diagnostician.register_file(source.get_location_str().to_string(), source.source);
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string()); // TODO: .to_string() wrong or rather refactor the register_file, cloning maybe which should be fine since str is just a reference?
     diagnostician.handle(&errors);
     unit
 }

@@ -1,3 +1,6 @@
+pub mod source_location;
+
+use std::collections::HashMap;
 use std::{
     fs::File,
     io::Read,
@@ -7,7 +10,24 @@ use std::{
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 
-pub mod source_location;
+pub struct SourceMap {
+    pub sources: HashMap<String, SourceCode>,
+}
+
+impl SourceMap {
+    pub fn leaking() -> &'static mut SourceMap {
+        Box::leak(Box::new(SourceMap { sources: HashMap::new() }))
+    }
+
+    // pub fn get(&'static mut self, key: &str) -> Option<&'static SourceCode> {
+    //     self.sources.get(key)
+    // }
+    //
+    // pub fn insert(&'static mut self, key: impl Into<String>, value: SourceCode) {
+    //     self.sources.insert(key.into(), value);
+    // }
+}
+
 /// Represents the type of source a SourceContainer holds
 #[derive(Clone, Copy, Debug)]
 pub enum SourceType {
@@ -131,6 +151,10 @@ impl From<String> for SourceCode {
 impl SourceCode {
     pub fn new(source: impl Into<String>, path: impl Into<PathBuf>) -> Self {
         SourceCode { source: source.into(), path: Some(path.into()) }
+    }
+
+    pub fn leak(self) -> &'static mut Self {
+        Box::leak(Box::new(self))
     }
 }
 

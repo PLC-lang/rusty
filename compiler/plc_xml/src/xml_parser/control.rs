@@ -98,6 +98,7 @@ fn transform_return(
 mod tests {
     use ast::provider::IdProvider;
     use insta::assert_debug_snapshot;
+    use plc_source::SourceCode;
 
     use crate::serializer::{SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn};
     use crate::{
@@ -174,8 +175,10 @@ mod tests {
             ])
             .serialize();
 
+        let content = SourceCode::from(content).leak();
+
         let (ast, diagnostics) =
-            xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
+            xml_parser::parse(content, ast::ast::LinkageType::Internal, IdProvider::default());
         assert_debug_snapshot!(ast);
         assert!(diagnostics.is_empty());
     }
@@ -202,8 +205,10 @@ mod tests {
             ])
             .serialize();
 
+        let content = SourceCode::from(content).leak();
+
         let (ast, diagnostics) =
-            xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
+            xml_parser::parse(content, ast::ast::LinkageType::Internal, IdProvider::default());
         assert_debug_snapshot!(ast);
         assert!(diagnostics.is_empty());
     }
@@ -221,8 +226,10 @@ mod tests {
             ])
             .serialize();
 
+        let content = SourceCode::from(content).leak();
+
         let (ast, diagnostics) =
-            xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
+            xml_parser::parse(content, ast::ast::LinkageType::Internal, IdProvider::default());
         assert_debug_snapshot!(ast);
         assert_debug_snapshot!(diagnostics);
     }
@@ -239,8 +246,10 @@ mod tests {
             ])
             .serialize();
 
+        let content = SourceCode::from(content).leak();
+
         let (ast, diagnostics) =
-            xml_parser::parse(&content.into(), ast::ast::LinkageType::Internal, IdProvider::default());
+            xml_parser::parse(content, ast::ast::LinkageType::Internal, IdProvider::default());
         assert_debug_snapshot!(ast);
         assert_debug_snapshot!(diagnostics);
     }

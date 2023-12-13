@@ -25,7 +25,7 @@ use plc::{
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use source_code::SourceContainer;
+use source_code::{SourceContainer, SourceMap};
 
 pub mod cli;
 pub mod pipelines;
@@ -159,17 +159,32 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::info!("{err}")
     }
 
+    let sm = SourceMap::leaking();
+    for source in project.get_sources() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(compile_parameters.encoding).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    for source in project.get_includes() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(compile_parameters.encoding).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(compile_parameters.encoding).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
     // 1 : Parse
-    let annotated_project = pipelines::ParsedProject::parse(
-        &project,
-        compile_parameters.encoding,
-        id_provider.clone(),
-        &mut diagnostician,
-    )?
-    // 2 : Index
-    .index(id_provider.clone())?
-    // 3 : Resolve
-    .annotate(id_provider, &diagnostician)?;
+    let annotated_project =
+        pipelines::ParsedProject::parse(&project, sm, id_provider.clone(), &mut diagnostician)?
+            // 2 : Index
+            .index(id_provider.clone())?
+            // 3 : Resolve
+            .annotate(id_provider, &diagnostician)?;
     // 4 : Validate
     annotated_project.validate(&mut diagnostician)?;
     // 5 : Codegen
@@ -206,7 +221,27 @@ pub fn parse_and_annotate<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let id_provider = IdProvider::default();
     let mut diagnostician = Diagnostician::default();
-    pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
+
+    let sm = SourceMap::leaking();
+    for source in project.get_sources() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    for source in project.get_includes() {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
+        let file_path = source.get_location_str();
+        let file_content = source.load_source(None).unwrap();
+        sm.sources.insert(file_path.to_string(), file_content);
+    }
+
+    pipelines::ParsedProject::parse(&project, sm, id_provider.clone(), &mut diagnostician)?
         // Create an index, add builtins
         .index(id_provider.clone())?
         // Resolve

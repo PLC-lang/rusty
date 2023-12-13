@@ -73,8 +73,9 @@ fn calling_external_file_function_without_including_file_results_in_error() {
     ",
         "external_file.st",
     );
+
     //External file is not included
-    let source_location_factory = SourceLocationFactory::for_source(&prog);
+    let source_location_factory = SourceLocationFactory::for_source(prog.clone().leak());
     let res = compile_to_string(vec![prog], vec![], None, DebugLevel::None);
 
     if let Err(msg) = res {

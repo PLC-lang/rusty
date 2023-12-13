@@ -22,7 +22,7 @@ pub mod tests {
         DebugLevel, Validator,
     };
 
-    pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
+    pub fn parse(src: &'static str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
             lexer::lex_with_ids(src, IdProvider::default(), SourceLocationFactory::internal(src)),
             LinkageType::Internal,
@@ -30,7 +30,7 @@ pub mod tests {
         )
     }
 
-    pub fn parse_buffered(src: &str) -> (CompilationUnit, String) {
+    pub fn parse_buffered(src: &'static str) -> (CompilationUnit, String) {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let (unit, diagnostics) = parse(src);
@@ -38,7 +38,7 @@ pub mod tests {
         (unit, reporter.buffer().unwrap_or_default())
     }
 
-    pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, String) {
+    pub fn parse_and_preprocess(src: &'static str) -> (CompilationUnit, String) {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let id_provider = IdProvider::default();
@@ -57,9 +57,7 @@ pub mod tests {
         src: T,
         id_provider: IdProvider,
     ) -> (CompilationUnit, Index, Vec<Diagnostic>) {
-        let source = src.into();
-        let source_str = &source.source;
-        let source_path = source.get_location_str();
+        let code = src.into().leak();
         let mut index = Index::default();
         //Import builtins
         let builtins = builtins::parse_built_ins(id_provider.clone());
@@ -70,11 +68,11 @@ pub mod tests {
             index.register_type(data_type);
         }
 
-        let range_factory = SourceLocationFactory::for_source(&source);
+        let range_factory = SourceLocationFactory::for_source(code);
         let (mut unit, diagnostics) = parser::parse(
-            lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
+            lexer::lex_with_ids(&code.source, id_provider.clone(), range_factory),
             LinkageType::Internal,
-            source_path,
+            code.get_location_str(),
         );
 
         pre_process(&mut unit, id_provider);

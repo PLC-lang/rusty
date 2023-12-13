@@ -10,7 +10,6 @@ use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
-use encoding_rs::Encoding;
 use indexmap::IndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -31,7 +30,7 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
-use source_code::{source_location::SourceLocation, SourceContainer};
+use source_code::{source_location::SourceLocation, SourceContainer, SourceMap};
 
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
@@ -43,7 +42,7 @@ impl ParsedProject {
     /// Reports parsing diagnostics such as Syntax error on the fly
     pub fn parse<T: SourceContainer>(
         project: &Project<T>,
-        encoding: Option<&'static Encoding>,
+        source_map: &'static mut SourceMap,
         id_provider: IdProvider,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
@@ -55,49 +54,36 @@ impl ParsedProject {
             .get_sources()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
-
+                let loaded_source = source_map.sources.get(it.get_location_str()).unwrap();
                 let parse_func = match loaded_source.get_type() {
                     source_code::SourceType::Text => parse_file,
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
+
                 Ok(parse_func(loaded_source, LinkageType::Internal, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(sources);
+
         //Parse the includes
         let includes = project
             .get_includes()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
+                let loaded_source = source_map.sources.get(it.get_location_str()).unwrap();
                 Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
+
         //For each lib, parse the includes
         let lib_includes = project
             .get_libraries()
             .iter()
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
+                let loaded_source = source_map.sources.get(it.get_location_str()).unwrap();
                 Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;

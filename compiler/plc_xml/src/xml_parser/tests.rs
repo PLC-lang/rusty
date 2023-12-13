@@ -15,8 +15,8 @@ use crate::serializer::{
 use crate::{model::project::Project, xml_parser};
 
 fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
-    let source_code = SourceCode::new(content, "test.cfc");
-    xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default())
+    let source_code = SourceCode::new(content, "test.cfc").leak();
+    xml_parser::parse(source_code, LinkageType::Internal, IdProvider::default())
 }
 
 fn visit(content: &str) -> Result<Project, crate::error::Error> {
@@ -25,7 +25,8 @@ fn visit(content: &str) -> Result<Project, crate::error::Error> {
 
 fn visit_and_desugar(content: &str) -> Result<Project, Vec<Diagnostic>> {
     let Ok(mut project) = visit(content) else { unreachable!() };
-    let source_location_factory = SourceLocationFactory::for_source(&content.create_source("test"));
+    let source = content.create_source("test").leak();
+    let source_location_factory = SourceLocationFactory::for_source(source);
     project.desugar(&source_location_factory)?;
     Ok(project)
 }
@@ -319,8 +320,8 @@ fn ast_generates_locations() {
         &SInVariable::id(5).with_expression("1"),
     ]);
 
-    let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc");
-    let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
+    let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc").leak();
+    let (units, diagnostics) = xml_parser::parse(source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
     let AstStatement::Assignment(Assignment { left, right, .. }) = &impl1.statements[0].get_stmt() else {
@@ -351,8 +352,8 @@ fn ast_generates_locations() {
 
 #[test]
 fn actions_generated_correctly() {
-    let source = SourceCode::new(content::ACTION_TEST, "<internal>.cfc");
-    let (units, diagnostics) = xml_parser::parse(&source, LinkageType::Internal, IdProvider::default());
+    let source = SourceCode::new(content::ACTION_TEST, "<internal>.cfc").leak();
+    let (units, diagnostics) = xml_parser::parse(source, LinkageType::Internal, IdProvider::default());
 
     assert_debug_snapshot!(units.implementations);
     assert!(diagnostics.is_empty());
@@ -366,8 +367,8 @@ fn ast_diagnostic_locations() {
         &SOutVariable::id(2).with_execution_id(0).with_expression("a").connect(1), // "a" isn't declared anywhere, hence the error
     ]);
 
-    let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc");
-    let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
+    let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc").leak();
+    let (units, diagnostics) = xml_parser::parse(source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     assert_debug_snapshot!(impl1);
     assert!(diagnostics.is_empty());

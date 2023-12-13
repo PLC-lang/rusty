@@ -2,10 +2,8 @@ use std::{error::Error, fmt::Display, ops::Range};
 
 use plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
 
-use plc_source::{
-    source_location::{SourceLocation, SourceLocationFactory},
-    BuildDescriptionSource,
-};
+use plc_source::source_location::SourceLocationFactory;
+use plc_source::{source_location::SourceLocation, BuildDescriptionSource};
 
 use crate::errno::ErrNo;
 
@@ -830,7 +828,7 @@ impl From<serde_json::Error> for SerdeError {
 }
 
 impl SerdeError {
-    pub fn into_diagnostic(self, src: &BuildDescriptionSource) -> Diagnostic {
+    pub fn into_diagnostic(self, src: &'static BuildDescriptionSource) -> Diagnostic {
         let factory = SourceLocationFactory::for_source(src);
         let range = factory.create_range_to_end_of_line(self.line, self.column);
 

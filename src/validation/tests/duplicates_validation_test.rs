@@ -341,7 +341,7 @@ fn automatically_generated_output_types_dont_cause_duplication_issues() {
 fn automatically_generated_output_types_in_different_files_dont_cause_duplication_issues() {
     // a version of the test-util function that does not import the built-in and std-types
     // (or they will cause a duplication issue)
-    fn do_index(src: &str, id_provider: IdProvider) -> Index {
+    fn do_index(src: &'static str, id_provider: IdProvider) -> Index {
         let mut index = Index::default();
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
@@ -396,7 +396,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
 fn duplicate_with_generic() {
     // a version of the test-util function that does not import the built-in and std-types
     // (or they will cause a duplication issue)
-    fn do_index(src: &str, id_provider: IdProvider, file_name: &str) -> (Index, CompilationUnit) {
+    fn do_index(src: &'static str, id_provider: IdProvider, file_name: &str) -> (Index, CompilationUnit) {
         let mut index = Index::default();
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
