@@ -13,6 +13,7 @@ pub mod types;
 use types::*;
 
 use inkwell::values::{AsValueRef, FunctionValue, GlobalValue};
+
 use std::ffi::CString;
 use libc::c_uint;
 
@@ -77,7 +78,7 @@ pub fn mapping_version() -> u32 {
 
 pub fn save_cov_data_to_mod<'ctx>(func: &FunctionValue<'ctx>, cov_data_val:  &GlobalValue<'ctx>) {
     //global_value
-    let covmap_var_name = GlobalValue::build_string(|s: &RustString| unsafe {
+    let covmap_var_nam = GlobalValue::build_string(s |  unsafe {
         ffi::LLVMRustCoverageWriteMappingVarNameToString(s);
     });
     //.expect("Rust Coverage Mapping var name failed UTF-8 conversion");

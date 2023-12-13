@@ -77,7 +77,7 @@ default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
 #inkwell = { git = "https://github.com/corbanvilla/inkwell.git", branch = "v2.0", version = "0.2", features = ["llvm14-0"] }
-inkwell = { git = "https://github.com/HaithemLamri/inkwell.git", branch = "master", features = ["llvm14-0"] }
+inkwell = { git = "https://github.com/HaithemLamri/inkwell.git", branch = "master", version = "0.2", default-features = false, features = ["llvm14-0"] }
 
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
