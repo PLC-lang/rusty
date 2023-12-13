@@ -39,7 +39,7 @@ use inkwell::{
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use rustc_llvm_coverage;
+use rustc_llvm_coverage::{self, types::{CounterExpression, CounterMappingRegion}};
 
 mod debug;
 pub(crate) mod generators;
@@ -47,6 +47,9 @@ mod llvm_index;
 mod llvm_typesystem;
 #[cfg(test)]
 mod tests;
+use types::*;
+use rustc_llvm_coverage::*;
+
 
 /// A wrapper around the LLVM context to allow passing it without exposing the inkwell dependencies
 pub struct CodegenContext(Context);
@@ -237,15 +240,47 @@ impl<'ink> CodeGen<'ink> {
                 .join("")
         );
 
-        // println!("{:#?}", llvm_index);
-        let prg_func = llvm_index.find_associated_implementation("prg").expect("Unable to get prg");
+        println!("{:#?}", llvm_index);
+        let prg_func: inkwell::values::FunctionValue<'_> = llvm_index.find_associated_implementation("prg").expect("Unable to get prg");
         println!("prg: {:#?}", prg_func);
         let global_func_var = rustc_llvm_coverage::create_pgo_func_name_var(&prg_func);
         println!("global_func_var: {:#?}", global_func_var);
-
+        
         let global_vars: Vec<_> = self.module.get_globals().collect();
         println!("global_vars: {:#?}", global_vars);
-
+        //create write_mapping_to_buffer params
+        //virtual_file_mapping
+        let virtual_file_mapping : Vec<u32> = vec![0x0] ;
+       
+        let counter1 = Counter::counter_value_reference(CounterId::new(1));
+        let counter2 = Counter::expression(ExpressionId::new(2));
+        let counter3 = Counter::counter_value_reference(CounterId::new(3));
+    
+        // Creating a vector of CounterExpression instances
+        let expressions: Vec<CounterExpression> = vec![
+            CounterExpression::new(counter1, ExprKind::Add, counter2),
+            CounterExpression::new(counter2, ExprKind::Subtract, counter3),
+            // Add more CounterExpression instances as needed
+        ];
+       //mapping_regions
+        let mapping_regions : Vec<CounterMappingRegion> = vec![CounterMappingRegion::code_region(counter1,0,0,0,3,10),
+        CounterMappingRegion::code_region(counter3,0,4,0,9,10)
+        ];
+       //buffer
+        let buffer = rustc_llvm_coverage::types::RustString { bytes: RefCell::new(Vec::new()) };
+        write_mapping_to_buffer(virtual_file_mapping, expressions, mapping_regions, &buffer);
+        //print the buffer 
+        //print the buffer 
+        println!(
+            "Buffer: {:#?}",
+            buffer
+                .bytes
+                .borrow()
+                .iter()
+                .map(|it| format!("{:02x}", it))
+                .collect::<Vec<String>>()
+                .join("")
+        );
         #[cfg(feature = "verify")]
         {
             self.module

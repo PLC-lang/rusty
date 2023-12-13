@@ -139,7 +139,7 @@ pub struct CounterMappingRegion {
 }
 
 impl CounterMappingRegion {
-    pub(crate) fn code_region(
+    pub fn code_region(
         counter: Counter,
         file_id: u32,
         start_line: u32,
@@ -294,7 +294,7 @@ impl Counter {
     }
 
     /// Constructs a new `Counter` of kind `Expression`.
-    pub(crate) fn expression(expression_id: ExpressionId) -> Self {
+    pub fn expression(expression_id: ExpressionId) -> Self {
         Self { kind: CounterKind::Expression, id: expression_id.as_u32() }
     }
 }

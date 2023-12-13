@@ -58,4 +58,7 @@ extern "C" {
     pub fn LLVMRustCoverageWriteMappingVarNameToString(Str: &RustString);
 
     pub fn LLVMRustCoverageMappingVersion() -> u32;
+
+   
+    
 }

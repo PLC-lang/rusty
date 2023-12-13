@@ -5,6 +5,8 @@
  * https://github.com/rust-lang/rust/blob/84c898d65adf2f39a5a98507f1fe0ce10a2b8dbc/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs#L220-L221
  */
 
+const VAR_ALIGN_BYTES: u32 = 8;
+
 mod ffi;
 pub mod types;
 
@@ -12,6 +14,11 @@ use types::*;
 
 use inkwell::values::{AsValueRef, FunctionValue, GlobalValue};
 use std::ffi::CString;
+use libc::c_uint;
+
+use inkwell::module::Module;
+
+
 
 /// Calls llvm::createPGOFuncNameVar() with the given function instance's
 /// mangled function name. The LLVM API returns an llvm::GlobalVariable
@@ -35,25 +42,25 @@ pub fn write_filenames_section_to_buffer<'a>(
         ffi::LLVMRustCoverageWriteFilenamesSectionToBuffer(c_str_vec.as_ptr(), c_str_vec.len(), buffer);
     }
 }
-
-// pub(crate) fn write_mapping_to_buffer(
-//     virtual_file_mapping: Vec<u32>,
-//     expressions: Vec<CounterExpression>,
-//     mapping_regions: Vec<CounterMappingRegion>,
-//     buffer: &RustString,
-// ) {
-//     unsafe {
-//         llvm::LLVMRustCoverageWriteMappingToBuffer(
-//             virtual_file_mapping.as_ptr(),
-//             virtual_file_mapping.len() as c_uint,
-//             expressions.as_ptr(),
-//             expressions.len() as c_uint,
-//             mapping_regions.as_ptr(),
-//             mapping_regions.len() as c_uint,
-//             buffer,
-//         );
-//     }
-// }
+//create params , call fucntion in codegen, print the buffer
+pub fn write_mapping_to_buffer(
+    virtual_file_mapping: Vec<u32>,
+    expressions: Vec<CounterExpression>,
+    mapping_regions: Vec<CounterMappingRegion>,
+    buffer: &RustString,
+) {
+    unsafe {
+        ffi::LLVMRustCoverageWriteMappingToBuffer(
+            virtual_file_mapping.as_ptr(),
+            virtual_file_mapping.len() as c_uint,
+            expressions.as_ptr(),
+            expressions.len() as c_uint,
+            mapping_regions.as_ptr(),
+            mapping_regions.len() as c_uint,
+            buffer,
+        );
+    }
+}
 
 pub fn hash_str(strval: &str) -> u64 {
     let strval = CString::new(strval).expect("null error converting hashable str to C string");
@@ -68,27 +75,33 @@ pub fn mapping_version() -> u32 {
     unsafe { ffi::LLVMRustCoverageMappingVersion() }
 }
 
-// pub(crate) fn save_cov_data_to_mod<'ll, 'tcx>(cx: &CodegenCx<'ll, 'tcx>, cov_data_val: &'ll llvm::Value) {
-//     let covmap_var_name = llvm::build_string(|s| unsafe {
-//         llvm::LLVMRustCoverageWriteMappingVarNameToString(s);
-//     })
-//     .expect("Rust Coverage Mapping var name failed UTF-8 conversion");
-//     debug!("covmap var name: {:?}", covmap_var_name);
+pub fn save_cov_data_to_mod<'ctx>(func: &FunctionValue<'ctx>, cov_data_val:  &GlobalValue<'ctx>) {
+    //global_value
+    let covmap_var_name = GlobalValue::build_string(|s: &RustString| unsafe {
+        ffi::LLVMRustCoverageWriteMappingVarNameToString(s);
+    });
+    //.expect("Rust Coverage Mapping var name failed UTF-8 conversion");
+    //debug!("covmap var name: {:?}", covmap_var_name);
+    //build_string not found 
+    // let covmap_section_name = 
+        
+    //     GlobalValue::build_string(|s : &RustString| unsafe {
+    //     ffi::LLVMRustCoverageWriteMapSectionNameToString(func, s);
+    // }) ;
 
-//     let covmap_section_name = llvm::build_string(|s| unsafe {
-//         llvm::LLVMRustCoverageWriteMapSectionNameToString(cx.llmod, s);
-//     })
-//     .expect("Rust Coverage section name failed UTF-8 conversion");
-//     debug!("covmap section name: {:?}", covmap_section_name);
-
-//     let llglobal = llvm::add_global(cx.llmod, cx.val_ty(cov_data_val), &covmap_var_name);
-//     llvm::set_initializer(llglobal, cov_data_val);
-//     llvm::set_global_constant(llglobal, true);
-//     llvm::set_linkage(llglobal, llvm::Linkage::PrivateLinkage);
-//     llvm::set_section(llglobal, &covmap_section_name);
-//     llvm::set_alignment(llglobal, VAR_ALIGN_BYTES);
-//     cx.add_used_global(llglobal);
-// }
+    // //.expect("Rust Coverage section name failed UTF-8 conversion");
+    // //debug!("covmap section name: {:?}", covmap_section_name);
+    // // add_global not found in inkwell global value and func.llmod doesn't exist in func
+    // 
+    // let llglobal = Module::add_global(func, func.val_ty(cov_data_val), &covmap_var_name);
+    // GlobalValue::set_initializer(llglobal, cov_data_val);
+    // //set_global_cst not found in inkwell global value
+    // GlobalValue::set_constant(llglobal, true);
+    // GlobalValue::set_linkage(llglobal, GlobalValue::Linkage::PrivateLinkage);
+    // GlobalValue::set_section(llglobal, Some(&covmap_section_name));
+    // GlobalValue::set_alignment(llglobal, VAR_ALIGN_BYTES);
+    //func.add_used_global(llglobal);
+}
 
 // pub(crate) fn save_func_record_to_mod<'ll, 'tcx>(
 //     cx: &CodegenCx<'ll, 'tcx>,
