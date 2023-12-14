@@ -42,7 +42,7 @@ pub fn parse_file(
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
 ) -> CompilationUnit {
-    let location_factory = SourceLocationFactory::for_source(&source);
+    let location_factory = SourceLocationFactory::for_source(source);
     let (unit, errors) = parse(
         lexer::lex_with_ids(&source.source, id_provider, location_factory),
         linkage,

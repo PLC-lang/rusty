@@ -16,8 +16,10 @@ impl Task for Lexer {
 
     fn execute(&self) -> anyhow::Result<std::time::Duration> {
         let content = std::fs::read_to_string(format!("./xtask/res/{}", self.0)).unwrap();
+        let content = Box::leak(Box::new(content));
+
         let mut lexer =
-            lexer::lex_with_ids(&content, IdProvider::default(), SourceLocationFactory::internal(&content));
+            lexer::lex_with_ids(content, IdProvider::default(), SourceLocationFactory::internal(content));
 
         let now = Instant::now();
         while !lexer.is_end_of_stream() {

@@ -928,7 +928,7 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
     let src = Box::leak(Box::new(src)); // TODO: Ugly
 
     let mut unit = parser::parse(
-        lexer::lex_with_ids(&src, id_provider.clone(), SourceLocationFactory::internal(src)),
+        lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
         LinkageType::BuiltIn,
         "<builtin>",
     )

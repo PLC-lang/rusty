@@ -68,7 +68,7 @@ impl ProjectConfig {
         let content = resolve_environment_variables(content)?;
         let config: ProjectConfig = serde_json::from_str(&content).map_err(|err| {
             let err = SerdeError::from(err);
-            err.into_diagnostic(&source)
+            err.into_diagnostic(source)
         })?;
         config.validate()?;
 
