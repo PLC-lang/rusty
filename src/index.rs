@@ -726,6 +726,13 @@ impl PouIndexEntry {
         }
     }
 
+    pub fn get_generic_bindings(&self) -> Option<&Vec<GenericBinding>> {
+        match self {
+            PouIndexEntry::Function { generics, .. } => Some(generics),
+            _ => None,
+        }
+    }
+
     fn is_auto_generated_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { is_generated: true, .. })
     }

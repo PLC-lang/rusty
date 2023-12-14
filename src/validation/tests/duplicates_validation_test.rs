@@ -484,6 +484,30 @@ fn duplicate_with_generic() {
     assert_eq!(diagnostics, vec![]);
 }
 
+#[test]
+fn generics_with_duplicate_symbol_name_but_differing_generic_natures_dont_err() {
+    // GIVEN a builtin function with the signature
+    // FUNCTION ADD<T: ANY_NUM> : T
+    // VAR_INPUT
+    //     args: {sized} T...;
+    // END_VAR
+    // END_FUNCTION
+    // WHEN it is indexed and validated with another function with the same name but different generic bindings
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION ADD < T1: ANY, T2: ANY >: T1
+            VAR_INPUT
+                IN1: T1;
+                IN2: T2;
+            END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
 // #[test]
 // fn duplicate_with_generic_ir() {
 //     // GIVEN several files with calls to a generic function

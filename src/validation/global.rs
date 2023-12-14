@@ -153,22 +153,39 @@ impl GlobalValidator {
                     .unwrap_or(false)
             })
             .map(|it| (it.get_name(), &it.source_location));
-        let all_prgs_and_funcs = index
+        let all_prgs = index
             .get_pous()
             .values()
             .filter(|p| {
                 matches!(
                     p,
                     PouIndexEntry::Program { .. }
-                        | PouIndexEntry::Function { .. }
                         | PouIndexEntry::Method { .. }
                         | PouIndexEntry::Action { .. }
                 )
             })
             .map(|it| (it.get_name(), it.get_location()));
 
+        let mut map = std::collections::HashMap::new();
+        let all_funcs = index
+            .get_pous()
+            .values()
+            .filter(|p| p.is_function())
+            .filter(|it| {
+                it.get_generic_bindings()
+                    .map(|binding| {
+                        if let Some(duplicate_bindings) = map.insert(it.get_name(), binding) {
+                            duplicate_bindings == binding
+                        } else {
+                            true
+                        }
+                    })
+                    .unwrap_or(true)
+            })
+            .map(|it| (it.get_name(), it.get_location()));
+
         self.check_uniqueness_of_cluster(
-            all_fb_instances.chain(all_prgs_and_funcs),
+            all_fb_instances.chain(all_prgs).chain(all_funcs),
             Some("Ambiguous callable symbol."),
         );
     }
@@ -185,6 +202,13 @@ impl GlobalValidator {
             .get_pous()
             .entries()
             .filter(|(_, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() > 1)
+            .filter(|(_, v)| {
+                v[0].get_generic_bindings()
+                    .map(|bindings| {
+                        v.iter().filter_map(|it| it.get_generic_bindings()).all(|it| bindings == it)
+                    })
+                    .unwrap_or(true)
+            })
             .map(|(name, pous)| {
                 (name.as_str(), pous.iter().filter(only_toplevel_pous).map(|p| p.get_location()))
             });
