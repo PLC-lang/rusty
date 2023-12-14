@@ -159,6 +159,7 @@ mod tests {
     use crate::build_config::default_targets;
     use insta::assert_snapshot;
     use plc::output::FormatOption;
+    use source_code::SourceCode;
 
     use super::LibraryConfig;
     use super::{LinkageInfo, ProjectConfig};
@@ -333,7 +334,8 @@ mod tests {
             version: None,
             format_version: None,
         };
-        let proj = ProjectConfig::try_parse(SIMPLE_PROGRAM.into()).unwrap();
+        let code = SourceCode::from(SIMPLE_PROGRAM).leak();
+        let proj = ProjectConfig::try_parse(code).unwrap();
 
         assert_eq!(test_project.name, proj.name);
         assert_eq!(test_project.files, proj.files);
@@ -356,7 +358,8 @@ mod tests {
         //Add env
         env::set_var("test_var", "test_value");
         let proj = ProjectConfig::try_parse(
-            r#"
+            SourceCode::from(
+                r#"
             {
                 "name" : "$test_var",
                 "files" : [
@@ -365,8 +368,9 @@ mod tests {
                 "compile_type" : "Shared",
                 "output": "proj.so"
             }
-        "#
-            .into(),
+        "#,
+            )
+            .leak(),
         )
         .unwrap();
 
@@ -375,14 +379,16 @@ mod tests {
 
     #[test]
     fn valid_json_validates_without_errors() {
-        let cfg = ProjectConfig::try_parse(SIMPLE_PROGRAM.into());
+        let code = SourceCode::from(SIMPLE_PROGRAM).leak();
+        let cfg = ProjectConfig::try_parse(code);
 
         assert!(cfg.is_ok())
     }
 
     #[test]
     fn json_with_additional_fields_reports_unexpected_fields() {
-        let Err(diag) = ProjectConfig::try_parse(ADDITIONAL_UNKNOWN_PROPERTIES.into()) else {
+        let code = SourceCode::from(ADDITIONAL_UNKNOWN_PROPERTIES).leak();
+        let Err(diag) = ProjectConfig::try_parse(code) else {
             panic!("expected errors")
         };
 
@@ -391,7 +397,8 @@ mod tests {
 
     #[test]
     fn json_with_invalid_enum_variants_reports_error() {
-        let Err(diag) = ProjectConfig::try_parse(INVALID_ENUM_VARIANTS.into()) else {
+        let code = SourceCode::from(INVALID_ENUM_VARIANTS).leak();
+        let Err(diag) = ProjectConfig::try_parse(code) else {
             panic!("expected errors")
         };
 
@@ -402,13 +409,15 @@ mod tests {
     fn json_with_missing_required_properties_reports_error() {
         // missing name and compile_type
         //XXX: only the first error found is reported by both serde and jsonschema
-        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_PROPERTIES.into()) else {
+        let code = SourceCode::from(MISSING_REQUIRED_PROPERTIES).leak();
+        let Err(diag) = ProjectConfig::try_parse(code) else {
             panic!("expected errors")
         };
         assert_snapshot!(diag.to_string());
 
         // missing library path
-        let Err(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_LIBRARY_PROPERTIES.into()) else {
+        let code = SourceCode::from(MISSING_REQUIRED_LIBRARY_PROPERTIES).leak();
+        let Err(diag) = ProjectConfig::try_parse(code) else {
             panic!("expected errors")
         };
         assert_snapshot!(diag.to_string())
@@ -416,7 +425,8 @@ mod tests {
 
     #[test]
     fn json_with_empty_files_array_reports_error() {
-        let Err(diag) = ProjectConfig::try_parse(NO_FILES_SPECIFIED.into()) else {
+        let code = SourceCode::from(NO_FILES_SPECIFIED).leak();
+        let Err(diag) = ProjectConfig::try_parse(code) else {
             panic!("expected errors")
         };
 
@@ -425,7 +435,8 @@ mod tests {
 
     #[test]
     fn json_with_optional_properties_is_valid() {
-        match ProjectConfig::try_parse(OPTIONAL_PROPERTIES.into()) {
+        let code = SourceCode::from(OPTIONAL_PROPERTIES).leak();
+        match ProjectConfig::try_parse(code) {
             Ok(cfg) => assert_snapshot!(&format!("{:#?}", cfg)),
             Err(err) => panic!("expected ProjectConfig to be OK, got \n {err}"),
         };
