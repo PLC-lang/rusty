@@ -20,14 +20,10 @@ use std::ffi::CString;
 /// `bx.get_pgo_func_name_var()` to ensure the variable is only created once per
 /// `Instance`.
 pub fn create_pgo_func_name_var<'ctx>(func: &FunctionValue<'ctx>) -> GlobalValue<'ctx> {
-    // let mangled_fn_name =
-    //     CString::new(cx.tcx.symbol_name(instance).name).expect("error converting function name to C string");
-    let mangled_fn_name = CString::new("asdf_fake_program").unwrap();
-    // let llfn = cx.get_fn(instance);
-    let llvm_val_ref =
-        unsafe { ffi::LLVMRustCoverageCreatePGOFuncNameVar(func.as_value_ref(), mangled_fn_name.as_ptr()) };
-    assert!(!llvm_val_ref.is_null());
-    unsafe { GlobalValue::new(llvm_val_ref) }
+    let pgo_function_ref =
+        unsafe { ffi::LLVMRustCoverageCreatePGOFuncNameVar(func.as_value_ref(), func.get_name().as_ptr()) };
+    assert!(!pgo_function_ref.is_null());
+    unsafe { GlobalValue::new(pgo_function_ref) }
 }
 
 pub fn write_filenames_section_to_buffer<'a>(
