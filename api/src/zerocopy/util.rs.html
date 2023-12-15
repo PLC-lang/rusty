@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.28/src/util.rs`."><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../zerocopy/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.31/src/util.rs`."><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../zerocopy/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -725,6 +725,87 @@
 <a href="#725" id="725">725</a>
 <a href="#726" id="726">726</a>
 <a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 The Fuchsia Authors
 //
 // Licensed under a BSD-style license &lt;LICENSE-BSD&gt;, Apache License, Version 2.0
@@ -766,15 +847,15 @@
     /// [covariant]: https://doc.rust-lang.org/reference/subtyping.html
     </span><span class="kw">pub struct </span>Ptr&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a </span>+ <span class="question-mark">?</span>Sized&gt; {
         <span class="comment">// INVARIANTS:
-        // - `ptr` is derived from some valid Rust allocation, `A`
-        // - `ptr` has the same provenance as `A`
-        // - `ptr` addresses a byte range which is entirely contained in `A`
-        // - `ptr` addresses a byte range whose length fits in an `isize`
-        // - `ptr` addresses a byte range which does not wrap around the address
-        //   space
-        // - `ptr` is validly-aligned for `T`
-        // - `A` is guaranteed to live for at least `&#39;a`
-        // - `T: &#39;a`
+        // 1. `ptr` is derived from some valid Rust allocation, `A`
+        // 2. `ptr` has the same provenance as `A`
+        // 3. `ptr` addresses a byte range which is entirely contained in `A`
+        // 4. `ptr` addresses a byte range whose length fits in an `isize`
+        // 5. `ptr` addresses a byte range which does not wrap around the address
+        //     space
+        // 6. `ptr` is validly-aligned for `T`
+        // 7. `A` is guaranteed to live for at least `&#39;a`
+        // 8. `T: &#39;a`
         </span>ptr: NonNull&lt;T&gt;,
         _lifetime: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;,
     }
@@ -982,6 +1063,10 @@
 
     <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Ptr&lt;<span class="lifetime">&#39;a</span>, [T]&gt; {
         <span class="doccomment">/// The number of slice elements referenced by `self`.
+        ///
+        /// # Safety
+        ///
+        /// Unsafe code my rely on `len` satisfying the above contract.
         </span><span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
             <span class="attr">#[allow(clippy::as_conversions)]
             </span><span class="kw">let </span>slc = <span class="self">self</span>.ptr.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>[()];
@@ -1012,6 +1097,83 @@
             // text is available on the Stable docs, cite those instead of the
             // Nightly docs.
             </span>slc.len()
+        }
+
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Ptr&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt; {
+            <span class="comment">// TODO(#429): Once `NonNull::cast` documents that it preserves
+            // provenance, cite those docs.
+            </span><span class="kw">let </span>base = <span class="self">self</span>.ptr.cast::&lt;T&gt;().as_ptr();
+            (<span class="number">0</span>..<span class="self">self</span>.len()).map(<span class="kw">move </span>|i| {
+                <span class="comment">// TODO(https://github.com/rust-lang/rust/issues/74265): Use
+                // `NonNull::get_unchecked_mut`.
+
+                // SAFETY: If the following conditions are not satisfied
+                // `pointer::cast` may induce Undefined Behavior [1]:
+                // &gt; 1. Both the starting and resulting pointer must be either
+                // &gt;    in bounds or one byte past the end of the same allocated
+                // &gt;    object.
+                // &gt; 2. The computed offset, in bytes, cannot overflow an
+                // &gt;    `isize`.
+                // &gt; 3. The offset being in bounds cannot rely on “wrapping
+                // &gt;    around” the address space. That is, the
+                // &gt;    infinite-precision sum must fit in a `usize`.
+                //
+                // [1] https://doc.rust-lang.org/std/primitive.pointer.html#method.add
+                //
+                // We satisfy all three of these conditions here:
+                // 1. `base` (by invariant on `self`) points to an allocated
+                //    object. By contract, `self.len()` accurately reflects the
+                //    number of elements in the slice. `i` is in bounds of
+                //   `c.len()` by construction, and so the result of this
+                //   addition cannot overflow past the end of the allocation
+                //   referred to by `c`.
+                // 2. By invariant on `Ptr`, `self` addresses a byte range whose
+                //    length fits in an `isize`. Since `elem` is contained in
+                //    `self`, the computed offset of `elem` must fit within
+                //    `isize.`
+                // 3. By invariant on `Ptr`, `self` addresses a byte range which
+                //    does not wrap around the address space. Since `elem` is
+                //    contained in `self`, the computed offset of `elem` must
+                //    wrap around the address space.
+                //
+                // TODO(#429): Once `pointer::add` documents that it preserves
+                // provenance, cite those docs.
+                </span><span class="kw">let </span>elem = <span class="kw">unsafe </span>{ base.add(i) };
+
+                <span class="comment">// SAFETY:
+                //  - `elem` must not be null. `base` is constructed from a
+                //    `NonNull` pointer, and the addition that produces `elem`
+                //    must not overflow or wrap around, so `elem &gt;= base &gt; 0`.
+                //
+                // TODO(#429): Once `NonNull::new_unchecked` documents that it
+                // preserves provenance, cite those docs.
+                </span><span class="kw">let </span>elem = <span class="kw">unsafe </span>{ NonNull::new_unchecked(elem) };
+
+                <span class="comment">// SAFETY: The safety invariants of `Ptr` (see definition) are
+                // satisfied:
+                // 1. `elem` is derived from a valid Rust allocation, because
+                //    `self` is derived from a valid Rust allocation, by
+                //    invariant on `Ptr`
+                // 2. `elem` has the same provenance as `self`, because it
+                //    derived from `self` using a series of
+                //    provenance-preserving operations
+                // 3. `elem` is entirely contained in the allocation of `self`
+                //    (see above)
+                // 4. `elem` addresses a byte range whose length fits in an
+                //    `isize` (see above)
+                // 5. `elem` addresses a byte range which does not wrap around
+                //    the address space (see above)
+                // 6. `elem` is validly-aligned for `T`. `self`, which
+                //    represents a `[T]` is validly aligned for `T`, and `elem`
+                //    is an element within that `[T]`
+                // 7. The allocation of `elem` is guaranteed to live for at
+                //    least `&#39;a`, because `elem` is entirely contained in
+                //    `self`, which lives for at least `&#39;a` by invariant on
+                //    `Ptr`.
+                // 8. `T: &#39;a`, because `elem` is an element within `[T]`, and
+                //    `[T]: &#39;a` by invariant on `Ptr`
+                </span>Ptr { ptr: elem, _lifetime: PhantomData }
+            })
         }
     }
 

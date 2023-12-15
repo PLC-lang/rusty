@@ -178,6 +178,6 @@ var sourcesIndex = JSON.parse('{\
 "xshell_macros":["",[],["lib.rs"]],\
 "xtask":["",[["reporter",[],["git.rs","sysout.rs"]],["task",[],["compile.rs","lexer.rs","run.rs"]]],["main.rs","reporter.rs","task.rs"]],\
 "yaml_rust":["",[],["emitter.rs","lib.rs","parser.rs","scanner.rs","yaml.rs"]],\
-"zerocopy":["",[["third_party",[["rust",[],["layout.rs"]]]]],["lib.rs","macro_util.rs","macros.rs","util.rs","wrappers.rs"]]\
+"zerocopy":["",[["third_party",[["rust",[],["layout.rs"]]]]],["lib.rs","macro_util.rs","macros.rs","post_monomorphization_compile_fail_tests.rs","util.rs","wrappers.rs"]]\
 }');
 createSourceSidebar();
