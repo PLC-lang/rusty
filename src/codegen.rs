@@ -243,8 +243,9 @@ impl<'ink> CodeGen<'ink> {
         );
 
         // println!("{:#?}", llvm_index);
-        let prg_func: inkwell::values::FunctionValue<'_> =
-            llvm_index.find_associated_implementation("prg").expect("Unable to get prg");
+        // let prg_func: inkwell::values::FunctionValue<'_> =
+        // llvm_index.find_associated_implementation("prg").expect("Unable to get prg");
+        let prg_func = self.module.get_function("prg").expect("Unable to get prg");
         println!("prg: {:#?}", prg_func);
         let global_func_var = rustc_llvm_coverage::create_pgo_func_name_var(&prg_func);
         println!("global_func_var: {:#?}", global_func_var);
@@ -300,6 +301,18 @@ impl<'ink> CodeGen<'ink> {
         let cov_data_val = context.const_struct(&[cov_data_header.into(), cov_mapping_data.into()], false);
 
         rustc_llvm_coverage::save_cov_data_to_mod(&self.module, cov_data_val);
+
+        // func record
+
+        let i64_type = context.i64_type();
+        let i64_zero = i64_type.const_int(0, false);
+        let i64_one = i64_type.const_int(1, false);
+        let func_mapping_data = i8_type.const_array(&[i8_zero, i8_zero, i8_zero]);
+        let func_data_val = context.const_struct(
+            &[i64_one.into(), i32_zero.into(), i64_zero.into(), i64_zero.into(), func_mapping_data.into()],
+            false,
+        );
+        rustc_llvm_coverage::save_func_record_to_mod(&self.module, 0x1234, func_data_val, true);
 
         #[cfg(feature = "verify")]
         {

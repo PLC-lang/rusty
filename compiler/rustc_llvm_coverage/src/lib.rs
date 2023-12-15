@@ -110,38 +110,48 @@ pub fn save_cov_data_to_mod<'ctx>(module: &Module<'ctx>, cov_data_val: StructVal
     llglobal.set_linkage(Linkage::Private);
     llglobal.set_section(Some(&covmap_section_name));
     llglobal.set_alignment(VAR_ALIGN_BYTES);
+    // We will skip this for now... I don't think it's necessary (-Corban)
+    // cx.add_used_global(llglobal);
 }
 
-// pub(crate) fn save_func_record_to_mod<'ll, 'tcx>(
-//     cx: &CodegenCx<'ll, 'tcx>,
-//     func_name_hash: u64,
-//     func_record_val: &'ll llvm::Value,
-//     is_used: bool,
-// ) {
-//     // Assign a name to the function record. This is used to merge duplicates.
-//     //
-//     // In LLVM, a "translation unit" (effectively, a `Crate` in Rust) can describe functions that
-//     // are included-but-not-used. If (or when) Rust generates functions that are
-//     // included-but-not-used, note that a dummy description for a function included-but-not-used
-//     // in a Crate can be replaced by full description provided by a different Crate. The two kinds
-//     // of descriptions play distinct roles in LLVM IR; therefore, assign them different names (by
-//     // appending "u" to the end of the function record var name, to prevent `linkonce_odr` merging.
-//     let func_record_var_name = format!("__covrec_{:X}{}", func_name_hash, if is_used { "u" } else { "" });
-//     debug!("function record var name: {:?}", func_record_var_name);
+pub fn save_func_record_to_mod<'ctx>(
+    module: &Module<'ctx>,
+    func_name_hash: u64,
+    func_record_val: StructValue<'ctx>,
+    is_used: bool,
+) {
+    // Assign a name to the function record. This is used to merge duplicates.
+    //
+    // In LLVM, a "translation unit" (effectively, a `Crate` in Rust) can describe functions that
+    // are included-but-not-used. If (or when) Rust generates functions that are
+    // included-but-not-used, note that a dummy description for a function included-but-not-used
+    // in a Crate can be replaced by full description provided by a different Crate. The two kinds
+    // of descriptions play distinct roles in LLVM IR; therefore, assign them different names (by
+    // appending "u" to the end of the function record var name, to prevent `linkonce_odr` merging.
+    let func_record_var_name = format!("__covrec_{:X}{}", func_name_hash, if is_used { "u" } else { "" });
+    println!("function record var name: {:?}", func_record_var_name);
 
-//     let func_record_section_name = llvm::build_string(|s| unsafe {
-//         llvm::LLVMRustCoverageWriteFuncSectionNameToString(cx.llmod, s);
-//     })
-//     .expect("Rust Coverage function record section name failed UTF-8 conversion");
-//     debug!("function record section name: {:?}", func_record_section_name);
+    let func_record_section_name = {
+        let mut s = RustString::new();
+        unsafe {
+            ffi::LLVMRustCoverageWriteFuncSectionNameToString(module.as_mut_ptr(), &mut s);
+        }
+        build_string(&mut s).expect("Rust Coverage function record section name failed UTF-8 conversion")
+    };
+    println!("function record section name: {:?}", func_record_section_name);
 
-//     let llglobal = llvm::add_global(cx.llmod, cx.val_ty(func_record_val), &func_record_var_name);
-//     llvm::set_initializer(llglobal, func_record_val);
-//     llvm::set_global_constant(llglobal, true);
-//     llvm::set_linkage(llglobal, llvm::Linkage::LinkOnceODRLinkage);
-//     llvm::set_visibility(llglobal, llvm::Visibility::Hidden);
-//     llvm::set_section(llglobal, &func_record_section_name);
-//     llvm::set_alignment(llglobal, VAR_ALIGN_BYTES);
-//     llvm::set_comdat(cx.llmod, llglobal, &func_record_var_name);
-//     cx.add_used_global(llglobal);
-// }
+    let llglobal = module.add_global(func_record_val.get_type(), None, func_record_var_name.as_str());
+
+    // llvm::set_initializer(llglobal, func_record_val);
+    llglobal.set_initializer(&func_record_val);
+
+    // llvm::set_global_constant(llglobal, true);
+    // llvm::set_linkage(llglobal, llvm::Linkage::LinkOnceODRLinkage);
+    // llvm::set_visibility(llglobal, llvm::Visibility::Hidden);
+    // llvm::set_section(llglobal, &func_record_section_name);
+    // llvm::set_alignment(llglobal, VAR_ALIGN_BYTES);
+    // Use https://thedan64.github.io/inkwell/inkwell/values/struct.GlobalValue.html#method.set_comdat
+    // llvm::set_comdat(cx.llmod, llglobal, &func_record_var_name);
+    // We will skip this for now... I don't think it's necessary (-Corban)
+    // cx.add_used_global(llglobal);
+}
