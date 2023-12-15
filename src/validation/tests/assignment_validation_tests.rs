@@ -692,7 +692,6 @@ fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
 }
 
 #[test]
-#[ignore = "var_in_out blocks cause false positive validation errors. see https://github.com/PLC-lang/rusty/issues/803"]
 fn invalid_action_call_assignments_are_validated() {
     let diagnostics = parse_and_validate(
         r#"
@@ -731,6 +730,39 @@ fn invalid_action_call_assignments_are_validated() {
     );
     assert_eq!(diagnostics.len(), 4);
     assert_validation_snapshot!(&diagnostics)
+}
+
+#[test]
+fn action_calls_arent_validated_with_parent_pou_parameters() {
+    let diagnostics = parse_and_validate(
+        "FUNCTION_BLOCK FOO_T
+        VAR_IN_OUT
+            arr: ARRAY[0..1] OF DINT;
+        END_VAR
+        VAR_TEMP
+            i: DINT;
+        END_VAR
+            BAR(); // action call here does not require parameters to be passed.
+        END_FUNCTION_BLOCK
+        
+        ACTIONS
+        ACTION BAR
+            FOR i := 0 TO 2 DO
+                arr[i] := i;
+            END_FOR;
+        END_ACTION
+        END_ACTIONS
+        
+        FUNCTION main: DINT
+        VAR
+            fb: FOO_T;
+            arr: ARRAY[0..1] OF DINT;
+        END_VAR
+            fb(arr);
+        END_FUNCTION",
+    );
+
+    assert!(diagnostics.is_empty());
 }
 
 #[test]

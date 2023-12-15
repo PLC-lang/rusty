@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: res
+---
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'WSTRING'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 19, offset: 724 }..TextLocation { line: 30, column: 30, offset: 735 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 32, offset: 737 }..TextLocation { line: 30, column: 42, offset: 747 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 44, offset: 749 }..TextLocation { line: 30, column: 54, offset: 759 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to '__fb_t_out'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 56, offset: 761 }..TextLocation { line: 30, column: 67, offset: 772 }) }], err_no: var__invalid_assignment }
+
