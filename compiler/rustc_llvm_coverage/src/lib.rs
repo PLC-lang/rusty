@@ -12,12 +12,13 @@ pub mod types;
 
 use types::*;
 
-use inkwell::values::{AsValueRef, FunctionValue, GlobalValue};
+use inkwell::{values::{AsValueRef, FunctionValue, GlobalValue}, types::{AsTypeRef, AnyType}};
 
 use std::ffi::CString;
 use libc::c_uint;
 
 use inkwell::module::Module;
+use inkwell::types::BasicType;
 
 
 
@@ -78,24 +79,22 @@ pub fn mapping_version() -> u32 {
 
 pub fn save_cov_data_to_mod<'ctx>(func: &FunctionValue<'ctx>, cov_data_val:  &GlobalValue<'ctx>) {
     //global_value
-    let covmap_var_nam = GlobalValue::build_string(s |  unsafe {
+    let covmap_var_nam = unsafe {
         ffi::LLVMRustCoverageWriteMappingVarNameToString(s);
-    });
+    };
     //.expect("Rust Coverage Mapping var name failed UTF-8 conversion");
     //debug!("covmap var name: {:?}", covmap_var_name);
     //build_string not found 
-    // let covmap_section_name = 
-        
-    //     GlobalValue::build_string(|s : &RustString| unsafe {
-    //     ffi::LLVMRustCoverageWriteMapSectionNameToString(func, s);
-    // }) ;
+    let covmap_section_name =  unsafe {
+        ffi::LLVMRustCoverageWriteMapSectionNameToString(func.llmod(), s);
+     } ;
 
     // //.expect("Rust Coverage section name failed UTF-8 conversion");
     // //debug!("covmap section name: {:?}", covmap_section_name);
     // // add_global not found in inkwell global value and func.llmod doesn't exist in func
-    // 
-    // let llglobal = Module::add_global(func, func.val_ty(cov_data_val), &covmap_var_name);
-    // GlobalValue::set_initializer(llglobal, cov_data_val);
+    // func.ty
+    let llglobal = Module::add_global(&func.llmod(), func.val_ty(cov_data_val.as_value_ref()), &covmap_var_name,func.get_name().to_str().unwrap());
+    //GlobalValue::set_initializer(llglobal, cov_data_val);
     // //set_global_cst not found in inkwell global value
     // GlobalValue::set_constant(llglobal, true);
     // GlobalValue::set_linkage(llglobal, GlobalValue::Linkage::PrivateLinkage);
