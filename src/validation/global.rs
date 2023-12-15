@@ -170,17 +170,6 @@ impl GlobalValidator {
             .get_pous()
             .values()
             .filter(|p| p.is_function() && !p.is_generic())
-            // .filter(|it| {
-            //     it.get_generic_bindings()
-            //         .map(|binding| {
-            //             if let Some(duplicate_bindings) = map.insert(it.get_name(), binding) {
-            //                 duplicate_bindings == binding
-            //             } else {
-            //                 true
-            //             }
-            //         })
-            //         .unwrap_or(true)
-            // })
             .map(|it| (it.get_name(), it.get_location()));
 
         self.check_uniqueness_of_cluster(
