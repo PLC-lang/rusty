@@ -8,13 +8,7 @@ use libc::{c_char, c_uint, c_void, size_t};
 use std::slice;
 
 use super::types::*;
-use llvm_sys::prelude::LLVMValueRef;
-
-#[repr(C)]
-pub struct Module(c_void);
-
-// #[repr(C)]
-// pub struct Value(c_void);
+use llvm_sys::prelude::{LLVMModuleRef, LLVMValueRef};
 
 /// Appending to a Rust string -- used by RawRustStringOstream.
 #[no_mangle]
@@ -49,16 +43,14 @@ extern "C" {
     pub fn LLVMRustCoverageHashByteArray(Bytes: *const c_char, NumBytes: size_t) -> u64;
 
     #[allow(improper_ctypes)]
-    pub fn LLVMRustCoverageWriteMapSectionNameToString(M: &Module, Str: &RustString);
+    pub fn LLVMRustCoverageWriteMapSectionNameToString(M: LLVMModuleRef, Str: &RustString);
 
     #[allow(improper_ctypes)]
-    pub fn LLVMRustCoverageWriteFuncSectionNameToString(M: &Module, Str: &RustString);
+    pub fn LLVMRustCoverageWriteFuncSectionNameToString(M: LLVMModuleRef, Str: &RustString);
 
     #[allow(improper_ctypes)]
     pub fn LLVMRustCoverageWriteMappingVarNameToString(Str: &RustString);
 
     pub fn LLVMRustCoverageMappingVersion() -> u32;
 
-   
-    
 }

@@ -482,7 +482,9 @@ if [[ $build -ne 0 ]]; then
 	# Test a program
 	echo "-----------------------------------"
 	echo "Running on example program:"
-	./target/debug/plc ./examples/simple_program.st
+	./target/debug/plc --ir ./examples/simple_program.st
+	echo "-----------------------------------"
+	cat ./simple_program.st.ll
 	echo "-----------------------------------"
 	#Build the standard functions
 	# run_std_build

@@ -16,6 +16,10 @@ pub struct RustString {
 }
 
 impl RustString {
+    pub fn new() -> Self {
+        Self { bytes: RefCell::new(Vec::new()) }
+    }
+
     pub fn len(&self) -> usize {
         self.bytes.borrow().len()
     }
