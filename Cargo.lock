@@ -2016,7 +2016,6 @@ dependencies = [
  "encoding_rs",
  "encoding_rs_io",
  "plc_ast",
- "plc_project",
  "plc_source",
 ]
 
@@ -2392,6 +2391,7 @@ dependencies = [
  "plc_derive",
  "plc_diagnostics",
  "plc_driver",
+ "plc_index",
  "plc_project",
  "plc_source",
  "plc_util",

@@ -38,7 +38,8 @@ where
     let mut diagnostician = Diagnostician::null_diagnostician();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
-    let ctxt = GlobalContext::project(&project, None);
+    let ctxt =
+        GlobalContext::new().sources(project.get_sources(), None).sources(project.get_includes(), None);
     //Parse
     let compile_options = CompileOptions {
         root: path,

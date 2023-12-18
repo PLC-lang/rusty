@@ -158,7 +158,18 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::info!("{err}")
     }
 
-    let ctxt = GlobalContext::project(&project, compile_parameters.encoding);
+    let ctxt = GlobalContext::new()
+        .sources(project.get_sources(), compile_parameters.encoding)
+        .sources(project.get_includes(), compile_parameters.encoding)
+        .sources(
+            project
+                .get_libraries()
+                .iter()
+                .flat_map(LibraryInformation::get_includes)
+                .collect::<Vec<_>>()
+                .as_slice(),
+            None,
+        );
 
     // 1 : Parse
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
@@ -200,7 +211,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
 ) -> Result<AnnotatedProject, Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
-    let ctxt = GlobalContext::project(&project, None);
+    let ctxt = GlobalContext::new().sources(project.get_sources(), None);
     let mut diagnostician = Diagnostician::default();
     pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         // Create an index, add builtins

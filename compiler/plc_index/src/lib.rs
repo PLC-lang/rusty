@@ -1,6 +1,6 @@
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
-use plc_project::project::{LibraryInformation, Project};
+// use plc_project::project::{LibraryInformation, Project};
 use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
 
@@ -18,22 +18,35 @@ impl GlobalContext {
         Self { sources: HashMap::new(), provider: IdProvider::default() }
     }
 
-    pub fn project<S: SourceContainer>(project: &Project<S>, encoding: Option<&'static Encoding>) -> Self {
-        let mut ctxt = Self::new();
+    // // TODO: Importing `plc_project` would make life easier here, but we get a circular dependency if imported; try to fix it?
+    // pub fn project<S: SourceContainer>(project: &Project<S>, encoding: Option<&'static Encoding>) -> Self {
+    //     let mut ctxt = Self::new();
+    //
+    //     for source in project.get_sources() {
+    //         ctxt.insert(source, encoding);
+    //     }
+    //
+    //     for source in project.get_includes() {
+    //         ctxt.insert(source, encoding);
+    //     }
+    //
+    //     for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
+    //         ctxt.insert(source, encoding);
+    //     }
+    //
+    //     ctxt
+    // }
 
-        for source in project.get_sources() {
-            ctxt.insert(source, encoding);
+    pub fn sources<S: SourceContainer>(
+        mut self,
+        container: &[S],
+        encoding: Option<&'static Encoding>,
+    ) -> Self {
+        for source in container {
+            self.insert(source, encoding);
         }
 
-        for source in project.get_includes() {
-            ctxt.insert(source, encoding);
-        }
-
-        for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
-            ctxt.insert(source, encoding);
-        }
-
-        ctxt
+        self
     }
 
     fn insert(&mut self, container: &impl SourceContainer, encoding: Option<&'static Encoding>) {

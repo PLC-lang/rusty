@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 plc_ast = { path = "../plc_ast" }
 plc_source = { path = "../plc_source" }
-plc_project = { path = "../plc_project" }
+#plc_project = { path = "../plc_project" }
 
 # TODO: why `workspace` / boolean flag here; look up what it does?
 encoding_rs.workspace = true
