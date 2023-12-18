@@ -10,7 +10,6 @@ use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
-use encoding_rs::Encoding;
 use indexmap::IndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -26,6 +25,7 @@ use plc_diagnostics::{
     diagnostics::Diagnostic,
     errno::ErrNo,
 };
+use plc_index::GlobalContext;
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -42,9 +42,8 @@ impl ParsedProject {
     /// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
     pub fn parse<T: SourceContainer>(
+        ctxt: &GlobalContext,
         project: &Project<T>,
-        encoding: Option<&'static Encoding>,
-        id_provider: IdProvider,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
         //TODO in parallel
@@ -55,19 +54,15 @@ impl ParsedProject {
             .get_sources()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
+                let loaded_source = ctxt.get(it.get_location_str()).unwrap();
+                let id_provider = ctxt.provider(); // TODO: Remove me
 
                 let parse_func = match loaded_source.get_type() {
                     source_code::SourceType::Text => parse_file,
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
-                Ok(parse_func(loaded_source, LinkageType::Internal, id_provider.clone(), diagnostician))
+                Ok(parse_func(loaded_source, LinkageType::Internal, id_provider, diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(sources);
@@ -76,13 +71,10 @@ impl ParsedProject {
             .get_includes()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                let loaded_source = ctxt.get(it.get_location_str()).unwrap();
+                let id_provider = ctxt.provider(); // TODO: Remove me
+
+                Ok(parse_file(loaded_source, LinkageType::External, id_provider, diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
@@ -92,13 +84,10 @@ impl ParsedProject {
             .iter()
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                let loaded_source = ctxt.get(it.get_location_str()).unwrap();
+                let id_provider = ctxt.provider(); // TODO: Remove me
+
+                Ok(parse_file(loaded_source, LinkageType::External, id_provider, diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);
