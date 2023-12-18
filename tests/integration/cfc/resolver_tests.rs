@@ -13,7 +13,7 @@ fn label_added_to_index_as_annotation() {
     //Remove the path
     cfc_file.path.replace("<internal>.cfc".into());
 
-    let index = parse_and_annotate("plc", vec![cfc_file]).unwrap().index;
+    let index = parse_and_annotate("plc", vec![cfc_file]).unwrap().1.index;
     assert_debug_snapshot!(index.get_label("main", "lbl").unwrap());
 }
 
@@ -24,7 +24,7 @@ fn jumps_annotated_with_label_annoations() {
     //Remove the path
     cfc_file.path.replace("<internal>.cfc".into());
 
-    let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap();
+    let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap().1;
     let annotations = &annotated_project.annotations;
     let (unit, ..) = &annotated_project.units[0];
     // Get the jump
@@ -39,7 +39,7 @@ fn unbound_jumps_not_annotated() {
     //Remove the path
     cfc_file.path.replace("<internal>.cfc".into());
 
-    let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap();
+    let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap().1;
     let annotations = &annotated_project.annotations;
     let (unit, ..) = &annotated_project.units[0];
     // Get the jump
@@ -54,7 +54,7 @@ fn action_variables_annotated() {
     //Remove the path
     cfc_file.path.replace("<internal>.cfc".into());
 
-    let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap();
+    let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap().1;
     let annotations = &annotated_project.annotations;
     let (unit, ..) = &annotated_project.units[0];
 
@@ -85,7 +85,7 @@ fn function_block_calls_are_annotated_correctly() {
     let main = main.load_source(None).unwrap();
     let fb = fb.load_source(None).unwrap();
 
-    let annotated_project = parse_and_annotate("plc", vec![main, fb]).unwrap();
+    let annotated_project = parse_and_annotate("plc", vec![main, fb]).unwrap().1;
     let annotations = &annotated_project.annotations;
     let (unit, ..) = &annotated_project.units[0];
 

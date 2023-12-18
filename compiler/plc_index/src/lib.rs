@@ -1,6 +1,7 @@
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
 // use plc_project::project::{LibraryInformation, Project};
+use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
 
@@ -16,6 +17,11 @@ pub struct GlobalContext {
 impl GlobalContext {
     pub fn new() -> Self {
         Self { sources: HashMap::new(), provider: IdProvider::default() }
+    }
+
+    pub fn slice(&self, location: &SourceLocation) -> &str {
+        &self.sources.get(location.get_file_name().unwrap()).unwrap().source
+            [location.get_span().to_range().unwrap()]
     }
 
     // // TODO: Importing `plc_project` would make life easier here, but we get a circular dependency if imported; try to fix it?
@@ -49,7 +55,7 @@ impl GlobalContext {
         self
     }
 
-    fn insert(&mut self, container: &impl SourceContainer, encoding: Option<&'static Encoding>) {
+    pub fn insert(&mut self, container: &impl SourceContainer, encoding: Option<&'static Encoding>) {
         let key = container.get_location_str();
         let value = container.load_source(encoding).unwrap();
 

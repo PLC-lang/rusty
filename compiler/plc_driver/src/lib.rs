@@ -178,7 +178,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         // 3 : Resolve
         .annotate(ctxt.provider(), &diagnostician)?;
     // 4 : Validate
-    annotated_project.validate(&mut diagnostician)?;
+    annotated_project.validate(&ctxt, &mut diagnostician)?;
     // 5 : Codegen
     if !compile_parameters.is_check() {
         let res = generate(
@@ -208,7 +208,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
 pub fn parse_and_annotate<T: SourceContainer>(
     name: &str,
     src: Vec<T>,
-) -> Result<AnnotatedProject, Diagnostic> {
+) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
     let ctxt = GlobalContext::new().sources(project.get_sources(), None);
@@ -218,6 +218,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
         .index(ctxt.provider())?
         // Resolve
         .annotate(ctxt.provider(), &diagnostician)
+        .map(|project| (ctxt, project))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
@@ -236,10 +237,10 @@ fn generate_to_string_internal<T: SourceContainer>(
     debug: bool,
 ) -> Result<String, Diagnostic> {
     let mut diagnostician = Diagnostician::default();
-    let project = parse_and_annotate(name, src)?;
+    let (ctxt, project) = parse_and_annotate(name, src)?;
 
     // Validate
-    project.validate(&mut diagnostician)?;
+    project.validate(&ctxt, &mut diagnostician)?;
 
     // Generate
     let context = CodegenContext::create();

@@ -1,6 +1,7 @@
 use plc_ast::ast::{AstNode, CompilationUnit};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_index::GlobalContext;
 
 use crate::{
     index::{
@@ -92,23 +93,34 @@ pub trait Validators {
     fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 }
 
-#[derive(Validators)]
-pub struct Validator {
-    //context: ValidationContext<'s>,
+// #[derive(Validators)]
+pub struct Validator<'a> {
+    context: &'a GlobalContext,
     diagnostics: Vec<Diagnostic>,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
 }
 
-impl Default for Validator {
-    fn default() -> Self {
-        Self::new()
+impl<'a> Validators for Validator<'a> {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
     }
 }
 
-impl Validator {
-    pub fn new() -> Validator {
+// impl Default for Validator {
+//     fn default() -> Self {
+//         Self::new()
+//     }
+// }
+
+impl<'a> Validator<'a> {
+    pub fn new(context: &'a GlobalContext) -> Validator {
         Validator {
+            context,
             diagnostics: Vec::new(),
             global_validator: GlobalValidator::new(),
             recursive_validator: RecursiveValidator::new(),
