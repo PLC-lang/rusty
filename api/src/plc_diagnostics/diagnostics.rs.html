@@ -912,6 +912,13 @@
 <a href="#912" id="912">912</a>
 <a href="#913" id="913">913</a>
 <a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::Display, ops::Range};
 
 <span class="kw">use </span>plc_ast::ast::{AstNode, DataTypeDeclaration, DiagnosticInfo, PouType};
@@ -1656,6 +1663,13 @@
             message: <span class="macro">format!</span>(<span class="string">&quot;Assigned value is not a variant of {enum_type}&quot;</span>),
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::var__invalid_enum_variant,
+        }
+    }
+
+    <span class="kw">pub fn </span>assignment_instead_of_equal(range: SourceLocation) -&gt; Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: <span class="string">&quot;This statement has no effect, did you mean to use `:=`?&quot;</span>.to_string(),
+            range: <span class="macro">vec!</span>[range],
         }
     }
 }
