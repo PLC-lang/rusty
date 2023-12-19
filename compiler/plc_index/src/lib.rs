@@ -1,11 +1,10 @@
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
-// use plc_project::project::{LibraryInformation, Project};
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct GlobalContext {
     sources: HashMap<&'static str, SourceCode>,
     provider: IdProvider,
