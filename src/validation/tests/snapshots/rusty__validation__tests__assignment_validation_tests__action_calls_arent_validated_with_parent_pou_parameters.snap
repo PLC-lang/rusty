@@ -1,6 +1,0 @@
----
-source: src/validation/tests/assignment_validation_tests.rs
-expression: res
----
-SyntaxError { message: "Missing inout parameter: arr", range: [SourceLocation { span: Range(TextLocation { line: 32, column: 12, offset: 796 }..TextLocation { line: 32, column: 18, offset: 802 }) }], err_no: pou__missing_action_container }
-
