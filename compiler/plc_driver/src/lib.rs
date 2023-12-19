@@ -171,14 +171,14 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
             None,
         );
 
-    // 1 : Parse
+    // 1 : Parse, 2. Index and 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
-        // 2 : Index
-        .index(ctxt.provider())?
-        // 3 : Resolve
-        .annotate(ctxt.provider(), &diagnostician)?;
+        .index(ctxt.provider())
+        .annotate(ctxt.provider(), &diagnostician);
+
     // 4 : Validate
     annotated_project.validate(&ctxt, &mut diagnostician)?;
+
     // 5 : Codegen
     if !compile_parameters.is_check() {
         let res = generate(
@@ -213,12 +213,11 @@ pub fn parse_and_annotate<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let ctxt = GlobalContext::new().sources(project.get_sources(), None);
     let mut diagnostician = Diagnostician::default();
-    pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
-        // Create an index, add builtins
-        .index(ctxt.provider())?
-        // Resolve
-        .annotate(ctxt.provider(), &diagnostician)
-        .map(|project| (ctxt, project))
+    let parsed = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?;
+    let provider = ctxt.provider();
+
+    // Create an index, add builtins then resolve
+    Ok((ctxt, parsed.index(provider.clone()).annotate(provider, &diagnostician)))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls

@@ -49,9 +49,9 @@ where
     };
     pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         //Index
-        .index(ctxt.provider())?
+        .index(ctxt.provider())
         //Resolve
-        .annotate(ctxt.provider(), &diagnostician)?
+        .annotate(ctxt.provider(), &diagnostician)
         //Codegen
         .codegen_to_string(&compile_options)
 }

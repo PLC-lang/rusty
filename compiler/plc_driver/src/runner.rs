@@ -29,8 +29,8 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
     let ctxt = GlobalContext::new().sources(project.get_sources(), None);
     let mut diagnostician = Diagnostician::null_diagnostician();
     let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
-    let indexed_project = parsed_project.index(ctxt.provider()).unwrap();
-    let annotated_project = indexed_project.annotate(ctxt.provider(), &diagnostician).unwrap();
+    let indexed_project = parsed_project.index(ctxt.provider());
+    let annotated_project = indexed_project.annotate(ctxt.provider(), &diagnostician);
     let compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,

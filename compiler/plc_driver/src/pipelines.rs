@@ -96,7 +96,7 @@ impl ParsedProject {
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
-    pub fn index(self, id_provider: IdProvider) -> Result<IndexedProject, Diagnostic> {
+    pub fn index(self, id_provider: IdProvider) -> IndexedProject {
         let indexed_units = self
             .0
             .into_par_iter()
@@ -125,7 +125,7 @@ impl ParsedProject {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
 
-        Ok(IndexedProject { units, index: global_index })
+        IndexedProject { units, index: global_index }
     }
 }
 
@@ -138,11 +138,7 @@ pub struct IndexedProject {
 
 impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(
-        self,
-        mut id_provider: IdProvider,
-        _diagnostician: &Diagnostician,
-    ) -> Result<AnnotatedProject, Diagnostic> {
+    pub fn annotate(self, mut id_provider: IdProvider, _diagnostician: &Diagnostician) -> AnnotatedProject {
         //Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
         let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
@@ -169,7 +165,7 @@ impl IndexedProject {
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        Ok(AnnotatedProject { units: annotated_units, index: full_index, annotations })
+        AnnotatedProject { units: annotated_units, index: full_index, annotations }
     }
 }
 
