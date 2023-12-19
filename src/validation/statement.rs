@@ -939,6 +939,12 @@ fn validate_call<T: AnnotationMap>(
 
         // for PROGRAM/FB we need special inout validation
         if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
+            // pou might actually be an action call: in that case,
+            // we need to check if it is called within the context of the parent POU
+            // (either the body of the parent or another associated action) => we don't need to validate the params
+            if is_action_call_in_qualified_context(context, operator) {
+                return;
+            }
             let declared_in_out_params: Vec<&&VariableIndexEntry> =
                 declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
 
@@ -961,6 +967,30 @@ fn validate_call<T: AnnotationMap>(
             visit_statement(validator, s, context);
         }
     }
+}
+
+fn is_action_call_in_qualified_context<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    operator: &AstNode,
+) -> bool {
+    let Some(implementation) = context
+        .annotations
+        .get_call_name(operator)
+        .and_then(|it| context.index.find_implementation_by_name(it))
+    else {
+        return false;
+    };
+
+    if !(implementation.get_implementation_type() == &crate::index::ImplementationType::Action) {
+        return false;
+    };
+
+    context.qualifier.is_some_and(|qualifier| {
+        let pou = context.index.find_pou(qualifier);
+        // we are in a qualified context for this action call, i.e. in the parent pou or another associated action
+        // => dont validate params
+        pou.is_some_and(|it| it.get_container() == implementation.get_type_name())
+    })
 }
 
 // selector, case_blocks, else_block
