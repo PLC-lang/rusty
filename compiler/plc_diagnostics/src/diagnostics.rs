@@ -745,10 +745,10 @@ impl Diagnostic {
         }
     }
 
-    pub fn assignment_instead_of_equal(range: SourceLocation) -> Diagnostic {
+    pub fn assignment_instead_of_equal(lhs: &str, rhs: &str, statement: &AstNode) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
-            message: "This statement has no effect, did you mean to use `:=`?".to_string(),
-            range: vec![range],
+            message: format!("This equal statement has no effect, did you mean `{lhs} := {rhs}`?"),
+            range: vec![statement.get_location()],
         }
     }
 }

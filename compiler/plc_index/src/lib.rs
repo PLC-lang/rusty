@@ -20,6 +20,7 @@ impl GlobalContext {
         Self { sources: HashMap::new(), provider: IdProvider::default() }
     }
 
+    // TODO: impl Into<SourceLocation> would be nice, could also be used in the diagnostic functions later on
     pub fn slice(&self, location: &SourceLocation) -> &str {
         let path = location.get_file_name().unwrap_or("<internal>");
         &self.sources.get(path).unwrap().source[location.get_span().to_range().unwrap()]
