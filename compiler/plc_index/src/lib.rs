@@ -5,6 +5,7 @@ use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct GlobalContext {
     sources: HashMap<&'static str, SourceCode>,
     provider: IdProvider,
@@ -20,8 +21,8 @@ impl GlobalContext {
     }
 
     pub fn slice(&self, location: &SourceLocation) -> &str {
-        &self.sources.get(location.get_file_name().unwrap()).unwrap().source
-            [location.get_span().to_range().unwrap()]
+        let path = location.get_file_name().unwrap_or("<internal>");
+        &self.sources.get(path).unwrap().source[location.get_span().to_range().unwrap()]
     }
 
     // // TODO: Importing `plc_project` would make life easier here, but we get a circular dependency if imported; try to fix it?

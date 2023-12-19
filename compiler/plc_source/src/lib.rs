@@ -132,6 +132,11 @@ impl SourceCode {
     pub fn new(source: impl Into<String>, path: impl Into<PathBuf>) -> Self {
         SourceCode { source: source.into(), path: Some(path.into()) }
     }
+
+    pub fn with_name(mut self, name: impl Into<PathBuf>) -> Self {
+        self.path = Some(name.into());
+        self
+    }
 }
 
 pub trait Compilable {

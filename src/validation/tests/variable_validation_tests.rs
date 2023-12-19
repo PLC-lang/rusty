@@ -380,3 +380,25 @@ fn type_initializers_in_structs_are_validated() {
 
     assert_snapshot!(diagnostics);
 }
+
+// TODO: Remove me once PR is ready
+#[test]
+fn temp_checking_if_this_works() {
+    let src = "
+        FUNCTION main : DINT
+        VAR
+            x : DINT;
+        END_VAR
+        x = 1;
+        END_FUNCTION
+        ";
+
+    assert_snapshot!(parse_and_validate_buffered(src), @r###"
+    warning: Did you mean `x := 1`?
+      ┌─ <internal>:6:9
+      │
+    6 │         x = 1;
+      │         ^^^^^ Did you mean `x := 1`?
+
+    "###);
+}
