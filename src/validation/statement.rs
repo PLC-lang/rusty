@@ -524,6 +524,13 @@ fn visit_binary_expression<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     match operator {
+        Operator::Equal => {
+            if context.annotations.get_type_hint(statement, context.index).is_none() {
+                validator.push_diagnostic(Diagnostic::assignment_instead_of_equal(statement.get_location()));
+            }
+
+            validate_binary_expression(validator, statement, operator, left, right, context)
+        }
         Operator::NotEqual => {
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context)
         }
