@@ -744,6 +744,13 @@ impl Diagnostic {
             err_no: ErrNo::var__invalid_enum_variant,
         }
     }
+
+    pub fn assignment_instead_of_equal(range: SourceLocation) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: "This statement has no effect, did you mean to use `:=`?".to_string(),
+            range: vec![range],
+        }
+    }
 }
 
 // CFC related diagnostics

@@ -381,24 +381,41 @@ fn type_initializers_in_structs_are_validated() {
     assert_snapshot!(diagnostics);
 }
 
-// TODO: Remove me once PR is ready
 #[test]
-fn temp_checking_if_this_works() {
-    let src = "
-        FUNCTION main : DINT
-        VAR
-            x : DINT;
-        END_VAR
-        x = 1;
-        END_FUNCTION
-        ";
+fn assignment_suggestion_for_equal_operation_with_no_effect() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                value       : DINT;
+                condition   : BOOL;
 
-    assert_snapshot!(parse_and_validate_buffered(src), @r###"
-    warning: Did you mean `x := 1`?
-      ┌─ <internal>:6:9
-      │
-    6 │         x = 1;
-      │         ^^^^^ Did you mean `x := 1`?
+                // These Should work
+                arr_dint : ARRAY[0..5] OF DINT := [1 = 1, 2, 3, 4, 5 = 5];
+                arr_bool : ARRAY[1..5] OF BOOL := [1 = 1, 2 = 2, 3 = 3, 4 = 4, 5 = 10];
+            END_VAR
 
-    "###);
+            // These should work
+            value := (condition = TRUE);
+
+            IF   condition = TRUE   THEN (* ... *) END_IF
+            IF  (condition = TRUE)  THEN (* ... *) END_IF
+            IF ((condition = TRUE)) THEN (* ... *) END_IF
+
+            IF   condition = TRUE  AND  condition = TRUE    THEN (* ... *) END_IF
+            IF  (condition = TRUE) AND (condition = TRUE)   THEN (* ... *) END_IF
+            IF ((condition = TRUE) AND (condition = TRUE))  THEN (* ... *) END_IF
+
+            // These should NOT work
+            value = 1;
+            value = condition AND condition;
+            value = condition AND (condition = TRUE);
+
+            IF TRUE THEN value = 1; END_IF
+            WHILE TRUE DO value = 1; END_WHILE
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
 }

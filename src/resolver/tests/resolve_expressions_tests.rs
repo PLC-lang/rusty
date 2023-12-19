@@ -400,7 +400,7 @@ fn addition_subtraction_expression_with_pointers_resolves_to_pointer_type() {
         if let AstNode { stmt: AstStatement::BinaryExpression(BinaryExpression { left, .. }), .. } =
             &**addition
         {
-            assert_type_and_hint!(&annotations, &index, left, "__PRG_a", None);
+            assert_type_and_hint!(&annotations, &index, left, "__PRG_a", Some("__PRG_a"));
         }
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right: addition, .. }), .. } = &statements[2]
@@ -462,7 +462,7 @@ fn complex_expressions_resolves_types_for_literals_directly() {
             // c
             assert_type_and_hint!(&annotations, &index, c, INT_TYPE, Some(DINT_TYPE));
             // (b + USINT#7)
-            assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
+            assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(DINT_TYPE));
 
             let AstStatement::ParenExpression(left) = left.get_stmt() else { panic!() };
             if let AstNode {
