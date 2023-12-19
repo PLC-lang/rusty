@@ -733,7 +733,7 @@ fn invalid_action_call_assignments_are_validated() {
 }
 
 #[test]
-fn action_calls_arent_validated_with_parent_pou_parameters() {
+fn action_call_parameters_are_only_validated_outside_of_parent_pou_contexts() {
     let diagnostics = parse_and_validate(
         "FUNCTION_BLOCK FOO_T
         VAR_IN_OUT
@@ -742,13 +742,21 @@ fn action_calls_arent_validated_with_parent_pou_parameters() {
         VAR_TEMP
             i: DINT;
         END_VAR
-            BAR(); // action call here does not require parameters to be passed.
+            BAR(); // associated action call here does not require parameters to be passed.
         END_FUNCTION_BLOCK
         
         ACTIONS
         ACTION BAR
             FOR i := 0 TO 2 DO
                 arr[i] := i;
+            END_FOR;
+
+            BAZ(); // we are still in the parent-pou context, no validation required
+        END_ACTION
+
+        ACTION BAZ
+            FOR i := 0 TO 2 DO
+                arr[i] := 0;
             END_FOR;
         END_ACTION
         END_ACTIONS
@@ -759,10 +767,12 @@ fn action_calls_arent_validated_with_parent_pou_parameters() {
             arr: ARRAY[0..1] OF DINT;
         END_VAR
             fb(arr);
+            fb.bar(); // INVALID - we are not in the parent context and while we use a qualified call, we don't know if the variable has been initialized
         END_FUNCTION",
     );
 
-    assert!(diagnostics.is_empty());
+    assert_eq!(diagnostics.len(), 1);
+    assert_validation_snapshot!(diagnostics);
 }
 
 #[test]

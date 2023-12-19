@@ -819,13 +819,7 @@ impl AstNode {
             AstStatement::ReferenceExpr(
                 ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
                 ..,
-            ) => {
-                if let AstStatement::Identifier(name, ..) = &reference.as_ref().stmt {
-                    Some(name)
-                } else {
-                    None
-                }
-            }
+            ) => reference.as_ref().get_flat_reference_name(),
             AstStatement::Identifier(name, ..) => Some(name),
             _ => None,
         }
