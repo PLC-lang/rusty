@@ -9,6 +9,11 @@ edition = "2021"
 libc = "0.2.73"
 rustc_llvm = { path = "../rustc_llvm" }
 inkwell = { git = "https://github.com/corbanvilla/inkwell.git", branch = "v2.0", version = "0.2", features = ["llvm14-0"] }
+<<<<<<< HEAD
 # inkwell = { git = "https://github.com/HaithemLamri/inkwell.git", branch = "master", version = "0.2", default-features = false, features = ["llvm14-0"] }
 
+=======
+#inkwell = { git = "https://github.com/HaithemLamri/inkwell.git", branch = "master", version = "0.2", default-features = false, features = ["llvm14-0"] }
+#inkwell = {path = "../../inkwell"}
+>>>>>>> 3086373 (some minor changes)
 llvm-sys = { package = "llvm-sys", version = "140.0.2" }
