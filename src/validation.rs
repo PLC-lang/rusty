@@ -93,7 +93,6 @@ pub trait Validators {
     fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 }
 
-// #[derive(Validators)]
 pub struct Validator<'a> {
     context: &'a GlobalContext,
     diagnostics: Vec<Diagnostic>,
@@ -105,17 +104,10 @@ impl<'a> Validators for Validator<'a> {
     fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
         self.diagnostics.push(diagnostic);
     }
-
     fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
         std::mem::take(&mut self.diagnostics)
     }
 }
-
-// impl Default for Validator {
-//     fn default() -> Self {
-//         Self::new()
-//     }
-// }
 
 impl<'a> Validator<'a> {
     pub fn new(context: &'a GlobalContext) -> Validator {

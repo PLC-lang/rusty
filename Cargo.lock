@@ -2014,7 +2014,6 @@ name = "plc_index"
 version = "0.1.0"
 dependencies = [
  "encoding_rs",
- "encoding_rs_io",
  "plc_ast",
  "plc_source",
 ]

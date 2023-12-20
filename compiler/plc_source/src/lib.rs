@@ -133,7 +133,7 @@ impl SourceCode {
         SourceCode { source: source.into(), path: Some(path.into()) }
     }
 
-    pub fn with_name(mut self, name: impl Into<PathBuf>) -> Self {
+    pub fn with_path(mut self, name: impl Into<PathBuf>) -> Self {
         self.path = Some(name.into());
         self
     }

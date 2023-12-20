@@ -158,10 +158,12 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::info!("{err}")
     }
 
+    // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
+    //       commented `project` method in the GlobalContext implementation block
     let ctxt = GlobalContext::new()
-        .sources(project.get_sources(), compile_parameters.encoding)
-        .sources(project.get_includes(), compile_parameters.encoding)
-        .sources(
+        .with_source(project.get_sources(), compile_parameters.encoding)
+        .with_source(project.get_includes(), compile_parameters.encoding)
+        .with_source(
             project
                 .get_libraries()
                 .iter()
@@ -174,7 +176,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
     // 1 : Parse, 2. Index and 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         .index(ctxt.provider())
-        .annotate(ctxt.provider(), &diagnostician);
+        .annotate(ctxt.provider());
 
     // 4 : Validate
     annotated_project.validate(&ctxt, &mut diagnostician)?;
@@ -211,13 +213,13 @@ pub fn parse_and_annotate<T: SourceContainer>(
 ) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
-    let ctxt = GlobalContext::new().sources(project.get_sources(), None);
+    let ctxt = GlobalContext::new().with_source(project.get_sources(), None);
     let mut diagnostician = Diagnostician::default();
     let parsed = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?;
-    let provider = ctxt.provider();
 
     // Create an index, add builtins then resolve
-    Ok((ctxt, parsed.index(provider.clone()).annotate(provider, &diagnostician)))
+    let provider = ctxt.provider();
+    Ok((ctxt, parsed.index(provider.clone()).annotate(provider)))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls

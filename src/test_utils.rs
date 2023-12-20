@@ -117,8 +117,7 @@ pub mod tests {
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
-        let mut src = SourceCode::from(src);
-        src.path = Some("<internal>".into());
+        let src = SourceCode::from(src);
 
         let mut ctxt = GlobalContext::new();
         ctxt.insert(&src, None);

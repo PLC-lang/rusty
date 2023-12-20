@@ -38,8 +38,9 @@ where
     let mut diagnostician = Diagnostician::null_diagnostician();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
-    let ctxt =
-        GlobalContext::new().sources(project.get_sources(), None).sources(project.get_includes(), None);
+    let ctxt = GlobalContext::new()
+        .with_source(project.get_sources(), None)
+        .with_source(project.get_includes(), None);
     //Parse
     let compile_options = CompileOptions {
         root: path,
@@ -51,7 +52,7 @@ where
         //Index
         .index(ctxt.provider())
         //Resolve
-        .annotate(ctxt.provider(), &diagnostician)
+        .annotate(ctxt.provider())
         //Codegen
         .codegen_to_string(&compile_options)
 }

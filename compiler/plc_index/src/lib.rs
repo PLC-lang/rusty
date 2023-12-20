@@ -8,10 +8,13 @@ use std::collections::HashMap;
 pub struct GlobalContext {
     sources: HashMap<&'static str, SourceCode>,
     provider: IdProvider,
-    // TODO: The following would be also nice, to have a cleaner API i.e. instead of working directly on a diagnostic one
-    //       could use `ctxt.add_diagnostic(...)` allowing us to ONLY work with the `GlobalContext` struct
-    //       -> index: Index,
-    //       -> diagnostics: RefCell<Diagnostics>, -> should be private, `{add,get}_diagnostic`
+    // TODO: The following would be also nice, to have a cleaner API i.e. instead of working with different structs such
+    //       as the index or the diagnostics one could instead ONLY use the `GlobalContext` with methods like
+    //       `ctxt.{add,get}_diagnostics(...)` making the code perhaps a bit cleaner / reducing the # of arguments for
+    //       some functions / methods?
+    //       RefCells may or may not make sense here, because maybe we dont want to pass the GlobalContext as a mutable reference?
+    //       -> diagnostics: RefCell<Diagnostics>, (private visibility)
+    //       -> index: RefCell<Index>, (private visibility; `get_index(&self) -> &mut Index`?)
 }
 
 impl GlobalContext {
@@ -19,40 +22,8 @@ impl GlobalContext {
         Self { sources: HashMap::new(), provider: IdProvider::default() }
     }
 
-    // TODO: impl Into<SourceLocation> would be nice, could also be used in the diagnostic functions later on
-    pub fn slice(&self, location: &SourceLocation) -> &str {
-        let path = location.get_file_name().unwrap_or("<internal>");
-        &self.sources.get(path).unwrap().source[location.get_span().to_range().unwrap()]
-    }
-
-    // // TODO: Importing `plc_project` would make life easier here, but we get a circular dependency if imported; try to fix it?
-    // pub fn project<S: SourceContainer>(project: &Project<S>, encoding: Option<&'static Encoding>) -> Self {
-    //     let mut ctxt = Self::new();
-    //
-    //     for source in project.get_sources() {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     for source in project.get_includes() {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     ctxt
-    // }
-
-    pub fn sources<S: SourceContainer>(
-        mut self,
-        container: &[S],
-        encoding: Option<&'static Encoding>,
-    ) -> Self {
-        for source in container {
-            self.insert(source, encoding);
-        }
-
+    pub fn with_source<S: SourceContainer>(mut self, sources: &[S], enc: Option<&'static Encoding>) -> Self {
+        sources.iter().for_each(|source| self.insert(source, enc));
         self
     }
 
@@ -70,4 +41,29 @@ impl GlobalContext {
     pub fn provider(&self) -> IdProvider {
         self.provider.clone()
     }
+
+    // TODO: `impl Into<SourceLocation>` would be nice here, but adding `plc_ast` as a dep in `plc_source` yields a circular dep so not possible right now
+    pub fn slice(&self, location: &SourceLocation) -> &str {
+        let path = location.get_file_name().unwrap_or("<internal>");
+        &self.sources.get(path).unwrap().source[location.get_span().to_range().unwrap()]
+    }
+
+    // // TODO: Importing `plc_project` would make life easier here and allow for the code below, but we get a circular dep
+    // pub fn project<S: SourceContainer>(project: &Project<S>, encoding: Option<&'static Encoding>) -> Self {
+    //     let mut ctxt = Self::new();
+    //
+    //     for source in project.get_sources() {
+    //         ctxt.insert(source, encoding);
+    //     }
+    //
+    //     for source in project.get_includes() {
+    //         ctxt.insert(source, encoding);
+    //     }
+    //
+    //     for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
+    //         ctxt.insert(source, encoding);
+    //     }
+    //
+    //     ctxt
+    // }
 }

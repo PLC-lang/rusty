@@ -8,8 +8,5 @@ edition = "2021"
 [dependencies]
 plc_ast = { path = "../plc_ast" }
 plc_source = { path = "../plc_source" }
-#plc_project = { path = "../plc_project" }
-
-# TODO: why `workspace` / boolean flag here; look up what it does?
-encoding_rs.workspace = true
-encoding_rs_io.workspace = true
+#plc_project = { path = "../plc_project" } # TODO: This will create a circular dependency
+encoding_rs = "0.8"

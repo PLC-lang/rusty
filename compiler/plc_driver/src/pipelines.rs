@@ -55,29 +55,28 @@ impl ParsedProject {
             .iter()
             .map(|it| {
                 let loaded_source = ctxt.get(it.get_location_str()).unwrap();
-                let id_provider = ctxt.provider(); // TODO: Remove me
 
                 let parse_func = match loaded_source.get_type() {
                     source_code::SourceType::Text => parse_file,
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
-                Ok(parse_func(loaded_source, LinkageType::Internal, id_provider, diagnostician))
+                Ok(parse_func(loaded_source, LinkageType::Internal, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(sources);
+
         //Parse the includes
         let includes = project
             .get_includes()
             .iter()
             .map(|it| {
                 let loaded_source = ctxt.get(it.get_location_str()).unwrap();
-                let id_provider = ctxt.provider(); // TODO: Remove me
-
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider, diagnostician))
+                Ok(parse_file(loaded_source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
+
         //For each lib, parse the includes
         let lib_includes = project
             .get_libraries()
@@ -85,9 +84,7 @@ impl ParsedProject {
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
                 let loaded_source = ctxt.get(it.get_location_str()).unwrap();
-                let id_provider = ctxt.provider(); // TODO: Remove me
-
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider, diagnostician))
+                Ok(parse_file(loaded_source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);
@@ -138,7 +135,7 @@ pub struct IndexedProject {
 
 impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(self, mut id_provider: IdProvider, _diagnostician: &Diagnostician) -> AnnotatedProject {
+    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
         //Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
         let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);

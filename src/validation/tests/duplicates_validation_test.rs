@@ -368,7 +368,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
             END_FUNCTION
         "#,
     )
-    .with_name("file1");
+    .with_path("file1");
 
     let code2 = SourceCode::from(
         r#"
@@ -380,7 +380,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
             END_FUNCTION
         "#,
     )
-    .with_name("file2");
+    .with_path("file2");
 
     ctxt.insert(&code1, None);
     ctxt.insert(&code2, None);
@@ -429,7 +429,7 @@ fn duplicate_with_generic() {
             END_FUNCTION
         "#,
     )
-    .with_name("file1");
+    .with_path("file1");
 
     let code2 = SourceCode::from(
         r#"
@@ -441,7 +441,7 @@ fn duplicate_with_generic() {
         END_PROGRAM
         "#,
     )
-    .with_name("file2");
+    .with_path("file2");
 
     let code3 = SourceCode::from(
         r#"
@@ -453,7 +453,7 @@ fn duplicate_with_generic() {
         END_PROGRAM
         "#,
     )
-    .with_name("file3");
+    .with_path("file3");
 
     ctxt.insert(&code1, None);
     ctxt.insert(&code2, None);

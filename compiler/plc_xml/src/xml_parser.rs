@@ -75,7 +75,7 @@ pub fn parse_file(
 ) -> CompilationUnit {
     let (unit, errors) = parse(source, linkage, id_provider);
     //Register the source file with the diagnostician
-    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here; in general register_file shouldnt be needed anymore once we pass the context to the diagnostician
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     diagnostician.handle(&errors);
     unit
 }
