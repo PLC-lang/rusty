@@ -54,14 +54,14 @@ impl ParsedProject {
             .get_sources()
             .iter()
             .map(|it| {
-                let loaded_source = ctxt.get(it.get_location_str()).unwrap();
+                let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
 
-                let parse_func = match loaded_source.get_type() {
+                let parse_func = match source.get_type() {
                     source_code::SourceType::Text => parse_file,
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
-                Ok(parse_func(loaded_source, LinkageType::Internal, ctxt.provider(), diagnostician))
+                Ok(parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(sources);
@@ -71,8 +71,8 @@ impl ParsedProject {
             .get_includes()
             .iter()
             .map(|it| {
-                let loaded_source = ctxt.get(it.get_location_str()).unwrap();
-                Ok(parse_file(loaded_source, LinkageType::External, ctxt.provider(), diagnostician))
+                let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
+                Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
@@ -83,8 +83,8 @@ impl ParsedProject {
             .iter()
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
-                let loaded_source = ctxt.get(it.get_location_str()).unwrap();
-                Ok(parse_file(loaded_source, LinkageType::External, ctxt.provider(), diagnostician))
+                let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
+                Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);

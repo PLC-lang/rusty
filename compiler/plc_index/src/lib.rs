@@ -28,10 +28,9 @@ impl GlobalContext {
     }
 
     pub fn insert(&mut self, container: &impl SourceContainer, encoding: Option<&'static Encoding>) {
-        let key = container.get_location_str();
-        let value = container.load_source(encoding).unwrap();
-
-        self.sources.insert(key, value);
+        if let Ok(value) = container.load_source(encoding) {
+            self.sources.insert(container.get_location_str(), value);
+        }
     }
 
     pub fn get(&self, key: &str) -> Option<&SourceCode> {
@@ -45,7 +44,11 @@ impl GlobalContext {
     // TODO: `impl Into<SourceLocation>` would be nice here, but adding `plc_ast` as a dep in `plc_source` yields a circular dep so not possible right now
     pub fn slice(&self, location: &SourceLocation) -> &str {
         let path = location.get_file_name().unwrap_or("<internal>");
-        &self.sources.get(path).unwrap().source[location.get_span().to_range().unwrap()]
+
+        let Some(code) = self.sources.get(path) else { return "" };
+        let Some(span) = location.get_span().to_range() else { return "" };
+
+        &code.source[span]
     }
 
     // // TODO: Importing `plc_project` would make life easier here and allow for the code below, but we get a circular dep
