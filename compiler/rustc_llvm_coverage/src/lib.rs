@@ -15,16 +15,19 @@ pub mod types;
 use types::*;
 
 use inkwell::{
-    module::Linkage,
+    module::Linkage,GlobalVisibility,
     types::{AnyType, AsTypeRef, StructType},
     values::{AsValueRef, FunctionValue, GlobalValue, StructValue},
 };
+use inkwell::comdat::*;
 
 use libc::c_uint;
 use std::ffi::CString;
 
 use inkwell::module::Module;
 use inkwell::types::BasicType;
+use llvm_sys::comdat::LLVMGetComdat;
+
 
 /// Calls llvm::createPGOFuncNameVar() with the given function instance's
 /// mangled function name. The LLVM API returns an llvm::GlobalVariable
@@ -138,13 +141,20 @@ pub fn save_func_record_to_mod<'ctx>(
     // llvm::set_initializer(llglobal, func_record_val);
     llglobal.set_initializer(&func_record_val);
 
-    // llvm::set_global_constant(llglobal, true);
-    // llvm::set_linkage(llglobal, llvm::Linkage::LinkOnceODRLinkage);
-    // llvm::set_visibility(llglobal, llvm::Visibility::Hidden);
-    // llvm::set_section(llglobal, &func_record_section_name);
-    // llvm::set_alignment(llglobal, VAR_ALIGN_BYTES);
-    // Use https://thedan64.github.io/inkwell/inkwell/values/struct.GlobalValue.html#method.set_comdat
-    // llvm::set_comdat(cx.llmod, llglobal, &func_record_var_name);
+    llglobal.set_constant( true);
+    llglobal.set_linkage(Linkage::LinkOnceODR);
+    llglobal.set_visibility(GlobalVisibility::Hidden);
+    llglobal.set_section(Some(&func_record_section_name));
+    llglobal.set_alignment(VAR_ALIGN_BYTES);
+    //Use https://thedan64.github.io/inkwell/inkwell/values/struct.GlobalValue.html#method.set_comdat
+    //create comdat for this value
+    assert!(llglobal.get_comdat().is_none());
+
+    let comdat = module.get_or_insert_comdat(llglobal.get_name().to_str().unwrap());
+
+    assert!(llglobal.get_comdat().is_none());
+
+    llglobal.set_comdat(comdat);
     // We will skip this for now... I don't think it's necessary (-Corban)
     // cx.add_used_global(llglobal);
 }
