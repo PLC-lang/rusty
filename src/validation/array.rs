@@ -19,7 +19,7 @@ use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 
 use super::{ValidationContext, Validator, Validators};
 
-/// Indicates whether an array was defined in a VAR block or a POU body
+/// Indicates whether an array was assigned in a VAR block or a POU body
 #[derive(Debug, Clone, Copy)]
 pub(super) enum StatementWrapper<'a> {
     Statement(&'a AstNode),
