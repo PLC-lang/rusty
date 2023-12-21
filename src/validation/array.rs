@@ -26,15 +26,15 @@ pub(super) enum StatementWrapper<'a> {
     Variable(&'a Variable),
 }
 
-impl<'a> Into<StatementWrapper<'a>> for &'a AstNode {
-    fn into(self) -> StatementWrapper<'a> {
-        StatementWrapper::Statement(self)
+impl<'a> From<&'a AstNode> for StatementWrapper<'a> {
+    fn from(value: &'a AstNode) -> Self {
+        Self::Statement(value)
     }
 }
 
-impl<'a> Into<StatementWrapper<'a>> for &'a Variable {
-    fn into(self) -> StatementWrapper<'a> {
-        StatementWrapper::Variable(self)
+impl<'a> From<&'a Variable> for StatementWrapper<'a> {
+    fn from(value: &'a Variable) -> Self {
+        Self::Variable(value)
     }
 }
 
@@ -130,7 +130,7 @@ fn statement_to_array_length<T: AnnotationMap>(context: &ValidationContext<T>, s
         AstStatement::CallStatement(_) => context
             .annotations
             .get_type(statement, context.index)
-            .and_then(|it| it.information.get_array_length(&context.index))
+            .and_then(|it| it.information.get_array_length(context.index))
             .unwrap_or(0),
 
         AstStatement::MultipliedStatement(data) => data.multiplier as usize,
