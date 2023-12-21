@@ -20,30 +20,41 @@ use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 use super::{ValidationContext, Validator, Validators};
 
 /// Indicates whether an array was defined in a VAR block or a POU body
-#[derive(Debug)]
-pub(super) enum Wrapper<'a> {
+#[derive(Debug, Clone, Copy)]
+pub(super) enum StatementWrapper<'a> {
     Statement(&'a AstNode),
     Variable(&'a Variable),
 }
 
-pub(super) fn validate_array_assignment<T: AnnotationMap>(
+impl<'a> Into<StatementWrapper<'a>> for &'a AstNode {
+    fn into(self) -> StatementWrapper<'a> {
+        StatementWrapper::Statement(self)
+    }
+}
+
+impl<'a> Into<StatementWrapper<'a>> for &'a Variable {
+    fn into(self) -> StatementWrapper<'a> {
+        StatementWrapper::Variable(self)
+    }
+}
+
+pub(super) fn validate_array_assignment<'a, T, S>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
-    wrapper: Wrapper,
-) {
-    let Some(lhs_type) = wrapper.datatype_info_lhs(context) else {
-        return;
-    };
-    let Some(rhs_stmt) = wrapper.get_rhs() else {
-        return;
-    };
+    statement: S,
+) where
+    T: AnnotationMap,
+    S: Into<StatementWrapper<'a>> + Copy,
+{
+    let Some(rhs_stmt) = statement.into().rhs_statement() else { return };
+    let Some(lhs_info) = statement.into().lhs_info(context) else { return };
 
-    if !lhs_type.is_array() {
+    if !lhs_info.is_array() {
         return;
     }
 
-    validate_array(validator, context, lhs_type, rhs_stmt);
-    validate_array_of_structs(validator, context, lhs_type, rhs_stmt);
+    validate_array(validator, context, lhs_info, rhs_stmt);
+    validate_array_of_structs(validator, context, lhs_info, rhs_stmt);
 }
 
 fn validate_array<T: AnnotationMap>(
@@ -53,14 +64,13 @@ fn validate_array<T: AnnotationMap>(
     rhs_stmt: &AstNode,
 ) {
     let stmt_rhs = peel(rhs_stmt);
-    let stmt_rhs = peel(stmt_rhs);
-    if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
+    if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
 
     let len_lhs = lhs_type.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = statement_to_array_length(stmt_rhs);
+    let len_rhs = dbg!(statement_to_array_length(context, stmt_rhs));
 
     if len_lhs == 0 {
         return;
@@ -79,23 +89,14 @@ fn validate_array_of_structs<T: AnnotationMap>(
     lhs_type: &DataTypeInformation,
     rhs_stmt: &AstNode,
 ) {
-    let Some(array_type_name) = lhs_type.get_inner_array_type_name() else {
-        return;
-    };
-    let Some(dti) = context.index.find_effective_type_by_name(array_type_name) else {
-        return;
-    };
-
+    let Some(array_type_name) = lhs_type.get_inner_array_type_name() else { return };
+    let Some(dti) = context.index.find_effective_type_by_name(array_type_name) else { return };
     if !dti.is_struct() {
         return;
     }
 
-    let AstStatement::Literal(AstLiteral::Array(array)) = rhs_stmt.get_stmt() else {
-        return;
-    };
-    let Some(elements) = array.elements().map(AstNode::get_stmt) else {
-        return;
-    };
+    let AstStatement::Literal(AstLiteral::Array(array)) = rhs_stmt.get_stmt() else { return };
+    let Some(elements) = array.elements().map(AstNode::get_stmt) else { return };
 
     match elements {
         AstStatement::ExpressionList(expressions) => {
@@ -115,53 +116,61 @@ fn validate_array_of_structs<T: AnnotationMap>(
 
 /// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
 /// on an expression-list such as `[(...), (...)]` would return 2.
-fn statement_to_array_length(statement: &AstNode) -> usize {
-    match statement.get_stmt() {
-        AstStatement::ExpressionList { .. } => 1,
-        AstStatement::ParenExpression(_) => 1,
-        AstStatement::MultipliedStatement(data) => data.multiplier as usize,
+fn statement_to_array_length<T: AnnotationMap>(context: &ValidationContext<T>, statement: &AstNode) -> usize {
+    match dbg!(statement.get_stmt()) {
         AstStatement::Literal(AstLiteral::Array(arr)) => match arr.elements() {
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) => {
-                expressions.iter().map(statement_to_array_length).sum::<usize>()
+                expressions.iter().map(|it| statement_to_array_length(context, it)).sum::<usize>()
             }
 
-            Some(any) => statement_to_array_length(any),
+            Some(any) => statement_to_array_length(context, any),
             None => 0,
         },
+
+        AstStatement::CallStatement(_) => context
+            .annotations
+            .get_type(statement, context.index)
+            .and_then(|it| it.information.get_array_length(&context.index))
+            .unwrap_or(0),
+
+        AstStatement::MultipliedStatement(data) => data.multiplier as usize,
+        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => 1,
 
         // Any literal other than an array can be counted as 1
         AstStatement::Literal { .. } => 1,
 
         _any => {
             // XXX: Not sure what else could be in here
-            log::warn!("Array size-counting for {statement:?} not covered; validation _might_ be wrong");
+            log::debug!("Array size-counting for {statement:?} not covered; validation _might_ be wrong");
             0
         }
     }
 }
 
-impl<'a> Wrapper<'a> {
-    fn get_rhs(&self) -> Option<&'a AstNode> {
+impl<'a> StatementWrapper<'a> {
+    fn rhs_statement(&self) -> Option<&'a AstNode> {
         match self {
-            Wrapper::Statement(AstNode { stmt: AstStatement::Assignment(data), .. }) => Some(&data.right),
-            Wrapper::Variable(variable) => variable.initializer.as_ref(),
+            StatementWrapper::Statement(AstNode { stmt: AstStatement::Assignment(data), .. }) => {
+                Some(&data.right)
+            }
+            StatementWrapper::Variable(variable) => variable.initializer.as_ref(),
             _ => None,
         }
     }
 
-    fn datatype_info_lhs<T>(&self, context: &'a ValidationContext<T>) -> Option<&'a DataTypeInformation>
+    fn lhs_info<T>(&self, context: &'a ValidationContext<T>) -> Option<&'a DataTypeInformation>
     where
         T: AnnotationMap,
     {
         match self {
-            Wrapper::Statement(statement) => {
+            StatementWrapper::Statement(statement) => {
                 let AstNode { stmt: AstStatement::Assignment(data), .. } = statement else {
                     return None;
                 };
                 context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
             }
 
-            Wrapper::Variable(variable) => variable
+            StatementWrapper::Variable(variable) => variable
                 .data_type_declaration
                 .get_referenced_type()
                 .and_then(|it| context.index.find_effective_type_info(&it)),
