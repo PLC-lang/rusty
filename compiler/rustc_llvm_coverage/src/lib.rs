@@ -157,4 +157,5 @@ pub fn save_func_record_to_mod<'ctx>(
     llglobal.set_comdat(comdat);
     // We will skip this for now... I don't think it's necessary (-Corban)
     // cx.add_used_global(llglobal);
+    //
 }
