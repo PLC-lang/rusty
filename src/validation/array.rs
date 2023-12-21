@@ -70,7 +70,7 @@ fn validate_array<T: AnnotationMap>(
     }
 
     let len_lhs = lhs_type.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = dbg!(statement_to_array_length(context, stmt_rhs));
+    let len_rhs = statement_to_array_length(context, stmt_rhs);
 
     if len_lhs == 0 {
         return;
@@ -117,7 +117,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
 /// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
 /// on an expression-list such as `[(...), (...)]` would return 2.
 fn statement_to_array_length<T: AnnotationMap>(context: &ValidationContext<T>, statement: &AstNode) -> usize {
-    match dbg!(statement.get_stmt()) {
+    match statement.get_stmt() {
         AstStatement::Literal(AstLiteral::Array(arr)) => match arr.elements() {
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) => {
                 expressions.iter().map(|it| statement_to_array_length(context, it)).sum::<usize>()
