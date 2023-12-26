@@ -207,6 +207,16 @@
 <a href="#207" id="207">207</a>
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::PouType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -362,22 +372,27 @@
                     .unwrap_or(<span class="bool-val">false</span>)
             })
             .map(|it| (it.get_name(), <span class="kw-2">&amp;</span>it.source_location));
-        <span class="kw">let </span>all_prgs_and_funcs = index
+        <span class="kw">let </span>all_prgs = index
             .get_pous()
             .values()
             .filter(|p| {
                 <span class="macro">matches!</span>(
                     p,
                     PouIndexEntry::Program { .. }
-                        | PouIndexEntry::Function { .. }
                         | PouIndexEntry::Method { .. }
                         | PouIndexEntry::Action { .. }
                 )
             })
             .map(|it| (it.get_name(), it.get_location()));
 
+        <span class="kw">let </span>all_funcs = index
+            .get_pous()
+            .values()
+            .filter(|p| p.is_function() &amp;&amp; !p.is_generic())
+            .map(|it| (it.get_name(), it.get_location()));
+
         <span class="self">self</span>.check_uniqueness_of_cluster(
-            all_fb_instances.chain(all_prgs_and_funcs),
+            all_fb_instances.chain(all_prgs).chain(all_funcs),
             <span class="prelude-val">Some</span>(<span class="string">&quot;Ambiguous callable symbol.&quot;</span>),
         );
     }
@@ -395,7 +410,12 @@
             .entries()
             .filter(|(<span class="kw">_</span>, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() &gt; <span class="number">1</span>)
             .map(|(name, pous)| {
-                (name.as_str(), pous.iter().filter(only_toplevel_pous).map(|p| p.get_location()))
+                (
+                    name.as_str(),
+                    pous.iter()
+                        .filter(|p| only_toplevel_pous(p) &amp;&amp; !p.is_generic())
+                        .map(|p| p.get_location()),
+                )
             });
 
         <span class="kw">for </span>(name, cluster) <span class="kw">in </span>pou_clusters {

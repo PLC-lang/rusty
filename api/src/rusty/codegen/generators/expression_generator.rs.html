@@ -2720,15 +2720,6 @@
 <a href="#2720" id="2720">2720</a>
 <a href="#2721" id="2721">2721</a>
 <a href="#2722" id="2722">2722</a>
-<a href="#2723" id="2723">2723</a>
-<a href="#2724" id="2724">2724</a>
-<a href="#2725" id="2725">2725</a>
-<a href="#2726" id="2726">2726</a>
-<a href="#2727" id="2727">2727</a>
-<a href="#2728" id="2728">2728</a>
-<a href="#2729" id="2729">2729</a>
-<a href="#2730" id="2730">2730</a>
-<a href="#2731" id="2731">2731</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -3065,8 +3056,7 @@
             </span><span class="kw">let </span>reference =
                 <span class="macro">cast_if_needed!</span>(<span class="self">self</span>, target_type, <span class="self">self</span>.get_type_hint_for(index)<span class="question-mark">?</span>, reference, <span class="prelude-val">None</span>)
                     .into_int_value();
-            <span class="comment">// let reference = reference.into_int_value();
-            //Multiply by the bitwitdh
+            <span class="comment">//Multiply by the bitwitdh
             </span><span class="kw">if </span>access.get_bit_width() &gt; <span class="number">1 </span>{
                 <span class="kw">let </span>bitwidth =
                     reference.get_type().const_int(access.get_bit_width(), access_type.is_signed_int());
@@ -3161,14 +3151,6 @@
         <span class="comment">// if the function is builtin, generate a basic value enum for it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(builtin) = <span class="self">self</span>.index.get_builtin_function(implementation_name) {
             <span class="comment">// adr, ref, etc.
-            // let parameters_list = if let Some(StatementAnnotation::ReplacementAst { statement }) =
-            //     self.annotations.get(operator)
-            // {
-            //     statement.get_as_list()
-            // } else {
-            //     parameters_list
-            // };
-
             </span><span class="kw">return </span>builtin.codegen(<span class="self">self</span>, parameters_list.as_slice(), operator.get_location());
         }
 
