@@ -153,22 +153,27 @@ impl GlobalValidator {
                     .unwrap_or(false)
             })
             .map(|it| (it.get_name(), &it.source_location));
-        let all_prgs_and_funcs = index
+        let all_prgs = index
             .get_pous()
             .values()
             .filter(|p| {
                 matches!(
                     p,
                     PouIndexEntry::Program { .. }
-                        | PouIndexEntry::Function { .. }
                         | PouIndexEntry::Method { .. }
                         | PouIndexEntry::Action { .. }
                 )
             })
             .map(|it| (it.get_name(), it.get_location()));
 
+        let all_funcs = index
+            .get_pous()
+            .values()
+            .filter(|p| p.is_function() && !p.is_generic())
+            .map(|it| (it.get_name(), it.get_location()));
+
         self.check_uniqueness_of_cluster(
-            all_fb_instances.chain(all_prgs_and_funcs),
+            all_fb_instances.chain(all_prgs).chain(all_funcs),
             Some("Ambiguous callable symbol."),
         );
     }
@@ -186,7 +191,12 @@ impl GlobalValidator {
             .entries()
             .filter(|(_, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() > 1)
             .map(|(name, pous)| {
-                (name.as_str(), pous.iter().filter(only_toplevel_pous).map(|p| p.get_location()))
+                (
+                    name.as_str(),
+                    pous.iter()
+                        .filter(|p| only_toplevel_pous(p) && !p.is_generic())
+                        .map(|p| p.get_location()),
+                )
             });
 
         for (name, cluster) in pou_clusters {
