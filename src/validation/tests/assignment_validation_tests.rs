@@ -1,5 +1,5 @@
 use crate::assert_validation_snapshot;
-use crate::test_utils::tests::parse_and_validate;
+use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
 
 #[test]
 fn constant_assignment_validation() {
@@ -693,7 +693,7 @@ fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
 
 #[test]
 fn invalid_action_call_assignments_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK fb_t
         VAR
@@ -728,13 +728,12 @@ fn invalid_action_call_assignments_are_validated() {
         END_FUNCTION
         "#,
     );
-    assert_eq!(diagnostics.len(), 4);
-    assert_validation_snapshot!(&diagnostics)
+    insta::assert_snapshot!(&diagnostics)
 }
 
 #[test]
 fn action_call_parameters_are_only_validated_outside_of_parent_pou_contexts() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "FUNCTION_BLOCK FOO_T
         VAR_IN_OUT
             arr: ARRAY[0..1] OF DINT;
@@ -744,7 +743,7 @@ fn action_call_parameters_are_only_validated_outside_of_parent_pou_contexts() {
         END_VAR
             BAR(); // associated action call here does not require parameters to be passed.
         END_FUNCTION_BLOCK
-        
+
         ACTIONS
         ACTION BAR
             FOR i := 0 TO 2 DO
@@ -760,7 +759,7 @@ fn action_call_parameters_are_only_validated_outside_of_parent_pou_contexts() {
             END_FOR;
         END_ACTION
         END_ACTIONS
-        
+
         FUNCTION main: DINT
         VAR
             fb: FOO_T;
@@ -771,8 +770,7 @@ fn action_call_parameters_are_only_validated_outside_of_parent_pou_contexts() {
         END_FUNCTION",
     );
 
-    assert_eq!(diagnostics.len(), 1);
-    assert_validation_snapshot!(diagnostics);
+    insta::assert_snapshot!(diagnostics);
 }
 
 #[test]
