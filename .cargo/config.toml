@@ -15,3 +15,7 @@ rustflags = [
     "link-arg=--target=aarch64-linux-gnu",
 ]
 linker = "clang"
+
+[profile.profiling]
+inherits = "release"
+debug = true
