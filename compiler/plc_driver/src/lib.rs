@@ -15,7 +15,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use ast::provider::IdProvider;
 use cli::{CompileParameters, ParameterError};
 use pipelines::AnnotatedProject;
 use plc::{
@@ -23,6 +22,7 @@ use plc::{
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_index::GlobalContext;
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use source_code::SourceContainer;
@@ -138,7 +138,6 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::debug!("LIB_LOCATION={}", location.to_string_lossy());
         env::set_var("LIB_LOCATION", location);
     }
-    let id_provider = IdProvider::default();
     let mut diagnostician = match compile_parameters.error_format {
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
@@ -159,19 +158,29 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::info!("{err}")
     }
 
-    // 1 : Parse
-    let annotated_project = pipelines::ParsedProject::parse(
-        &project,
-        compile_parameters.encoding,
-        id_provider.clone(),
-        &mut diagnostician,
-    )?
-    // 2 : Index
-    .index(id_provider.clone())?
-    // 3 : Resolve
-    .annotate(id_provider, &diagnostician)?;
+    // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
+    //       commented `project` method in the GlobalContext implementation block
+    let ctxt = GlobalContext::new()
+        .with_source(project.get_sources(), compile_parameters.encoding)?
+        .with_source(project.get_includes(), compile_parameters.encoding)?
+        .with_source(
+            project
+                .get_libraries()
+                .iter()
+                .flat_map(LibraryInformation::get_includes)
+                .collect::<Vec<_>>()
+                .as_slice(),
+            None,
+        )?;
+
+    // 1 : Parse, 2. Index and 3. Resolve / Annotate
+    let annotated_project = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
+        .index(ctxt.provider())
+        .annotate(ctxt.provider());
+
     // 4 : Validate
-    annotated_project.validate(&mut diagnostician)?;
+    annotated_project.validate(&ctxt, &mut diagnostician)?;
+
     // 5 : Codegen
     if !compile_parameters.is_check() {
         let res = generate(
@@ -201,20 +210,20 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
 pub fn parse_and_annotate<T: SourceContainer>(
     name: &str,
     src: Vec<T>,
-) -> Result<AnnotatedProject, Diagnostic> {
+) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
-    let id_provider = IdProvider::default();
+    let ctxt = GlobalContext::new().with_source(project.get_sources(), None)?;
     let mut diagnostician = Diagnostician::default();
-    pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
-        // Create an index, add builtins
-        .index(id_provider.clone())?
-        // Resolve
-        .annotate(id_provider, &diagnostician)
+    let parsed = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?;
+
+    // Create an index, add builtins then resolve
+    let provider = ctxt.provider();
+    Ok((ctxt, parsed.index(provider.clone()).annotate(provider)))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
-pub fn generate_to_string<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+pub fn generate_to_string<T: SourceContainer>(name: &'static str, src: Vec<T>) -> Result<String, Diagnostic> {
     generate_to_string_internal(name, src, false)
 }
 
@@ -229,10 +238,10 @@ fn generate_to_string_internal<T: SourceContainer>(
     debug: bool,
 ) -> Result<String, Diagnostic> {
     let mut diagnostician = Diagnostician::default();
-    let project = parse_and_annotate(name, src)?;
+    let (ctxt, project) = parse_and_annotate(name, src)?;
 
     // Validate
-    project.validate(&mut diagnostician)?;
+    project.validate(&ctxt, &mut diagnostician)?;
 
     // Generate
     let context = CodegenContext::create();
@@ -253,7 +262,7 @@ fn generate(
     compile_parameters: CompileParameters,
     project: Project<PathBuf>,
     output_format: FormatOption,
-    annotated_project: pipelines::AnnotatedProject,
+    annotated_project: AnnotatedProject,
     build_location: Option<PathBuf>,
     lib_location: Option<PathBuf>,
 ) -> Result<(), Diagnostic> {

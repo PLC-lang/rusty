@@ -2,7 +2,9 @@ use plc_ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
+use plc_index::GlobalContext;
 use plc_source::source_location::SourceLocationFactory;
+use plc_source::SourceCode;
 
 use crate::{
     assert_validation_snapshot,
@@ -353,9 +355,10 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
         index
     }
 
+    let mut ctxt = GlobalContext::new();
+
     // GIVEN some code that automatically generates a ptr-types
-    let ids = IdProvider::default();
-    let index1 = do_index(
+    let code1 = SourceCode::from(
         r#"
             FUNCTION foo : INT
                 VAR_OUTPUT
@@ -364,11 +367,10 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
                 END_VAR
             END_FUNCTION
         "#,
-        ids.clone(),
-    );
+    )
+    .with_path("file1");
 
-    //AND another file with also OUTPUT-INTS
-    let index2 = do_index(
+    let code2 = SourceCode::from(
         r#"
             FUNCTION foo2 : INT
                 VAR_OUTPUT
@@ -377,8 +379,13 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
                 END_VAR
             END_FUNCTION
         "#,
-        ids,
-    );
+    )
+    .with_path("file2");
+
+    ctxt.insert(&code1, None).unwrap();
+    ctxt.insert(&code2, None).unwrap();
+    let index1 = do_index(&code1.source, ctxt.provider());
+    let index2 = do_index(&code2.source, ctxt.provider());
 
     // WHEN the index is combined
     let mut global_index = Index::default();
@@ -386,7 +393,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
     global_index.import(index2); //import file 2
 
     // THEN there should be no duplication diagnostics
-    let mut validator = Validator::new();
+    let mut validator = Validator::new(&ctxt);
     validator.perform_global_validation(&global_index);
     let diagnostics = validator.diagnostics();
     assert_eq!(diagnostics, vec![]);
@@ -408,9 +415,9 @@ fn duplicate_with_generic() {
         (index, unit)
     }
 
-    // GIVEN a generic function defined in its own file
-    let ids = IdProvider::default();
-    let (index1, unit1) = do_index(
+    let mut ctxt = GlobalContext::new();
+
+    let code1 = SourceCode::from(
         r#"
             {external}
             FUNCTION foo <T: ANY_INT> : DATE
@@ -421,13 +428,10 @@ fn duplicate_with_generic() {
             END_VAR
             END_FUNCTION
         "#,
-        ids.clone(),
-        "file1.st",
-    );
+    )
+    .with_path("file1");
 
-    // AND another file that calls that generic function and implicitely
-    // create type-specific foo-implementations
-    let (index2, unit2) = do_index(
+    let code2 = SourceCode::from(
         r#"
         PROGRAM prg1
             foo(INT#1, SINT#2, SINT#3);
@@ -436,13 +440,10 @@ fn duplicate_with_generic() {
             foo(INT#1, SINT#2, SINT#3);
         END_PROGRAM
         "#,
-        ids.clone(),
-        "file2.st",
-    );
+    )
+    .with_path("file2");
 
-    // AND another file that calls that generic function and implicitely
-    // create type-specific foo-implementations
-    let (index3, unit3) = do_index(
+    let code3 = SourceCode::from(
         r#"
         PROGRAM prg2
             foo(INT#1, SINT#2, SINT#3);
@@ -451,9 +452,24 @@ fn duplicate_with_generic() {
             foo(INT#1, SINT#2, SINT#3);
         END_PROGRAM
         "#,
-        ids.clone(),
-        "file3.st",
-    );
+    )
+    .with_path("file3");
+
+    ctxt.insert(&code1, None).unwrap();
+    ctxt.insert(&code2, None).unwrap();
+    ctxt.insert(&code3, None).unwrap();
+
+    // GIVEN a generic function defined in its own file
+    let (index1, unit1) = do_index(&code1.source, ctxt.provider(), "file1.st");
+
+    // AND another file that calls that generic function and implicitely
+    // create type-specific foo-implementations
+    let (index2, unit2) = do_index(&code2.source, ctxt.provider(), "file2.st");
+
+    // AND another file that calls that generic function and implicitely
+    // create type-specific foo-implementations
+    let (index3, unit3) = do_index(&code3.source, ctxt.provider(), "file3.st");
+
     // WHEN the index is combined
     let mut global_index = Index::default();
     for data_type in typesystem::get_builtin_types() {
@@ -464,9 +480,9 @@ fn duplicate_with_generic() {
     global_index.import(index3); //import file 3
 
     // AND the resolvers does its job
-    let (mut annotations1, ..) = TypeAnnotator::visit_unit(&global_index, &unit1, ids.clone());
-    let (mut annotations2, ..) = TypeAnnotator::visit_unit(&global_index, &unit2, ids.clone());
-    let (mut annotations3, ..) = TypeAnnotator::visit_unit(&global_index, &unit3, ids);
+    let (mut annotations1, ..) = TypeAnnotator::visit_unit(&global_index, &unit1, ctxt.provider());
+    let (mut annotations2, ..) = TypeAnnotator::visit_unit(&global_index, &unit2, ctxt.provider());
+    let (mut annotations3, ..) = TypeAnnotator::visit_unit(&global_index, &unit3, ctxt.provider());
     global_index.import(std::mem::take(&mut annotations1.new_index));
     global_index.import(std::mem::take(&mut annotations2.new_index));
     global_index.import(std::mem::take(&mut annotations3.new_index));
@@ -478,7 +494,7 @@ fn duplicate_with_generic() {
     );
 
     // AND there should be no duplication diagnostics
-    let mut validator = Validator::new();
+    let mut validator = Validator::new(&ctxt);
     validator.perform_global_validation(&global_index);
     let diagnostics = validator.diagnostics();
     assert_eq!(diagnostics, vec![]);

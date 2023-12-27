@@ -1,8 +1,8 @@
 use std::{fmt::Debug, path::PathBuf};
 
-use ast::provider::IdProvider;
 use plc::DebugLevel;
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::SourceContainer;
 
@@ -38,19 +38,21 @@ where
     let mut diagnostician = Diagnostician::null_diagnostician();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
+    let ctxt = GlobalContext::new()
+        .with_source(project.get_sources(), None)?
+        .with_source(project.get_includes(), None)?;
     //Parse
-    let id_provider = IdProvider::default();
     let compile_options = CompileOptions {
         root: path,
         debug_level,
         optimization: plc::OptimizationLevel::None,
         ..Default::default()
     };
-    pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
+    pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         //Index
-        .index(id_provider.clone())?
+        .index(ctxt.provider())
         //Resolve
-        .annotate(id_provider, &diagnostician)?
+        .annotate(ctxt.provider())
         //Codegen
         .codegen_to_string(&compile_options)
 }

@@ -37,12 +37,12 @@ pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
 pub fn parse_file(
-    source: SourceCode,
+    source: &SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
 ) -> CompilationUnit {
-    let location_factory = SourceLocationFactory::for_source(&source);
+    let location_factory = SourceLocationFactory::for_source(source);
     let (unit, errors) = parse(
         lexer::lex_with_ids(&source.source, id_provider, location_factory),
         linkage,
@@ -50,7 +50,7 @@ pub fn parse_file(
     );
     //Register the source file with the diagnostician
     //TODO: We should reduce the clone here
-    diagnostician.register_file(source.get_location_str().to_string(), source.source);
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     diagnostician.handle(&errors);
     unit
 }

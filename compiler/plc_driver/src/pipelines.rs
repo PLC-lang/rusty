@@ -10,7 +10,6 @@ use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
-use encoding_rs::Encoding;
 use indexmap::IndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -26,6 +25,7 @@ use plc_diagnostics::{
     diagnostics::Diagnostic,
     errno::ErrNo,
 };
+use plc_index::GlobalContext;
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -42,9 +42,8 @@ impl ParsedProject {
     /// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
     pub fn parse<T: SourceContainer>(
+        ctxt: &GlobalContext,
         project: &Project<T>,
-        encoding: Option<&'static Encoding>,
-        id_provider: IdProvider,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
         //TODO in parallel
@@ -55,50 +54,37 @@ impl ParsedProject {
             .get_sources()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
+                let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
 
-                let parse_func = match loaded_source.get_type() {
+                let parse_func = match source.get_type() {
                     source_code::SourceType::Text => parse_file,
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
-                Ok(parse_func(loaded_source, LinkageType::Internal, id_provider.clone(), diagnostician))
+                Ok(parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(sources);
+
         //Parse the includes
         let includes = project
             .get_includes()
             .iter()
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
+                Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(includes);
+
         //For each lib, parse the includes
         let lib_includes = project
             .get_libraries()
             .iter()
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
-                let loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        &it.get_location().expect("Location should not be empty").to_string_lossy(),
-                        &err,
-                    )
-                })?;
-                Ok(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
+                Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);
@@ -107,7 +93,7 @@ impl ParsedProject {
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
-    pub fn index(self, id_provider: IdProvider) -> Result<IndexedProject, Diagnostic> {
+    pub fn index(self, id_provider: IdProvider) -> IndexedProject {
         let indexed_units = self
             .0
             .into_par_iter()
@@ -136,7 +122,7 @@ impl ParsedProject {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
 
-        Ok(IndexedProject { units, index: global_index })
+        IndexedProject { units, index: global_index }
     }
 }
 
@@ -149,11 +135,7 @@ pub struct IndexedProject {
 
 impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(
-        self,
-        mut id_provider: IdProvider,
-        _diagnostician: &Diagnostician,
-    ) -> Result<AnnotatedProject, Diagnostic> {
+    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
         //Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
         let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
@@ -180,7 +162,7 @@ impl IndexedProject {
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        Ok(AnnotatedProject { units: annotated_units, index: full_index, annotations })
+        AnnotatedProject { units: annotated_units, index: full_index, annotations }
     }
 }
 
@@ -193,9 +175,13 @@ pub struct AnnotatedProject {
 
 impl AnnotatedProject {
     /// Validates the project, reports any new diagnostics on the fly
-    pub fn validate(&self, diagnostician: &mut Diagnostician) -> Result<(), Diagnostic> {
+    pub fn validate(
+        &self,
+        ctxt: &GlobalContext,
+        diagnostician: &mut Diagnostician,
+    ) -> Result<(), Diagnostic> {
         // perform global validation
-        let mut validator = Validator::new();
+        let mut validator = Validator::new(ctxt);
         validator.perform_global_validation(&self.index);
         let diagnostics = validator.diagnostics();
         let mut severity = diagnostician.handle(&diagnostics);
