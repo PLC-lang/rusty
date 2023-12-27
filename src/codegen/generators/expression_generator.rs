@@ -334,7 +334,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let reference =
                 cast_if_needed!(self, target_type, self.get_type_hint_for(index)?, reference, None)
                     .into_int_value();
-            // let reference = reference.into_int_value();
             //Multiply by the bitwitdh
             if access.get_bit_width() > 1 {
                 let bitwidth =
@@ -430,14 +429,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
-            // let parameters_list = if let Some(StatementAnnotation::ReplacementAst { statement }) =
-            //     self.annotations.get(operator)
-            // {
-            //     statement.get_as_list()
-            // } else {
-            //     parameters_list
-            // };
-
             return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 
