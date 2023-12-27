@@ -175,6 +175,15 @@
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for validating array assignments both in their syntax and semantics.
 //!
 //! Specifically this module checks if the array assignments start with a leading `[` symbol and the fed
@@ -196,31 +205,42 @@
 
 <span class="kw">use super</span>::{ValidationContext, Validator, Validators};
 
-<span class="doccomment">/// Indicates whether an array was defined in a VAR block or a POU body
-</span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Wrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="doccomment">/// Indicates whether an array was assigned in a VAR block or a POU body
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>StatementWrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
     Statement(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode),
     Variable(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Variable),
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>validate_array_assignment&lt;T: AnnotationMap&gt;(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode&gt; <span class="kw">for </span>StatementWrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Statement(value)
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Variable&gt; <span class="kw">for </span>StatementWrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Variable) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Variable(value)
+    }
+}
+
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>validate_array_assignment&lt;<span class="lifetime">&#39;a</span>, T, S&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-    wrapper: Wrapper,
-) {
-    <span class="kw">let </span><span class="prelude-val">Some</span>(lhs_type) = wrapper.datatype_info_lhs(context) <span class="kw">else </span>{
-        <span class="kw">return</span>;
-    };
-    <span class="kw">let </span><span class="prelude-val">Some</span>(rhs_stmt) = wrapper.get_rhs() <span class="kw">else </span>{
-        <span class="kw">return</span>;
-    };
+    statement: S,
+) <span class="kw">where
+    </span>T: AnnotationMap,
+    S: Into&lt;StatementWrapper&lt;<span class="lifetime">&#39;a</span>&gt;&gt; + Copy,
+{
+    <span class="kw">let </span><span class="prelude-val">Some</span>(rhs_stmt) = statement.into().rhs_statement() <span class="kw">else </span>{ <span class="kw">return </span>};
+    <span class="kw">let </span><span class="prelude-val">Some</span>(lhs_info) = statement.into().lhs_info(context) <span class="kw">else </span>{ <span class="kw">return </span>};
 
-    <span class="kw">if </span>!lhs_type.is_array() {
+    <span class="kw">if </span>!lhs_info.is_array() {
         <span class="kw">return</span>;
     }
 
-    validate_array(validator, context, lhs_type, rhs_stmt);
-    validate_array_of_structs(validator, context, lhs_type, rhs_stmt);
+    validate_array(validator, context, lhs_info, rhs_stmt);
+    validate_array_of_structs(validator, context, lhs_info, rhs_stmt);
 }
 
 <span class="kw">fn </span>validate_array&lt;T: AnnotationMap&gt;(
@@ -230,14 +250,13 @@
     rhs_stmt: <span class="kw-2">&amp;</span>AstNode,
 ) {
     <span class="kw">let </span>stmt_rhs = peel(rhs_stmt);
-    <span class="kw">let </span>stmt_rhs = peel(stmt_rhs);
-    <span class="kw">if </span>!(stmt_rhs.is_literal_array() || stmt_rhs.is_reference()) {
+    <span class="kw">if </span>!(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
         <span class="kw">return</span>; <span class="comment">// Return here, because array size validation is error-prone with incorrect assignments
     </span>}
 
     <span class="kw">let </span>len_lhs = lhs_type.get_array_length(context.index).unwrap_or(<span class="number">0</span>);
-    <span class="kw">let </span>len_rhs = statement_to_array_length(stmt_rhs);
+    <span class="kw">let </span>len_rhs = statement_to_array_length(context, stmt_rhs);
 
     <span class="kw">if </span>len_lhs == <span class="number">0 </span>{
         <span class="kw">return</span>;
@@ -256,23 +275,14 @@
     lhs_type: <span class="kw-2">&amp;</span>DataTypeInformation,
     rhs_stmt: <span class="kw-2">&amp;</span>AstNode,
 ) {
-    <span class="kw">let </span><span class="prelude-val">Some</span>(array_type_name) = lhs_type.get_inner_array_type_name() <span class="kw">else </span>{
-        <span class="kw">return</span>;
-    };
-    <span class="kw">let </span><span class="prelude-val">Some</span>(dti) = context.index.find_effective_type_by_name(array_type_name) <span class="kw">else </span>{
-        <span class="kw">return</span>;
-    };
-
+    <span class="kw">let </span><span class="prelude-val">Some</span>(array_type_name) = lhs_type.get_inner_array_type_name() <span class="kw">else </span>{ <span class="kw">return </span>};
+    <span class="kw">let </span><span class="prelude-val">Some</span>(dti) = context.index.find_effective_type_by_name(array_type_name) <span class="kw">else </span>{ <span class="kw">return </span>};
     <span class="kw">if </span>!dti.is_struct() {
         <span class="kw">return</span>;
     }
 
-    <span class="kw">let </span>AstStatement::Literal(AstLiteral::Array(array)) = rhs_stmt.get_stmt() <span class="kw">else </span>{
-        <span class="kw">return</span>;
-    };
-    <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements().map(AstNode::get_stmt) <span class="kw">else </span>{
-        <span class="kw">return</span>;
-    };
+    <span class="kw">let </span>AstStatement::Literal(AstLiteral::Array(array)) = rhs_stmt.get_stmt() <span class="kw">else </span>{ <span class="kw">return </span>};
+    <span class="kw">let </span><span class="prelude-val">Some</span>(elements) = array.elements().map(AstNode::get_stmt) <span class="kw">else </span>{ <span class="kw">return </span>};
 
     <span class="kw">match </span>elements {
         AstStatement::ExpressionList(expressions) =&gt; {
@@ -292,53 +302,61 @@
 
 <span class="doccomment">/// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
 /// on an expression-list such as `[(...), (...)]` would return 2.
-</span><span class="kw">fn </span>statement_to_array_length(statement: <span class="kw-2">&amp;</span>AstNode) -&gt; usize {
+</span><span class="kw">fn </span>statement_to_array_length&lt;T: AnnotationMap&gt;(context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;, statement: <span class="kw-2">&amp;</span>AstNode) -&gt; usize {
     <span class="kw">match </span>statement.get_stmt() {
-        AstStatement::ExpressionList { .. } =&gt; <span class="number">1</span>,
-        AstStatement::ParenExpression(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
-        AstStatement::MultipliedStatement(data) =&gt; data.multiplier <span class="kw">as </span>usize,
         AstStatement::Literal(AstLiteral::Array(arr)) =&gt; <span class="kw">match </span>arr.elements() {
             <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) =&gt; {
-                expressions.iter().map(statement_to_array_length).sum::&lt;usize&gt;()
+                expressions.iter().map(|it| statement_to_array_length(context, it)).sum::&lt;usize&gt;()
             }
 
-            <span class="prelude-val">Some</span>(any) =&gt; statement_to_array_length(any),
+            <span class="prelude-val">Some</span>(any) =&gt; statement_to_array_length(context, any),
             <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
         },
+
+        AstStatement::CallStatement(<span class="kw">_</span>) =&gt; context
+            .annotations
+            .get_type(statement, context.index)
+            .and_then(|it| it.information.get_array_length(context.index))
+            .unwrap_or(<span class="number">0</span>),
+
+        AstStatement::MultipliedStatement(data) =&gt; data.multiplier <span class="kw">as </span>usize,
+        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
 
         <span class="comment">// Any literal other than an array can be counted as 1
         </span>AstStatement::Literal { .. } =&gt; <span class="number">1</span>,
 
         _any =&gt; {
             <span class="comment">// XXX: Not sure what else could be in here
-            </span><span class="macro">log::warn!</span>(<span class="string">&quot;Array size-counting for {statement:?} not covered; validation _might_ be wrong&quot;</span>);
+            </span><span class="macro">log::debug!</span>(<span class="string">&quot;Array size-counting for {statement:?} not covered; validation _might_ be wrong&quot;</span>);
             <span class="number">0
         </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Wrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>get_rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; StatementWrapper&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>rhs_statement(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            Wrapper::Statement(AstNode { stmt: AstStatement::Assignment(data), .. }) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>data.right),
-            Wrapper::Variable(variable) =&gt; variable.initializer.as_ref(),
+            StatementWrapper::Statement(AstNode { stmt: AstStatement::Assignment(data), .. }) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>data.right)
+            }
+            StatementWrapper::Variable(variable) =&gt; variable.initializer.as_ref(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn </span>datatype_info_lhs&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ValidationContext&lt;T&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataTypeInformation&gt;
+    <span class="kw">fn </span>lhs_info&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ValidationContext&lt;T&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataTypeInformation&gt;
     <span class="kw">where
         </span>T: AnnotationMap,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            Wrapper::Statement(statement) =&gt; {
+            StatementWrapper::Statement(statement) =&gt; {
                 <span class="kw">let </span>AstNode { stmt: AstStatement::Assignment(data), .. } = statement <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 };
                 context.annotations.get_type(<span class="kw-2">&amp;</span>data.left, context.index).map(|it| it.get_type_information())
             }
 
-            Wrapper::Variable(variable) =&gt; variable
+            StatementWrapper::Variable(variable) =&gt; variable
                 .data_type_declaration
                 .get_referenced_type()
                 .and_then(|it| context.index.find_effective_type_info(<span class="kw-2">&amp;</span>it)),

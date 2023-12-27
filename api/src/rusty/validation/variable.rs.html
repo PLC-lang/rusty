@@ -224,7 +224,7 @@
 <span class="kw">use crate</span>::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 <span class="kw">use super</span>::{
-    array::{validate_array_assignment, Wrapper},
+    array::validate_array_assignment,
     statement::{validate_enum_variant_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
@@ -324,7 +324,7 @@
             <span class="comment">// Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
             // initializer in case it has further sub-assignments.
-            </span>validate_array_assignment(validator, context, Wrapper::Variable(variable));
+            </span>validate_array_assignment(validator, context, variable);
             visit_statement(validator, initializer, context);
         }
 

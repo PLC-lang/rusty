@@ -1594,6 +1594,10 @@
 <a href="#1594" id="1594">1594</a>
 <a href="#1595" id="1595">1595</a>
 <a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
+<a href="#1599" id="1599">1599</a>
+<a href="#1600" id="1600">1600</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2440,6 +2444,10 @@
 
     <span class="kw">pub fn </span>is_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ReferenceExpr(..))
+    }
+
+    <span class="kw">pub fn </span>is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::CallStatement(..))
     }
 
     <span class="kw">pub fn </span>is_hardware_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
