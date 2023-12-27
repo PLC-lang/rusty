@@ -4,7 +4,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
-    array::{validate_array_assignment, Wrapper},
+    array::validate_array_assignment,
     statement::{validate_enum_variant_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
@@ -104,7 +104,7 @@ fn validate_variable<T: AnnotationMap>(
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
             // initializer in case it has further sub-assignments.
-            validate_array_assignment(validator, context, Wrapper::Variable(variable));
+            validate_array_assignment(validator, context, variable);
             visit_statement(validator, initializer, context);
         }
 

@@ -11,10 +11,7 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use super::{
-    array::{validate_array_assignment, Wrapper},
-    ValidationContext, Validator, Validators,
-};
+use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -96,7 +93,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.right, context);
 
             validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
-            validate_array_assignment(validator, context, Wrapper::Statement(statement));
+            validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
             visit_statement(validator, &data.left, context);
