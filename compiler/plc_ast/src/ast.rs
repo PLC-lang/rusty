@@ -846,6 +846,10 @@ impl AstNode {
         matches!(self.stmt, AstStatement::ReferenceExpr(..))
     }
 
+    pub fn is_call(&self) -> bool {
+        matches!(self.stmt, AstStatement::CallStatement(..))
+    }
+
     pub fn is_hardware_access(&self) -> bool {
         matches!(self.stmt, AstStatement::HardwareAccess(..))
     }

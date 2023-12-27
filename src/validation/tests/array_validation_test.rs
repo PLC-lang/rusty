@@ -320,3 +320,29 @@ fn parenthesized_struct_initializers() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn array_assignment_function_call() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo : ARRAY [0..3] OF USINT
+            foo[0] := 0;
+            foo[1] := 1;
+            foo[2] := 2;
+            foo[3] := 3;
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                arr                 : ARRAY[0..3] OF USINT;
+                arr_incorrect_size  : ARRAY[0..1] OF USINT;
+            END_VAR
+
+            arr                 := foo(); // We don't want a `... must be wrapped by []` error here
+            arr_incorrect_size  := foo(); // We want a invalid size array error here
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
