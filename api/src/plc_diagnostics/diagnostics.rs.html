@@ -1666,10 +1666,10 @@
         }
     }
 
-    <span class="kw">pub fn </span>assignment_instead_of_equal(range: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>assignment_instead_of_equal(lhs: <span class="kw-2">&amp;</span>str, rhs: <span class="kw-2">&amp;</span>str, statement: <span class="kw-2">&amp;</span>AstNode) -&gt; Diagnostic {
         Diagnostic::ImprovementSuggestion {
-            message: <span class="string">&quot;This statement has no effect, did you mean to use `:=`?&quot;</span>.to_string(),
-            range: <span class="macro">vec!</span>[range],
+            message: <span class="macro">format!</span>(<span class="string">&quot;This equal statement has no effect, did you mean `{lhs} := {rhs}`?&quot;</span>),
+            range: <span class="macro">vec!</span>[statement.get_location()],
         }
     }
 }

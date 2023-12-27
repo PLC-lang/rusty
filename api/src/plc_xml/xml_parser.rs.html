@@ -273,15 +273,15 @@
 }
 
 <span class="kw">pub fn </span>parse_file(
-    source: SourceCode,
+    source: <span class="kw-2">&amp;</span>SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
 ) -&gt; CompilationUnit {
-    <span class="kw">let </span>(unit, errors) = parse(<span class="kw-2">&amp;</span>source, linkage, id_provider);
+    <span class="kw">let </span>(unit, errors) = parse(source, linkage, id_provider);
     <span class="comment">//Register the source file with the diagnostician
-    </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string());
-    diagnostician.handle(<span class="kw-2">&amp;</span>errors);
+    </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); <span class="comment">// TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
+    </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors);
     unit
 }
 

@@ -60,12 +60,11 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pipelines::ParsedProject, CompileOptions};
 
-<span class="kw">use </span>ast::provider::IdProvider;
 <span class="kw">use </span>plc::codegen::{CodegenContext, GeneratedModule};
 <span class="kw">use </span>plc_diagnostics::diagnostician::Diagnostician;
+<span class="kw">use </span>plc_index::GlobalContext;
 <span class="kw">use </span>project::project::Project;
 <span class="kw">use </span>source_code::Compilable;
 
@@ -89,12 +88,11 @@
 </span><span class="kw">pub fn </span>compile&lt;T: Compilable&gt;(context: <span class="kw-2">&amp;</span>CodegenContext, source: T) -&gt; GeneratedModule&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">let </span>source = source.containers();
     <span class="kw">let </span>project = Project::new(<span class="string">&quot;TestProject&quot;</span>.to_string()).with_sources(source);
+    <span class="kw">let </span>ctxt = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>).unwrap();
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::null_diagnostician();
-    <span class="kw">let </span>id_provider = IdProvider::default();
-    <span class="kw">let </span>parsed_project =
-        ParsedProject::parse(<span class="kw-2">&amp;</span>project, <span class="prelude-val">None</span>, id_provider.clone(), <span class="kw-2">&amp;mut </span>diagnostician).unwrap();
-    <span class="kw">let </span>indexed_project = parsed_project.index(id_provider.clone()).unwrap();
-    <span class="kw">let </span>annotated_project = indexed_project.annotate(id_provider, <span class="kw-2">&amp;</span>diagnostician).unwrap();
+    <span class="kw">let </span>parsed_project = ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician).unwrap();
+    <span class="kw">let </span>indexed_project = parsed_project.index(ctxt.provider());
+    <span class="kw">let </span>annotated_project = indexed_project.annotate(ctxt.provider());
     <span class="kw">let </span>compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,

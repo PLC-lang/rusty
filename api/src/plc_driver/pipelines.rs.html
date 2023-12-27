@@ -494,20 +494,6 @@
 <a href="#494" id="494">494</a>
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
-<a href="#497" id="497">497</a>
-<a href="#498" id="498">498</a>
-<a href="#499" id="499">499</a>
-<a href="#500" id="500">500</a>
-<a href="#501" id="501">501</a>
-<a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
-<a href="#505" id="505">505</a>
-<a href="#506" id="506">506</a>
-<a href="#507" id="507">507</a>
-<a href="#508" id="508">508</a>
-<a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -520,7 +506,6 @@
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
-<span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -536,6 +521,7 @@
     diagnostics::Diagnostic,
     errno::ErrNo,
 };
+<span class="kw">use </span>plc_index::GlobalContext;
 <span class="kw">use </span>project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -552,9 +538,8 @@
     <span class="doccomment">/// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
     </span><span class="kw">pub fn </span>parse&lt;T: SourceContainer&gt;(
+        ctxt: <span class="kw-2">&amp;</span>GlobalContext,
         project: <span class="kw-2">&amp;</span>Project&lt;T&gt;,
-        encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;,
-        id_provider: IdProvider,
         diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="comment">//TODO in parallel
@@ -565,50 +550,37 @@
             .get_sources()
             .iter()
             .map(|it| {
-                <span class="kw">let </span>loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        <span class="kw-2">&amp;</span>it.get_location().expect(<span class="string">&quot;Location should not be empty&quot;</span>).to_string_lossy(),
-                        <span class="kw-2">&amp;</span>err,
-                    )
-                })<span class="question-mark">?</span>;
+                <span class="kw">let </span>source = ctxt.get(it.get_location_str()).expect(<span class="string">&quot;All sources should&#39;ve been read&quot;</span>);
 
-                <span class="kw">let </span>parse_func = <span class="kw">match </span>loaded_source.get_type() {
+                <span class="kw">let </span>parse_func = <span class="kw">match </span>source.get_type() {
                     source_code::SourceType::Text =&gt; parse_file,
                     source_code::SourceType::Xml =&gt; cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown =&gt; <span class="macro">unreachable!</span>(),
                 };
-                <span class="prelude-val">Ok</span>(parse_func(loaded_source, LinkageType::Internal, id_provider.clone(), diagnostician))
+                <span class="prelude-val">Ok</span>(parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician))
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
         units.extend(sources);
+
         <span class="comment">//Parse the includes
         </span><span class="kw">let </span>includes = project
             .get_includes()
             .iter()
             .map(|it| {
-                <span class="kw">let </span>loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        <span class="kw-2">&amp;</span>it.get_location().expect(<span class="string">&quot;Location should not be empty&quot;</span>).to_string_lossy(),
-                        <span class="kw-2">&amp;</span>err,
-                    )
-                })<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                <span class="kw">let </span>source = ctxt.get(it.get_location_str()).expect(<span class="string">&quot;All sources should&#39;ve been read&quot;</span>);
+                <span class="prelude-val">Ok</span>(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
         units.extend(includes);
+
         <span class="comment">//For each lib, parse the includes
         </span><span class="kw">let </span>lib_includes = project
             .get_libraries()
             .iter()
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
-                <span class="kw">let </span>loaded_source = it.load_source(encoding).map_err(|err| {
-                    Diagnostic::io_read_error(
-                        <span class="kw-2">&amp;</span>it.get_location().expect(<span class="string">&quot;Location should not be empty&quot;</span>).to_string_lossy(),
-                        <span class="kw-2">&amp;</span>err,
-                    )
-                })<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(parse_file(loaded_source, LinkageType::External, id_provider.clone(), diagnostician))
+                <span class="kw">let </span>source = ctxt.get(it.get_location_str()).expect(<span class="string">&quot;All sources should&#39;ve been read&quot;</span>);
+                <span class="prelude-val">Ok</span>(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
         units.extend(lib_includes);
@@ -617,7 +589,7 @@
     }
 
     <span class="doccomment">/// Creates an index out of a pased project. The index could then be used to query datatypes
-    </span><span class="kw">pub fn </span>index(<span class="self">self</span>, id_provider: IdProvider) -&gt; <span class="prelude-ty">Result</span>&lt;IndexedProject, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>index(<span class="self">self</span>, id_provider: IdProvider) -&gt; IndexedProject {
         <span class="kw">let </span>indexed_units = <span class="self">self
             </span>.<span class="number">0
             </span>.into_par_iter()
@@ -646,7 +618,7 @@
         </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
 
-        <span class="prelude-val">Ok</span>(IndexedProject { units, index: global_index })
+        IndexedProject { units, index: global_index }
     }
 }
 
@@ -659,11 +631,7 @@
 
 <span class="kw">impl </span>IndexedProject {
     <span class="doccomment">/// Creates annotations on the project in order to facilitate codegen and validation
-    </span><span class="kw">pub fn </span>annotate(
-        <span class="self">self</span>,
-        <span class="kw-2">mut </span>id_provider: IdProvider,
-        _diagnostician: <span class="kw-2">&amp;</span>Diagnostician,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;AnnotatedProject, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>annotate(<span class="self">self</span>, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; AnnotatedProject {
         <span class="comment">//Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
         </span><span class="kw">let </span>(<span class="kw-2">mut </span>full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
@@ -690,7 +658,7 @@
 
         <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        <span class="prelude-val">Ok</span>(AnnotatedProject { units: annotated_units, index: full_index, annotations })
+        AnnotatedProject { units: annotated_units, index: full_index, annotations }
     }
 }
 
@@ -703,9 +671,13 @@
 
 <span class="kw">impl </span>AnnotatedProject {
     <span class="doccomment">/// Validates the project, reports any new diagnostics on the fly
-    </span><span class="kw">pub fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>validate(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        ctxt: <span class="kw-2">&amp;</span>GlobalContext,
+        diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">// perform global validation
-        </span><span class="kw">let </span><span class="kw-2">mut </span>validator = Validator::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>validator = Validator::new(ctxt);
         validator.perform_global_validation(<span class="kw-2">&amp;</span><span class="self">self</span>.index);
         <span class="kw">let </span>diagnostics = validator.diagnostics();
         <span class="kw">let </span><span class="kw-2">mut </span>severity = diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics);

@@ -44,7 +44,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::ast::AstId;
 
-<span class="attr">#[derive(Clone)]
+<span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>IdProvider {
     current_id: Arc&lt;AtomicUsize&gt;,
 }

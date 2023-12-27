@@ -166,9 +166,14 @@
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
 <a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_index::GlobalContext;
 
 <span class="kw">use crate</span>::{
     index::{
@@ -260,23 +265,26 @@
     <span class="kw">fn </span>take_diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt;;
 }
 
-<span class="attr">#[derive(Validators)]
-</span><span class="kw">pub struct </span>Validator {
-    <span class="comment">//context: ValidationContext&lt;&#39;s&gt;,
-    </span>diagnostics: Vec&lt;Diagnostic&gt;,
+<span class="kw">pub struct </span>Validator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GlobalContext,
+    diagnostics: Vec&lt;Diagnostic&gt;,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>Validator {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Validators <span class="kw">for </span>Validator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>push_diagnostic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostic: Diagnostic) {
+        <span class="self">self</span>.diagnostics.push(diagnostic);
+    }
+    <span class="kw">fn </span>take_diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt; {
+        std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.diagnostics)
     }
 }
 
-<span class="kw">impl </span>Validator {
-    <span class="kw">pub fn </span>new() -&gt; Validator {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Validator&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GlobalContext) -&gt; Validator {
         Validator {
+            context,
             diagnostics: Vec::new(),
             global_validator: GlobalValidator::new(),
             recursive_validator: RecursiveValidator::new(),

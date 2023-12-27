@@ -120,6 +120,7 @@ var sourcesIndex = JSON.parse('{\
 "plc_derive":["",[],["lib.rs"]],\
 "plc_diagnostics":["",[["reporter",[],["clang.rs","codespan.rs","null.rs"]]],["diagnostician.rs","diagnostics.rs","errno.rs","lib.rs","reporter.rs"]],\
 "plc_driver":["",[],["cli.rs","lib.rs","pipelines.rs","runner.rs"]],\
+"plc_index":["",[],["lib.rs"]],\
 "plc_project":["",[],["build_config.rs","lib.rs","object.rs","project.rs"]],\
 "plc_source":["",[],["lib.rs","source_location.rs"]],\
 "plc_util":["",[],["convention.rs","lib.rs"]],\

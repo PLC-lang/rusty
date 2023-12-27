@@ -369,6 +369,15 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -386,7 +395,6 @@
     path::{Path, PathBuf},
 };
 
-<span class="kw">use </span>ast::provider::IdProvider;
 <span class="kw">use </span>cli::{CompileParameters, ParameterError};
 <span class="kw">use </span>pipelines::AnnotatedProject;
 <span class="kw">use </span>plc::{
@@ -394,6 +402,7 @@
 };
 
 <span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+<span class="kw">use </span>plc_index::GlobalContext;
 <span class="kw">use </span>project::project::{LibraryInformation, Project};
 <span class="kw">use </span>rayon::prelude::{IntoParallelIterator, ParallelIterator};
 <span class="kw">use </span>source_code::SourceContainer;
@@ -509,7 +518,6 @@
         <span class="macro">log::debug!</span>(<span class="string">&quot;LIB_LOCATION={}&quot;</span>, location.to_string_lossy());
         env::set_var(<span class="string">&quot;LIB_LOCATION&quot;</span>, location);
     }
-    <span class="kw">let </span>id_provider = IdProvider::default();
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = <span class="kw">match </span>compile_parameters.error_format {
         ErrorFormat::Rich =&gt; Diagnostician::default(),
         ErrorFormat::Clang =&gt; Diagnostician::clang_format_diagnostician(),
@@ -530,19 +538,29 @@
         </span><span class="macro">log::info!</span>(<span class="string">&quot;{err}&quot;</span>)
     }
 
-    <span class="comment">// 1 : Parse
-    </span><span class="kw">let </span>annotated_project = pipelines::ParsedProject::parse(
-        <span class="kw-2">&amp;</span>project,
-        compile_parameters.encoding,
-        id_provider.clone(),
-        <span class="kw-2">&amp;mut </span>diagnostician,
-    )<span class="question-mark">?
-    </span><span class="comment">// 2 : Index
-    </span>.index(id_provider.clone())<span class="question-mark">?
-    </span><span class="comment">// 3 : Resolve
-    </span>.annotate(id_provider, <span class="kw-2">&amp;</span>diagnostician)<span class="question-mark">?</span>;
+    <span class="comment">// TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
+    //       commented `project` method in the GlobalContext implementation block
+    </span><span class="kw">let </span>ctxt = GlobalContext::new()
+        .with_source(project.get_sources(), compile_parameters.encoding)<span class="question-mark">?
+        </span>.with_source(project.get_includes(), compile_parameters.encoding)<span class="question-mark">?
+        </span>.with_source(
+            project
+                .get_libraries()
+                .iter()
+                .flat_map(LibraryInformation::get_includes)
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                .as_slice(),
+            <span class="prelude-val">None</span>,
+        )<span class="question-mark">?</span>;
+
+    <span class="comment">// 1 : Parse, 2. Index and 3. Resolve / Annotate
+    </span><span class="kw">let </span>annotated_project = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?
+        </span>.index(ctxt.provider())
+        .annotate(ctxt.provider());
+
     <span class="comment">// 4 : Validate
-    </span>annotated_project.validate(<span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
+    </span>annotated_project.validate(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
+
     <span class="comment">// 5 : Codegen
     </span><span class="kw">if </span>!compile_parameters.is_check() {
         <span class="kw">let </span>res = generate(
@@ -572,20 +590,20 @@
 </span><span class="kw">pub fn </span>parse_and_annotate&lt;T: SourceContainer&gt;(
     name: <span class="kw-2">&amp;</span>str,
     src: Vec&lt;T&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AnnotatedProject, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(GlobalContext, AnnotatedProject), Diagnostic&gt; {
     <span class="comment">// Parse the source to ast
     </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
-    <span class="kw">let </span>id_provider = IdProvider::default();
+    <span class="kw">let </span>ctxt = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::default();
-    pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>project, <span class="prelude-val">None</span>, id_provider.clone(), <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?
-        </span><span class="comment">// Create an index, add builtins
-        </span>.index(id_provider.clone())<span class="question-mark">?
-        </span><span class="comment">// Resolve
-        </span>.annotate(id_provider, <span class="kw-2">&amp;</span>diagnostician)
+    <span class="kw">let </span>parsed = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
+
+    <span class="comment">// Create an index, add builtins then resolve
+    </span><span class="kw">let </span>provider = ctxt.provider();
+    <span class="prelude-val">Ok</span>((ctxt, parsed.index(provider.clone()).annotate(provider)))
 }
 
 <span class="doccomment">/// Generates an IR string from a list of sources. Useful for tests or api calls
-</span><span class="kw">pub fn </span>generate_to_string&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+</span><span class="kw">pub fn </span>generate_to_string&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
     generate_to_string_internal(name, src, <span class="bool-val">false</span>)
 }
 
@@ -600,10 +618,10 @@
     debug: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::default();
-    <span class="kw">let </span>project = parse_and_annotate(name, src)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(ctxt, project) = parse_and_annotate(name, src)<span class="question-mark">?</span>;
 
     <span class="comment">// Validate
-    </span>project.validate(<span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
+    </span>project.validate(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
 
     <span class="comment">// Generate
     </span><span class="kw">let </span>context = CodegenContext::create();
@@ -624,7 +642,7 @@
     compile_parameters: CompileParameters,
     project: Project&lt;PathBuf&gt;,
     output_format: FormatOption,
-    annotated_project: pipelines::AnnotatedProject,
+    annotated_project: AnnotatedProject,
     build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     lib_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
