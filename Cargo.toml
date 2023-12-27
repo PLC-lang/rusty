@@ -21,7 +21,7 @@ plc_source = { path = "./compiler/plc_source" }
 plc_ast = { path = "./compiler/plc_ast" }
 plc_util = { path = "./compiler/plc_util" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics" }
-plc_index = { path = "compiler/plc_index" }
+plc_index = { path = "./compiler/plc_index" }
 logos = "0.12.0"
 thiserror = "1.0"
 clap = { version = "3.0", features = ["derive"] }

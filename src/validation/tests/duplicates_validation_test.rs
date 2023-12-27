@@ -382,8 +382,8 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
     )
     .with_path("file2");
 
-    ctxt.insert(&code1, None);
-    ctxt.insert(&code2, None);
+    ctxt.insert(&code1, None).unwrap();
+    ctxt.insert(&code2, None).unwrap();
     let index1 = do_index(&code1.source, ctxt.provider());
     let index2 = do_index(&code2.source, ctxt.provider());
 
@@ -455,9 +455,9 @@ fn duplicate_with_generic() {
     )
     .with_path("file3");
 
-    ctxt.insert(&code1, None);
-    ctxt.insert(&code2, None);
-    ctxt.insert(&code3, None);
+    ctxt.insert(&code1, None).unwrap();
+    ctxt.insert(&code2, None).unwrap();
+    ctxt.insert(&code3, None).unwrap();
 
     // GIVEN a generic function defined in its own file
     let (index1, unit1) = do_index(&code1.source, ctxt.provider(), "file1.st");

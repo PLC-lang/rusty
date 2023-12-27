@@ -2015,6 +2015,7 @@ version = "0.1.0"
 dependencies = [
  "encoding_rs",
  "plc_ast",
+ "plc_diagnostics",
  "plc_source",
 ]
 

@@ -161,8 +161,8 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
     // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
     //       commented `project` method in the GlobalContext implementation block
     let ctxt = GlobalContext::new()
-        .with_source(project.get_sources(), compile_parameters.encoding)
-        .with_source(project.get_includes(), compile_parameters.encoding)
+        .with_source(project.get_sources(), compile_parameters.encoding)?
+        .with_source(project.get_includes(), compile_parameters.encoding)?
         .with_source(
             project
                 .get_libraries()
@@ -171,7 +171,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
                 .collect::<Vec<_>>()
                 .as_slice(),
             None,
-        );
+        )?;
 
     // 1 : Parse, 2. Index and 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
@@ -213,7 +213,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
 ) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
-    let ctxt = GlobalContext::new().with_source(project.get_sources(), None);
+    let ctxt = GlobalContext::new().with_source(project.get_sources(), None)?;
     let mut diagnostician = Diagnostician::default();
     let parsed = pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?;
 

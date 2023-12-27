@@ -120,7 +120,7 @@ pub mod tests {
         let src = SourceCode::from(src);
 
         let mut ctxt = GlobalContext::new();
-        ctxt.insert(&src, None);
+        ctxt.insert(&src, None).unwrap();
 
         let (unit, index, mut diagnostics) = do_index(src, ctxt.provider());
 

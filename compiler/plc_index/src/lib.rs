@@ -1,5 +1,6 @@
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
@@ -22,15 +23,27 @@ impl GlobalContext {
         Self { sources: HashMap::new(), provider: IdProvider::default() }
     }
 
-    pub fn with_source<S: SourceContainer>(mut self, sources: &[S], enc: Option<&'static Encoding>) -> Self {
-        sources.iter().for_each(|source| self.insert(source, enc));
-        self
+    pub fn with_source<S>(mut self, sources: &[S], enc: Option<&'static Encoding>) -> Result<Self, Diagnostic>
+    where
+        S: SourceContainer,
+    {
+        for source in sources {
+            self.insert(source, enc)?;
+        }
+
+        Ok(self)
     }
 
-    pub fn insert(&mut self, container: &impl SourceContainer, encoding: Option<&'static Encoding>) {
-        if let Ok(value) = container.load_source(encoding) {
-            self.sources.insert(container.get_location_str(), value);
-        }
+    pub fn insert<S>(&mut self, container: &S, encoding: Option<&'static Encoding>) -> Result<(), Diagnostic>
+    where
+        S: SourceContainer,
+    {
+        match container.load_source(encoding) {
+            Ok(value) => self.sources.insert(container.get_location_str(), value),
+            Err(why) => return Err(Diagnostic::io_read_error(container.get_location_str(), &why)),
+        };
+
+        Ok(())
     }
 
     pub fn get(&self, key: &str) -> Option<&SourceCode> {

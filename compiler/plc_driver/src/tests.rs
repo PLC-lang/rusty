@@ -39,8 +39,8 @@ where
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
     let ctxt = GlobalContext::new()
-        .with_source(project.get_sources(), None)
-        .with_source(project.get_includes(), None);
+        .with_source(project.get_sources(), None)?
+        .with_source(project.get_includes(), None)?;
     //Parse
     let compile_options = CompileOptions {
         root: path,
