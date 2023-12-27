@@ -3,7 +3,7 @@ source: src/validation/tests/assignment_validation_tests.rs
 expression: res
 ---
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 15, offset: 319 }..TextLocation { line: 14, column: 22, offset: 326 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 24, offset: 328 }..TextLocation { line: 14, column: 40, offset: 344 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 24, offset: 328 }..TextLocation { line: 14, column: 40, offset: 344 }) }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 15, offset: 382 }..TextLocation { line: 15, column: 16, offset: 383 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 18, offset: 385 }..TextLocation { line: 15, column: 24, offset: 391 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 18, offset: 385 }..TextLocation { line: 15, column: 24, offset: 391 }) }], err_no: var__invalid_assignment }
 

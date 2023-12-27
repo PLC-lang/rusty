@@ -3,5 +3,5 @@ source: src/validation/tests/variable_length_array_test.rs
 expression: res
 ---
 SemanticError { message: "Expected array access with 1 dimensions, found 2", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 20, offset: 187 }..TextLocation { line: 7, column: 24, offset: 191 }) }], err_no: vla__invalid_array_access }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_b' to '__fn_arr'", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 19, offset: 514 }..TextLocation { line: 17, column: 26, offset: 521 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[0..5, 5..10] OF DINT' to 'ARRAY[*] OF DINT'", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 19, offset: 514 }..TextLocation { line: 17, column: 26, offset: 521 }) }], err_no: var__invalid_assignment }
 

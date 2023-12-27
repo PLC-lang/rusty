@@ -12,6 +12,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+use crate::validation::statement::helper::get_datatype_name_or_slice;
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -726,8 +727,8 @@ fn validate_assignment<T: AnnotationMap>(
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
-                right_type.get_type_information().get_name(),
-                left_type.get_type_information().get_name(),
+                get_datatype_name_or_slice(validator.context, right_type),
+                get_datatype_name_or_slice(validator.context, left_type),
                 location.clone(),
             ));
         } else if right.is_literal() {
@@ -767,8 +768,8 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
 
     if left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
-            right_type.get_type_information().get_name(),
-            left_type.get_type_information().get_name(),
+            get_datatype_name_or_slice(validator.context, right_type),
+            get_datatype_name_or_slice(validator.context, left_type),
             location.clone(),
         ));
     }
@@ -1083,7 +1084,9 @@ mod helper {
     use std::ops::Range;
 
     use plc_ast::ast::DirectAccessType;
+    use plc_index::GlobalContext;
 
+    use crate::typesystem::DataType;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
     /// Returns true if the current index is in the range for the given type
@@ -1108,5 +1111,13 @@ mod helper {
     /// Returns true if the direct access can be used for the given type
     pub fn is_compatible(access: &DirectAccessType, data_type: &DataTypeInformation, index: &Index) -> bool {
         data_type.get_semantic_size(index) as u64 > access.get_bit_width()
+    }
+
+    pub fn get_datatype_name_or_slice<'a>(context: &'a GlobalContext, dt: &'a DataType) -> &'a str {
+        if dt.is_internal() {
+            return dt.get_type_information().get_name();
+        }
+
+        context.slice(&dt.location) // TODO: This will need some trimming, e.g. try `ARRAY[1..5]\n\n    OF DINT`
     }
 }
