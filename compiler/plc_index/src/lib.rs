@@ -66,7 +66,7 @@ impl GlobalContext {
 
     pub fn slice_trimmed(&self, location: &SourceLocation) -> String {
         let slice = self.slice(location);
-        slice.split_whitespace().collect::<Vec<_>>().join(" ").to_string()
+        slice.split_whitespace().collect::<Vec<_>>().join(" ")
     }
 
     // // TODO: Importing `plc_project` would make life easier here and allow for the code below, but we get a circular dep
