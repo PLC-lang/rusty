@@ -1,0 +1,29 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: "&diagnostics"
+---
+error: Invalid assignment: cannot assign '__main_arr' to 'WSTRING'
+   ┌─ <internal>:31:20
+   │
+31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
+   │                    ^^^^^^^^^^^ Invalid assignment: cannot assign '__main_arr' to 'WSTRING'
+
+error: Invalid assignment: cannot assign '__main_arr' to 'DINT'
+   ┌─ <internal>:31:33
+   │
+31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
+   │                                 ^^^^^^^^^^ Invalid assignment: cannot assign '__main_arr' to 'DINT'
+
+error: Invalid assignment: cannot assign '__main_arr' to 'STRING'
+   ┌─ <internal>:31:45
+   │
+31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
+   │                                             ^^^^^^^^^^ Invalid assignment: cannot assign '__main_arr' to 'STRING'
+
+error: Invalid assignment: cannot assign 'WSTRING' to '__fb_t_out'
+   ┌─ <internal>:31:57
+   │
+31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
+   │                                                         ^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to '__fb_t_out'
+
+
