@@ -1,6 +1,5 @@
 use crate::assert_validation_snapshot;
 use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
-use insta::assert_snapshot;
 
 #[test]
 fn constant_assignment_validation() {
@@ -693,9 +692,8 @@ fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
 }
 
 #[test]
-#[ignore = "var_in_out blocks cause false positive validation errors. see https://github.com/PLC-lang/rusty/issues/803"]
 fn invalid_action_call_assignments_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK fb_t
         VAR
@@ -730,8 +728,49 @@ fn invalid_action_call_assignments_are_validated() {
         END_FUNCTION
         "#,
     );
-    assert_eq!(diagnostics.len(), 4);
-    assert_validation_snapshot!(&diagnostics)
+    insta::assert_snapshot!(&diagnostics)
+}
+
+#[test]
+fn action_call_parameters_are_only_validated_outside_of_parent_pou_contexts() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK FOO_T
+        VAR_IN_OUT
+            arr: ARRAY[0..1] OF DINT;
+        END_VAR
+        VAR_TEMP
+            i: DINT;
+        END_VAR
+            BAR(); // associated action call here does not require parameters to be passed.
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+        ACTION BAR
+            FOR i := 0 TO 2 DO
+                arr[i] := i;
+            END_FOR;
+
+            BAZ(); // we are still in the parent-pou context, no validation required
+        END_ACTION
+
+        ACTION BAZ
+            FOR i := 0 TO 2 DO
+                arr[i] := 0;
+            END_FOR;
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main: DINT
+        VAR
+            fb: FOO_T;
+            arr: ARRAY[0..1] OF DINT;
+        END_VAR
+            fb(arr);
+            fb.bar(); // INVALID - we are not in the parent context and while we use a qualified call, we don't know if the variable has been initialized
+        END_FUNCTION",
+    );
+
+    insta::assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -943,5 +982,30 @@ fn string_type_alias_assignment_can_be_validated() {
         ",
     );
 
-    assert_validation_snapshot!(diagnostics)
+    assert_validation_snapshot!(diagnostics);
+}
+
+#[test]
+fn trimmed_slices() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        PROGRAM main
+        VAR
+            one : ARRAY[1..1] OF DINT;
+            two : ARRAY[1..5]              OF
+
+
+
+
+            DINT;
+        END_VAR
+
+            one := two;
+        END_PROGRAM
+        ",
+    );
+
+    // When retrieving the slice of the datatype of `two`, we want to have
+    // `ARRAY[1..5] OF DINT` instead of `ARRAY[1..5]       OF\n\n\nDINT`
+    insta::assert_snapshot!(diagnostic);
 }

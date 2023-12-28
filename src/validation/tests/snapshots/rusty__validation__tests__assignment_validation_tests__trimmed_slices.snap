@@ -1,0 +1,11 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: diagnostic
+---
+error: Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'ARRAY[1..1] OF DINT'
+   ┌─ <internal>:13:13
+   │
+13 │             one := two;
+   │             ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'ARRAY[1..1] OF DINT'
+
+
