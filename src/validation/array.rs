@@ -14,6 +14,7 @@ use plc_ast::{
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_index::GlobalContext;
 
 use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 
@@ -46,20 +47,23 @@ pub(super) fn validate_array_assignment<'a, T, S>(
     T: AnnotationMap,
     S: Into<StatementWrapper<'a>> + Copy,
 {
-    let Some(rhs_stmt) = statement.into().rhs_statement() else { return };
-    let Some(lhs_info) = statement.into().lhs_info(context) else { return };
+    let statement = statement.into();
+
+    let Some(rhs_stmt) = statement.rhs_statement() else { return };
+    let Some(lhs_info) = statement.lhs_info(context) else { return };
 
     if !lhs_info.is_array() {
         return;
     }
 
-    validate_array(validator, context, lhs_info, rhs_stmt);
+    validate_array(validator, context, &statement, lhs_info, rhs_stmt);
     validate_array_of_structs(validator, context, lhs_info, rhs_stmt);
 }
 
 fn validate_array<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
+    statement: &StatementWrapper,
     lhs_type: &DataTypeInformation,
     rhs_stmt: &AstNode,
 ) {
@@ -77,9 +81,9 @@ fn validate_array<T: AnnotationMap>(
     }
 
     if len_lhs < len_rhs {
-        let name = lhs_type.get_name();
+        let name = statement.lhs_name(validator.context);
         let location = stmt_rhs.get_location();
-        validator.push_diagnostic(Diagnostic::array_size(name, len_lhs, len_rhs, location));
+        validator.push_diagnostic(Diagnostic::array_size(&name, len_lhs, len_rhs, location));
     }
 }
 
@@ -148,13 +152,23 @@ fn statement_to_array_length<T: AnnotationMap>(context: &ValidationContext<T>, s
 }
 
 impl<'a> StatementWrapper<'a> {
+    fn lhs_name(&self, context: &GlobalContext) -> String {
+        match self {
+            StatementWrapper::Variable(variable) => variable.name.clone(),
+            StatementWrapper::Statement(statement) => {
+                let AstStatement::Assignment(data) = &statement.stmt else { return "".to_string() };
+                context.slice_trimmed(&data.left.location)
+            }
+        }
+    }
+
     fn rhs_statement(&self) -> Option<&'a AstNode> {
         match self {
-            StatementWrapper::Statement(AstNode { stmt: AstStatement::Assignment(data), .. }) => {
+            StatementWrapper::Variable(variable) => variable.initializer.as_ref(),
+            StatementWrapper::Statement(statement) => {
+                let AstStatement::Assignment(data) = &statement.stmt else { return None };
                 Some(&data.right)
             }
-            StatementWrapper::Variable(variable) => variable.initializer.as_ref(),
-            _ => None,
         }
     }
 
@@ -164,9 +178,7 @@ impl<'a> StatementWrapper<'a> {
     {
         match self {
             StatementWrapper::Statement(statement) => {
-                let AstNode { stmt: AstStatement::Assignment(data), .. } = statement else {
-                    return None;
-                };
+                let AstNode { stmt: AstStatement::Assignment(data), .. } = statement else { return None };
                 context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
             }
 
