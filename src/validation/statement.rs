@@ -727,8 +727,8 @@ fn validate_assignment<T: AnnotationMap>(
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
-                get_datatype_name_or_slice(validator.context, right_type),
-                get_datatype_name_or_slice(validator.context, left_type),
+                &get_datatype_name_or_slice(validator.context, right_type),
+                &get_datatype_name_or_slice(validator.context, left_type),
                 location.clone(),
             ));
         } else if right.is_literal() {
@@ -768,8 +768,8 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
 
     if left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
-            get_datatype_name_or_slice(validator.context, right_type),
-            get_datatype_name_or_slice(validator.context, left_type),
+            &get_datatype_name_or_slice(validator.context, right_type),
+            &get_datatype_name_or_slice(validator.context, left_type),
             location.clone(),
         ));
     }
@@ -1113,11 +1113,11 @@ mod helper {
         data_type.get_semantic_size(index) as u64 > access.get_bit_width()
     }
 
-    pub fn get_datatype_name_or_slice<'a>(context: &'a GlobalContext, dt: &'a DataType) -> &'a str {
+    pub fn get_datatype_name_or_slice(context: &GlobalContext, dt: &DataType) -> String {
         if dt.is_internal() {
-            return dt.get_type_information().get_name();
+            return dt.get_type_information().get_name().to_string();
         }
 
-        context.slice(&dt.location) // TODO: This will need some trimming, e.g. try `ARRAY[1..5]\n\n    OF DINT`
+        context.slice_trimmed(&dt.location)
     }
 }

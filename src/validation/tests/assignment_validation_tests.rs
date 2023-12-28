@@ -1,5 +1,6 @@
 use crate::assert_validation_snapshot;
-use crate::test_utils::tests::parse_and_validate;
+use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
+use insta::assert_snapshot;
 
 #[test]
 fn constant_assignment_validation() {

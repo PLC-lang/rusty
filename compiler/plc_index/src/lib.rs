@@ -64,6 +64,11 @@ impl GlobalContext {
         &code.source[span]
     }
 
+    pub fn slice_trimmed(&self, location: &SourceLocation) -> String {
+        let slice = self.slice(location);
+        slice.split_whitespace().collect::<Vec<_>>().join(" ").to_string()
+    }
+
     // // TODO: Importing `plc_project` would make life easier here and allow for the code below, but we get a circular dep
     // pub fn project<S: SourceContainer>(project: &Project<S>, encoding: Option<&'static Encoding>) -> Self {
     //     let mut ctxt = Self::new();
@@ -83,3 +88,6 @@ impl GlobalContext {
     //     ctxt
     // }
 }
+
+#[cfg(test)]
+mod tests {}
