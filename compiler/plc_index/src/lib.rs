@@ -90,4 +90,21 @@ impl GlobalContext {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use crate::GlobalContext;
+    use plc_source::source_location::SourceLocationFactory;
+    use plc_source::SourceCode;
+
+    #[test]
+    fn slice_trimming_works() {
+        let input = SourceCode::from("ARRAY[1..5]   \n\n\n\nOF  \n\n\n                     DINT");
+        let mut ctxt = GlobalContext::new();
+        ctxt.insert(&input, None).unwrap();
+
+        let factory = SourceLocationFactory::default();
+        let location = factory.create_range(0..input.source.len());
+
+        ctxt.slice_trimmed(&location);
+        assert_eq!(ctxt.slice_trimmed(&location), "ARRAY[1..5] OF DINT");
+    }
+}

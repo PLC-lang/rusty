@@ -984,28 +984,3 @@ fn string_type_alias_assignment_can_be_validated() {
 
     assert_validation_snapshot!(diagnostics);
 }
-
-#[test]
-fn trimmed_slices() {
-    let diagnostic = parse_and_validate_buffered(
-        "
-        PROGRAM main
-        VAR
-            one : ARRAY[1..1] OF DINT;
-            two : ARRAY[1..5]              OF
-
-
-
-
-            DINT;
-        END_VAR
-
-            one := two;
-        END_PROGRAM
-        ",
-    );
-
-    // When retrieving the slice of the datatype of `two`, we want to have
-    // `ARRAY[1..5] OF DINT` instead of `ARRAY[1..5]       OF\n\n\nDINT`
-    insta::assert_snapshot!(diagnostic);
-}
