@@ -3,20 +3,22 @@ source: compiler/plc_xml/src/xml_parser/tests.rs
 expression: diagnostics
 ---
 [
-    SemanticError {
+    Diagnostic {
         message: "Expected a corresponding source-connection mark for sink 's2', but could not find one.",
-        range: [
-            SourceLocation {
-                span: Block {
-                    local_id: 3,
-                    execution_order: None,
-                    inner_range: None,
-                },
-                file: Some(
-                    "test",
-                ),
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 3,
+                execution_order: None,
+                inner_range: None,
             },
-        ],
-        err_no: cfc__no_associated_connector,
+            file: Some(
+                "test",
+            ),
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: cfc__no_associated_connector,
+        sub_diagnostics: [],
+        internal_error: None,
     },
 ]

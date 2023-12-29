@@ -1,6 +1,6 @@
 use plc_source::source_location::CodeSpan;
 
-use crate::diagnostician::Severity;
+use crate::diagnostics::Severity;
 
 pub mod clang;
 pub mod codespan;

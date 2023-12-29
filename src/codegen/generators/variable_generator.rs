@@ -10,7 +10,6 @@ use indexmap::IndexSet;
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
-use plc_source::source_location::SourceLocation;
 
 use super::{
     data_type_generator::get_default_for,
@@ -81,7 +80,9 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             let global_variable =
                 self.generate_global_variable(variable, linkage).map_err(|err| match err.get_type() {
                     ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
-                        Diagnostic::cannot_generate_initializer(name, SourceLocation::undefined())
+                        Diagnostic::critical(format!("Cannot generate literal initializer for `{name}`."))
+                            .with_error_code(ErrNo::var__initializer)
+                            .with_sub_diagnostic(err)
                     }
                     _ => err,
                 })?;

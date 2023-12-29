@@ -1,5 +1,5 @@
 use plc_ast::ast::{Implementation, LinkageType, Pou, PouType, VariableBlockType};
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 
 use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
@@ -22,14 +22,16 @@ pub fn visit_implementation<T: AnnotationMap>(
     context: &ValidationContext<'_, T>,
 ) {
     if implementation.pou_type == PouType::Class && !implementation.statements.is_empty() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            "A class cannot have an implementation",
-            implementation.location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error("A class cannot have an implementation")
+                .with_error_code(ErrNo::semantic__class_no_implementation)
+                .with_location(implementation.location.to_owned()),
+        );
     }
     if implementation.linkage != LinkageType::External {
         validate_action_container(validator, implementation);
-        //Validate the label uniquiness
+        //Validate the label uniqueness
+
         if let Some(labels) = context.index.get_labels(&implementation.name) {
             for (_, labels) in labels.entries() {
                 let mut label_iter = labels.iter();
@@ -39,11 +41,12 @@ pub fn visit_implementation<T: AnnotationMap>(
                         let mut locations: Vec<_> = label_iter.map(|it| it.location.clone()).collect();
                         locations.push(first.location.clone());
                         locations.push(second.location.clone());
-                        validator.push_diagnostic(Diagnostic::duplicate_label(
-                            &first.name,
-                            first.location.clone(),
-                            locations,
-                        ));
+                        validator.push_diagnostic(
+                            Diagnostic::error(format!("{}: Duplicate label.", &first.name))
+                                .with_error_code(ErrNo::semantic__duplicate_label)
+                                .with_location(first.location.clone())
+                                .with_secondary_locations(locations),
+                        );
                     }
                 }
             }
@@ -68,55 +71,68 @@ fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context:
 
 fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
     // var in/out/inout blocks are not allowed inside of class declaration
+    // TODO: This should be on each block
     if pou.variable_blocks.iter().any(|it| {
         matches!(
             it.variable_block_type,
             VariableBlockType::InOut | VariableBlockType::Input(_) | VariableBlockType::Output
         )
     }) {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            "A class cannot have a var in/out/inout blocks",
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error("A class cannot have a var in/out/inout blocks")
+                .with_error_code(ErrNo::semantic__class_with_var_in_out)
+                .with_location(pou.name_location.to_owned()),
+        );
     }
 
     // classes cannot have a return type
     if context.index.find_return_type(&pou.name).is_some() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            "A class cannot have a return type",
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error("A class cannot have a return type")
+                .with_error_code(ErrNo::semnatic__class_no_return)
+                .with_location(pou.name_location.clone()),
+        );
     }
 }
 
 fn validate_function<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
     // functions cannot use EXTENDS
     if pou.super_class.is_some() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            "A function cannot use EXTEND",
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error("A function cannot use `EXTEND`")
+                .with_error_code(ErrNo::semantic__pou_cannot_extend)
+                .with_location(pou.name_location.to_owned()),
+        );
     }
 
     let return_type = context.index.find_return_type(&pou.name);
     // functions must have a return type
     if return_type.is_none() {
-        validator.push_diagnostic(Diagnostic::function_return_missing(pou.name_location.to_owned()));
+        validator.push_diagnostic(
+            Diagnostic::error("Function Return type missing")
+                .with_error_code(ErrNo::pou__missing_return_type)
+                .with_location(pou.name_location.clone()),
+        );
     }
 }
 
 fn validate_program(validator: &mut Validator, pou: &Pou) {
     // programs cannot use EXTENDS
     if pou.super_class.is_some() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            "A program cannot use EXTEND",
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error("A program cannot use `EXTEND`")
+                .with_error_code(ErrNo::semantic__pou_cannot_extend)
+                .with_location(pou.name_location.to_owned()),
+        );
     }
 }
 
 pub fn validate_action_container(validator: &mut Validator, implementation: &Implementation) {
     if implementation.pou_type == PouType::Action && implementation.type_name == "__unknown__" {
-        validator.push_diagnostic(Diagnostic::missing_action_container(implementation.location.clone()));
+        validator.push_diagnostic(
+            Diagnostic::warning("Missing Actions Container Name")
+                .with_error_code(ErrNo::semantic__actions_container_name)
+                .with_location(implementation.location.clone()),
+        );
     }
 }

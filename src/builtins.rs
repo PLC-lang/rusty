@@ -14,7 +14,7 @@ use plc_ast::{
     literals::AstLiteral,
     provider::IdProvider,
 };
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
@@ -263,7 +263,7 @@ lazy_static! {
                         // return size of llvm type
                         let size = generator.llvm_index
                             .get_associated_type(type_name)
-                            .map_err(|_| Diagnostic::codegen_error(&format!("Could not find associated data type: {type_name}"), location.clone())
+                            .map_err(|_| Diagnostic::codegen_error(format!("Could not find associated data type: {type_name}"), location.clone())
                             )?.size_of()
                             .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", location.clone()))?
                             .as_basic_value_enum();
@@ -767,11 +767,15 @@ fn validate_variable_length_array_bound_function(
             let idx_type = annotations.get_type_or_void(idx, index);
 
             if !idx_type.has_nature(TypeNature::Int, index) {
-                validator.push_diagnostic(Diagnostic::invalid_type_nature(
-                    idx_type.get_name(),
-                    &format!("{:?}", TypeNature::Int),
-                    idx.get_location(),
-                ))
+                validator.push_diagnostic(
+                    Diagnostic::error(format!(
+                        "Invalid type nature for generic argumet. {} is no {}",
+                        idx_type.get_name(),
+                        TypeNature::Int
+                    ))
+                    .with_error_code(ErrNo::type__invalid_nature)
+                    .with_location(idx.get_location()),
+                )
             }
 
             // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
@@ -786,7 +790,11 @@ fn validate_variable_length_array_bound_function(
                 };
 
                 if dimension_idx < 1 || dimension_idx > n_dimensions {
-                    validator.push_diagnostic(Diagnostic::index_out_of_bounds(operator.get_location()))
+                    validator.push_diagnostic(
+                        Diagnostic::error("Index out of bound")
+                            .with_error_code(ErrNo::vla__dimension_idx_out_of_bounds)
+                            .with_location(operator.get_location()),
+                    )
                 }
             };
         }
@@ -814,7 +822,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     // once we abort codegen on critical errors, revisit and change to unreachable where possible
     if !data_type_information.is_vla() {
         return Err(Diagnostic::codegen_error(
-            &format!("Expected VLA type, received {}", data_type_information.get_name()),
+            format!("Expected VLA type, received {}", data_type_information.get_name()),
             location,
         ));
     };
@@ -830,7 +838,7 @@ fn generate_variable_length_array_bound_function<'ink>(
                     unreachable!("type cannot be VOID")
                 };
                 return Err(Diagnostic::codegen_error(
-                    &format!("Invalid literal type. Expected INT type, received {type_name} type"),
+                    format!("Invalid literal type. Expected INT type, received {type_name} type"),
                     location,
                 ));
             };
@@ -846,7 +854,7 @@ fn generate_variable_length_array_bound_function<'ink>(
 
             if !value.is_int_value() {
                 return Err(Diagnostic::codegen_error(
-                    &format!("Expected INT value, found {}", value.get_type()),
+                    format!("Expected INT value, found {}", value.get_type()),
                     location,
                 ));
             };

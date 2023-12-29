@@ -4,6 +4,7 @@ use logos::{Filter, Lexer, Logos};
 use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::errno::ErrNo;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 pub use tokens::Token;
 
@@ -142,10 +143,14 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordEndMethod
             | Token::KeywordEndClass => {
                 if !self.slice().to_string().contains('_') {
-                    self.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-                        message: format!("the words in {} should be separated by a '_'", self.slice()),
-                        range: vec![self.location()],
-                    });
+                    self.accept_diagnostic(
+                        Diagnostic::warning(format!(
+                            "the words in {} should be separated by a `_`",
+                            self.slice()
+                        ))
+                        .with_error_code(ErrNo::syntax_keywords_with_underscore)
+                        .with_location(self.location()),
+                    );
                 }
             }
             _ => {}

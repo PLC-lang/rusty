@@ -2,22 +2,24 @@
 source: src/parser/tests/container_parser_tests.rs
 expression: errors.first().unwrap()
 ---
-SyntaxError {
+Diagnostic {
     message: "Unexpected token: expected KeywordAction but found BRAVO",
-    range: [
-        SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 0,
-                    column: 13,
-                    offset: 13,
-                }..TextLocation {
-                    line: 0,
-                    column: 18,
-                    offset: 18,
-                },
-            ),
-        },
-    ],
-    err_no: syntax__unexpected_token,
+    primary_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 0,
+                column: 13,
+                offset: 13,
+            }..TextLocation {
+                line: 0,
+                column: 18,
+                offset: 18,
+            },
+        ),
+    },
+    secondary_locations: None,
+    severity: Error,
+    error_code: syntax__unexpected_token,
+    sub_diagnostics: [],
+    internal_error: None,
 }

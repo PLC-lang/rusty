@@ -11,7 +11,7 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, errno::ErrNo};
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
@@ -302,7 +302,11 @@ fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
         "ANY_DATE" => TypeNature::Date,
         "__ANY_VLA" => TypeNature::__VLA,
         _ => {
-            lexer.accept_diagnostic(Diagnostic::unknown_type_nature(nature, lexer.location()));
+            lexer.accept_diagnostic(
+                Diagnostic::error(format!("Unkown type nature `{nature}`"))
+                    .with_location(lexer.location())
+                    .with_error_code(ErrNo::type__unknown_nature),
+            );
             TypeNature::Any
         }
     }
@@ -340,21 +344,37 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
     if lexer.try_consume(&KeywordColon) {
         if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
             if let Some(init) = initializer {
-                lexer.accept_diagnostic(Diagnostic::unexpected_initializer_on_function_return(
-                    init.get_location(),
-                ));
+                lexer.accept_diagnostic(
+                    Diagnostic::warning(
+                        "Return types cannot have a default value, the value will be ignored",
+                    )
+                    .with_location(init.get_location())
+                    .with_error_code(ErrNo::semnatic__return_default_value),
+                );
             }
 
             if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
-                lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
-                    pou_type,
-                    lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
-                ));
+                lexer.accept_diagnostic(
+                    Diagnostic::error(format!(
+                        "POU Type {pou_type:?} does not support a return type. Did you mean Function?"
+                    ))
+                    .with_error_code(ErrNo::pou__unexpected_return_type)
+                    .with_location(
+                        lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
+                    ),
+                )
             }
 
             if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &declaration {
                 if matches!(data_type, DataType::EnumType { .. } | DataType::StructType { .. }) {
-                    lexer.accept_diagnostic(Diagnostic::function_unsupported_return_type(&declaration))
+                    lexer.accept_diagnostic(
+                        ////TODO: This prints a debug version of the datatype, it should have a user readable version instead
+                        Diagnostic::error(format!(
+                            "Data Type {data_type:?} not supported as a function return type!"
+                        ))
+                        .with_error_code(ErrNo::pou__unsupported_return_type)
+                        .with_location(declaration.get_location()),
+                    )
                 }
             }
             Some(declaration)
@@ -627,10 +647,11 @@ fn parse_data_type_definition(
     } else if lexer.try_consume(&KeywordPointer) {
         let start_pos = lexer.last_range.start;
         //Report wrong keyword
-        lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-            message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-            range: vec![lexer.last_location()],
-        });
+        lexer.accept_diagnostic(
+            Diagnostic::warning("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
+                .with_location(lexer.last_location())
+                .with_error_code(ErrNo::semantic__pointer_not_standard),
+        );
         if let Err(diag) = lexer.expect(KeywordTo) {
             lexer.accept_diagnostic(diag);
         } else {
@@ -756,16 +777,17 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
             if (opening_token == KeywordParensOpen && lexer.token == KeywordSquareParensClose)
                 || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
             {
-                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-                    message: "Mismatched types of parentheses around string size expression".into(),
-                    range: vec![error_range],
-                });
+                lexer.accept_diagnostic(
+                    Diagnostic::error("Mismatched types of parentheses around string size expression")
+                        .with_location(error_range)
+                        .with_error_code(ErrNo::syntax__mismatched_parans),
+                );
             } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
-                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-                    message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
-                        .into(),
-                    range: vec![error_range],
-                });
+                lexer.accept_diagnostic(Diagnostic::warning(
+                    "Unusual type of parentheses around string size expression, consider using square parentheses '[]'").
+                    with_location(error_range)
+                    .with_error_code(ErrNo::semantic__wrong_string_parans)
+                );
             }
 
             Some(size_expr)
@@ -868,10 +890,22 @@ fn parse_array_type_definition(
             _ => None,
         };
 
+        // pub fn invalid_range_statement(entity: &AstNode, range: SourceLocation) -> Diagnostic {
+        //     Diagnostic::SyntaxError {
+        //         message: format!("Expected a range statement, got {entity:?} instead"),
+        //         range: vec![range],
+        //         err_no: ErrNo::syntax__unexpected_token,
+        //     }
+        // }
+
         let is_variable_length = match is_variable_length {
             Some(val) => val,
             None => {
-                Diagnostic::invalid_range_statement(&range, range.get_location());
+                lexer.accept_diagnostic(
+                    Diagnostic::error(format!("Expected a range statement, got {range:?} instead"))
+                        .with_location(range.get_location())
+                        .with_error_code(ErrNo::syntax__invalid_range),
+                );
                 false
             }
         };
@@ -965,10 +999,11 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
     let argument_property = if lexer.try_consume(&PropertyByRef) {
         //Report a diagnostic if blocktype is incompatible
         if !matches!(block_type, KeywordVarInput) {
-            lexer.accept_diagnostic(Diagnostic::invalid_pragma_location(
-                "Only VAR_INPUT support by ref properties",
-                lexer.location(),
-            ))
+            lexer.accept_diagnostic(
+                Diagnostic::warning("Invalid pragma location: Only VAR_INPUT support by ref properties")
+                    .with_error_code(ErrNo::pragma_invalid_location)
+                    .with_location(lexer.location()),
+            )
         }
         ArgumentProperty::ByRef
     } else {

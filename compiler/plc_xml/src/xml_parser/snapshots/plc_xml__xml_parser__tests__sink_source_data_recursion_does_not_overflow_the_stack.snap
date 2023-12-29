@@ -3,52 +3,58 @@ source: compiler/plc_xml/src/xml_parser/tests.rs
 expression: diagnostics
 ---
 [
-    SemanticError {
+    Diagnostic {
         message: "Sink is connected to itself. Found the following recursion: s3 -> s2 -> s1 -> s3",
-        range: [
-            SourceLocation {
-                span: Block {
-                    local_id: 23,
-                    execution_order: None,
-                    inner_range: None,
-                },
-                file: Some(
-                    "test",
-                ),
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 23,
+                execution_order: None,
+                inner_range: None,
             },
-        ],
-        err_no: cfc__cyclic_connection,
+            file: Some(
+                "test",
+            ),
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: cfc__cyclic_connection,
+        sub_diagnostics: [],
+        internal_error: None,
     },
-    SemanticError {
+    Diagnostic {
         message: "Sink is connected to itself. Found the following recursion: s1 -> s3 -> s2 -> s1",
-        range: [
-            SourceLocation {
-                span: Block {
-                    local_id: 24,
-                    execution_order: None,
-                    inner_range: None,
-                },
-                file: Some(
-                    "test",
-                ),
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 24,
+                execution_order: None,
+                inner_range: None,
             },
-        ],
-        err_no: cfc__cyclic_connection,
+            file: Some(
+                "test",
+            ),
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: cfc__cyclic_connection,
+        sub_diagnostics: [],
+        internal_error: None,
     },
-    SemanticError {
+    Diagnostic {
         message: "Sink is connected to itself. Found the following recursion: s2 -> s1 -> s3 -> s2",
-        range: [
-            SourceLocation {
-                span: Block {
-                    local_id: 26,
-                    execution_order: None,
-                    inner_range: None,
-                },
-                file: Some(
-                    "test",
-                ),
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 26,
+                execution_order: None,
+                inner_range: None,
             },
-        ],
-        err_no: cfc__cyclic_connection,
+            file: Some(
+                "test",
+            ),
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: cfc__cyclic_connection,
+        sub_diagnostics: [],
+        internal_error: None,
     },
 ]

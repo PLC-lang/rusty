@@ -562,7 +562,7 @@ fn resolve_const_reference(
     index: &Index,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if !variable.is_constant() {
-        return Err(UnresolvableKind::Misc(format!("'{name}' is no const reference")));
+        return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
     }
 
     if let Some(ConstExpression::Resolved(statement)) =

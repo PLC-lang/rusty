@@ -3,8 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use anyhow::{Context, Result};
 use glob::glob;
-use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     build_config::{LinkageInfo, ProjectConfig},
@@ -123,7 +123,7 @@ impl<T: SourceContainer> CompiledLibrary<T> {
 //configuration
 impl Project<PathBuf> {
     /// Retrieve a project for compilation from a json description
-    pub fn from_config(config: &Path) -> Result<Self, Diagnostic> {
+    pub fn from_config(config: &Path) -> Result<Self> {
         let project_config = ProjectConfig::from_file(config)?;
         let libraries = project_config
             .libraries
@@ -155,7 +155,7 @@ impl Project<PathBuf> {
                     library: Library::Compiled(compiled_library),
                 })
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Result<Vec<_>>>()?;
 
         let current_dir = env::current_dir()?;
         let location = config.parent().map(Path::to_path_buf).or(Some(current_dir));
@@ -283,16 +283,15 @@ impl<S: SourceContainer> Project<S> {
     }
 }
 
-fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>, Diagnostic> {
+fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>> {
     let mut sources = Vec::new();
     for input in &inputs {
         let input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
         let path = &input.to_string_lossy();
-        let paths = glob(path)
-            .map_err(|e| Diagnostic::param_error(&format!("Failed to read glob pattern: {path}, ({e})")))?;
+        let paths = glob(path).context(format!("Failed to read glob patern {path}"))?;
 
         for p in paths {
-            let path = p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {err}")))?;
+            let path = p.context("Illegal Path")?;
             sources.push(path);
         }
     }

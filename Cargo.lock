@@ -1978,6 +1978,7 @@ dependencies = [
 name = "plc_diagnostics"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "codespan-reporting",
  "plc_ast",
  "plc_source",
@@ -1988,6 +1989,7 @@ dependencies = [
 name = "plc_driver"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap 3.2.25",
  "encoding_rs",
  "encoding_rs_io",
@@ -2023,6 +2025,7 @@ dependencies = [
 name = "plc_project"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "encoding_rs",
  "encoding_rs_io",
  "glob",
@@ -2373,6 +2376,7 @@ dependencies = [
 name = "rusty"
 version = "0.2.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "clap 3.2.25",
  "encoding_rs",

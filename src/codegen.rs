@@ -36,7 +36,7 @@ use inkwell::{
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use plc_source::source_location::SourceLocation;
 
 mod debug;
@@ -230,13 +230,19 @@ impl<'ink> CodeGen<'ink> {
 
 impl<'ink> GeneratedModule<'ink> {
     pub fn try_from_bitcode(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
-        let module = Module::parse_bitcode_from_path(path, context.deref())?;
+        let module = Module::parse_bitcode_from_path(path, context.deref()).map_err(|it| {
+            Diagnostic::critical(it.to_string_lossy()).with_error_code(ErrNo::codegen__general)
+        })?;
         Ok(GeneratedModule { module, engine: RefCell::new(None) })
     }
 
     pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
-        let buffer = MemoryBuffer::create_from_file(path)?;
-        let module = context.create_module_from_ir(buffer)?;
+        let buffer = MemoryBuffer::create_from_file(path).map_err(|it| {
+            Diagnostic::critical(it.to_string_lossy()).with_error_code(ErrNo::codegen__general)
+        })?;
+        let module = context.create_module_from_ir(buffer).map_err(|it| {
+            Diagnostic::critical(it.to_string_lossy()).with_error_code(ErrNo::codegen__general)
+        })?;
 
         log::debug!("{}", module.to_string());
 
@@ -244,7 +250,9 @@ impl<'ink> GeneratedModule<'ink> {
     }
 
     pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, Diagnostic> {
-        self.module.link_in_module(other.module)?;
+        self.module.link_in_module(other.module).map_err(|it| {
+            Diagnostic::critical(it.to_string_lossy()).with_error_code(ErrNo::codegen__general)
+        })?;
         log::debug!("Merged: {}", self.module.to_string());
 
         Ok(self)
@@ -305,7 +313,7 @@ impl<'ink> GeneratedModule<'ink> {
 
         let target = inkwell::targets::Target::from_triple(&triple).map_err(|it| {
             Diagnostic::codegen_error(
-                &format!("Invalid target-tripple '{triple}' - {it:?}"),
+                format!("Invalid target-tripple '{triple}' - {it:?}"),
                 SourceLocation::undefined(),
             )
         })?;
@@ -333,11 +341,11 @@ impl<'ink> GeneratedModule<'ink> {
                 self.module
                     .run_passes(optimization_level.opt_params(), &it, PassBuilderOptions::create())
                     .map_err(|it| {
-                        Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string())
+                        Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string_lossy())
                     })
                     .and_then(|_| {
                         it.write_to_file(&self.module, FileType::Object, output.as_path()).map_err(|it| {
-                            Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string())
+                            Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string_lossy())
                         })
                     })
             })
@@ -420,10 +428,22 @@ impl<'ink> GeneratedModule<'ink> {
         log::debug!("Output location: {}", output.to_string_lossy());
         log::debug!("{}", self.persist_to_string());
 
+        //pub fn io_write_error(file: &str, reason: &str) -> Diagnostic {
+        //    Diagnostic::GeneralError {
+        //        message: format!("Cannot write file {file} {reason}'"),
+        //        err_no: ErrNo::general__io_err,
+        //    }
+        //}
+
         self.module
             .print_to_file(&output)
             .map_err(|err| {
-                Diagnostic::io_write_error(output.to_str().unwrap_or_default(), err.to_string().as_str())
+                Diagnostic::critical(format!(
+                    "Cannot write file {} {}",
+                    output.to_str().unwrap_or_default(),
+                    err.to_string()
+                ))
+                .with_error_code(ErrNo::general__io_err)
             })
             .map(|_| output)
     }

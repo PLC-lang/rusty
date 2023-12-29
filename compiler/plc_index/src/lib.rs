@@ -1,6 +1,7 @@
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::errno::ErrNo;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
@@ -34,7 +35,14 @@ impl GlobalContext {
     {
         match container.load_source(encoding) {
             Ok(value) => self.sources.insert(container.get_location_str(), value),
-            Err(why) => return Err(Diagnostic::io_read_error(container.get_location_str(), &why)),
+            Err(why) => {
+                return Err(Diagnostic::critical(format!(
+                    "Cannot read file '{}': {}'",
+                    container.get_location_str(),
+                    &why
+                ))
+                .with_error_code(ErrNo::general__io_err))
+            }
         };
 
         Ok(())
@@ -66,13 +74,13 @@ impl GlobalContext {
     /// Returns a (whitespace) trimmed slice representing the specified location of the source code.
     /// For example if the location represents `ARRAY[1..5]\n\nOF\t  DINT` the slice `ARRAY[1..5] OF DINT` will be returned instead.
     pub fn slice(&self, location: &SourceLocation) -> String {
-        let slice = self.slice_original(location);
+        let slice = self.slice_raw(location);
         slice.split_whitespace().collect::<Vec<_>>().join(" ")
     }
 
     /// Returns a slice representing the specified location of the source code.
     /// If the location, i.e. file path, does not exist an empty string will be returned.
-    pub fn slice_original(&self, location: &SourceLocation) -> &str {
+    pub fn slice_raw(&self, location: &SourceLocation) -> &str {
         let path = location.get_file_name().unwrap_or("<internal>");
 
         let Some(code) = self.sources.get(path) else { return "" };
@@ -117,9 +125,6 @@ mod tests {
         let location = factory.create_range(0..input.source.len());
 
         assert_eq!(ctxt.slice(&location), "ARRAY[1..5] OF DINT");
-        assert_eq!(
-            ctxt.slice_original(&location),
-            "ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT"
-        );
+        assert_eq!(ctxt.slice_raw(&location), "ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT");
     }
 }

@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    diagnostics::Diagnostic,
-    errno::ErrNo,
+    diagnostics::{Diagnostic, Severity},
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -35,13 +34,10 @@ impl Diagnostician {
     pub fn handle(&mut self, diagnostics: &[Diagnostic]) -> Severity {
         let resolved_diagnostics = diagnostics
             .iter()
-            .flat_map(|it| match it {
-                Diagnostic::CombinedDiagnostic { inner_diagnostics, .. } => {
-                    let mut res = vec![it];
-                    res.extend(inner_diagnostics.iter().collect::<Vec<&Diagnostic>>());
-                    res
-                }
-                _ => vec![it],
+            .flat_map(|it| {
+                let mut res = vec![it];
+                res.extend(it.get_sub_diagnostics());
+                res
             })
             .map(|d| ResolvedDiagnostics {
                 message: d.get_message().to_string(),
@@ -148,24 +144,9 @@ pub struct DefaultDiagnosticAssessor;
 
 impl DiagnosticAssessor for DefaultDiagnosticAssessor {
     fn assess(&self, d: &Diagnostic) -> Severity {
-        match d {
-            // improvements become warnings
-            Diagnostic::ImprovementSuggestion { .. } => Severity::Warning,
-            _ if *d.get_type() == ErrNo::reference__unresolved => Severity::Critical,
-            // everything else becomes an error
-            _ => Severity::Error,
-        }
+        //TODO: Refer to some severity map to reassign severity here.
+        d.get_severity()
     }
-}
-
-/// a diagnostics severity
-#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Severity {
-    #[default]
-    Info,
-    Warning,
-    Error,
-    Critical,
 }
 
 impl std::fmt::Display for Severity {

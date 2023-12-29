@@ -13,7 +13,7 @@ use plc_ast::{
     ast::{AstNode, AstStatement, Variable},
     literals::AstLiteral,
 };
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use plc_index::GlobalContext;
 
 use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
@@ -69,7 +69,11 @@ fn validate_array<T: AnnotationMap>(
 ) {
     let stmt_rhs = peel(rhs_stmt);
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
-        validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
+        validator.push_diagnostic(
+            Diagnostic::error("Array assignments must be surrounded with `[]`")
+                .with_error_code(ErrNo::arr__invalid_array_assignment)
+                .with_location(stmt_rhs.get_location()),
+        );
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
 
@@ -83,7 +87,13 @@ fn validate_array<T: AnnotationMap>(
     if len_lhs < len_rhs {
         let name = statement.lhs_name(validator.context);
         let location = stmt_rhs.get_location();
-        validator.push_diagnostic(Diagnostic::array_size(&name, len_lhs, len_rhs, location));
+        validator.push_diagnostic(
+            Diagnostic::error(format!(
+                "Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided"
+            ))
+            .with_error_code(ErrNo::arr__invalid_array_assignment)
+            .with_location(location),
+        );
     }
 }
 
@@ -105,13 +115,21 @@ fn validate_array_of_structs<T: AnnotationMap>(
     match elements {
         AstStatement::ExpressionList(expressions) => {
             for invalid in expressions.iter().filter(|it| !it.is_paren()) {
-                validator.push_diagnostic(Diagnostic::array_struct_assignment(invalid.get_location()));
+                validator.push_diagnostic(
+                    Diagnostic::error("Struct initializers within arrays have to be wrapped by `()`")
+                        .with_error_code(ErrNo::arr__invalid_array_assignment)
+                        .with_location(invalid.get_location()),
+                );
             }
         }
 
         // arr := [foo := 0]
         AstStatement::Assignment(..) => {
-            validator.push_diagnostic(Diagnostic::array_struct_assignment(rhs_stmt.get_location()));
+            validator.push_diagnostic(
+                Diagnostic::error("Struct initializers within arrays have to be wrapped by `()`")
+                    .with_error_code(ErrNo::arr__invalid_array_assignment)
+                    .with_location(rhs_stmt.get_location()),
+            );
         }
 
         _ => (),

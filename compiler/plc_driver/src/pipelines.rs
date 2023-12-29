@@ -21,8 +21,8 @@ use plc::{
     ConfigFormat, Target,
 };
 use plc_diagnostics::{
-    diagnostician::{Diagnostician, Severity},
-    diagnostics::Diagnostic,
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
     errno::ErrNo,
 };
 use plc_index::GlobalContext;
@@ -195,10 +195,7 @@ impl AnnotatedProject {
             severity = severity.max(diagnostician.handle(&diagnostics));
         });
         if severity == Severity::Critical {
-            Err(Diagnostic::GeneralError {
-                message: "Compilation aborted due to critical errors".into(),
-                err_no: ErrNo::general__err,
-            })
+            Err(Diagnostic::critical("Compilation aborted due to critical errors"))
         } else {
             Ok(())
         }
@@ -318,7 +315,13 @@ impl AnnotatedProject {
                         let unit_location = PathBuf::from(&unit.file_name);
                         let unit_location = std::fs::canonicalize(unit_location)?;
                         let output_name = if unit_location.starts_with(current_dir) {
-                            unit_location.strip_prefix(current_dir)?
+                            unit_location.strip_prefix(current_dir).map_err(|it| {
+                                Diagnostic::critical(format!(
+                                    "Could not strip prefix for {}",
+                                    current_dir.to_string_lossy()
+                                ))
+                                .with_internal_error(it.into())
+                            })?
                         } else if unit_location.has_root() {
                             let root = Path::new("/").canonicalize()?;
                             unit_location.strip_prefix(root).expect("Name has root")
@@ -364,7 +367,9 @@ impl AnnotatedProject {
         let hw_conf = plc::hardware_binding::collect_hardware_configuration(&self.index)?;
         let generated_conf = plc::hardware_binding::generate_hardware_configuration(&hw_conf, format)?;
         File::create(location).and_then(|mut it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
-            Diagnostic::GeneralError { err_no: ErrNo::general__io_err, message: it.to_string() }
+            Diagnostic::critical(it.to_string())
+                .with_internal_error(it.into())
+                .with_error_code(ErrNo::general__io_err)
         })?;
         Ok(())
     }
@@ -450,7 +455,7 @@ impl GeneratedProject {
                 // Only initialize a linker if we need to use it
                 let target_triple = self.target.get_target_triple();
                 let mut linker = plc::linker::Linker::new(
-                    target_triple.as_str().to_str()?,
+                    &target_triple.as_str().to_string_lossy(),
                     link_options.linker.as_deref(),
                 )?;
                 for obj in &self.objects {

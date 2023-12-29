@@ -2,7 +2,7 @@ use plc_ast::{
     ast::{AstFactory, AstNode, AstStatement},
     control_statements::ConditionalBlock,
 };
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
@@ -182,10 +182,11 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstNode {
             } else {
                 //If no current condition is available, log a diagnostic and add an empty condition
                 if current_condition.is_none() {
-                    lexer.accept_diagnostic(Diagnostic::syntax_error(
-                        "Missing Case-Condition",
-                        lexer.location(),
-                    ));
+                    lexer.accept_diagnostic(
+                        Diagnostic::error("Missing Case-Condition")
+                            .with_error_code(ErrNo::syntax__missing_case_contition)
+                            .with_location(lexer.location()),
+                    );
                     current_condition =
                         Some(Box::new(AstFactory::create_empty_statement(lexer.location(), lexer.next_id())));
                 }

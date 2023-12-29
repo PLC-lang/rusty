@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use plc_ast::ast::PouType;
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -45,19 +45,21 @@ impl GlobalValidator {
             // If the SourceRange of `v` is undefined, we can assume the user choose a name which clashes
             // with an (internal) built-in datatype, hence the undefined location.
             if v.is_undefined() {
-                self.diagnostics.push(Diagnostic::invalid_type_name(name, others));
-                continue; // Skip this iteration, otherwise we would also report an internal error
-            }
-
-            if let Some(additional_text) = additional_text {
-                self.push_diagnostic(Diagnostic::global_name_conflict_with_text(
-                    name,
-                    (*v).clone(),
-                    others,
-                    additional_text,
-                ));
+                self.diagnostics.push(
+                    Diagnostic::error(format!(
+                        "{name} can not be used as a name because it is a built-in datatype"
+                    ))
+                    .with_error_code(ErrNo::duplicate_symbol)
+                    .with_secondary_locations(others),
+                );
             } else {
-                self.push_diagnostic(Diagnostic::global_name_conflict(name, (*v).clone(), others));
+                let additional_text = additional_text.unwrap_or("Duplicate Symbol.");
+                self.push_diagnostic(
+                    Diagnostic::error(format!("{name}: {additional_text}"))
+                        .with_error_code(ErrNo::duplicate_symbol)
+                        .with_location((*v).clone())
+                        .with_secondary_locations(others),
+                );
             }
         }
     }

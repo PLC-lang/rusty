@@ -1,5 +1,5 @@
 use indexmap::{IndexMap, IndexSet};
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::{BytesStart, Event};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
@@ -235,18 +235,16 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                     kind: ConnectorKind::Source, name, ref_local_id, ..
                 })) => {
                     current = ref_local_id.ok_or_else(|| {
-                        Diagnostic::unconnected_source(
-                            name.as_ref(),
-                            source_location_factory.create_block_location(current, None),
-                        )
+                        Diagnostic::error(format!("Source '{name}' is not connected."))
+                            .with_error_code(ErrNo::cfc__unconnected_source)
+                            .with_location(source_location_factory.create_block_location(current, None))
                     })?
                 }
                 Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) => {
                     current = *source_connections.get(name.as_ref()).ok_or_else(|| {
-                        Diagnostic::sink_without_associated_source(
-                            name.as_ref(),
-                            source_location_factory.create_block_location(current, None),
-                        )
+                        Diagnostic::error(format!("Expected a corresponding source-connection mark for sink '{name}', but could not find one."))
+                            .with_error_code(ErrNo::cfc__no_associated_connector)
+                            .with_location(source_location_factory.create_block_location(current, None))
                     })?
                 }
                 _ => return Ok(current),
@@ -262,8 +260,11 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                 let node = self.get(&current).expect("Node exists");
                 msg.push_str(node.get_name());
 
-                return Err(Diagnostic::cyclic_connection(
-                    msg.to_string(),
+                return Err(Diagnostic::error(format!(
+                    "Sink is connected to itself. Found the following recursion: {msg}"
+                ))
+                .with_error_code(ErrNo::cfc__cyclic_connection)
+                .with_location(
                     source_location_factory.create_block_location(node.get_id(), node.get_exec_id()),
                 ));
             }

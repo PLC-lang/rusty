@@ -1,7 +1,7 @@
 // This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use which::which;
 
 use std::{
@@ -205,15 +205,22 @@ pub enum LinkerError {
     Path(PathBuf),
 }
 
+//TODO: This should be of type error, or we should be using anyhow/thiserror here
 impl From<LinkerError> for Diagnostic {
     fn from(error: LinkerError) -> Self {
         match error {
-            LinkerError::Link(e) => Diagnostic::link_error(&e),
+            //pub fn link_error(error: &str) -> Diagnostic {
+            //    Diagnostic::GeneralError { err_no: ErrNo::linker__generic_error, message: error.to_string() }
+            //}
+            LinkerError::Link(e) => Diagnostic::critical(format!("An error occurred during linking: {e}"))
+                .with_error_code(ErrNo::linker__generic_error),
             LinkerError::Path(path) => {
-                Diagnostic::link_error(&format!("path contains invalid UTF-8 characters: {}", path.display()))
+                Diagnostic::critical(format!("path contains invalid UTF-8 characters: {}", path.display()))
+                    .with_error_code(ErrNo::linker__generic_error)
             }
             LinkerError::Target(tgt) => {
-                Diagnostic::link_error(&format!("linker not available for target platform: {tgt}"))
+                Diagnostic::critical(format!("linker not available for target platform: {tgt}"))
+                    .with_error_code(ErrNo::linker__generic_error)
             }
         }
     }

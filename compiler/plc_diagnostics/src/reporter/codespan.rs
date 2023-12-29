@@ -5,7 +5,7 @@ use codespan_reporting::{
 };
 use plc_source::source_location::CodeSpan;
 
-use crate::diagnostician::Severity;
+use crate::diagnostics::Severity;
 
 use super::{DiagnosticReporter, ResolvedDiagnostics};
 

@@ -1,6 +1,6 @@
 use plc_ast::ast::{AstNode, CompilationUnit};
 use plc_derive::Validators;
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
 use plc_index::GlobalContext;
 
 use crate::{
@@ -143,7 +143,12 @@ impl<'a> Validator<'a> {
                 continue;
             };
 
-            self.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
+            self.push_diagnostic(
+                //TODO: Should this be a warning?
+                Diagnostic::error(reason)
+                    .with_error_code(ErrNo::var__overflow)
+                    .with_location(location.to_owned()),
+            );
         }
     }
 

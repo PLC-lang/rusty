@@ -40,6 +40,7 @@ log.workspace = true
 inkwell.workspace = true
 chrono.workspace = true
 itertools.workspace = true
+anyhow.workspace = true
 
 [dev-dependencies]
 num = "0.4"
@@ -81,3 +82,4 @@ encoding_rs_io = "0.1"
 log = "0.4"
 chrono = { version = "0.4", default-features = false }
 itertools = "0.11"
+anyhow = "1.0"

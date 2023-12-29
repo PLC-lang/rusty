@@ -25,7 +25,10 @@ use plc_ast::{
     },
     control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
-use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_diagnostics::{
+    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
+    errno::ErrNo,
+};
 use plc_source::source_location::SourceLocation;
 
 /// the full context when generating statements inside a POU
@@ -322,10 +325,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     left_type,
                 )
             } else {
-                Err(Diagnostic::syntax_error(
-                    &format!("{element:?} not a direct access"),
-                    element.get_location(),
-                ))
+                //TODO: using the global context we could get a slice here
+                Err(Diagnostic::error(&format!("{element:?} not a direct access"))
+                    .with_error_code(ErrNo::type__incompatible_directaccess)
+                    .with_location(element.get_location()))
             }?;
             for element in direct_access {
                 let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -336,10 +339,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         left_type,
                     )
                 } else {
-                    Err(Diagnostic::syntax_error(
-                        &format!("{element:?} not a direct access"),
-                        element.get_location(),
-                    ))
+                    //TODO: using the global context we could get a slice here
+                    Err(Diagnostic::error(&format!("{element:?} not a direct access"))
+                        .with_error_code(ErrNo::type__incompatible_directaccess)
+                        .with_location(element.get_location()))
                 }?;
                 rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
             }
@@ -796,7 +799,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let value_ptr =
                     self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
-                            &format!("Cannot generate return variable for {call_name:}"),
+                            format!("Cannot generate return variable for {call_name:}"),
                             SourceLocation::undefined(),
                         )
                     })?;
