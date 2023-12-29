@@ -7,7 +7,11 @@ use std::collections::HashMap;
 
 #[derive(Debug, Default)]
 pub struct GlobalContext {
+    /// HashMap containing all read, i.e. parsed, sources where the key represents
+    /// the relative file path and the value some [`SourceCode`]
     sources: HashMap<&'static str, SourceCode>,
+
+    /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
     // TODO: The following would be also nice, to have a cleaner API i.e. instead of working with different structs such
     //       as the index or the diagnostics one could instead ONLY use the `GlobalContext` with methods like
@@ -23,17 +27,7 @@ impl GlobalContext {
         Self { sources: HashMap::new(), provider: IdProvider::default() }
     }
 
-    pub fn with_source<S>(mut self, sources: &[S], enc: Option<&'static Encoding>) -> Result<Self, Diagnostic>
-    where
-        S: SourceContainer,
-    {
-        for source in sources {
-            self.insert(source, enc)?;
-        }
-
-        Ok(self)
-    }
-
+    /// Inserts a single [`SourceCode`] to the internal source map
     pub fn insert<S>(&mut self, container: &S, encoding: Option<&'static Encoding>) -> Result<(), Diagnostic>
     where
         S: SourceContainer,
@@ -46,27 +40,45 @@ impl GlobalContext {
         Ok(())
     }
 
+    /// Inserts multiple [`SourceCode`]s to the internal source map
+    pub fn with_source<S>(mut self, sources: &[S], enc: Option<&'static Encoding>) -> Result<Self, Diagnostic>
+    where
+        S: SourceContainer,
+    {
+        for source in sources {
+            self.insert(source, enc)?;
+        }
+
+        Ok(self)
+    }
+
+    /// Returns some [`SourceCode`] based on the given key
     pub fn get(&self, key: &str) -> Option<&SourceCode> {
         self.sources.get(key)
     }
 
+    /// Returns a cloned [`IdProvider`]
     pub fn provider(&self) -> IdProvider {
         self.provider.clone()
     }
 
     // TODO: `impl Into<SourceLocation>` would be nice here, but adding `plc_ast` as a dep in `plc_source` yields a circular dep so not possible right now
-    pub fn slice(&self, location: &SourceLocation) -> &str {
+    /// Returns a (whitespace) trimmed slice representing the specified location of the source code.
+    /// For example if the location represents `ARRAY[1..5]\n\nOF\t  DINT` the slice `ARRAY[1..5] OF DINT` will be returned instead.
+    pub fn slice(&self, location: &SourceLocation) -> String {
+        let slice = self.slice_original(location);
+        slice.split_whitespace().collect::<Vec<_>>().join(" ")
+    }
+
+    /// Returns a slice representing the specified location of the source code.
+    /// If the location, i.e. file path, does not exist an empty string will be returned.
+    pub fn slice_original(&self, location: &SourceLocation) -> &str {
         let path = location.get_file_name().unwrap_or("<internal>");
 
         let Some(code) = self.sources.get(path) else { return "" };
         let Some(span) = location.get_span().to_range() else { return "" };
 
         &code.source[span]
-    }
-
-    pub fn slice_trimmed(&self, location: &SourceLocation) -> String {
-        let slice = self.slice(location);
-        slice.split_whitespace().collect::<Vec<_>>().join(" ")
     }
 
     // // TODO: Importing `plc_project` would make life easier here and allow for the code below, but we get a circular dep
@@ -96,15 +108,18 @@ mod tests {
     use plc_source::SourceCode;
 
     #[test]
-    fn slice_trimming_works() {
-        let input = SourceCode::from("ARRAY[1..5]   \n\n\n\nOF  \n\n\n                     DINT");
+    fn slice() {
+        let input = SourceCode::from("ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT");
         let mut ctxt = GlobalContext::new();
         ctxt.insert(&input, None).unwrap();
 
         let factory = SourceLocationFactory::default();
         let location = factory.create_range(0..input.source.len());
 
-        ctxt.slice_trimmed(&location);
-        assert_eq!(ctxt.slice_trimmed(&location), "ARRAY[1..5] OF DINT");
+        assert_eq!(ctxt.slice(&location), "ARRAY[1..5] OF DINT");
+        assert_eq!(
+            ctxt.slice_original(&location),
+            "ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT"
+        );
     }
 }

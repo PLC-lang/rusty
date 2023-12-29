@@ -528,7 +528,7 @@ fn visit_binary_expression<T: AnnotationMap>(
                 let slice_rhs = validator.context.slice(&right.location);
 
                 validator.push_diagnostic(Diagnostic::assignment_instead_of_equal(
-                    slice_lhs, slice_rhs, statement,
+                    &slice_lhs, &slice_rhs, statement,
                 ));
             }
 
@@ -1148,6 +1148,6 @@ mod helper {
             return dt.get_type_information().get_name().to_string();
         }
 
-        context.slice_trimmed(&dt.location)
+        context.slice(&dt.location)
     }
 }

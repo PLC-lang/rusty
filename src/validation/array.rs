@@ -157,7 +157,7 @@ impl<'a> StatementWrapper<'a> {
             StatementWrapper::Variable(variable) => variable.name.clone(),
             StatementWrapper::Statement(statement) => {
                 let AstStatement::Assignment(data) = &statement.stmt else { return "".to_string() };
-                context.slice_trimmed(&data.left.location)
+                context.slice(&data.left.location)
             }
         }
     }
