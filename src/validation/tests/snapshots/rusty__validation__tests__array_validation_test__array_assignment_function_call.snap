@@ -8,10 +8,10 @@ error: Invalid assignment: cannot assign 'ARRAY [0..3] OF USINT' to 'ARRAY[0..1]
 16 │             arr_incorrect_size  := foo(); // We want a invalid size array error here
    │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY [0..3] OF USINT' to 'ARRAY[0..1] OF USINT'
 
-error: Array 'arr_incorrect_size' has a size of 2, but 4 elements were provided
+error: Array `arr_incorrect_size` has a size of 2, but 4 elements were provided
    ┌─ <internal>:16:36
    │
 16 │             arr_incorrect_size  := foo(); // We want a invalid size array error here
-   │                                    ^^^^^^ Array 'arr_incorrect_size' has a size of 2, but 4 elements were provided
+   │                                    ^^^^^^ Array `arr_incorrect_size` has a size of 2, but 4 elements were provided
 
 
