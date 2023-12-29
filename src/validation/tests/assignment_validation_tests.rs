@@ -982,5 +982,5 @@ fn string_type_alias_assignment_can_be_validated() {
         ",
     );
 
-    assert_validation_snapshot!(diagnostics)
+    assert_validation_snapshot!(diagnostics);
 }

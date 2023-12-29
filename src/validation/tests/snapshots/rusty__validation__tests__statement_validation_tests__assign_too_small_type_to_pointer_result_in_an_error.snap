@@ -3,5 +3,5 @@ source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
 SyntaxError { message: "The type DWORD 32 is too small to to be stored in a Pointer", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 174 }..TextLocation { line: 8, column: 26, offset: 188 }) }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign 'DWORD' to '__FOO_ptr'", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 174 }..TextLocation { line: 8, column: 26, offset: 188 }) }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DWORD' to 'REF_TO INT'", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 174 }..TextLocation { line: 8, column: 26, offset: 188 }) }], err_no: var__invalid_assignment }
 

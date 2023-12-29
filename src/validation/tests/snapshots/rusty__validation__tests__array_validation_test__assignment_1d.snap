@@ -32,11 +32,11 @@ error: Unexpected token: expected KeywordParensClose but found ';'
 16 │             arr := (1, 2, 3, 4, 5];
    │                                   ^ Unexpected token: expected KeywordParensClose but found ';'
 
-error: Array __main_arr has a size of 5, but 6 elements were provided
+error: Array `arr` has a size of 5, but 6 elements were provided
   ┌─ <internal>:4:54
   │
 4 │                 arr         : ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
-  │                                                      ^^^^^^^^^^^^^^^^^^ Array __main_arr has a size of 5, but 6 elements were provided
+  │                                                      ^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 5, but 6 elements were provided
 
 error: Array assignments must be surrounded with `[]`
   ┌─ <internal>:5:55
@@ -62,11 +62,11 @@ error: Array assignments must be surrounded with `[]`
 13 │             arr := (1, 2, 3, 4, 5, 6);
    │                     ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error: Array __main_arr has a size of 5, but 6 elements were provided
+error: Array `arr` has a size of 5, but 6 elements were provided
    ┌─ <internal>:14:20
    │
 14 │             arr := [1, 2, 3, 4, 5, 6];
-   │                    ^^^^^^^^^^^^^^^^^^ Array __main_arr has a size of 5, but 6 elements were provided
+   │                    ^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 5, but 6 elements were provided
 
 error: Array assignments must be surrounded with `[]`
    ┌─ <internal>:15:34
