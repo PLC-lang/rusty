@@ -1595,7 +1595,7 @@
 
     <span class="kw">pub fn </span>array_size(name: <span class="kw-2">&amp;</span>str, len_lhs: usize, len_rhs: usize, range: SourceLocation) -&gt; Diagnostic {
         Diagnostic::SemanticError {
-            message: <span class="macro">format!</span>(<span class="string">&quot;Array {name} has a size of {len_lhs}, but {len_rhs} elements were provided&quot;</span>),
+            message: <span class="macro">format!</span>(<span class="string">&quot;Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided&quot;</span>),
             range: <span class="macro">vec!</span>[range],
             err_no: ErrNo::arr__invalid_array_assignment,
         }

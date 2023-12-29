@@ -1140,6 +1140,17 @@
 <a href="#1140" id="1140">1140</a>
 <a href="#1141" id="1141">1141</a>
 <a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::{
@@ -1154,6 +1165,7 @@
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use super</span>::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+<span class="kw">use </span><span class="kw">crate</span>::validation::statement::helper::get_datatype_name_or_slice;
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -1669,7 +1681,7 @@
                 <span class="kw">let </span>slice_rhs = validator.context.slice(<span class="kw-2">&amp;</span>right.location);
 
                 validator.push_diagnostic(Diagnostic::assignment_instead_of_equal(
-                    slice_lhs, slice_rhs, statement,
+                    <span class="kw-2">&amp;</span>slice_lhs, <span class="kw-2">&amp;</span>slice_rhs, statement,
                 ));
             }
 
@@ -1868,8 +1880,8 @@
             &amp;&amp; is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
-                right_type.get_type_information().get_name(),
-                left_type.get_type_information().get_name(),
+                <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, right_type),
+                <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, left_type),
                 location.clone(),
             ));
         } <span class="kw">else if </span>right.is_literal() {
@@ -1909,8 +1921,8 @@
 
     <span class="kw">if </span>left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
-            right_type.get_type_information().get_name(),
-            left_type.get_type_information().get_name(),
+            <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, right_type),
+            <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, left_type),
             location.clone(),
         ));
     }
@@ -2255,7 +2267,9 @@
     <span class="kw">use </span>std::ops::Range;
 
     <span class="kw">use </span>plc_ast::ast::DirectAccessType;
+    <span class="kw">use </span>plc_index::GlobalContext;
 
+    <span class="kw">use </span><span class="kw">crate</span>::typesystem::DataType;
     <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
 
     <span class="doccomment">/// Returns true if the current index is in the range for the given type
@@ -2280,6 +2294,14 @@
     <span class="doccomment">/// Returns true if the direct access can be used for the given type
     </span><span class="kw">pub fn </span>is_compatible(access: <span class="kw-2">&amp;</span>DirectAccessType, data_type: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
         data_type.get_semantic_size(index) <span class="kw">as </span>u64 &gt; access.get_bit_width()
+    }
+
+    <span class="kw">pub fn </span>get_datatype_name_or_slice(context: <span class="kw-2">&amp;</span>GlobalContext, dt: <span class="kw-2">&amp;</span>DataType) -&gt; String {
+        <span class="kw">if </span>dt.is_internal() {
+            <span class="kw">return </span>dt.get_type_information().get_name().to_string();
+        }
+
+        context.slice(<span class="kw-2">&amp;</span>dt.location)
     }
 }
 </code></pre></div></section></main></body></html>

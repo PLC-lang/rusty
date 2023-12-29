@@ -83,6 +83,46 @@
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>plc_ast::provider::IdProvider;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -92,8 +132,12 @@
 
 <span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>GlobalContext {
-    sources: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, SourceCode&gt;,
-    provider: IdProvider,
+    <span class="doccomment">/// HashMap containing all read, i.e. parsed, sources where the key represents
+    /// the relative file path and the value some [`SourceCode`]
+    </span>sources: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, SourceCode&gt;,
+
+    <span class="doccomment">/// [`IdProvider`] used during the parsing session
+    </span>provider: IdProvider,
     <span class="comment">// TODO: The following would be also nice, to have a cleaner API i.e. instead of working with different structs such
     //       as the index or the diagnostics one could instead ONLY use the `GlobalContext` with methods like
     //       `ctxt.{add,get}_diagnostics(...)` making the code perhaps a bit cleaner / reducing the # of arguments for
@@ -108,18 +152,8 @@
         <span class="self">Self </span>{ sources: HashMap::new(), provider: IdProvider::default() }
     }
 
-    <span class="kw">pub fn </span>with_source&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, sources: <span class="kw-2">&amp;</span>[S], enc: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt;
-    <span class="kw">where
-        </span>S: SourceContainer,
-    {
-        <span class="kw">for </span>source <span class="kw">in </span>sources {
-            <span class="self">self</span>.insert(source, enc)<span class="question-mark">?</span>;
-        }
-
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
-    }
-
-    <span class="kw">pub fn </span>insert&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, container: <span class="kw-2">&amp;</span>S, encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt;
+    <span class="doccomment">/// Inserts a single [`SourceCode`] to the internal source map
+    </span><span class="kw">pub fn </span>insert&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, container: <span class="kw-2">&amp;</span>S, encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt;
     <span class="kw">where
         </span>S: SourceContainer,
     {
@@ -131,16 +165,39 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SourceCode&gt; {
+    <span class="doccomment">/// Inserts multiple [`SourceCode`]s to the internal source map
+    </span><span class="kw">pub fn </span>with_source&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, sources: <span class="kw-2">&amp;</span>[S], enc: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt;
+    <span class="kw">where
+        </span>S: SourceContainer,
+    {
+        <span class="kw">for </span>source <span class="kw">in </span>sources {
+            <span class="self">self</span>.insert(source, enc)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Returns some [`SourceCode`] based on the given key
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SourceCode&gt; {
         <span class="self">self</span>.sources.get(key)
     }
 
-    <span class="kw">pub fn </span>provider(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IdProvider {
+    <span class="doccomment">/// Returns a cloned [`IdProvider`]
+    </span><span class="kw">pub fn </span>provider(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IdProvider {
         <span class="self">self</span>.provider.clone()
     }
 
     <span class="comment">// TODO: `impl Into&lt;SourceLocation&gt;` would be nice here, but adding `plc_ast` as a dep in `plc_source` yields a circular dep so not possible right now
-    </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="kw-2">&amp;</span>str {
+    </span><span class="doccomment">/// Returns a (whitespace) trimmed slice representing the specified location of the source code.
+    /// For example if the location represents `ARRAY[1..5]\n\nOF\t  DINT` the slice `ARRAY[1..5] OF DINT` will be returned instead.
+    </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; String {
+        <span class="kw">let </span>slice = <span class="self">self</span>.slice_original(location);
+        slice.split_whitespace().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot; &quot;</span>)
+    }
+
+    <span class="doccomment">/// Returns a slice representing the specified location of the source code.
+    /// If the location, i.e. file path, does not exist an empty string will be returned.
+    </span><span class="kw">pub fn </span>slice_original(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">let </span>path = location.get_file_name().unwrap_or(<span class="string">&quot;&lt;internal&gt;&quot;</span>);
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(code) = <span class="self">self</span>.sources.get(path) <span class="kw">else </span>{ <span class="kw">return </span><span class="string">&quot;&quot; </span>};
@@ -168,4 +225,27 @@
     //     ctxt
     // }
 </span>}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::GlobalContext;
+    <span class="kw">use </span>plc_source::source_location::SourceLocationFactory;
+    <span class="kw">use </span>plc_source::SourceCode;
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>slice() {
+        <span class="kw">let </span>input = SourceCode::from(<span class="string">&quot;ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ctxt = GlobalContext::new();
+        ctxt.insert(<span class="kw-2">&amp;</span>input, <span class="prelude-val">None</span>).unwrap();
+
+        <span class="kw">let </span>factory = SourceLocationFactory::default();
+        <span class="kw">let </span>location = factory.create_range(<span class="number">0</span>..input.source.len());
+
+        <span class="macro">assert_eq!</span>(ctxt.slice(<span class="kw-2">&amp;</span>location), <span class="string">&quot;ARRAY[1..5] OF DINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(
+            ctxt.slice_original(<span class="kw-2">&amp;</span>location),
+            <span class="string">&quot;ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT&quot;
+        </span>);
+    }
+}
 </code></pre></div></section></main></body></html>
