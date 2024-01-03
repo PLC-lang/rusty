@@ -3,9 +3,6 @@ use insta::assert_snapshot;
 
 #[test]
 fn enum_variants_mismatch() {
-    // TYPE foo : (a, b, c); END_TYPE
-    // TYPE bar : (x, y, z); END_TYPE
-    // VAR x : foo := bar.x; END_VAR
     let diagnostics = parse_and_validate_buffered(
         "
         TYPE State : (Idle := 0, Working := 100); END_TYPE
@@ -18,7 +15,7 @@ fn enum_variants_mismatch() {
                     localState  : State;
 
                     validReferenceForEnum   : DINT := 0;
-                    invalidReferenceForEnum : DINT := 99;
+                    invalidReferenceForEnum : DINT := 99; // ...problems but a ~~bi-~~ validation ain't one
                 END_VAR
 
                 // These are Ok
