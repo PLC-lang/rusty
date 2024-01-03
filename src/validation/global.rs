@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use plc_ast::ast::PouType;
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -49,14 +49,14 @@ impl GlobalValidator {
                     Diagnostic::error(format!(
                         "{name} can not be used as a name because it is a built-in datatype"
                     ))
-                    .with_error_code(ErrNo::duplicate_symbol)
+                    .with_error_code("E004")
                     .with_secondary_locations(others),
                 );
             } else {
                 let additional_text = additional_text.unwrap_or("Duplicate Symbol.");
                 self.push_diagnostic(
                     Diagnostic::error(format!("{name}: {additional_text}"))
-                        .with_error_code(ErrNo::duplicate_symbol)
+                        .with_error_code("E004")
                         .with_location((*v).clone())
                         .with_secondary_locations(others),
                 );

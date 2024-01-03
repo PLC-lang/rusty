@@ -31,7 +31,6 @@ regex = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 toml = "0.5"
-lazy_static = "1.4.0"
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
 lld_rs = "140.0.0"
@@ -41,6 +40,7 @@ inkwell.workspace = true
 chrono.workspace = true
 itertools.workspace = true
 anyhow.workspace = true
+lazy_static.workspace = true
 
 [dev-dependencies]
 num = "0.4"
@@ -83,3 +83,4 @@ log = "0.4"
 chrono = { version = "0.4", default-features = false }
 itertools = "0.11"
 anyhow = "1.0"
+lazy_static = "1.4.0"

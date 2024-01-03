@@ -1980,6 +1980,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "codespan-reporting",
+ "lazy_static",
  "plc_ast",
  "plc_source",
  "serde_json",

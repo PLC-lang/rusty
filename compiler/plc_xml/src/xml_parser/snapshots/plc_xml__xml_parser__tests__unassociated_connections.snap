@@ -17,7 +17,7 @@ expression: diagnostics
         },
         secondary_locations: None,
         severity: Error,
-        error_code: cfc__no_associated_connector,
+        error_code: "E086",
         sub_diagnostics: [],
         internal_error: None,
     },

@@ -2,7 +2,6 @@ use anyhow::Result;
 use jsonschema::JSONSchema;
 use plc::Target;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_diagnostics::errno::ErrNo;
 use regex::Captures;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -135,7 +134,7 @@ impl ProjectConfig {
             }
 
             // XXX: jsonschema does not provide error messages with location info
-            Diagnostic::error(message).with_error_code(ErrNo::plc_json__invalid)
+            Diagnostic::error(message).with_error_code("E088")
         })?;
         Ok(())
     }

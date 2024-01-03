@@ -1,7 +1,6 @@
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_diagnostics::errno::ErrNo;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
@@ -36,12 +35,12 @@ impl GlobalContext {
         match container.load_source(encoding) {
             Ok(value) => self.sources.insert(container.get_location_str(), value),
             Err(why) => {
-                return Err(Diagnostic::critical(format!(
+                return Err(Diagnostic::error(format!(
                     "Cannot read file '{}': {}'",
                     container.get_location_str(),
                     &why
                 ))
-                .with_error_code(ErrNo::general__io_err))
+                .with_error_code("E002"))
             }
         };
 

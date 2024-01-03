@@ -1,5 +1,5 @@
 use plc_ast::ast::{AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -49,7 +49,7 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
             if variables.is_empty() {
                 validator.push_diagnostic(
                     Diagnostic::error("Variable block is empty")
-                        .with_error_code(ErrNo::pou__empty_variable_block)
+                        .with_error_code("E028")
                         .with_location(location.clone()),
                 );
             }
@@ -60,13 +60,13 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
         } if expressions.is_empty() => {
             validator.push_diagnostic(
                 Diagnostic::error("Variable block is empty")
-                    .with_error_code(ErrNo::pou__empty_variable_block)
+                    .with_error_code("E028")
                     .with_location(location.clone()),
             );
         }
         DataType::VarArgs { referenced_type: None, sized: true } => validator.push_diagnostic(
             Diagnostic::error("Missing datatype: Sized Variadics require a known datatype.")
-                .with_error_code(ErrNo::var__missing_type)
+                .with_error_code("E038")
                 .with_location(location.clone()),
         ),
         _ => {}

@@ -14,7 +14,7 @@ use plc_ast::{
     literals::AstLiteral,
     provider::IdProvider,
 };
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
@@ -773,7 +773,7 @@ fn validate_variable_length_array_bound_function(
                         idx_type.get_name(),
                         TypeNature::Int
                     ))
-                    .with_error_code(ErrNo::type__invalid_nature)
+                    .with_error_code("E062")
                     .with_location(idx.get_location()),
                 )
             }
@@ -792,7 +792,7 @@ fn validate_variable_length_array_bound_function(
                 if dimension_idx < 1 || dimension_idx > n_dimensions {
                     validator.push_diagnostic(
                         Diagnostic::error("Index out of bound")
-                            .with_error_code(ErrNo::vla__dimension_idx_out_of_bounds)
+                            .with_error_code("E046")
                             .with_location(operator.get_location()),
                     )
                 }

@@ -1,5 +1,5 @@
 use indexmap::{IndexMap, IndexSet};
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::{BytesStart, Event};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
@@ -236,14 +236,14 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                 })) => {
                     current = ref_local_id.ok_or_else(|| {
                         Diagnostic::error(format!("Source '{name}' is not connected."))
-                            .with_error_code(ErrNo::cfc__unconnected_source)
+                            .with_error_code("E084")
                             .with_location(source_location_factory.create_block_location(current, None))
                     })?
                 }
                 Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) => {
                     current = *source_connections.get(name.as_ref()).ok_or_else(|| {
                         Diagnostic::error(format!("Expected a corresponding source-connection mark for sink '{name}', but could not find one."))
-                            .with_error_code(ErrNo::cfc__no_associated_connector)
+                            .with_error_code("E086")
                             .with_location(source_location_factory.create_block_location(current, None))
                     })?
                 }
@@ -263,7 +263,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                 return Err(Diagnostic::error(format!(
                     "Sink is connected to itself. Found the following recursion: {msg}"
                 ))
-                .with_error_code(ErrNo::cfc__cyclic_connection)
+                .with_error_code("E085")
                 .with_location(
                     source_location_factory.create_block_location(node.get_id(), node.get_exec_id()),
                 ));

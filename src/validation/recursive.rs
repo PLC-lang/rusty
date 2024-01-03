@@ -1,7 +1,7 @@
 use indexmap::IndexSet;
 use itertools::Itertools;
 use plc_ast::ast::PouType;
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     index::{Index, VariableIndexEntry},
@@ -109,7 +109,7 @@ impl RecursiveValidator {
                 let error = slice.iter().map(|it| it.get_name()).join(" -> ");
                 let diagnostic =
                     Diagnostic::error(format!("Recursive data structure `{}` has infinite size", error))
-                        .with_error_code(ErrNo::pou__recursive_data_structure);
+                        .with_error_code("E029");
 
                 let diagnostic = if let Some(first) = ranges.first() {
                     diagnostic.with_location(first.clone())

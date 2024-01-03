@@ -2,7 +2,7 @@ use plc_ast::{
     ast::{AstFactory, AstNode, AstStatement},
     control_statements::ConditionalBlock,
 };
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
@@ -184,7 +184,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstNode {
                 if current_condition.is_none() {
                     lexer.accept_diagnostic(
                         Diagnostic::error("Missing Case-Condition")
-                            .with_error_code(ErrNo::syntax__missing_case_contition)
+                            .with_error_code("E012")
                             .with_location(lexer.location()),
                     );
                     current_condition =

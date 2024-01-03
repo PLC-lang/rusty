@@ -9,7 +9,7 @@ use crate::{
 use indexmap::IndexSet;
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     data_type_generator::get_default_for,
@@ -79,9 +79,9 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 if !variable.is_in_unit(location) { LinkageType::External } else { variable.get_linkage() };
             let global_variable =
                 self.generate_global_variable(variable, linkage).map_err(|err| match err.get_type() {
-                    ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
-                        Diagnostic::critical(format!("Cannot generate literal initializer for `{name}`."))
-                            .with_error_code(ErrNo::var__initializer)
+                    "E072" | "E048" => {
+                        Diagnostic::error(format!("Cannot generate literal initializer for `{name}`."))
+                            .with_error_code("E041")
                             .with_sub_diagnostic(err)
                     }
                     _ => err,

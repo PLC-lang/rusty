@@ -100,7 +100,7 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
     fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
         for d in diagnostics {
             let diagnostic_factory = match d.severity {
-                Severity::Critical | Severity::Error => codespan_reporting::diagnostic::Diagnostic::error(),
+                Severity::Error => codespan_reporting::diagnostic::Diagnostic::error(),
                 Severity::Warning => codespan_reporting::diagnostic::Diagnostic::warning(),
                 Severity::Info => codespan_reporting::diagnostic::Diagnostic::note(),
             };

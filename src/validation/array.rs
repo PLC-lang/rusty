@@ -13,7 +13,7 @@ use plc_ast::{
     ast::{AstNode, AstStatement, Variable},
     literals::AstLiteral,
 };
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
 
 use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
@@ -71,7 +71,7 @@ fn validate_array<T: AnnotationMap>(
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(
             Diagnostic::error("Array assignments must be surrounded with `[]`")
-                .with_error_code(ErrNo::arr__invalid_array_assignment)
+                .with_error_code("E043")
                 .with_location(stmt_rhs.get_location()),
         );
         return; // Return here, because array size validation is error-prone with incorrect assignments
@@ -91,7 +91,7 @@ fn validate_array<T: AnnotationMap>(
             Diagnostic::error(format!(
                 "Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided"
             ))
-            .with_error_code(ErrNo::arr__invalid_array_assignment)
+            .with_error_code("E043")
             .with_location(location),
         );
     }
@@ -117,7 +117,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
             for invalid in expressions.iter().filter(|it| !it.is_paren()) {
                 validator.push_diagnostic(
                     Diagnostic::error("Struct initializers within arrays have to be wrapped by `()`")
-                        .with_error_code(ErrNo::arr__invalid_array_assignment)
+                        .with_error_code("E043")
                         .with_location(invalid.get_location()),
                 );
             }
@@ -127,7 +127,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
         AstStatement::Assignment(..) => {
             validator.push_diagnostic(
                 Diagnostic::error("Struct initializers within arrays have to be wrapped by `()`")
-                    .with_error_code(ErrNo::arr__invalid_array_assignment)
+                    .with_error_code("E043")
                     .with_location(rhs_stmt.get_location()),
             );
         }

@@ -20,7 +20,6 @@ use inkwell::{
 use plc_ast::ast::{AstNode, AstStatement};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_diagnostics::errno::ErrNo;
 use plc_source::source_location::SourceLocation;
 /// the data_type_generator generates user defined data-types
 /// - Structures
@@ -161,7 +160,7 @@ pub fn generate_data_types<'ink>(
             .collect::<Vec<_>>();
         //Report the operation failure
         return Err(Diagnostic::error("Some initial values were not generated")
-            .with_error_code(ErrNo::codegen__initial_values_not_generated)
+            .with_error_code("E075")
             .with_sub_diagnostics(diags));
     }
     Ok(generator.types_index)
@@ -232,7 +231,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                         "Invalid type nature for generic argument. {} is no `ANY_INT`.",
                         effective_type.get_name()
                     ))
-                    .with_error_code(ErrNo::type__invalid_nature))
+                    .with_error_code("E062"))
                 }
             }
             DataTypeInformation::Float { size, .. } => {

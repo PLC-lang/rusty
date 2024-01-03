@@ -23,7 +23,6 @@ use plc::{
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
-    errno::ErrNo,
 };
 use plc_index::GlobalContext;
 use project::{
@@ -194,8 +193,8 @@ impl AnnotatedProject {
             let diagnostics = validator.diagnostics();
             severity = severity.max(diagnostician.handle(&diagnostics));
         });
-        if severity == Severity::Critical {
-            Err(Diagnostic::critical("Compilation aborted due to critical errors"))
+        if severity == Severity::Error {
+            Err(Diagnostic::error("Compilation aborted due to critical errors"))
         } else {
             Ok(())
         }
@@ -316,7 +315,7 @@ impl AnnotatedProject {
                         let unit_location = std::fs::canonicalize(unit_location)?;
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
-                                Diagnostic::critical(format!(
+                                Diagnostic::error(format!(
                                     "Could not strip prefix for {}",
                                     current_dir.to_string_lossy()
                                 ))
@@ -367,9 +366,7 @@ impl AnnotatedProject {
         let hw_conf = plc::hardware_binding::collect_hardware_configuration(&self.index)?;
         let generated_conf = plc::hardware_binding::generate_hardware_configuration(&hw_conf, format)?;
         File::create(location).and_then(|mut it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
-            Diagnostic::critical(it.to_string())
-                .with_internal_error(it.into())
-                .with_error_code(ErrNo::general__io_err)
+            Diagnostic::error(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
         })?;
         Ok(())
     }

@@ -16,7 +16,7 @@ expression: diagnostics
         },
         secondary_locations: None,
         severity: Error,
-        error_code: cfc__empty_control_statement,
+        error_code: "E081",
         sub_diagnostics: [],
         internal_error: None,
     },

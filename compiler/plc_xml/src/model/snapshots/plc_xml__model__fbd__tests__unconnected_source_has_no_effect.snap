@@ -14,7 +14,7 @@ expression: err
         },
         secondary_locations: None,
         severity: Error,
-        error_code: cfc__unconnected_source,
+        error_code: "E084",
         sub_diagnostics: [],
         internal_error: None,
     },

@@ -31,10 +31,7 @@ use plc_ast::{
     },
     literals::AstLiteral,
 };
-use plc_diagnostics::{
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    errno::ErrNo,
-};
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
@@ -348,7 +345,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         } else {
             Err(Diagnostic::error(format!("Cannot cast from {} to Integer Type", access_type.get_name()))
-                .with_error_code(ErrNo::type__cast_error)
+                .with_error_code("E051")
                 .with_location(index.get_location()))
         }
     }
@@ -1910,7 +1907,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 "Cannot generate String-Literal for type {}",
                 expected_type.get_name()
             ))
-            .with_error_code(ErrNo::codegen__string_literal)
+            .with_error_code("E074")
             .with_location(location.clone())),
         }
     }
@@ -2583,7 +2580,7 @@ pub fn get_implicit_call_parameter<'a>(
                 return Err(
                     //TODO: use global context to get an expression slice
                     Diagnostic::error("Expression is not assignable")
-                        .with_error_code(ErrNo::reference__expected)
+                        .with_error_code("E050")
                         .with_location(param_statement.get_location())
                 );
             };

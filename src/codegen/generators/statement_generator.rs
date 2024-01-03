@@ -25,10 +25,7 @@ use plc_ast::{
     },
     control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
-use plc_diagnostics::{
-    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    errno::ErrNo,
-};
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 
 /// the full context when generating statements inside a POU
@@ -327,7 +324,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             } else {
                 //TODO: using the global context we could get a slice here
                 Err(Diagnostic::error(&format!("{element:?} not a direct access"))
-                    .with_error_code(ErrNo::type__incompatible_directaccess)
+                    .with_error_code("E055")
                     .with_location(element.get_location()))
             }?;
             for element in direct_access {
@@ -341,7 +338,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 } else {
                     //TODO: using the global context we could get a slice here
                     Err(Diagnostic::error(&format!("{element:?} not a direct access"))
-                        .with_error_code(ErrNo::type__incompatible_directaccess)
+                        .with_error_code("E055")
                         .with_location(element.get_location()))
                 }?;
                 rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");

@@ -1,5 +1,5 @@
 use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
@@ -35,7 +35,7 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
     {
         validator.push_diagnostic(
             Diagnostic::error("This variable block does not support the CONSTANT modifier")
-                .with_error_code(ErrNo::var__invalid_constant_block)
+                .with_error_code("E034")
                 .with_location(block.location.clone()),
         )
     }
@@ -59,7 +59,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
 
         if matches!(block.variable_block_type, VariableBlockType::Global) {
             validator.push_diagnostic(Diagnostic::error("VLAs can not be defined as global variables")
-                                      .with_error_code(ErrNo::vla__invalid_container)
+                                      .with_error_code("E044")
                                       .with_location( variable.location.clone())
             )
         }
@@ -72,13 +72,13 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
             Diagnostic::warning(
                 "Variable Length Arrays are always by-ref, even when declared in a by-value block",
             )
-            .with_error_code(ErrNo::vla__always_byref)
+            .with_error_code("E047")
             .with_location(variable.location.clone()),
         ),
 
         (PouType::Program, _) => validator.push_diagnostic(
             Diagnostic::error("Variable Length Arrays are not allowed to be defined inside a Program")
-                .with_error_code(ErrNo::vla__invalid_container)
+                .with_error_code("E044")
                 .with_location(variable.location.clone()),
         ),
 
@@ -95,7 +95,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
                 "Variable Length Arrays are not allowed to be defined as {} variables inside a {}",
                 block.variable_block_type, pou.pou_type
             ))
-            .with_error_code(ErrNo::vla__invalid_container)
+            .with_error_code("E044")
             .with_location(variable.location.clone()),
         ),
     }
@@ -119,54 +119,33 @@ fn validate_variable<T: AnnotationMap>(
             visit_statement(validator, initializer, context);
         }
 
-        //pub fn unresolved_constant(
-        //    constant_name: &str,
-        //    reason: Option<&str>,
-        //    location: SourceLocation,
-        //) -> Diagnostic {
-        //    Diagnostic::SyntaxError {
-        //        message: format!(
-        //            "Unresolved constant '{constant_name:}' variable{:}",
-        //            reason.map(|it| format!(": {it}",)).unwrap_or_else(|| "".into()),
-        //        ),
-        //        range: vec![location],
-        //        err_no: ErrNo::var__unresolved_constant,
-        //    }
-        //}
-
         match v_entry
             .initial_value
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
         {
             Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
                 validator.push_diagnostic(
-                    Diagnostic::critical(format!(
+                    Diagnostic::error(format!(
                         "Unresolved constant `{}` variable: {}",
                         variable.name.as_str(),
                         reason.get_reason()
                     ))
-                    .with_error_code(ErrNo::var__unresolved_constant)
+                    .with_error_code("E033")
                     .with_location(statement.get_location()),
                 );
             }
             Some(ConstExpression::Unresolved { statement, .. }) => {
                 validator.push_diagnostic(
-                    Diagnostic::critical(format!(
-                        "Unresolved constant `{}` variable",
-                        variable.name.as_str(),
-                    ))
-                    .with_error_code(ErrNo::var__unresolved_constant)
-                    .with_location(statement.get_location()),
+                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                        .with_error_code("E033")
+                        .with_location(statement.get_location()),
                 );
             }
             None if v_entry.is_constant() => {
                 validator.push_diagnostic(
-                    Diagnostic::critical(format!(
-                        "Unresolved constant `{}` variable",
-                        variable.name.as_str(),
-                    ))
-                    .with_error_code(ErrNo::var__unresolved_constant)
-                    .with_location(variable.location.clone()),
+                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                        .with_error_code("E033")
+                        .with_location(variable.location.clone()),
                 );
             }
             _ => {
@@ -193,7 +172,7 @@ fn validate_variable<T: AnnotationMap>(
                     "Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant",
                     v_entry.get_name()
                 ))
-                .with_error_code(ErrNo::var__invalid_constant)
+                .with_error_code("E035")
                 .with_location(variable.location.clone()),
             );
         }
