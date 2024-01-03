@@ -12,7 +12,6 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
-use crate::typesystem::DataTypeInformationProvider;
 use crate::validation::statement::helper::get_datatype_name_or_slice;
 use crate::{
     builtins::{self, BuiltIn},
@@ -755,7 +754,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     let right_datatype = context.annotations.get_type_or_void(right, context.index);
 
     if let AstStatement::Literal(AstLiteral::Integer(value)) = &right.stmt {
-        if !enum_variant_values.contains(&value) {
+        if !enum_variant_values.contains(value) {
             let message = format!("Invalid integer value; valid values are {enum_variant_values:?}");
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
         }

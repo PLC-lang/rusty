@@ -4,6 +4,7 @@ mod assignment_validation_tests;
 mod bitaccess_validation_test;
 mod builtin_validation_tests;
 mod duplicates_validation_test;
+mod enum_validation_test;
 mod generic_validation_tests;
 mod literals_validation_tests;
 mod naming_validation_test;
@@ -13,7 +14,6 @@ mod reference_resolve_tests;
 mod statement_validation_tests;
 mod variable_length_array_test;
 mod variable_validation_tests;
-mod enum_validation_test;
 
 #[macro_export]
 macro_rules! assert_validation_snapshot {

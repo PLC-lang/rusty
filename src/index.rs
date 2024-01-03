@@ -1144,7 +1144,7 @@ impl Index {
         let keys = self
             .enum_qualified_variables
             .keys()
-            .filter(|key| key.split(".").next().is_some())
+            .filter(|key| key.split('.').next().is_some())
             .filter(|prefix| prefix.starts_with(&qualified_name.to_lowercase()))
             .collect::<Vec<_>>();
         for key in keys {
