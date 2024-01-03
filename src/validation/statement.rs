@@ -683,7 +683,7 @@ fn validate_assignment<T: AnnotationMap>(
                 validate_enum_variant_assignment(
                     context,
                     validator,
-                    context.annotations.get_type_or_void(left, context.index).get_type_information(),
+                    context.annotations.get_type_or_void(left, context.index),
                     right,
                     qualified_name,
                 );
@@ -741,7 +741,7 @@ fn validate_assignment<T: AnnotationMap>(
 pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
-    left: &DataTypeInformation,
+    left: &DataType,
     right: &AstNode,
     qualified_name: &str,
 ) {
@@ -753,12 +753,13 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         return;
     };
 
-    let enum_variant_values = context.index.get_enum_variant_values(&variable.data_type_name);
+    let enum_variant_values = context.index.get_enum_variant_values(variable);
     let right_datatype = context.annotations.get_type_or_void(right, context.index);
 
     if let Some(value) = get_literal_int_or_const_expr_value(right, context) {
         if !enum_variant_values.contains(&value) {
-            let message = format!("Invalid integer value; valid values are {enum_variant_values:?}");
+            let message =
+                format!("Invalid integer value; valid values are {enum_variant_values:?} got {value}");
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()))
         } else {
             // TODO(volsa): Convert these to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
@@ -779,7 +780,10 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
 
     // Fallback, in case we haven't found a value
     if left.get_name() != right_datatype.get_name() {
-        let message = format!("Value of {qualified_name} can not be derived for enum {}", left.get_name());
+        let message = format!(
+            "Value of {qualified_name} is evaluated at run-time, can not safely verify if value is bound in {}",
+            get_datatype_name_or_slice(validator.context, left)
+        );
         validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message.as_str(), right.get_location()));
     }
 }
@@ -1198,7 +1202,6 @@ mod helper {
             return Some(value);
         }
 
-        // otherwise
         let path = right.get_flat_reference_name().unwrap_or_default();
         let Some(element) = context.index.find_variable(context.qualifier, &[path]) else { return None; };
 

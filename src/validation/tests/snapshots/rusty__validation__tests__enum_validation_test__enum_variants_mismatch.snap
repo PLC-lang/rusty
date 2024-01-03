@@ -44,52 +44,52 @@ error: Enums are of different kind, consider using the same enum for assignments
 29 │                 localState := red;      // Color.Red  == 0 == State.Idle
    │                               ^^^ Enums are of different kind, consider using the same enum for assignments
 
-error: Value of main.color can not be derived for enum __main_color
+error: Invalid integer value; valid values are [0, 1, 2] got 99
    ┌─ <internal>:38:26
    │
-38 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
-   │                          ^^^^^^ Value of main.color can not be derived for enum __main_color
+38 │                 color := 99;
+   │                          ^^ Invalid integer value; valid values are [0, 1, 2] got 99
 
-error: Invalid integer value; valid values are [0, 1, 2]
-   ┌─ <internal>:42:26
+error: Invalid integer value; valid values are [0, 1, 2] got 100
+   ┌─ <internal>:39:26
    │
-42 │                 color := 99;
-   │                          ^^ Invalid integer value; valid values are [0, 1, 2]
+39 │                 color := State.Working;
+   │                          ^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 1, 2] got 100
 
-error: Invalid integer value; valid values are [0, 1, 2]
-   ┌─ <internal>:43:26
+error: Invalid integer value; valid values are [0, 1, 2] got 99
+   ┌─ <internal>:40:26
    │
-43 │                 color := State.Working;
-   │                          ^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 1, 2]
+40 │                 color := invalidReferenceForEnum;
+   │                          ^^^^^^^^^^^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 1, 2] got 99
 
-error: Invalid integer value; valid values are [0, 1, 2]
-   ┌─ <internal>:44:26
+error: Value of main.color is evaluated at run-time, can not safely verify if value is bound in (red := 0, green := 1, blue := 2)
+   ┌─ <internal>:41:26
    │
-44 │                 color := invalidReferenceForEnum;
-   │                          ^^^^^^^^^^^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 1, 2]
+41 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
+   │                          ^^^^^^ Value of main.color is evaluated at run-time, can not safely verify if value is bound in (red := 0, green := 1, blue := 2)
 
-error: Invalid integer value; valid values are [0, 100]
+error: Invalid integer value; valid values are [0, 100] got 99
+   ┌─ <internal>:43:31
+   │
+43 │                 localState := 99;
+   │                               ^^ Invalid integer value; valid values are [0, 100] got 99
+
+error: Invalid integer value; valid values are [0, 100] got 1
+   ┌─ <internal>:44:31
+   │
+44 │                 localState := green;
+   │                               ^^^^^ Invalid integer value; valid values are [0, 100] got 1
+
+error: Invalid integer value; valid values are [0, 100] got 2
+   ┌─ <internal>:45:31
+   │
+45 │                 localState := blue;
+   │                               ^^^^ Invalid integer value; valid values are [0, 100] got 2
+
+error: Invalid integer value; valid values are [0, 100] got 99
    ┌─ <internal>:46:31
    │
-46 │                 localState := 99;
-   │                               ^^ Invalid integer value; valid values are [0, 100]
-
-error: Invalid integer value; valid values are [0, 100]
-   ┌─ <internal>:47:31
-   │
-47 │                 localState := green;
-   │                               ^^^^^ Invalid integer value; valid values are [0, 100]
-
-error: Invalid integer value; valid values are [0, 100]
-   ┌─ <internal>:48:31
-   │
-48 │                 localState := blue;
-   │                               ^^^^ Invalid integer value; valid values are [0, 100]
-
-error: Invalid integer value; valid values are [0, 100]
-   ┌─ <internal>:49:31
-   │
-49 │                 localState := invalidReferenceForEnum;
-   │                               ^^^^^^^^^^^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 100]
+46 │                 localState := invalidReferenceForEnum;
+   │                               ^^^^^^^^^^^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 100] got 99
 
 

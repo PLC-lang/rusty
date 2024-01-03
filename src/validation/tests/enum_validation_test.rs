@@ -12,7 +12,7 @@ fn enum_variants_mismatch() {
         "
         TYPE State : (Idle := 0, Working := 100); END_TYPE
         FUNCTION foo : DINT END_FUNCTION
-//        FUNCTION bar : State END_FUNCTION
+        FUNCTION bar : State END_FUNCTION
 
         PROGRAM main
                 VAR
@@ -42,17 +42,14 @@ fn enum_variants_mismatch() {
                 color := validReferenceForEnum;
                 localState := validReferenceForEnum;
 
-//                color := bar(); // Value of `bar` unknown, BUT return type is `State` which is Ok
-
-
-                // Warning?
-                color := foo(); // Value of `foo()` unknown, might be outside of variants range
+                localState := bar(); // Value of `bar` unknown, BUT return type is `State` which is Ok
 
                 // These are NOT Ok
                 // -> valid values for color are [0, 1, 2] and for localState are [0, 100]
                 color := 99;
                 color := State.Working;
                 color := invalidReferenceForEnum;
+                color := foo(); // Value of `foo()` unknown, might be outside of variants range
 
                 localState := 99;
                 localState := green;
