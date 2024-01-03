@@ -12,7 +12,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
-use crate::validation::statement::helper::get_datatype_name_or_slice;
+use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -749,42 +749,35 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         return;
     }
 
-    let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
+    let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else {
+        return;
+    };
+
     let enum_variant_values = context.index.get_enum_variant_values(&variable.data_type_name);
     let right_datatype = context.annotations.get_type_or_void(right, context.index);
 
-    if let AstStatement::Literal(AstLiteral::Integer(value)) = &right.stmt {
-        if !enum_variant_values.contains(value) {
-            let message = format!("Invalid integer value; valid values are {enum_variant_values:?}");
-            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
-        }
-
-        return;
-    }
-
-    if right_datatype.is_enum() || right.is_reference() {
-        let path = right.get_flat_reference_name().unwrap_or_default();
-        let element = context.index.find_variable(context.qualifier, &[path]).unwrap();
-
-        let value = context
-            .index
-            .get_const_expressions()
-            .get_constant_int_statement_value(element.initial_value.as_ref().unwrap())
-            .unwrap();
-
+    if let Some(value) = get_literal_int_or_const_expr_value(right, context) {
         if !enum_variant_values.contains(&value) {
             let message = format!("Invalid integer value; valid values are {enum_variant_values:?}");
-            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
-        } else if right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
-            // TODO(volsa): Convert this to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
-            let message = "Enums are of different kind, consider using the same enum for assignments";
-            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()))
+        } else {
+            // TODO(volsa): Convert these to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
+            // Before returning, we want to give some possible improvement suggestions
+            if right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
+                let message = "Enums are of different kind, consider using the same enum for assignments";
+                validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+            }
+
+            if right.is_literal_integer() {
+                let message = "Consider using enum variants rather than literal integers";
+                validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+            }
         }
 
-        return;
+        return; // Avoid getting into fall-back
     }
 
-    // Fallback, if we can't find a constant value
+    // Fallback, in case we haven't found a value
     if left.get_name() != right_datatype.get_name() {
         let message = format!("Value of {qualified_name} can not be derived for enum {}", left.get_name());
         validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message.as_str(), right.get_location()));
@@ -1154,10 +1147,12 @@ fn _validate_assignment_type_sizes<T: AnnotationMap>(
 mod helper {
     use std::ops::Range;
 
-    use plc_ast::ast::DirectAccessType;
+    use plc_ast::ast::{AstNode, DirectAccessType};
     use plc_index::GlobalContext;
 
+    use crate::resolver::AnnotationMap;
     use crate::typesystem::DataType;
+    use crate::validation::ValidationContext;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
     /// Returns true if the current index is in the range for the given type
@@ -1190,5 +1185,27 @@ mod helper {
         }
 
         context.slice(&dt.location)
+    }
+
+    pub fn get_literal_int_or_const_expr_value<T>(
+        right: &AstNode,
+        context: &ValidationContext<T>,
+    ) -> Option<i128>
+    where
+        T: AnnotationMap,
+    {
+        if let Some(value) = right.get_literal_integer_value() {
+            return Some(value);
+        }
+
+        // otherwise
+        let path = right.get_flat_reference_name().unwrap_or_default();
+        let Some(element) = context.index.find_variable(context.qualifier, &[path]) else { return None; };
+
+        context
+            .index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&element.initial_value)
+            .and_then(AstNode::get_literal_integer_value)
     }
 }

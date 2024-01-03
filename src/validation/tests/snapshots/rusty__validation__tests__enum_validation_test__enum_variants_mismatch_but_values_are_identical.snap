@@ -20,4 +20,10 @@ error: Enums are of different kind, consider using the same enum for assignments
 13 │             color := sparkling; // warning
    │                      ^^^^^^^^^ Enums are of different kind, consider using the same enum for assignments
 
+error: Consider using enum variants rather than literal integers
+   ┌─ <internal>:14:22
+   │
+14 │             color := 2;         // warning
+   │                      ^ Consider using enum variants rather than literal integers
+
 

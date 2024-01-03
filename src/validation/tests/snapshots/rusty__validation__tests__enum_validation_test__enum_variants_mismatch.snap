@@ -2,6 +2,36 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
+error: Consider using enum variants rather than literal integers
+   ┌─ <internal>:18:31
+   │
+18 │                 localState := 0;
+   │                               ^ Consider using enum variants rather than literal integers
+
+error: Consider using enum variants rather than literal integers
+   ┌─ <internal>:19:31
+   │
+19 │                 localState := 100;
+   │                               ^^^ Consider using enum variants rather than literal integers
+
+error: Consider using enum variants rather than literal integers
+   ┌─ <internal>:24:26
+   │
+24 │                 color := 0;
+   │                          ^ Consider using enum variants rather than literal integers
+
+error: Consider using enum variants rather than literal integers
+   ┌─ <internal>:25:26
+   │
+25 │                 color := 1;
+   │                          ^ Consider using enum variants rather than literal integers
+
+error: Consider using enum variants rather than literal integers
+   ┌─ <internal>:26:26
+   │
+26 │                 color := 2;
+   │                          ^ Consider using enum variants rather than literal integers
+
 error: Enums are of different kind, consider using the same enum for assignments
    ┌─ <internal>:28:26
    │

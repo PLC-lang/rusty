@@ -26,4 +26,10 @@ error: Invalid integer value; valid values are [0, 1, 2]
 12 │                 var3 : (a, b, c) := 7;                          // error
    │                                     ^ Invalid integer value; valid values are [0, 1, 2]
 
+error: Consider using enum variants rather than literal integers
+  ┌─ <internal>:2:45
+  │
+2 │                 x : (red, yellow, green) := 2; // error
+  │                                             ^ Consider using enum variants rather than literal integers
+
 
