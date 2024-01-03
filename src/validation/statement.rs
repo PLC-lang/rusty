@@ -12,6 +12,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+use crate::typesystem::DataTypeInformationProvider;
 use crate::validation::statement::helper::get_datatype_name_or_slice;
 use crate::{
     builtins::{self, BuiltIn},
@@ -681,11 +682,11 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 // ...enum variable where the RHS does not match its variants
                 validate_enum_variant_assignment(
+                    context,
                     validator,
                     context.annotations.get_type_or_void(left, context.index).get_type_information(),
-                    context.annotations.get_type_or_void(right, context.index).get_type_information(),
+                    right,
                     qualified_name,
-                    right.get_location(),
                 );
             }
 
@@ -738,15 +739,56 @@ fn validate_assignment<T: AnnotationMap>(
     }
 }
 
-pub(crate) fn validate_enum_variant_assignment(
+pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
+    context: &ValidationContext<T>,
     validator: &mut Validator,
     left: &DataTypeInformation,
-    right: &DataTypeInformation,
+    right: &AstNode,
     qualified_name: &str,
-    location: SourceLocation,
 ) {
-    if left.is_enum() && left.get_name() != right.get_name() {
-        validator.push_diagnostic(Diagnostic::enum_variant_mismatch(qualified_name, location))
+    if !left.is_enum() {
+        return;
+    }
+
+    let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
+    let enum_variant_values = context.index.get_enum_variant_values(&variable.data_type_name);
+    let right_datatype = context.annotations.get_type_or_void(right, context.index);
+
+    if let AstStatement::Literal(AstLiteral::Integer(value)) = &right.stmt {
+        if !enum_variant_values.contains(&value) {
+            let message = format!("Invalid integer value; valid values are {enum_variant_values:?}");
+            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+        }
+
+        return;
+    }
+
+    if right_datatype.is_enum() || right.is_reference() {
+        let path = right.get_flat_reference_name().unwrap_or_default();
+        let element = context.index.find_variable(context.qualifier, &[path]).unwrap();
+
+        let value = context
+            .index
+            .get_const_expressions()
+            .get_constant_int_statement_value(element.initial_value.as_ref().unwrap())
+            .unwrap();
+
+        if !enum_variant_values.contains(&value) {
+            let message = format!("Invalid integer value; valid values are {enum_variant_values:?}");
+            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+        } else if right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
+            // TODO(volsa): Convert this to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
+            let message = "Enums are of different kind, consider using the same enum for assignments";
+            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+        }
+
+        return;
+    }
+
+    // Fallback, if we can't find a constant value
+    if left.get_name() != right_datatype.get_name() {
+        let message = format!("Value of {qualified_name} can not be derived for enum {}", left.get_name());
+        validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message.as_str(), right.get_location()));
     }
 }
 

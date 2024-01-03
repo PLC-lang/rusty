@@ -1,0 +1,23 @@
+---
+source: src/validation/tests/enum_validation_test.rs
+expression: diagnostics
+---
+error: Enums are of different kind, consider using the same enum for assignments
+   ┌─ <internal>:11:22
+   │
+11 │             color := Dog;       // warning
+   │                      ^^^ Enums are of different kind, consider using the same enum for assignments
+
+error: Enums are of different kind, consider using the same enum for assignments
+   ┌─ <internal>:12:22
+   │
+12 │             water := blue;      // warning
+   │                      ^^^^ Enums are of different kind, consider using the same enum for assignments
+
+error: Enums are of different kind, consider using the same enum for assignments
+   ┌─ <internal>:13:22
+   │
+13 │             color := sparkling; // warning
+   │                      ^^^^^^^^^ Enums are of different kind, consider using the same enum for assignments
+
+

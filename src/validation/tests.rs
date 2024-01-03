@@ -13,6 +13,7 @@ mod reference_resolve_tests;
 mod statement_validation_tests;
 mod variable_length_array_test;
 mod variable_validation_tests;
+mod enum_validation_test;
 
 #[macro_export]
 macro_rules! assert_validation_snapshot {

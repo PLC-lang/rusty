@@ -941,29 +941,6 @@ fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
 }
 
 #[test]
-fn enum_variants_mismatch() {
-    let diagnostics = parse_and_validate(
-        "
-        TYPE Animal: (Dog, Cat, Horse); END_TYPE
-
-        PROGRAM main
-        VAR
-            color: (red, green, blue);
-            water: (still, medium, sparkling);
-        END_VAR
-            color := green;     // ok
-            water := sparkling; // ok
-            color := Dog;       // warning
-            water := blue;      // warning
-            color := sparkling; // warning
-            color := 2;         // warning
-        END_PROGRAM",
-    );
-
-    assert_validation_snapshot!(diagnostics);
-}
-
-#[test]
 fn string_type_alias_assignment_can_be_validated() {
     let diagnostics = parse_and_validate(
         "

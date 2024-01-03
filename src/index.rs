@@ -805,10 +805,10 @@ pub struct Index {
     global_initializers: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
-    enum_global_variables: SymbolMap<String, VariableIndexEntry>,
+    pub enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their qualified names <enum-type>.<element-name>
-    enum_qualified_variables: SymbolMap<String, VariableIndexEntry>,
+    pub enum_qualified_variables: SymbolMap<String, VariableIndexEntry>,
 
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
@@ -1136,6 +1136,30 @@ impl Index {
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_qualified_enum_element(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
+    }
+
+    // TODO: qualified_name -> variable
+    pub fn get_enum_variant_values(&self, qualified_name: &str) -> Vec<i128> {
+        let mut values = Vec::new();
+        let keys = self
+            .enum_qualified_variables
+            .keys()
+            .filter(|key| key.split(".").next().is_some())
+            .filter(|prefix| prefix.starts_with(&qualified_name.to_lowercase()))
+            .collect::<Vec<_>>();
+        for key in keys {
+            let value = self
+                .enum_qualified_variables
+                .get(&key.to_lowercase())
+                .expect("Must exist because of previous filter");
+            if let Some(ref const_id) = value.initial_value {
+                if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
+                    values.push(init);
+                }
+            }
+        }
+
+        values
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)

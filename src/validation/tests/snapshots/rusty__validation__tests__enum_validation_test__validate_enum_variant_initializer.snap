@@ -1,0 +1,29 @@
+---
+source: src/validation/tests/enum_validation_test.rs
+expression: diagnostics
+---
+error: Invalid integer value; valid values are [1, 2, 3]
+  ┌─ <internal>:7:63
+  │
+7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
+  │                                                               ^^^ Invalid integer value; valid values are [1, 2, 3]
+
+error: Enums are of different kind, consider using the same enum for assignments
+   ┌─ <internal>:10:55
+   │
+10 │                 var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // error
+   │                                                       ^^^^^^ Enums are of different kind, consider using the same enum for assignments
+
+error: Invalid integer value; valid values are [0, 1, 2]
+   ┌─ <internal>:11:40
+   │
+11 │                 var2 : (x5, x6, x7) := neon;                    // error
+   │                                        ^^^^ Invalid integer value; valid values are [0, 1, 2]
+
+error: Invalid integer value; valid values are [0, 1, 2]
+   ┌─ <internal>:12:37
+   │
+12 │                 var3 : (a, b, c) := 7;                          // error
+   │                                     ^ Invalid integer value; valid values are [0, 1, 2]
+
+

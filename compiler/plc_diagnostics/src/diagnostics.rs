@@ -737,9 +737,9 @@ impl Diagnostic {
         }
     }
 
-    pub fn enum_variant_mismatch(enum_type: &str, range: SourceLocation) -> Diagnostic {
+    pub fn enum_variant_mismatch(message: impl Into<String>, range: SourceLocation) -> Diagnostic {
         Diagnostic::SemanticError {
-            message: format!("Assigned value is not a variant of {enum_type}"),
+            message: message.into(),
             range: vec![range],
             err_no: ErrNo::var__invalid_enum_variant,
         }

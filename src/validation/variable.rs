@@ -136,14 +136,14 @@ fn validate_variable<T: AnnotationMap>(
             _ => {
                 if let Some(rhs) = variable.initializer.as_ref() {
                     validate_enum_variant_assignment(
+                        context,
                         validator,
                         context
                             .index
                             .get_effective_type_or_void_by_name(v_entry.get_type_name())
                             .get_type_information(),
-                        context.annotations.get_type_or_void(rhs, context.index).get_type_information(),
+                        rhs,
                         v_entry.get_qualified_name(),
-                        rhs.get_location(),
                     )
                 }
             }
@@ -193,27 +193,6 @@ mod variable_validator_tests {
             END_VAR
         END_PROGRAM
         ",
-        );
-        assert_snapshot!(diagnostics);
-    }
-
-    #[test]
-    fn validate_enum_variant_initializer() {
-        let diagnostics = parse_and_validate_buffered(
-            "VAR_GLOBAL
-                x : (red, yellow, green) := 2; // error
-            END_VAR
-
-            PROGRAM  main
-            VAR
-                y : (metallic := 1, matte := 2, neon := 3) := red; // error
-            END_VAR
-            VAR
-                var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow; // error
-                var2 : (x5, x6, x7) := neon; // error
-                var3 : (a, b, c) := 7; // error
-            END_VAR
-            END_PROGRAM",
         );
         assert_snapshot!(diagnostics);
     }

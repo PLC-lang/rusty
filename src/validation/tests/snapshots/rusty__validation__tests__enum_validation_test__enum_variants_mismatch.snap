@@ -1,0 +1,65 @@
+---
+source: src/validation/tests/enum_validation_test.rs
+expression: diagnostics
+---
+error: Enums are of different kind, consider using the same enum for assignments
+   ┌─ <internal>:28:26
+   │
+28 │                 color := State.Idle;    // State.Idle == 0 == Color.Red
+   │                          ^^^^^^^^^^ Enums are of different kind, consider using the same enum for assignments
+
+error: Enums are of different kind, consider using the same enum for assignments
+   ┌─ <internal>:29:31
+   │
+29 │                 localState := red;      // Color.Red  == 0 == State.Idle
+   │                               ^^^ Enums are of different kind, consider using the same enum for assignments
+
+error: Value of main.color can not be derived for enum __main_color
+   ┌─ <internal>:38:26
+   │
+38 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
+   │                          ^^^^^^ Value of main.color can not be derived for enum __main_color
+
+error: Invalid integer value; valid values are [0, 1, 2]
+   ┌─ <internal>:42:26
+   │
+42 │                 color := 99;
+   │                          ^^ Invalid integer value; valid values are [0, 1, 2]
+
+error: Invalid integer value; valid values are [0, 1, 2]
+   ┌─ <internal>:43:26
+   │
+43 │                 color := State.Working;
+   │                          ^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 1, 2]
+
+error: Invalid integer value; valid values are [0, 1, 2]
+   ┌─ <internal>:44:26
+   │
+44 │                 color := invalidReferenceForEnum;
+   │                          ^^^^^^^^^^^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 1, 2]
+
+error: Invalid integer value; valid values are [0, 100]
+   ┌─ <internal>:46:31
+   │
+46 │                 localState := 99;
+   │                               ^^ Invalid integer value; valid values are [0, 100]
+
+error: Invalid integer value; valid values are [0, 100]
+   ┌─ <internal>:47:31
+   │
+47 │                 localState := green;
+   │                               ^^^^^ Invalid integer value; valid values are [0, 100]
+
+error: Invalid integer value; valid values are [0, 100]
+   ┌─ <internal>:48:31
+   │
+48 │                 localState := blue;
+   │                               ^^^^ Invalid integer value; valid values are [0, 100]
+
+error: Invalid integer value; valid values are [0, 100]
+   ┌─ <internal>:49:31
+   │
+49 │                 localState := invalidReferenceForEnum;
+   │                               ^^^^^^^^^^^^^^^^^^^^^^^ Invalid integer value; valid values are [0, 100]
+
+

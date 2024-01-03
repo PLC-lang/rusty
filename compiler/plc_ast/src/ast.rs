@@ -933,6 +933,17 @@ impl AstNode {
         matches!(self.stmt, AstStatement::Literal(..))
     }
 
+    pub fn is_literal_integer(&self) -> bool {
+        matches!(self.stmt, AstStatement::Literal(AstLiteral::Integer(..), ..))
+    }
+
+    pub fn get_literal_integer_value(&self) -> Option<i128> {
+        match &self.stmt {
+            AstStatement::Literal(AstLiteral::Integer(value), ..) => Some(*value),
+            _ => None,
+        }
+    }
+
     pub fn is_identifier(&self) -> bool {
         matches!(self.stmt, AstStatement::Identifier(..))
     }
