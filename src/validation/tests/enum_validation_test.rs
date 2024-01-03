@@ -1,5 +1,3 @@
-// TODO: Move enum tests here
-
 use crate::test_utils::tests::parse_and_validate_buffered;
 use insta::assert_snapshot;
 
