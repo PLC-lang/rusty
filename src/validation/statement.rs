@@ -788,7 +788,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     }
 
     fn message(values: Vec<(&str, i128)>) -> String {
-        if values.len() > 4 {
+        if values.len() > 3 {
             let first = values.first().unwrap();
             let last = values.last().unwrap();
             format!("{}({}), ..., {}({})", first.0, first.1, last.0, last.1)
