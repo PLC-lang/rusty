@@ -2,28 +2,28 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-error: Enums are of different kind, consider using the same enum for assignments
+error: Consider using enums with the same kind
    ┌─ <internal>:11:22
    │
 11 │             color := Dog;       // warning
-   │                      ^^^ Enums are of different kind, consider using the same enum for assignments
+   │                      ^^^ Consider using enums with the same kind
 
-error: Enums are of different kind, consider using the same enum for assignments
+error: Consider using enums with the same kind
    ┌─ <internal>:12:22
    │
 12 │             water := blue;      // warning
-   │                      ^^^^ Enums are of different kind, consider using the same enum for assignments
+   │                      ^^^^ Consider using enums with the same kind
 
-error: Enums are of different kind, consider using the same enum for assignments
+error: Consider using enums with the same kind
    ┌─ <internal>:13:22
    │
 13 │             color := sparkling; // warning
-   │                      ^^^^^^^^^ Enums are of different kind, consider using the same enum for assignments
+   │                      ^^^^^^^^^ Consider using enums with the same kind
 
-error: Consider using enum variants rather than literal integers
+error: Consider using enums rather than literal integers
    ┌─ <internal>:14:22
    │
 14 │             color := 2;         // warning
-   │                      ^ Consider using enum variants rather than literal integers
+   │                      ^ Consider using enums rather than literal integers
 
 

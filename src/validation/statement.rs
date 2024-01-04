@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
@@ -757,22 +758,21 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     let right_datatype = context.annotations.get_type_or_void(right, context.index);
 
     if let Some(value) = get_literal_int_or_const_expr_value(right, context) {
-        if !enum_variant_values.contains(&value) {
-            let message =
-                format!("Invalid integer value; valid values are {enum_variant_values:?} got {value}");
+        if !enum_variant_values.iter().any(|(_, val)| val == &value) {
+            let message = format!("Value {value} is not bound in [{}]", message(enum_variant_values));
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()))
-        } else {
-            // TODO(volsa): Convert these to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
-            // Before returning, we want to give some possible improvement suggestions
-            if right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
-                let message = "Enums are of different kind, consider using the same enum for assignments";
-                validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
-            }
+        }
 
-            if right.is_literal_integer() {
-                let message = "Consider using enum variants rather than literal integers";
-                validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
-            }
+        // TODO(volsa): Convert these to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
+        // Before returning, we want to give some possible improvement suggestions
+        if right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
+            let message = "Consider using enums with the same kind";
+            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+        }
+
+        if right.is_literal_integer() {
+            let message = "Consider using enums rather than literal integers";
+            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
         }
 
         return; // Avoid getting into fall-back
@@ -781,10 +781,20 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     // Fallback, in case we haven't found a value
     if left.get_name() != right_datatype.get_name() {
         let message = format!(
-            "Value of {qualified_name} is evaluated at run-time, can not safely verify if value is bound in {}",
+            "Value of {qualified_name} is evaluated at run-time, can not verify if value is bound in {}",
             get_datatype_name_or_slice(validator.context, left)
         );
         validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message.as_str(), right.get_location()));
+    }
+
+    fn message(values: Vec<(&str, i128)>) -> String {
+        if values.len() > 4 {
+            let first = values.first().unwrap();
+            let last = values.last().unwrap();
+            format!("{}({}), ..., {}({})", first.0, first.1, last.0, last.1)
+        } else {
+            values.iter().map(|(name, value)| format!("{name}({value})")).join(", ").chars().collect()
+        }
     }
 }
 

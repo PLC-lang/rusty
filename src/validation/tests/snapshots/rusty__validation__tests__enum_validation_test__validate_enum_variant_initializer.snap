@@ -2,34 +2,52 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-error: Invalid integer value; valid values are [1, 2, 3] got 0
+error: Value 0 is not bound in [metallic(1), matte(2), neon(3)]
   ┌─ <internal>:7:63
   │
 7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
-  │                                                               ^^^ Invalid integer value; valid values are [1, 2, 3] got 0
+  │                                                               ^^^ Value 0 is not bound in [metallic(1), matte(2), neon(3)]
 
-error: Enums are of different kind, consider using the same enum for assignments
+error: Consider using enums with the same kind
+  ┌─ <internal>:7:63
+  │
+7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
+  │                                                               ^^^ Consider using enums with the same kind
+
+error: Consider using enums with the same kind
    ┌─ <internal>:10:55
    │
-10 │                 var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // error
-   │                                                       ^^^^^^ Enums are of different kind, consider using the same enum for assignments
+10 │                 var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // warning
+   │                                                       ^^^^^^ Consider using enums with the same kind
 
-error: Invalid integer value; valid values are [0, 1, 2] got 3
+error: Value 3 is not bound in [x5(0), x6(1), x7(2)]
    ┌─ <internal>:11:40
    │
 11 │                 var2 : (x5, x6, x7) := neon;                    // error
-   │                                        ^^^^ Invalid integer value; valid values are [0, 1, 2] got 3
+   │                                        ^^^^ Value 3 is not bound in [x5(0), x6(1), x7(2)]
 
-error: Invalid integer value; valid values are [0, 1, 2] got 7
+error: Consider using enums with the same kind
+   ┌─ <internal>:11:40
+   │
+11 │                 var2 : (x5, x6, x7) := neon;                    // error
+   │                                        ^^^^ Consider using enums with the same kind
+
+error: Value 7 is not bound in [a(0), b(1), c(2)]
    ┌─ <internal>:12:37
    │
 12 │                 var3 : (a, b, c) := 7;                          // error
-   │                                     ^ Invalid integer value; valid values are [0, 1, 2] got 7
+   │                                     ^ Value 7 is not bound in [a(0), b(1), c(2)]
 
-error: Consider using enum variants rather than literal integers
+error: Consider using enums rather than literal integers
+   ┌─ <internal>:12:37
+   │
+12 │                 var3 : (a, b, c) := 7;                          // error
+   │                                     ^ Consider using enums rather than literal integers
+
+error: Consider using enums rather than literal integers
   ┌─ <internal>:2:45
   │
 2 │                 x : (red, yellow, green) := 2; // error
-  │                                             ^ Consider using enum variants rather than literal integers
+  │                                             ^ Consider using enums rather than literal integers
 
 

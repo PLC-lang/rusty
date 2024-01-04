@@ -1,0 +1,17 @@
+---
+source: src/validation/tests/enum_validation_test.rs
+expression: diagnostics
+---
+error: Value 1000 is not bound in [red(0), ..., violet(7)]
+  ┌─ <internal>:7:24
+  │
+7 │             myColor := 1000;
+  │                        ^^^^ Value 1000 is not bound in [red(0), ..., violet(7)]
+
+error: Consider using enums rather than literal integers
+  ┌─ <internal>:7:24
+  │
+7 │             myColor := 1000;
+  │                        ^^^^ Consider using enums rather than literal integers
+
+

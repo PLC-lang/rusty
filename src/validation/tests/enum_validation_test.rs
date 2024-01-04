@@ -54,7 +54,24 @@ fn enum_variants_mismatch() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn enum_mismatch_error_with_many_variants_truncates_values_for_better_readability() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE Color : (red, green, blue, yellow, cyan, orange, purple, violet); END_TYPE
+        PROGRAM main
+            VAR
+                myColor : Color;
+            END_VAR
+            myColor := 1000;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -69,7 +86,7 @@ fn validate_enum_variant_initializer() {
                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
             END_VAR
             VAR
-                var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // error
+                var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // warning
                 var2 : (x5, x6, x7) := neon;                    // error
                 var3 : (a, b, c) := 7;                          // error
             END_VAR

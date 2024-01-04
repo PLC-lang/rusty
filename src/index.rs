@@ -1138,10 +1138,11 @@ impl Index {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
     }
 
-    /// Returns all enum variant values for the given enum.
+    /// Returns all enum variant values and their names for the given enum.
     ///
-    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` would return `[0, 1, 5]` when calling this method.
-    pub fn get_enum_variant_values(&self, variable: &VariableIndexEntry) -> Vec<i128> {
+    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` would return `[(red, 0), (green, 1), (blue, 5)]`
+    /// when calling this method.
+    pub fn get_enum_variant_values(&self, variable: &VariableIndexEntry) -> Vec<(&str, i128)> {
         let mut values = Vec::new();
         let qualified_name = variable.data_type_name.to_lowercase();
 
@@ -1160,7 +1161,7 @@ impl Index {
                 .expect("Must exist because of previous filter");
             if let Some(ref const_id) = value.initial_value {
                 if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
-                    values.push(init);
+                    values.push((value.name.as_str(), init));
                 }
             }
         }
