@@ -11,15 +11,17 @@ use std::string::FromUtf8Error;
 
 mod ffi;
 pub mod types;
+pub use ffi::LLVMRustRunInstrumentationPass;
 
 use types::*;
 
+use inkwell::comdat::*;
 use inkwell::{
-    module::Linkage,GlobalVisibility,
+    module::Linkage,
     types::{AnyType, AsTypeRef, StructType},
     values::{AsValueRef, FunctionValue, GlobalValue, StructValue},
+    GlobalVisibility,
 };
-use inkwell::comdat::*;
 
 use libc::c_uint;
 use std::ffi::CString;
@@ -28,6 +30,11 @@ use inkwell::module::Module;
 use inkwell::types::BasicType;
 use llvm_sys::comdat::LLVMGetComdat;
 
+/* == TODO - Refactor these helpers out */
+pub fn build_string(sr: &RustString) -> Result<String, FromUtf8Error> {
+    String::from_utf8(sr.bytes.borrow().clone())
+}
+/* == END TODO */
 
 /// Calls llvm::createPGOFuncNameVar() with the given function instance's
 /// mangled function name. The LLVM API returns an llvm::GlobalVariable
@@ -84,30 +91,31 @@ pub fn mapping_version() -> u32 {
     unsafe { ffi::LLVMRustCoverageMappingVersion() }
 }
 
-pub fn save_cov_data_to_mod<'ctx>(func: &FunctionValue<'ctx>, cov_data_val:  &GlobalValue<'ctx>) {
-    //global_value
-    let covmap_var_nam = unsafe {
-        ffi::LLVMRustCoverageWriteMappingVarNameToString(s);
+pub fn save_cov_data_to_mod<'ctx>(module: &Module<'ctx>, cov_data_val: StructValue<'ctx>) {
+    let covmap_var_name = {
+        let mut s = RustString::new();
+        unsafe {
+            ffi::LLVMRustCoverageWriteMappingVarNameToString(&mut s);
+        }
+        build_string(&mut s).expect("Rust Coverage Mapping var name failed UTF-8 conversion")
     };
-    //.expect("Rust Coverage Mapping var name failed UTF-8 conversion");
-    //debug!("covmap var name: {:?}", covmap_var_name);
-    //build_string not found 
-    let covmap_section_name =  unsafe {
-        ffi::LLVMRustCoverageWriteMapSectionNameToString(func.llmod(), s);
-     } ;
 
-    // //.expect("Rust Coverage section name failed UTF-8 conversion");
-    // //debug!("covmap section name: {:?}", covmap_section_name);
-    // // add_global not found in inkwell global value and func.llmod doesn't exist in func
-    // func.ty
-    let llglobal = Module::add_global(&func.llmod(), func.val_ty(cov_data_val.as_value_ref()), &covmap_var_name,func.get_name().to_str().unwrap());
-    //GlobalValue::set_initializer(llglobal, cov_data_val);
-    // //set_global_cst not found in inkwell global value
-    // GlobalValue::set_constant(llglobal, true);
-    // GlobalValue::set_linkage(llglobal, GlobalValue::Linkage::PrivateLinkage);
-    // GlobalValue::set_section(llglobal, Some(&covmap_section_name));
-    // GlobalValue::set_alignment(llglobal, VAR_ALIGN_BYTES);
-    //func.add_used_global(llglobal);
+    let covmap_section_name = {
+        let mut s = RustString::new();
+        unsafe {
+            ffi::LLVMRustCoverageWriteMapSectionNameToString(module.as_mut_ptr(), &mut s);
+        }
+        build_string(&mut s).expect("Rust Coverage Mapping section name failed UTF-8 conversion")
+    };
+
+    let llglobal = module.add_global(cov_data_val.get_type(), None, covmap_var_name.as_str());
+    llglobal.set_initializer(&cov_data_val);
+    llglobal.set_constant(true);
+    llglobal.set_linkage(Linkage::Private);
+    llglobal.set_section(Some(&covmap_section_name));
+    llglobal.set_alignment(VAR_ALIGN_BYTES);
+    // We will skip this for now... I don't think it's necessary (-Corban)
+    // cx.add_used_global(llglobal);
 }
 
 pub fn save_func_record_to_mod<'ctx>(
@@ -141,21 +149,17 @@ pub fn save_func_record_to_mod<'ctx>(
     // llvm::set_initializer(llglobal, func_record_val);
     llglobal.set_initializer(&func_record_val);
 
-    llglobal.set_constant( true);
+    llglobal.set_constant(true);
     llglobal.set_linkage(Linkage::LinkOnceODR);
     llglobal.set_visibility(GlobalVisibility::Hidden);
     llglobal.set_section(Some(&func_record_section_name));
     llglobal.set_alignment(VAR_ALIGN_BYTES);
-    //Use https://thedan64.github.io/inkwell/inkwell/values/struct.GlobalValue.html#method.set_comdat
-    //create comdat for this value
+    // TODO - verify this in the IR
     assert!(llglobal.get_comdat().is_none());
-
     let comdat = module.get_or_insert_comdat(llglobal.get_name().to_str().unwrap());
-
     assert!(llglobal.get_comdat().is_none());
-
     llglobal.set_comdat(comdat);
+
     // We will skip this for now... I don't think it's necessary (-Corban)
     // cx.add_used_global(llglobal);
-    //
 }

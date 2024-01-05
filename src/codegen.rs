@@ -33,7 +33,7 @@ use inkwell::{
 };
 use inkwell::{
     module::Module,
-    passes::PassBuilderOptions,
+    passes::{PassBuilderOptions, PassManager, PassManagerBuilder},
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
@@ -101,6 +101,20 @@ impl<'ink> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
+
+        // let mut pm = PassManager::create(());
+
+        // let pass_manager_builder = PassManagerBuilder::create();
+        // pass_manager_builder.populate_module_pass_manager(&pm);
+
+        // unsafe {
+        //     rustc_llvm_coverage::LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
+        // }
+        // let did_init = pm.initialize();
+        // println!("Did init: {}", did_init);
+        // let did_finalize = pm.finalize();
+        // println!("Did finalize: {:?}", did_finalize);
+
         CodeGen { module, debug, module_location: module_location.to_string() }
     }
 
@@ -429,6 +443,8 @@ impl<'ink> GeneratedModule<'ink> {
         if let Some(parent) = output.parent() {
             std::fs::create_dir_all(parent)?;
         }
+        // Log passes
+        println!("Optimization level: {:?}", optimization_level.opt_params());
         ////Run the passes
         machine
             .and_then(|it| {
@@ -521,6 +537,23 @@ impl<'ink> GeneratedModule<'ink> {
     pub fn persist_to_ir(&self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
         log::debug!("Output location: {}", output.to_string_lossy());
         log::debug!("{}", self.persist_to_string());
+
+        println!("Writing to IR");
+
+        // let pm = PassManager::create(());
+        // unsafe {
+        //     rustc_llvm_coverage::LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
+        // }
+        // let did_run = pm.run_on(&self.module);
+        // println!("Did run: {}", did_run);
+        // let did_init = pm.initialize();
+        // println!("Did init: {}", did_init);
+        // let did_finalize = pm.finalize();
+        // println!("Did finalize: {:?}", did_finalize);
+
+        unsafe {
+            rustc_llvm_coverage::LLVMRustRunInstrumentationPass(self.module.as_mut_ptr());
+        }
 
         self.module
             .print_to_file(&output)

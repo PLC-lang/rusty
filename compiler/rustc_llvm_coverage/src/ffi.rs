@@ -8,7 +8,7 @@ use libc::{c_char, c_uint, c_void, size_t};
 use std::slice;
 
 use super::types::*;
-use llvm_sys::prelude::{LLVMModuleRef, LLVMValueRef};
+use llvm_sys::prelude::{LLVMModuleRef, LLVMPassManagerRef, LLVMValueRef};
 
 /// Appending to a Rust string -- used by RawRustStringOstream.
 #[no_mangle]
@@ -53,4 +53,6 @@ extern "C" {
 
     pub fn LLVMRustCoverageMappingVersion() -> u32;
 
+    // pub fn LLVMRustAddInstrumentationPass(PM: LLVMPassManagerRef);
+    pub fn LLVMRustRunInstrumentationPass(M: LLVMModuleRef);
 }
