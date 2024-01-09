@@ -1,0 +1,23 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: diagnostics
+---
+error: Could not resolve reference to y
+   ┌─ <internal>:20:30
+   │
+20 │         myLocalNumber := FOO(y := 0); // unresolved reference
+   │                              ^ Could not resolve reference to y
+
+error: Invalid type nature for generic argument. __STRING_19 is no Num.
+   ┌─ <internal>:21:35
+   │
+21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
+   │                                   ^^^^^^^^^^^^^^^^^^^^^ Invalid type nature for generic argument. __STRING_19 is no Num.
+
+error: Invalid assignment: cannot assign 'STRING' to 'USINT'
+   ┌─ <internal>:21:30
+   │
+21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
+   │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'USINT'
+
+

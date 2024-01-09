@@ -1,4 +1,7 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::{
+    assert_validation_snapshot,
+    test_utils::tests::{parse_and_validate, parse_and_validate_buffered},
+};
 
 #[test]
 fn any_allows_all_natures() {
@@ -1597,4 +1600,34 @@ fn any_date_multiple_parameters() {
 
     let diagnostics = parse_and_validate(src);
     assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn generic_call_with_formal_parameter() {
+    let src = "
+    FUNCTION FOO < T: ANY_NUM >: T
+    VAR_INPUT
+        x: T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION FOO__DINT: DINT
+    VAR_INPUT
+        x: DINT;
+    END_VAR
+        FOO__DINT := x + 0;
+    END_FUNCTION
+
+    FUNCTION main: DINT
+    VAR
+        myLocalNumber: DINT := 2;
+    END_VAR
+        myLocalNumber := FOO(x := myLocalNumber); // okay
+        myLocalNumber := FOO(y := 0); // unresolved reference
+        myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
+    END_FUNCTION
+";
+
+    let diagnostics = parse_and_validate_buffered(src);
+    insta::assert_snapshot!(diagnostics);
 }
