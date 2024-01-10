@@ -3005,6 +3005,46 @@ fn constant_expression_in_function_blocks_are_propagated() {
 }
 
 #[test]
+fn constant_propagation_of_struct_fields_on_assignment() {
+    let result = codegen(
+        "
+        TYPE STRUCT1 : STRUCT
+            value : DINT;
+        END_STRUCT END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            MyStruct : STRUCT1 := (value := 99);
+        END_VAR
+
+        FUNCTION main : DINT
+            VAR
+                local_value : DINT;
+            END_VAR
+
+            local_value := MyStruct.value;
+        END_FUNCTION
+        ",
+    );
+
+    // The snapshot of the given IR is currently not 100% correct because `MyStruct.value` isn't
+    // constant-propagated and instead the value required a `load` instruction. The underlying issue
+    // is due to getting a qualified name of `STRUCT1.value` instead of `MyStruct.value` in `generate_expression_value`
+    // and `generate_constant_expression`.
+    //
+    // TL;DR: If this IR changes from
+    // ```
+    // %load_value = load i32, i32* getelementptr inbounds (%STRUCT1, %STRUCT1* @MyStruct, i32 0, i32 0), align 4␊
+    // store i32 %load_value, i32* %local_value, align 4␊
+    // ```
+    // to something along
+    // ```
+    // store i32 %load_value, 99, ...
+    // ```
+    // then good job!
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn date_and_time_addition_in_var_output() {
     //GIVEN a date and time and a time addition on output variables
     //WHEN the code is generated

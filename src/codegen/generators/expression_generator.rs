@@ -200,10 +200,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }) = self.annotations.get(expression)
         {
             if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
-                // constant propagation
-                return self.generate_constant_expression(qualified_name, expression);
+                // Constant Propagation
+                if let Ok(expr) = self.generate_constant_expression(qualified_name, expression) {
+                    // TODO(volsa): The result of `generate_constant_expression` is silently ignored here, add it to
+                    //              the diagnostician once the diagnostics-refactor has been merged
+                    // We return here if constant propagation worked, and if not fall-back to generating the expression
+                    // further down which may or may not work but loads the values if it does
+                    return Ok(expr);
+                }
             }
         }
+
         // generate the expression
         match expression.get_stmt() {
             AstStatement::ReferenceExpr(data) => {
@@ -266,10 +273,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.index.get_const_expressions().get_resolved_constant_statement(&constant_variable)
             })
             .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    format!("Cannot propagate constant value for '{qualified_name:}'").as_str(),
-                    expression.get_location(),
-                )
+                let message = format!("Cannot propagate constant value for '{qualified_name:}'");
+                log::error!("{message}");
+                Diagnostic::codegen_error(&message, expression.get_location())
             })?;
 
         //  generate the resulting constant-expression (which should be a Value, no ptr-reference)

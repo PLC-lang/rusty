@@ -2,10 +2,6 @@
 source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
-error: Cannot propagate constant value for 'b'
-  ┌─ <internal>:3:24
-  │
-3 │             a : INT := b;
-  │                        ^ Cannot propagate constant value for 'b'
+error: Cannot generate literal initializer for 'a': Value cannot be derived
 
 
