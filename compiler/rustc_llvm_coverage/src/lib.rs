@@ -10,6 +10,7 @@ const VAR_ALIGN_BYTES: u32 = 8;
 use std::string::FromUtf8Error;
 
 mod ffi;
+pub mod interface;
 pub mod types;
 pub use ffi::LLVMRustRunInstrumentationPass;
 
@@ -133,7 +134,6 @@ pub fn save_func_record_to_mod<'ctx>(
     // of descriptions play distinct roles in LLVM IR; therefore, assign them different names (by
     // appending "u" to the end of the function record var name, to prevent `linkonce_odr` merging.
     let func_record_var_name = format!("__covrec_{:X}{}", func_name_hash, if is_used { "u" } else { "" });
-    println!("function record var name: {:?}", func_record_var_name);
 
     let func_record_section_name = {
         let mut s = RustString::new();
@@ -142,18 +142,16 @@ pub fn save_func_record_to_mod<'ctx>(
         }
         build_string(&mut s).expect("Rust Coverage function record section name failed UTF-8 conversion")
     };
-    println!("function record section name: {:?}", func_record_section_name);
 
     let llglobal = module.add_global(func_record_val.get_type(), None, func_record_var_name.as_str());
 
-    // llvm::set_initializer(llglobal, func_record_val);
     llglobal.set_initializer(&func_record_val);
-
     llglobal.set_constant(true);
     llglobal.set_linkage(Linkage::LinkOnceODR);
     llglobal.set_visibility(GlobalVisibility::Hidden);
     llglobal.set_section(Some(&func_record_section_name));
     llglobal.set_alignment(VAR_ALIGN_BYTES);
+
     // TODO - verify this in the IR
     assert!(llglobal.get_comdat().is_none());
     let comdat = module.get_or_insert_comdat(llglobal.get_name().to_str().unwrap());
