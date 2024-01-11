@@ -294,6 +294,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )
         })?;
 
+        // TODO - this is where we should possibly add counter increments
+
         let (line, column) = implementation
             .statements
             .first()
