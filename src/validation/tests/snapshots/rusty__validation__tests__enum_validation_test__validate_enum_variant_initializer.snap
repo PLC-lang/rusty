@@ -2,11 +2,11 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-error: Value 0 is not bound in [metallic(1), matte(2), neon(3)]
+error: Value red(0) is not bound in [metallic(1), matte(2), neon(3)]
   ┌─ <internal>:7:63
   │
 7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
-  │                                                               ^^^ Value 0 is not bound in [metallic(1), matte(2), neon(3)]
+  │                                                               ^^^ Value red(0) is not bound in [metallic(1), matte(2), neon(3)]
 
 error: Consider using enums with the same kind
   ┌─ <internal>:7:63
@@ -14,17 +14,17 @@ error: Consider using enums with the same kind
 7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
   │                                                               ^^^ Consider using enums with the same kind
 
-error: Consider using enums with the same kind
+error: Consider using enums with the same kind, e.g. `var1 := x1`
    ┌─ <internal>:10:55
    │
 10 │                 var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // warning
-   │                                                       ^^^^^^ Consider using enums with the same kind
+   │                                                       ^^^^^^ Consider using enums with the same kind, e.g. `var1 := x1`
 
-error: Value 3 is not bound in [x5(0), x6(1), x7(2)]
+error: Value neon(3) is not bound in [x5(0), x6(1), x7(2)]
    ┌─ <internal>:11:40
    │
 11 │                 var2 : (x5, x6, x7) := neon;                    // error
-   │                                        ^^^^ Value 3 is not bound in [x5(0), x6(1), x7(2)]
+   │                                        ^^^^ Value neon(3) is not bound in [x5(0), x6(1), x7(2)]
 
 error: Consider using enums with the same kind
    ┌─ <internal>:11:40
@@ -44,10 +44,10 @@ error: Consider using enums rather than literal integers
 12 │                 var3 : (a, b, c) := 7;                          // error
    │                                     ^ Consider using enums rather than literal integers
 
-error: Consider using enums rather than literal integers
+error: Consider using enums rather than literal integers, e.g. `x := green`
   ┌─ <internal>:2:45
   │
 2 │                 x : (red, yellow, green) := 2; // error
-  │                                             ^ Consider using enums rather than literal integers
+  │                                             ^ Consider using enums rather than literal integers, e.g. `x := green`
 
 

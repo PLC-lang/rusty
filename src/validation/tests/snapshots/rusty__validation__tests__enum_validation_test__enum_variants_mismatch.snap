@@ -2,47 +2,47 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-error: Consider using enums rather than literal integers
+error: Consider using enums rather than literal integers, e.g. `localState := Idle`
    ┌─ <internal>:18:31
    │
 18 │                 localState := 0;
-   │                               ^ Consider using enums rather than literal integers
+   │                               ^ Consider using enums rather than literal integers, e.g. `localState := Idle`
 
-error: Consider using enums rather than literal integers
+error: Consider using enums rather than literal integers, e.g. `localState := Working`
    ┌─ <internal>:19:31
    │
 19 │                 localState := 100;
-   │                               ^^^ Consider using enums rather than literal integers
+   │                               ^^^ Consider using enums rather than literal integers, e.g. `localState := Working`
 
-error: Consider using enums rather than literal integers
+error: Consider using enums rather than literal integers, e.g. `color := red`
    ┌─ <internal>:24:26
    │
 24 │                 color := 0;
-   │                          ^ Consider using enums rather than literal integers
+   │                          ^ Consider using enums rather than literal integers, e.g. `color := red`
 
-error: Consider using enums rather than literal integers
+error: Consider using enums rather than literal integers, e.g. `color := green`
    ┌─ <internal>:25:26
    │
 25 │                 color := 1;
-   │                          ^ Consider using enums rather than literal integers
+   │                          ^ Consider using enums rather than literal integers, e.g. `color := green`
 
-error: Consider using enums rather than literal integers
+error: Consider using enums rather than literal integers, e.g. `color := blue`
    ┌─ <internal>:26:26
    │
 26 │                 color := 2;
-   │                          ^ Consider using enums rather than literal integers
+   │                          ^ Consider using enums rather than literal integers, e.g. `color := blue`
 
-error: Consider using enums with the same kind
+error: Consider using enums with the same kind, e.g. `color := red`
    ┌─ <internal>:28:26
    │
 28 │                 color := State.Idle;    // State.Idle == 0 == Color.Red
-   │                          ^^^^^^^^^^ Consider using enums with the same kind
+   │                          ^^^^^^^^^^ Consider using enums with the same kind, e.g. `color := red`
 
-error: Consider using enums with the same kind
+error: Consider using enums with the same kind, e.g. `localState := Idle`
    ┌─ <internal>:29:31
    │
 29 │                 localState := red;      // Color.Red  == 0 == State.Idle
-   │                               ^^^ Consider using enums with the same kind
+   │                               ^^^ Consider using enums with the same kind, e.g. `localState := Idle`
 
 error: Value 99 is not bound in [red(0), green(1), blue(2)]
    ┌─ <internal>:38:26
@@ -56,11 +56,11 @@ error: Consider using enums rather than literal integers
 38 │                 color := 99;
    │                          ^^ Consider using enums rather than literal integers
 
-error: Value 100 is not bound in [red(0), green(1), blue(2)]
+error: Value State.Working(100) is not bound in [red(0), green(1), blue(2)]
    ┌─ <internal>:39:26
    │
 39 │                 color := State.Working;
-   │                          ^^^^^^^^^^^^^ Value 100 is not bound in [red(0), green(1), blue(2)]
+   │                          ^^^^^^^^^^^^^ Value State.Working(100) is not bound in [red(0), green(1), blue(2)]
 
 error: Consider using enums with the same kind
    ┌─ <internal>:39:26
@@ -92,11 +92,11 @@ error: Consider using enums rather than literal integers
 43 │                 localState := 99;
    │                               ^^ Consider using enums rather than literal integers
 
-error: Value 1 is not bound in [Idle(0), Working(100)]
+error: Value green(1) is not bound in [Idle(0), Working(100)]
    ┌─ <internal>:44:31
    │
 44 │                 localState := green;
-   │                               ^^^^^ Value 1 is not bound in [Idle(0), Working(100)]
+   │                               ^^^^^ Value green(1) is not bound in [Idle(0), Working(100)]
 
 error: Consider using enums with the same kind
    ┌─ <internal>:44:31
@@ -104,11 +104,11 @@ error: Consider using enums with the same kind
 44 │                 localState := green;
    │                               ^^^^^ Consider using enums with the same kind
 
-error: Value 2 is not bound in [Idle(0), Working(100)]
+error: Value blue(2) is not bound in [Idle(0), Working(100)]
    ┌─ <internal>:45:31
    │
 45 │                 localState := blue;
-   │                               ^^^^ Value 2 is not bound in [Idle(0), Working(100)]
+   │                               ^^^^ Value blue(2) is not bound in [Idle(0), Working(100)]
 
 error: Consider using enums with the same kind
    ┌─ <internal>:45:31

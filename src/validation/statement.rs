@@ -684,6 +684,7 @@ fn validate_assignment<T: AnnotationMap>(
                 validate_enum_variant_assignment(
                     context,
                     validator,
+                    left.get_location(),
                     context.annotations.get_type_or_void(left, context.index),
                     right,
                     qualified_name,
@@ -742,6 +743,7 @@ fn validate_assignment<T: AnnotationMap>(
 pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
+    lhs: SourceLocation,
     left: &DataType,
     right: &AstNode,
     qualified_name: &str,
@@ -758,20 +760,45 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     let right_datatype = context.annotations.get_type_or_void(right, context.index);
 
     if let Some(value) = get_literal_int_or_const_expr_value(right, context) {
-        if !enum_variant_values.iter().any(|(_, val)| val == &value) {
-            let message = format!("Value {value} is not bound in [{}]", message(enum_variant_values));
+        let is_in_bound = enum_variant_values.iter().any(|(_, val)| val == &value);
+
+        if !is_in_bound {
+            let message = if right_datatype.is_enum() {
+                format!(
+                    "Value {}({value}) is not bound in [{}]",
+                    validator.context.slice(&right.location),
+                    message(&enum_variant_values),
+                )
+            } else {
+                format!("Value {value} is not bound in [{}]", message(&enum_variant_values))
+            };
+
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()))
         }
 
         // TODO(volsa): Convert these to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
         // Before returning, we want to give some possible improvement suggestions
         if right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
-            let message = "Consider using enums with the same kind";
+            let mut message = "Consider using enums with the same kind".to_string();
+            if is_in_bound {
+                message = format!(
+                    "{message}, e.g. `{}`",
+                    find(&enum_variant_values, value, validator.context.slice(&lhs))
+                );
+            }
+
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
         }
 
         if right.is_literal_integer() {
-            let message = "Consider using enums rather than literal integers";
+            let mut message = "Consider using enums rather than literal integers".to_string();
+            if is_in_bound {
+                message = format!(
+                    "{message}, e.g. `{}`",
+                    find(&enum_variant_values, value, validator.context.slice(&lhs))
+                );
+            }
+
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
         }
 
@@ -784,10 +811,16 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
             "Value of {qualified_name} is evaluated at run-time, can not verify if value is bound in {}",
             get_datatype_name_or_slice(validator.context, left)
         );
-        validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message.as_str(), right.get_location()));
+        validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
     }
 
-    fn message(values: Vec<(&str, i128)>) -> String {
+    fn find(values: &Vec<(&str, i128)>, value: i128, lhs: String) -> String {
+        let res = values.iter().filter(|(_, val)| val == &value).collect::<Vec<_>>();
+        let key = res.first().unwrap().0;
+        format!("{lhs} := {key}")
+    }
+
+    fn message(values: &Vec<(&str, i128)>) -> String {
         if values.len() > 3 {
             let first = values.first().unwrap();
             let last = values.last().unwrap();

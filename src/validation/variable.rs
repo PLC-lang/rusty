@@ -138,6 +138,7 @@ fn validate_variable<T: AnnotationMap>(
                     validate_enum_variant_assignment(
                         context,
                         validator,
+                        v_entry.source_location.clone(),
                         context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
                         rhs,
                         v_entry.get_qualified_name(),
