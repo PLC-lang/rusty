@@ -70,6 +70,8 @@ impl GlobalContext {
         slice.split_whitespace().collect::<Vec<_>>().join(" ")
     }
 
+    // TODO(volsa): Transfer `get_datatype_name_or_slice(...)` here once crates / workspaces have been finalized
+
     /// Returns a slice representing the specified location of the source code.
     /// If the location, i.e. file path, does not exist an empty string will be returned.
     pub fn slice_original(&self, location: &SourceLocation) -> &str {

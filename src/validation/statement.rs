@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
@@ -684,10 +683,10 @@ fn validate_assignment<T: AnnotationMap>(
                 validate_enum_variant_assignment(
                     context,
                     validator,
-                    left.get_location(),
+                    qualified_name,
                     context.annotations.get_type_or_void(left, context.index),
                     right,
-                    qualified_name,
+                    &left.location,
                 );
             }
 
@@ -743,10 +742,10 @@ fn validate_assignment<T: AnnotationMap>(
 pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
-    lhs: SourceLocation,
+    qualified_name: &str,
     left: &DataType,
     right: &AstNode,
-    qualified_name: &str,
+    left_loc: &SourceLocation,
 ) {
     if !left.is_enum() {
         return;
@@ -756,47 +755,36 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         return;
     };
 
-    let enum_variant_values = context.index.get_enum_variant_values(variable);
+    let variant_values = context.index.get_enum_variant_values(variable);
     let right_datatype = context.annotations.get_type_or_void(right, context.index);
 
-    if let Some(value) = get_literal_int_or_const_expr_value(right, context) {
-        let is_in_bound = enum_variant_values.iter().any(|(_, val)| val == &value);
+    if let Some(value_rhs) = get_literal_int_or_const_expr_value(right, context) {
+        let variant = variant_values.iter().find(|(_, value)| value == &value_rhs);
 
-        if !is_in_bound {
-            let message = if right_datatype.is_enum() {
-                format!(
-                    "Value {}({value}) is not bound in [{}]",
-                    validator.context.slice(&right.location),
-                    message(&enum_variant_values),
-                )
-            } else {
-                format!("Value {value} is not bound in [{}]", message(&enum_variant_values))
-            };
-
+        if variant.is_none() {
+            let message = format!(
+                "`{rhs}` is not a valid value for enum `{lhs}`",
+                rhs = validator.context.slice(&right.location),
+                lhs = get_datatype_name_or_slice(validator.context, left)
+            );
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()))
         }
 
         // TODO(volsa): Convert these to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
         // Before returning, we want to give some possible improvement suggestions
-        if right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
-            let mut message = "Consider using enums with the same kind".to_string();
-            if is_in_bound {
-                message = format!(
-                    "{message}, e.g. `{}`",
-                    find(&enum_variant_values, value, validator.context.slice(&lhs))
-                );
+        if variant.is_some() && right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
+            let mut msg = "Consider using enums of the same kind".to_string();
+            if let Some(value) = variant {
+                msg = format!("{msg}, i.e. `{} := {}`", validator.context.slice(left_loc), value.0);
             }
 
-            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(msg, right.get_location()));
         }
 
         if right.is_literal_integer() {
             let mut message = "Consider using enums rather than literal integers".to_string();
-            if is_in_bound {
-                message = format!(
-                    "{message}, e.g. `{}`",
-                    find(&enum_variant_values, value, validator.context.slice(&lhs))
-                );
+            if let Some(value) = variant {
+                message = format!("{message}, i.e. `{} := {}`", validator.context.slice(left_loc), value.0);
             }
 
             validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
@@ -805,29 +793,14 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         return; // Avoid getting into fall-back
     }
 
+    // TODO: Also a warning rather than an error
     // Fallback, in case we haven't found a value
     if left.get_name() != right_datatype.get_name() {
         let message = format!(
-            "Value of {qualified_name} is evaluated at run-time, can not verify if value is bound in {}",
+            "Value of {qualified_name} is evaluated at run-time, can not verify if value is valid for enum `{}`",
             get_datatype_name_or_slice(validator.context, left)
         );
         validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
-    }
-
-    fn find(values: &Vec<(&str, i128)>, value: i128, lhs: String) -> String {
-        let res = values.iter().filter(|(_, val)| val == &value).collect::<Vec<_>>();
-        let key = res.first().unwrap().0;
-        format!("{lhs} := {key}")
-    }
-
-    fn message(values: &Vec<(&str, i128)>) -> String {
-        if values.len() > 3 {
-            let first = values.first().unwrap();
-            let last = values.last().unwrap();
-            format!("{}({}), ..., {}({})", first.0, first.1, last.0, last.1)
-        } else {
-            values.iter().map(|(name, value)| format!("{name}({value})")).join(", ").chars().collect()
-        }
     }
 }
 

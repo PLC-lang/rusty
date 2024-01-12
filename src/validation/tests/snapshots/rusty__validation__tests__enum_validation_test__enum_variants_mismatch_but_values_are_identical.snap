@@ -2,28 +2,28 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-error: Consider using enums with the same kind, e.g. `color := red`
+error: Consider using enums of the same kind, i.e. `color := red`
    ┌─ <internal>:11:22
    │
 11 │             color := Dog;       // warning
-   │                      ^^^ Consider using enums with the same kind, e.g. `color := red`
+   │                      ^^^ Consider using enums of the same kind, i.e. `color := red`
 
-error: Consider using enums with the same kind, e.g. `water := sparkling`
+error: Consider using enums of the same kind, i.e. `water := sparkling`
    ┌─ <internal>:12:22
    │
 12 │             water := blue;      // warning
-   │                      ^^^^ Consider using enums with the same kind, e.g. `water := sparkling`
+   │                      ^^^^ Consider using enums of the same kind, i.e. `water := sparkling`
 
-error: Consider using enums with the same kind, e.g. `color := blue`
+error: Consider using enums of the same kind, i.e. `color := blue`
    ┌─ <internal>:13:22
    │
 13 │             color := sparkling; // warning
-   │                      ^^^^^^^^^ Consider using enums with the same kind, e.g. `color := blue`
+   │                      ^^^^^^^^^ Consider using enums of the same kind, i.e. `color := blue`
 
-error: Consider using enums rather than literal integers, e.g. `color := blue`
+error: Consider using enums rather than literal integers, i.e. `color := blue`
    ┌─ <internal>:14:22
    │
 14 │             color := 2;         // warning
-   │                      ^ Consider using enums rather than literal integers, e.g. `color := blue`
+   │                      ^ Consider using enums rather than literal integers, i.e. `color := blue`
 
 
