@@ -236,8 +236,23 @@ impl<'ink> CodeGen<'ink> {
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
 
-        let filenames = vec![self.module_location];
-        rustc_llvm_coverage::interface::write_coverage_mapping_header(&self.module, filenames);
+        let filenames = vec!["cwd".to_string(), self.module_location];
+        let cov_header =
+            rustc_llvm_coverage::interface::write_coverage_mapping_header(&self.module, filenames);
+
+        let prg_func = self.module.get_function("prg").expect("Unable to get prg");
+
+        let func_record = rustc_llvm_coverage::interface::FunctionRecord::new(
+            "main".to_string(),
+            1,
+            vec!["cwd".to_string()],
+            Vec::new(),
+            Vec::new(),
+            true,
+            &cov_header,
+        );
+
+        func_record.write_to_module(&self.module);
 
         // println!("AST annotations: {:#?}", annotations);
         // println!("AST unit: {:#?}", unit);
@@ -249,26 +264,9 @@ impl<'ink> CodeGen<'ink> {
         // let byte_string: Vec<u8> = vec![0x01, 0x02, 0x03, 0x04];
         // println!("Hash bytes: {:#?}", rustc_llvm_coverage::hash_bytes(byte_string));
 
-        // let rust_string = rustc_llvm_coverage::types::RustString { bytes: RefCell::new(Vec::new()) };
-        // let filenames = vec![CString::new("test.c").unwrap()];
-        // rustc_llvm_coverage::write_filenames_section_to_buffer(&filenames, &rust_string);
-        // // print buffer
-        // // println!("Filenames: {:#?}", rust_string.bytes.borrow());
-        // // print buffer as hex string
-        // println!(
-        //     "Filenames: {:#?}",
-        //     rust_string
-        //         .bytes
-        //         .borrow()
-        //         .iter()
-        //         .map(|it| format!("{:02x}", it))
-        //         .collect::<Vec<String>>()
-        //         .join("")
-        // );
-
-        // // println!("{:#?}", llvm_index);
-        // // let prg_func: inkwell::values::FunctionValue<'_> =
-        // // llvm_index.find_associated_implementation("prg").expect("Unable to get prg");
+        // println!("{:#?}", llvm_index);
+        // let prg_func: inkwell::values::FunctionValue<'_> =
+        // llvm_index.find_associated_implementation("prg").expect("Unable to get prg");
         // let prg_func = self.module.get_function("prg").expect("Unable to get prg");
         // println!("prg: {:#?}", prg_func);
         // let global_func_var = rustc_llvm_coverage::create_pgo_func_name_var(&prg_func);

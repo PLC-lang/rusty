@@ -64,7 +64,7 @@ pub fn write_mapping_to_buffer(
     virtual_file_mapping: Vec<u32>,
     expressions: Vec<CounterExpression>,
     mapping_regions: Vec<CounterMappingRegion>,
-    buffer: &RustString,
+    buffer: &mut RustString,
 ) {
     unsafe {
         ffi::LLVMRustCoverageWriteMappingToBuffer(
@@ -133,6 +133,7 @@ pub fn save_func_record_to_mod<'ctx>(
     // in a Crate can be replaced by full description provided by a different Crate. The two kinds
     // of descriptions play distinct roles in LLVM IR; therefore, assign them different names (by
     // appending "u" to the end of the function record var name, to prevent `linkonce_odr` merging.
+    // TODO - investigate removing this (-Corban)
     let func_record_var_name = format!("__covrec_{:X}{}", func_name_hash, if is_used { "u" } else { "" });
 
     let func_record_section_name = {
