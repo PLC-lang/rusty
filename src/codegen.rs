@@ -228,7 +228,7 @@ impl<'ink> CodeGen<'ink> {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation, &self.debug)?;
+                    pou_generator.generate_implementation(implementation, &self.debug, &self.module)?;
                 }
             }
         }
@@ -257,6 +257,10 @@ impl<'ink> CodeGen<'ink> {
         );
 
         func_record.write_to_module(&self.module);
+
+        // unsafe {
+        //     rustc_llvm_coverage::LLVMRustRunInstrumentationPass(self.module.as_mut_ptr());
+        // }
 
         #[cfg(feature = "verify")]
         {
@@ -470,6 +474,8 @@ impl<'ink> GeneratedModule<'ink> {
 
         println!("Writing to IR");
 
+        rustc_llvm_coverage::interface::run_legacy_coverage_pass(&self.module);
+
         // let pm = PassManager::create(());
         // unsafe {
         //     rustc_llvm_coverage::LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
@@ -481,9 +487,9 @@ impl<'ink> GeneratedModule<'ink> {
         // let did_finalize = pm.finalize();
         // println!("Did finalize: {:?}", did_finalize);
 
-        unsafe {
-            rustc_llvm_coverage::LLVMRustRunInstrumentationPass(self.module.as_mut_ptr());
-        }
+        // unsafe {
+        //     rustc_llvm_coverage::llvmrustruninstrumentationpass(self.module.as_mut_ptr());
+        // }
 
         self.module
             .print_to_file(&output)

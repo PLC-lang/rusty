@@ -12,7 +12,7 @@ use std::string::FromUtf8Error;
 mod ffi;
 pub mod interface;
 pub mod types;
-pub use ffi::LLVMRustRunInstrumentationPass;
+pub use ffi::LLVMRustAddInstrumentationPass;
 
 use types::*;
 

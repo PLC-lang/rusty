@@ -2,7 +2,9 @@ use crate::write_filenames_section_to_buffer;
 
 use super::*;
 use inkwell::context::Context;
+use inkwell::intrinsics::Intrinsic;
 use inkwell::module::Module;
+use inkwell::passes::PassManager;
 use std::ffi::CString;
 
 /// This represents a coverage mapping header that has been written to a module.
@@ -28,7 +30,8 @@ pub fn write_coverage_mapping_header<'ctx>(
     let filenames_hash = hash_bytes(encoded_filename_buffer.bytes.borrow().to_vec());
 
     // Get values
-    let mapping_version = mapping_version();
+    let mapping_version = mapping_version(); // versions are zero-indexed
+    assert_eq!(mapping_version, 5, "Only mapping version 6 is supported");
     let encoded_filenames_len = encoded_filename_buffer.len();
 
     // Create mapping header types
@@ -49,6 +52,7 @@ pub fn write_coverage_mapping_header<'ctx>(
             // Value 4 : Mapping version
             i32_cov_mapping_version.into(),
         ],
+        // https://github.com/rust-lang/rust/blob/e6707df0de337976dce7577e68fc57adcd5e4842/compiler/rustc_codegen_llvm/src/coverageinfo/mapgen.rs#L301
         false,
     );
 
@@ -102,6 +106,7 @@ impl FunctionRecord {
         let name_md5_hash = hash_str(&name);
 
         // Get indexes of function filenames in module file list
+        // TODO - hoist this into rusty
         let mut virtual_file_mapping = Vec::new();
         for filename in function_filenames {
             let filename_idx = written_mapping_header
@@ -169,9 +174,39 @@ impl FunctionRecord {
                 i64_translation_unit_hash.into(),
                 i8_mapping_array.into(),
             ],
-            false,
+            // https://github.com/rust-lang/rust/blob/e6707df0de337976dce7577e68fc57adcd5e4842/compiler/rustc_codegen_llvm/src/coverageinfo/mapgen.rs#L311
+            true,
         );
 
         save_func_record_to_mod(&module, self.name_md5_hash, function_record_struct, self.is_used);
     }
 }
+/// Why the pass isn't working yet:
+///
+pub fn run_legacy_coverage_pass<'ctx>(module: &Module<'ctx>) {
+    // Add the intrinsic
+    let context = module.get_context();
+    // let increment_intrinsic = Intrinsic::find("llvm.instrprof.increment").unwrap();
+    // println!("intrinsic: {:?}", increment_intrinsic);
+    // let definition = increment_intrinsic.get_declaration(&module, &[]).unwrap();
+    // println!("definition: {:?}", definition);
+
+    // Run the pass
+    let pm = PassManager::create(());
+    unsafe {
+        LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
+    }
+    let did_run = pm.run_on(module);
+    println!("Did run: {}", did_run);
+    // let did_init = pm.initialize();
+    // println!("Did init: {}", did_init);
+    // let did_finalize = pm.finalize();
+    // println!("Did finalize: {:?}", did_finalize);
+}
+
+// TODO
+// - why the pass isn't working yet: https://github.com/llvm/llvm-project/blob/f28c006a5895fc0e329fe15fead81e37457cb1d1/llvm/lib/Transforms/Instrumentation/InstrProfiling.cpp#L539-L549
+// - pass pgo func var to incr (after creating) - https://github.com/rust-lang/rust/blob/174e73a3f6df6f96ab453493796e461164dea94a/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs#L59-L74
+// - this pass is what generates increment calls - https://github.com/rust-lang/rust/blob/1.64.0/compiler/rustc_mir_transform/src/coverage/mod.rs
+// - call invoking in normal inkwell pipeline, through -instrprof
+// - investigate codegen diffs for function/function blocks/programs

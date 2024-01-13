@@ -28,6 +28,7 @@ use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 use crate::index::Index;
 use indexmap::{IndexMap, IndexSet};
 use inkwell::{
+    intrinsics::Intrinsic,
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
     values::{BasicValue, BasicValueEnum, FunctionValue},
@@ -277,15 +278,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     }
 
     /// generates a function for the given pou
-    pub fn generate_implementation(
+    pub fn generate_implementation<'ctx>(
         &self,
         implementation: &Implementation,
         debug: &DebugBuilderEnum<'ink>,
+        module: &Module<'ctx>,
     ) -> Result<(), Diagnostic> {
         let context = self.llvm.context;
         let mut local_index = LlvmTypedIndex::create_child(self.llvm_index);
 
         let pou_name = &implementation.name;
+        println!("Generating implementation for {}", pou_name);
 
         let current_function = self.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
@@ -293,8 +296,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 implementation.location.clone(),
             )
         })?;
-
-        // TODO - this is where we should possibly add counter increments
 
         let (line, column) = implementation
             .statements
@@ -307,7 +308,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .unwrap();
         debug.set_debug_location(&self.llvm, &current_function, line, column);
 
-        //generate the body
+        //generate the body - "entry" block marks the beginning of the function
         let block = context.append_basic_block(current_function, "entry");
 
         //Create all labels this function will have
@@ -389,6 +390,28 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &function_context,
                 debug,
             );
+            // This is where we generate the actual statements, but AFTER we initialize locals
+            // TODO - add increments
+            {
+                let increment_intrinsic = Intrinsic::find("llvm.instrprof.increment").unwrap();
+                let increment_intrinsic_func = increment_intrinsic.get_declaration(module, &[]).unwrap();
+                let pgo_func_var = rustc_llvm_coverage::create_pgo_func_name_var(&current_function);
+
+                // Create types
+                let i64_type = self.llvm.context.i64_type();
+                let i32_type = self.llvm.context.i32_type();
+
+                let i8_name_ptr = pgo_func_var.as_pointer_value();
+                let i64_hash = i64_type.const_int(1, false);
+                let i32_num_counters = i32_type.const_int(1, false);
+                let i64_counter_idx = i64_type.const_int(0, false);
+
+                self.llvm.builder.build_call(
+                    increment_intrinsic_func,
+                    &[i8_name_ptr.into(), i64_hash.into(), i32_num_counters.into(), i64_counter_idx.into()],
+                    "increment_call",
+                );
+            }
             statement_gen.generate_body(&implementation.statements)?;
             statement_gen.generate_return_statement()?;
         }
