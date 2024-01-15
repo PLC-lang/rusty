@@ -8,6 +8,7 @@ use libc::{c_char, c_uint, c_void, size_t};
 use std::slice;
 
 use super::types::*;
+use inkwell::values::PointerValue;
 use llvm_sys::prelude::{LLVMModuleRef, LLVMPassManagerRef, LLVMValueRef};
 
 /// Appending to a Rust string -- used by RawRustStringOstream.
@@ -55,4 +56,7 @@ extern "C" {
 
     // pub fn LLVMRustAddInstrumentationPass(PM: LLVMPassManagerRef);
     // pub fn LLVMRustRunInstrumentationPass(M: LLVMModuleRef);
+
+    pub fn LLVMRustAppendToUsed(M: LLVMModuleRef, V: PointerValue);
+
 }

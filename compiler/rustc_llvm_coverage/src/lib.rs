@@ -3,6 +3,9 @@
  * `rustc` implementation of LLVM code coverage.
  *
  * https://github.com/rust-lang/rust/blob/84c898d65adf2f39a5a98507f1fe0ce10a2b8dbc/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs#L220-L221
+ *
+ * TODO - Consider updating functions to reflect configurations in latest Rust (not 1.64)
+ * https://github.com/rust-lang/rust/blob/master/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs
  */
 
 const VAR_ALIGN_BYTES: u32 = 8;
@@ -15,8 +18,9 @@ pub mod types;
 
 use types::*;
 
-use inkwell::comdat::*;
 use inkwell::{
+    comdat::*,
+    intrinsics::Intrinsic,
     module::Linkage,
     types::{AnyType, AsTypeRef, StructType},
     values::{AsValueRef, FunctionValue, GlobalValue, StructValue},
@@ -114,8 +118,11 @@ pub fn save_cov_data_to_mod<'ctx>(module: &Module<'ctx>, cov_data_val: StructVal
     llglobal.set_linkage(Linkage::Private);
     llglobal.set_section(Some(&covmap_section_name));
     llglobal.set_alignment(VAR_ALIGN_BYTES);
-    // We will skip this for now... I don't think it's necessary (-Corban)
-    // cx.add_used_global(llglobal);
+
+    // Mark as used to prevent removal by LLVM optimizations
+    unsafe {
+        ffi::LLVMRustAppendToUsed(module.as_mut_ptr(), llglobal.as_pointer_value());
+    }
 }
 
 pub fn save_func_record_to_mod<'ctx>(
@@ -143,21 +150,21 @@ pub fn save_func_record_to_mod<'ctx>(
         build_string(&mut s).expect("Rust Coverage function record section name failed UTF-8 conversion")
     };
 
+    // Create types
     let llglobal = module.add_global(func_record_val.get_type(), None, func_record_var_name.as_str());
+    let comdat = module.get_or_insert_comdat(&func_record_var_name);
 
+    // Assign
     llglobal.set_initializer(&func_record_val);
     llglobal.set_constant(true);
     llglobal.set_linkage(Linkage::LinkOnceODR);
     llglobal.set_visibility(GlobalVisibility::Hidden);
     llglobal.set_section(Some(&func_record_section_name));
     llglobal.set_alignment(VAR_ALIGN_BYTES);
-
-    // TODO - verify this in the IR
-    assert!(llglobal.get_comdat().is_none());
-    let comdat = module.get_or_insert_comdat(llglobal.get_name().to_str().unwrap());
-    assert!(llglobal.get_comdat().is_none());
     llglobal.set_comdat(comdat);
 
-    // We will skip this for now... I don't think it's necessary (-Corban)
-    // cx.add_used_global(llglobal);
+    // Mark as used to prevent removal by LLVM optimizations
+    unsafe {
+        ffi::LLVMRustAppendToUsed(module.as_mut_ptr(), llglobal.as_pointer_value());
+    }
 }

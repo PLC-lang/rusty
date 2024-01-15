@@ -3,6 +3,7 @@
 #include "llvm/ProfileData/Coverage/CoverageMappingWriter.h"
 #include "llvm/ProfileData/InstrProf.h"
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/Transforms/Utils/ModuleUtils.h"
 
 #include <iostream>
 
@@ -114,4 +115,8 @@ extern "C" uint32_t LLVMRustCoverageMappingVersion() {
 #else
   return coverage::CovMapVersion::Version5;
 #endif
+}
+
+extern "C" void LLVMRustAppendToUsed(LLVMModuleRef M, GlobalValue *G) {
+  appendToUsed(*unwrap(M), makeArrayRef(G));
 }
