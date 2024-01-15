@@ -193,7 +193,10 @@ pub fn run_instrumentation_lowering_pass<'ctx>(module: &Module<'ctx>) {
     inkwell::targets::Target::initialize_all(initialization_config);
 
     // Architecture Specifics
-    let triple = TargetTriple::create("x86_64-unknown-linux-gnu");
+    // Module.set_triple() is required because the pass needs to know it's compiling
+    // to ELF [here](https://github.com/llvm/llvm-project/blob/cfa30fa4852275eed0c59b81b5d8088d3e55f778/llvm/lib/Transforms/Instrumentation/InstrProfiling.cpp#L1191-L1199).
+    // TODO - pass this as a param
+    let triple = TargetTriple::create("x86_64-pc-linux-gnu");
     module.set_triple(&triple);
     let target = Target::from_triple(&triple).unwrap();
     let machine = target
@@ -208,7 +211,7 @@ pub fn run_instrumentation_lowering_pass<'ctx>(module: &Module<'ctx>) {
         .unwrap();
 
     // Run pass (uses new pass manager)
-    module.run_passes("instrprof", &machine, PassBuilderOptions::create());
+    let _ = module.run_passes("instrprof", &machine, PassBuilderOptions::create());
 }
 
 // TODO

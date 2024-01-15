@@ -236,15 +236,15 @@ impl<'ink> CodeGen<'ink> {
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
 
-        let filenames = vec!["/home/animcogn/corbanvilla_rusty".to_string(), self.module_location.clone()];
+        let filenames = vec!["/workspaces/corbanvilla_rusty".to_string(), self.module_location.clone()];
         let cov_header =
             rustc_llvm_coverage::interface::write_coverage_mapping_header(&self.module, filenames);
 
         let prg_func = self.module.get_function("main").expect("Unable to get prg");
 
-        let counter1 = Counter::counter_value_reference(CounterId::new(1));
+        let counter1 = Counter::counter_value_reference(CounterId::new(0));
         let mapping_regions: Vec<CounterMappingRegion> =
-            vec![CounterMappingRegion::code_region(counter1, 1, 8, 1, 10, 10)];
+            vec![CounterMappingRegion::code_region(counter1, 1, 1, 1, 2, 3)];
 
         let func_record = rustc_llvm_coverage::interface::FunctionRecord::new(
             "main".to_string(),
