@@ -238,6 +238,33 @@ fn ton_returns_true_after_time_preset() {
 }
 
 #[test]
+fn ton_q_defaults_to_false() {
+    let prog = r#"
+        VAR_GLOBAL
+            ton_test: TON;
+        END_VAR
+
+        PROGRAM main
+            VAR
+                tp_out  : BOOL;
+                tp_et   : TIME;
+                tp_inst : TON;
+            END_VAR
+                ton_test(IN:=TRUE, PT:=T#2s);
+                tp_out = ton_test.Q;
+        END_PROGRAM
+    "#;
+
+    let source = add_std!(prog, "timers.st");
+    let context = CodegenContext::create();
+    let module = compile_with_native(&context, source);
+    let mut main_inst = MainType { value: true, ..MainType::default() };
+    // Value true First call -> false
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.tp_out);
+}
+
+#[test]
 fn ton_counts_elapsed_time_while_waiting() {
     let prog = r#"
         PROGRAM main
