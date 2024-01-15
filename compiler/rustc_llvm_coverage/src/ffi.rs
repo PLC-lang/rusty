@@ -54,5 +54,5 @@ extern "C" {
     pub fn LLVMRustCoverageMappingVersion() -> u32;
 
     pub fn LLVMRustAddInstrumentationPass(PM: LLVMPassManagerRef);
-    // pub fn LLVMRustRunInstrumentationPass(M: LLVMModuleRef);
+    pub fn LLVMRustRunInstrumentationPass(M: LLVMModuleRef);
 }

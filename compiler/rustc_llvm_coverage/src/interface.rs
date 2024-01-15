@@ -194,7 +194,9 @@ pub fn run_legacy_coverage_pass<'ctx>(module: &Module<'ctx>) {
     // Run the pass
     let pm = PassManager::create(());
     unsafe {
+        // Switch between new and legacy pass managers with the following:
         LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
+        // LLVMRustRunInstrumentationPass(module.as_mut_ptr());
     }
     let did_run = pm.run_on(module);
     println!("Did run: {}", did_run);

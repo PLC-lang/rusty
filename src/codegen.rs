@@ -236,20 +236,20 @@ impl<'ink> CodeGen<'ink> {
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
 
-        let filenames = vec!["cwd".to_string(), self.module_location];
+        let filenames = vec!["/home/animcogn/corbanvilla_rusty".to_string(), self.module_location.clone()];
         let cov_header =
             rustc_llvm_coverage::interface::write_coverage_mapping_header(&self.module, filenames);
 
-        let prg_func = self.module.get_function("prg").expect("Unable to get prg");
+        let prg_func = self.module.get_function("main").expect("Unable to get prg");
 
         let counter1 = Counter::counter_value_reference(CounterId::new(1));
         let mapping_regions: Vec<CounterMappingRegion> =
-            vec![CounterMappingRegion::code_region(counter1, 0, 0, 0, 3, 10)];
+            vec![CounterMappingRegion::code_region(counter1, 1, 8, 1, 10, 10)];
 
         let func_record = rustc_llvm_coverage::interface::FunctionRecord::new(
             "main".to_string(),
             1,
-            vec!["cwd".to_string()],
+            vec![self.module_location.clone()],
             Vec::new(),
             mapping_regions,
             true,
@@ -258,9 +258,7 @@ impl<'ink> CodeGen<'ink> {
 
         func_record.write_to_module(&self.module);
 
-        // unsafe {
-        //     rustc_llvm_coverage::LLVMRustRunInstrumentationPass(self.module.as_mut_ptr());
-        // }
+        rustc_llvm_coverage::interface::run_legacy_coverage_pass(&self.module);
 
         #[cfg(feature = "verify")]
         {
@@ -474,7 +472,7 @@ impl<'ink> GeneratedModule<'ink> {
 
         println!("Writing to IR");
 
-        rustc_llvm_coverage::interface::run_legacy_coverage_pass(&self.module);
+        // rustc_llvm_coverage::interface::run_legacy_coverage_pass(&self.module);
 
         // let pm = PassManager::create(());
         // unsafe {
