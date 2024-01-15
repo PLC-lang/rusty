@@ -258,7 +258,7 @@ impl<'ink> CodeGen<'ink> {
 
         func_record.write_to_module(&self.module);
 
-        rustc_llvm_coverage::interface::run_legacy_coverage_pass(&self.module);
+        rustc_llvm_coverage::interface::run_instrumentation_lowering_pass(&self.module);
 
         #[cfg(feature = "verify")]
         {
