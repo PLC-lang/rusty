@@ -4,7 +4,9 @@ use super::*;
 use inkwell::context::Context;
 use inkwell::intrinsics::Intrinsic;
 use inkwell::module::Module;
-use inkwell::passes::PassManager;
+use inkwell::passes::PassBuilderOptions;
+use inkwell::targets::{CodeModel, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple};
+use inkwell::OptimizationLevel;
 use std::ffi::CString;
 
 /// This represents a coverage mapping header that has been written to a module.
@@ -181,29 +183,30 @@ impl FunctionRecord {
         save_func_record_to_mod(&module, self.name_md5_hash, function_record_struct, self.is_used);
     }
 }
-/// Why the pass isn't working yet:
-///
-pub fn run_legacy_coverage_pass<'ctx>(module: &Module<'ctx>) {
-    // Add the intrinsic
-    let context = module.get_context();
-    // let increment_intrinsic = Intrinsic::find("llvm.instrprof.increment").unwrap();
-    // println!("intrinsic: {:?}", increment_intrinsic);
-    // let definition = increment_intrinsic.get_declaration(&module, &[]).unwrap();
-    // println!("definition: {:?}", definition);
 
-    // Run the pass
-    let pm = PassManager::create(());
-    unsafe {
-        // Switch between new and legacy pass managers with the following:
-        LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
-        // LLVMRustRunInstrumentationPass(module.as_mut_ptr());
-    }
-    let did_run = pm.run_on(module);
-    println!("Did run: {}", did_run);
-    // let did_init = pm.initialize();
-    // println!("Did init: {}", did_init);
-    // let did_finalize = pm.finalize();
-    // println!("Did finalize: {:?}", did_finalize);
+pub fn run_legacy_coverage_pass<'ctx>(module: &Module<'ctx>) {
+    // Setup
+    let context = module.get_context();
+    let initialization_config = &InitializationConfig::default();
+    inkwell::targets::Target::initialize_all(initialization_config);
+
+    // Architecture Specifics
+    let triple = TargetTriple::create("x86_64-unknown-linux-gnu");
+    module.set_triple(&triple);
+    let target = Target::from_triple(&triple).unwrap();
+    let machine = target
+        .create_target_machine(
+            &triple,
+            "generic",
+            "",
+            OptimizationLevel::None,
+            RelocMode::Default,
+            CodeModel::Default,
+        )
+        .unwrap();
+
+    // Run pass (uses new pass manager)
+    module.run_passes("instrprof", &machine, PassBuilderOptions::create());
 }
 
 // TODO
