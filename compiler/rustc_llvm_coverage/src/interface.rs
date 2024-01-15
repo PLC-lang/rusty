@@ -184,7 +184,9 @@ impl FunctionRecord {
     }
 }
 
-pub fn run_legacy_coverage_pass<'ctx>(module: &Module<'ctx>) {
+/// This pass will not operate unless the module already has intrinsic calls.
+/// See [here](https://github.com/llvm/llvm-project/blob/f28c006a5895fc0e329fe15fead81e37457cb1d1/llvm/lib/Transforms/Instrumentation/InstrProfiling.cpp#L539-L549) for why.
+pub fn run_instrumentation_lowering_pass<'ctx>(module: &Module<'ctx>) {
     // Setup
     let context = module.get_context();
     let initialization_config = &InitializationConfig::default();
@@ -210,8 +212,4 @@ pub fn run_legacy_coverage_pass<'ctx>(module: &Module<'ctx>) {
 }
 
 // TODO
-// - why the pass isn't working yet: https://github.com/llvm/llvm-project/blob/f28c006a5895fc0e329fe15fead81e37457cb1d1/llvm/lib/Transforms/Instrumentation/InstrProfiling.cpp#L539-L549
-// - pass pgo func var to incr (after creating) - https://github.com/rust-lang/rust/blob/174e73a3f6df6f96ab453493796e461164dea94a/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs#L59-L74
-// - this pass is what generates increment calls - https://github.com/rust-lang/rust/blob/1.64.0/compiler/rustc_mir_transform/src/coverage/mod.rs
-// - call invoking in normal inkwell pipeline, through -instrprof
 // - investigate codegen diffs for function/function blocks/programs
