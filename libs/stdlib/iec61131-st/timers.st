@@ -20,6 +20,7 @@ FUNCTION_BLOCK TP
     END_VAR
     VAR
         __signal__ : BOOL; (* Value representing the internal signal *)
+        __is_running__: BOOL; (* Internal flag to track timer on/off state *)
         __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
     END_VAR
 END_FUNCTION_BLOCK
@@ -46,6 +47,7 @@ FUNCTION_BLOCK TP_TIME
     END_VAR
     VAR
       __signal__ : BOOL; (* Value representing the internal signal *)
+      __is_running__: BOOL; (* Internal flag to track timer on/off state *)
       __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
     END_VAR
 END_FUNCTION_BLOCK
@@ -72,6 +74,7 @@ FUNCTION_BLOCK TP_LTIME
     END_VAR
     VAR
         __signal__ : BOOL; (* Value representing the internal signal *)
+        __is_running__: BOOL; (* Internal flag to track timer on/off state *)
         __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
     END_VAR
 END_FUNCTION_BLOCK
@@ -98,6 +101,7 @@ VAR_OUTPUT
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
+  __is_running__: BOOL; (* Internal flag to track timer on/off state *)
   __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
 END_VAR
 END_FUNCTION_BLOCK
@@ -124,6 +128,7 @@ VAR_OUTPUT
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
+  __is_running__: BOOL; (* Internal flag to track timer on/off state *)
   __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
 END_VAR
 END_FUNCTION_BLOCK
@@ -149,7 +154,8 @@ VAR_OUTPUT
     ET: TIME;
 END_VAR
 VAR
-  __signal__ : BOOL; (* Value representing the internal signal *)
+  __signal__ : BOOL; (* Value representing the internal signal *)  
+  __is_running__: BOOL; (* Internal flag to track timer on/off state *)
   __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
 END_VAR
 END_FUNCTION_BLOCK
@@ -176,6 +182,7 @@ VAR_OUTPUT
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
+  __is_running__: BOOL; (* Internal flag to track timer on/off state *)
   __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
 END_VAR
 END_FUNCTION_BLOCK
@@ -202,6 +209,7 @@ VAR_OUTPUT
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
+  __is_running__: BOOL; (* Internal flag to track timer on/off state *)
   __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
 END_VAR
 END_FUNCTION_BLOCK
@@ -228,6 +236,7 @@ VAR_OUTPUT
 END_VAR
 VAR
   __signal__ : BOOL; (* Value representing the internal signal *)
+  __is_running__: BOOL; (* Internal flag to track timer on/off state *)
   __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
 END_VAR
 END_FUNCTION_BLOCK
