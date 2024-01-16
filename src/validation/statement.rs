@@ -798,11 +798,23 @@ fn validate_assignment<T: AnnotationMap>(
         if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
-            validator.push_diagnostic(Diagnostic::invalid_assignment(
-                &get_datatype_name_or_slice(validator.context, right_type),
-                &get_datatype_name_or_slice(validator.context, left_type),
-                location.clone(),
-            ));
+            if left_type.is_pointer() && right_type.is_pointer() {
+                validator.push_diagnostic(
+                    Diagnostic::warning(format!(
+                        "Pointers {} and {} have different types",
+                        left_type.get_name(),
+                        right_type.get_name()
+                    ))
+                    .with_error_code("E090")
+                    .with_location(location.clone()),
+                );
+            } else {
+                validator.push_diagnostic(Diagnostic::invalid_assignment(
+                    &get_datatype_name_or_slice(validator.context, right_type),
+                    &get_datatype_name_or_slice(validator.context, left_type),
+                    location.clone(),
+                ));
+            }
         } else if right.is_literal() {
             // TODO: See https://github.com/PLC-lang/rusty/issues/857
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
@@ -1004,33 +1016,42 @@ fn validate_call<T: AnnotationMap>(
 
         // validate parameters
         for (i, param) in passed_parameters.iter().enumerate() {
-            if let Ok((parameter_location_in_parent, right, is_implicit)) =
-                get_implicit_call_parameter(param, &declared_parameters, i)
-            {
-                let left = declared_parameters.get(parameter_location_in_parent);
-                if let Some(left) = left {
-                    validate_call_by_ref(validator, left, param);
-                    // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
-                    // save actual location in parent for InOut validation
-                    variable_location_in_parent.push(left.get_location_in_parent());
-                }
+            match get_implicit_call_parameter(param, &declared_parameters, i) {
+                Ok((parameter_location_in_parent, right, is_implicit)) => {
+                    let left = declared_parameters.get(parameter_location_in_parent);
+                    if let Some(left) = left {
+                        validate_call_by_ref(validator, left, param);
+                        // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                        // save actual location in parent for InOut validation
+                        variable_location_in_parent.push(left.get_location_in_parent());
+                    }
 
-                // explicit call parameter assignments will be handled by
-                // `visit_statement()` via `Assignment` and `OutputAssignment`
-                if is_implicit {
-                    validate_assignment(validator, right, None, &param.get_location(), context);
-                }
+                    // explicit call parameter assignments will be handled by
+                    // `visit_statement()` via `Assignment` and `OutputAssignment`
+                    if is_implicit {
+                        validate_assignment(validator, right, None, &param.get_location(), context);
+                    }
 
-                // mixing implicit and explicit parameters is not allowed
-                // allways compare to the first passed parameter
-                if i == 0 {
-                    are_implicit_parameters = is_implicit;
-                } else if are_implicit_parameters != is_implicit {
+                    // mixing implicit and explicit parameters is not allowed
+                    // allways compare to the first passed parameter
+                    if i == 0 {
+                        are_implicit_parameters = is_implicit;
+                    } else if are_implicit_parameters != is_implicit {
+                        validator.push_diagnostic(
+                            Diagnostic::error("Cannot mix implicit and explicit call parameters!")
+                                .with_error_code("E031")
+                                .with_location(param.get_location()),
+                        );
+                    }
+                }
+                Err(err) => {
                     validator.push_diagnostic(
-                        Diagnostic::error("Cannot mix implicit and explicit call parameters!")
-                            .with_error_code("E031")
-                            .with_location(param.get_location()),
+                        Diagnostic::error("Invalid call parameters")
+                            .with_error_code("E089")
+                            .with_location(param.get_location())
+                            .with_sub_diagnostic(err),
                     );
+                    break;
                 }
             }
 

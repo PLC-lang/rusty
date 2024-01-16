@@ -848,6 +848,58 @@ fn validate_call_by_ref_explicit() {
 }
 
 #[test]
+fn exlicit_param_unknown_reference() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK func
+            VAR_INPUT
+                byValInput : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                fb: func;
+            END_VAR
+
+            fb(unknown := 2);
+            fb(byVALInput := 2); //different case but valid
+            fb(byValInput := 2); //valid
+
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn exlicit_param_different_casing() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK func
+            VAR_INPUT
+                IN : INT;
+                IN2 : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                fb: func;
+            END_VAR
+
+            fb(in := 2);
+            fb(in := 2, IN2 := 3);
+            fb(IN := 2, in2 := 3);
+            fb(in := 2, in2 := 3);
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
 fn implicit_param_downcast_in_function_call() {
     let diagnostics = parse_and_validate_buffered(
         "

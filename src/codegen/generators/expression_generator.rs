@@ -2586,7 +2586,7 @@ pub fn get_implicit_call_parameter<'a>(
             };
             let loc = declared_parameters
                 .iter()
-                .position(|p| p.get_name() == left_name)
+                .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
                 .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))?;
             (loc, data.right.as_ref(), false)
         }

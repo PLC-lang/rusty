@@ -201,6 +201,10 @@ mod diagnostics_registry {
         include_str!("./error_codes/E087.md"),
         E088,
         include_str!("./error_codes/E088.md"),
+        E089,
+        include_str!("./error_codes/E089.md"),
+        E090,
+        include_str!("./error_codes/E090.md"),
     );
 }
 
