@@ -10,3 +10,5 @@
 *.a
 *.elf
 *.out
+default.profraw
+default.profexport
