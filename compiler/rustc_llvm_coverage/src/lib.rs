@@ -9,12 +9,16 @@
 pub mod ffi;
 pub mod interfaces;
 pub mod types;
+use interfaces::create_pgo_func_name_var;
 use interfaces::*;
 use types::*;
 
+use inkwell::builder::Builder;
+use inkwell::intrinsics::Intrinsic;
 use inkwell::module::Module;
 use inkwell::passes::PassBuilderOptions;
 use inkwell::targets::{CodeModel, InitializationConfig, RelocMode, Target, TargetTriple};
+use inkwell::values::PointerValue;
 use inkwell::OptimizationLevel;
 use std::ffi::CString;
 
@@ -108,6 +112,8 @@ pub struct FunctionRecord {
 }
 
 impl FunctionRecord {
+    /// TODO - Update to use a filename table, like
+    /// https://github.com/rust-lang/rust/blob/e6707df0de337976dce7577e68fc57adcd5e4842/compiler/rustc_codegen_llvm/src/coverageinfo/mapgen.rs#L155-L194
     pub fn new(
         name: String,
         structural_hash: u64,
@@ -225,6 +231,39 @@ pub fn run_instrumentation_lowering_pass<'ctx>(module: &Module<'ctx>) {
 
     // Run pass (uses new pass manager)
     let _ = module.run_passes("instrprof", &machine, PassBuilderOptions::create());
+}
+
+/// Emits a increment counter call at the current builder position.
+///
+/// `pgo_function_var` is a pointer to the function's global name variable,
+/// generated from [`create_pgo_func_name_var`].
+///
+/// TODO - verify the correctness of these lifetimes.
+pub fn emit_counter_increment<'ink, 'ctx>(
+    builder: &Builder<'ink>,
+    module: &Module<'ctx>,
+    pgo_function_var: &PointerValue<'ink>,
+    structural_hash: u64,
+    num_counters: u32,
+    counter_idx: u64,
+) {
+    let context = module.get_context();
+    let increment_intrinsic = Intrinsic::find("llvm.instrprof.increment").unwrap();
+    let increment_intrinsic_func = increment_intrinsic.get_declaration(module, &[]).unwrap();
+
+    // Create types
+    let i64_type = context.i64_type();
+    let i32_type = context.i32_type();
+
+    let i64_hash = i64_type.const_int(structural_hash, false);
+    let i32_num_counters = i32_type.const_int(num_counters.into(), false);
+    let i64_counter_idx = i64_type.const_int(counter_idx, false);
+
+    builder.build_call(
+        increment_intrinsic_func,
+        &[(*pgo_function_var).into(), i64_hash.into(), i32_num_counters.into(), i64_counter_idx.into()],
+        "increment_call",
+    );
 }
 
 // TODO
