@@ -1,170 +1,231 @@
-/*
- * Many of the functions in this file have been adapted from the
- * `rustc` implementation of LLVM code coverage.
- *
- * https://github.com/rust-lang/rust/blob/84c898d65adf2f39a5a98507f1fe0ce10a2b8dbc/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs#L220-L221
- *
- * TODO - Consider updating functions to reflect configurations in latest Rust (not 1.64)
- * https://github.com/rust-lang/rust/blob/master/compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs
- */
+//! This library provides a Rust interface to LLVM's coverage mapping format.
+//!
+//! This module exists to provide intuitive and useful abstractions for
+//! interacting with LLVM's coverage mapping functions. If you want to
+//! interact directly with LLVM, use the [`interfaces`] or [`ffi`] modules.
+//!
+//!
 
-const VAR_ALIGN_BYTES: u32 = 8;
-
-use std::string::FromUtf8Error;
-
-mod ffi;
-pub mod interface;
+pub mod ffi;
+pub mod interfaces;
 pub mod types;
-
+use interfaces::*;
 use types::*;
 
-use inkwell::{
-    comdat::*,
-    intrinsics::Intrinsic,
-    module::Linkage,
-    types::{AnyType, AsTypeRef, StructType},
-    values::{AsValueRef, FunctionValue, GlobalValue, StructValue},
-    GlobalVisibility,
-};
-
-use libc::c_uint;
+use inkwell::module::Module;
+use inkwell::passes::PassBuilderOptions;
+use inkwell::targets::{CodeModel, InitializationConfig, RelocMode, Target, TargetTriple};
+use inkwell::OptimizationLevel;
 use std::ffi::CString;
 
-use inkwell::module::Module;
-use inkwell::types::BasicType;
-use llvm_sys::comdat::LLVMGetComdat;
-
-/* == TODO - Refactor these helpers out */
-pub fn build_string(sr: &RustString) -> Result<String, FromUtf8Error> {
-    String::from_utf8(sr.bytes.borrow().clone())
-}
-/* == END TODO */
-
-/// Calls llvm::createPGOFuncNameVar() with the given function instance's
-/// mangled function name. The LLVM API returns an llvm::GlobalVariable
-/// containing the function name, with the specific variable name and linkage
-/// required by LLVM InstrProf source-based coverage instrumentation. Use
-/// `bx.get_pgo_func_name_var()` to ensure the variable is only created once per
-/// `Instance`.
-pub fn create_pgo_func_name_var<'ctx>(func: &FunctionValue<'ctx>) -> GlobalValue<'ctx> {
-    let pgo_function_ref =
-        unsafe { ffi::LLVMRustCoverageCreatePGOFuncNameVar(func.as_value_ref(), func.get_name().as_ptr()) };
-    assert!(!pgo_function_ref.is_null());
-    unsafe { GlobalValue::new(pgo_function_ref) }
+/// This represents a coverage mapping header that has been written to a module.
+/// It is returned for debugging purposes and use with write_function_record.
+pub struct CoverageMappingHeader {
+    pub mapping_version: u32,
+    pub filenames: Vec<String>,
+    pub filenames_hash: u64,
+    pub encoded_filename_buffer: RustString,
 }
 
-pub fn write_filenames_section_to_buffer<'a>(
-    filenames: impl IntoIterator<Item = &'a CString>,
-    buffer: &RustString,
-) {
-    let c_str_vec = filenames.into_iter().map(|cstring| cstring.as_ptr()).collect::<Vec<_>>();
-    unsafe {
-        ffi::LLVMRustCoverageWriteFilenamesSectionToBuffer(c_str_vec.as_ptr(), c_str_vec.len(), buffer);
+impl CoverageMappingHeader {
+    pub fn new(filenames: Vec<String>) -> Self {
+        // Get mapping version from LLVM
+        let mapping_version = get_mapping_version(); // versions are zero-indexed
+        assert_eq!(mapping_version, 5, "Only mapping version 6 is supported");
+
+        // Convert filenames to CStrings
+        let filenames_cstr =
+            filenames.clone().into_iter().map(|f| CString::new(f).unwrap()).collect::<Vec<_>>();
+        let mut encoded_filename_buffer = RustString::new();
+        write_filenames_section_to_buffer(&filenames_cstr, &mut encoded_filename_buffer);
+
+        // Calc file hash
+        let filenames_hash = hash_bytes(encoded_filename_buffer.bytes.borrow().to_vec());
+
+        CoverageMappingHeader { mapping_version, filenames, filenames_hash, encoded_filename_buffer }
     }
-}
-//create params , call fucntion in codegen, print the buffer
-pub fn write_mapping_to_buffer(
-    virtual_file_mapping: Vec<u32>,
-    expressions: Vec<CounterExpression>,
-    mapping_regions: Vec<CounterMappingRegion>,
-    buffer: &mut RustString,
-) {
-    unsafe {
-        ffi::LLVMRustCoverageWriteMappingToBuffer(
-            virtual_file_mapping.as_ptr(),
-            virtual_file_mapping.len() as c_uint,
-            expressions.as_ptr(),
-            expressions.len() as c_uint,
-            mapping_regions.as_ptr(),
-            mapping_regions.len() as c_uint,
-            buffer,
+
+    /// filenames: In Coverage Mapping Version > 6, first filename must be the compilation directory
+    pub fn write_coverage_mapping_header<'ctx>(&self, module: &Module<'ctx>) {
+        // Get context
+        let context = module.get_context();
+
+        // Create mapping header types
+        let i32_type = context.i32_type();
+        let i32_zero = i32_type.const_int(0, false);
+        let i32_cov_mapping_version = i32_type.const_int(self.mapping_version.into(), false);
+        let i32_filenames_len = i32_type.const_int(self.encoded_filename_buffer.len() as u64, false);
+
+        // See LLVM Code Coverage Specification for details on this data structure
+        let cov_mapping_header = context.const_struct(
+            &[
+                // Value 1 : Always zero
+                i32_zero.into(),
+                // Value 2 : Len(encoded_filenames)
+                i32_filenames_len.into(),
+                // Value 3 : Always zero
+                i32_zero.into(),
+                // Value 4 : Mapping version
+                i32_cov_mapping_version.into(),
+            ],
+            // https://github.com/rust-lang/rust/blob/e6707df0de337976dce7577e68fc57adcd5e4842/compiler/rustc_codegen_llvm/src/coverageinfo/mapgen.rs#L301
+            false,
         );
+
+        // Create filename value types
+        let i8_type = context.i8_type();
+        let i8_filename_array = i8_type.const_array(
+            &self
+                .encoded_filename_buffer
+                .bytes
+                .borrow()
+                .iter()
+                .map(|byte| i8_type.const_int(*byte as u64, false))
+                .collect::<Vec<_>>(),
+        );
+
+        // Create structure
+        let coverage_struct =
+            context.const_struct(&[cov_mapping_header.into(), i8_filename_array.into()], false);
+
+        // Write to module
+        save_cov_data_to_mod(module, coverage_struct);
     }
 }
 
-pub fn hash_str(strval: &str) -> u64 {
-    let strval = CString::new(strval).expect("null error converting hashable str to C string");
-    unsafe { ffi::LLVMRustCoverageHashCString(strval.as_ptr()) }
+pub struct FunctionRecord {
+    pub name: String,
+    pub name_md5_hash: u64,
+    pub structural_hash: u64,
+    pub virtual_file_mapping: Vec<u32>,
+    pub expressions: Vec<CounterExpression>,
+    pub mapping_regions: Vec<CounterMappingRegion>,
+    pub mapping_buffer: RustString,
+
+    // A.k.a. hash of all filenames in module
+    pub translation_unit_hash: u64,
+    pub is_used: bool,
 }
 
-pub fn hash_bytes(bytes: Vec<u8>) -> u64 {
-    unsafe { ffi::LLVMRustCoverageHashByteArray(bytes.as_ptr().cast(), bytes.len()) }
-}
+impl FunctionRecord {
+    pub fn new(
+        name: String,
+        structural_hash: u64,
+        // TODO - better names for these
+        function_filenames: Vec<String>,
+        expressions: Vec<CounterExpression>,
+        mapping_regions: Vec<CounterMappingRegion>,
+        is_used: bool,
 
-pub fn mapping_version() -> u32 {
-    unsafe { ffi::LLVMRustCoverageMappingVersion() }
-}
+        written_mapping_header: &CoverageMappingHeader,
+    ) -> Self {
+        let name_md5_hash = hash_str(&name);
 
-pub fn save_cov_data_to_mod<'ctx>(module: &Module<'ctx>, cov_data_val: StructValue<'ctx>) {
-    let covmap_var_name = {
-        let mut s = RustString::new();
-        unsafe {
-            ffi::LLVMRustCoverageWriteMappingVarNameToString(&mut s);
+        // Get indexes of function filenames in module file list
+        // TODO - hoist this into rusty
+        let mut virtual_file_mapping = Vec::new();
+        for filename in function_filenames {
+            let filename_idx = written_mapping_header
+                .filenames
+                .iter()
+                .position(|f| f == &filename)
+                .expect("Unable to find function filename in module files");
+            virtual_file_mapping.push(filename_idx.try_into().unwrap());
         }
-        build_string(&mut s).expect("Rust Coverage Mapping var name failed UTF-8 conversion")
-    };
 
-    let covmap_section_name = {
-        let mut s = RustString::new();
-        unsafe {
-            ffi::LLVMRustCoverageWriteMapSectionNameToString(module.as_mut_ptr(), &mut s);
+        // Write mapping to buffer
+        let mut mapping_buffer = RustString::new();
+        write_mapping_to_buffer(
+            virtual_file_mapping.clone(),
+            expressions.clone(),
+            mapping_regions.clone(),
+            &mut mapping_buffer,
+        );
+
+        FunctionRecord {
+            name,
+            name_md5_hash,
+            structural_hash,
+            virtual_file_mapping,
+            expressions,
+            is_used,
+            mapping_regions,
+            mapping_buffer,
+            translation_unit_hash: written_mapping_header.filenames_hash,
         }
-        build_string(&mut s).expect("Rust Coverage Mapping section name failed UTF-8 conversion")
-    };
+    }
 
-    let llglobal = module.add_global(cov_data_val.get_type(), None, covmap_var_name.as_str());
-    llglobal.set_initializer(&cov_data_val);
-    llglobal.set_constant(true);
-    llglobal.set_linkage(Linkage::Private);
-    llglobal.set_section(Some(&covmap_section_name));
-    llglobal.set_alignment(VAR_ALIGN_BYTES);
+    pub fn write_to_module<'ctx>(&self, module: &Module<'ctx>) {
+        // Get context
+        let context = module.get_context();
 
-    // Mark as used to prevent removal by LLVM optimizations
-    unsafe {
-        ffi::LLVMRustAppendToUsed(module.as_mut_ptr(), llglobal.as_pointer_value());
+        // Create types
+        let i64_type = context.i64_type();
+        let i32_type = context.i32_type();
+        let i8_type = context.i8_type();
+
+        // Create values
+        let i64_name_md5_hash = i64_type.const_int(self.name_md5_hash, false);
+        let i32_mapping_len = i32_type.const_int(self.mapping_buffer.len() as u64, false);
+        let i64_structural_hash = i64_type.const_int(self.structural_hash, false);
+        let i64_translation_unit_hash = i64_type.const_int(self.translation_unit_hash, false);
+
+        // Build mapping array
+        let i8_mapping_array = i8_type.const_array(
+            &self
+                .mapping_buffer
+                .bytes
+                .borrow()
+                .iter()
+                .map(|byte| i8_type.const_int(*byte as u64, false))
+                .collect::<Vec<_>>(),
+        );
+
+        // Create structure
+        let function_record_struct = context.const_struct(
+            &[
+                i64_name_md5_hash.into(),
+                i32_mapping_len.into(),
+                i64_structural_hash.into(),
+                i64_translation_unit_hash.into(),
+                i8_mapping_array.into(),
+            ],
+            // https://github.com/rust-lang/rust/blob/e6707df0de337976dce7577e68fc57adcd5e4842/compiler/rustc_codegen_llvm/src/coverageinfo/mapgen.rs#L311
+            true,
+        );
+
+        save_func_record_to_mod(&module, self.name_md5_hash, function_record_struct, self.is_used);
     }
 }
 
-pub fn save_func_record_to_mod<'ctx>(
-    module: &Module<'ctx>,
-    func_name_hash: u64,
-    func_record_val: StructValue<'ctx>,
-    is_used: bool,
-) {
-    // Assign a name to the function record. This is used to merge duplicates.
-    //
-    // In LLVM, a "translation unit" (effectively, a `Crate` in Rust) can describe functions that
-    // are included-but-not-used. If (or when) Rust generates functions that are
-    // included-but-not-used, note that a dummy description for a function included-but-not-used
-    // in a Crate can be replaced by full description provided by a different Crate. The two kinds
-    // of descriptions play distinct roles in LLVM IR; therefore, assign them different names (by
-    // appending "u" to the end of the function record var name, to prevent `linkonce_odr` merging.
-    // TODO - investigate removing this (-Corban)
-    let func_record_var_name = format!("__covrec_{:X}{}", func_name_hash, if is_used { "u" } else { "" });
+/// This pass will not operate unless the module already has intrinsic calls.
+/// See [here](https://github.com/llvm/llvm-project/blob/f28c006a5895fc0e329fe15fead81e37457cb1d1/llvm/lib/Transforms/Instrumentation/InstrProfiling.cpp#L539-L549) for why.
+pub fn run_instrumentation_lowering_pass<'ctx>(module: &Module<'ctx>) {
+    // Setup
+    let initialization_config = &InitializationConfig::default();
+    inkwell::targets::Target::initialize_all(initialization_config);
 
-    let func_record_section_name = {
-        let mut s = RustString::new();
-        unsafe {
-            ffi::LLVMRustCoverageWriteFuncSectionNameToString(module.as_mut_ptr(), &mut s);
-        }
-        build_string(&mut s).expect("Rust Coverage function record section name failed UTF-8 conversion")
-    };
+    // Architecture Specifics
+    // Module.set_triple() is required because the pass needs to know it's compiling
+    // to ELF [here](https://github.com/llvm/llvm-project/blob/cfa30fa4852275eed0c59b81b5d8088d3e55f778/llvm/lib/Transforms/Instrumentation/InstrProfiling.cpp#L1191-L1199).
+    // TODO - pass this as a param
+    let triple = TargetTriple::create("x86_64-pc-linux-gnu");
+    module.set_triple(&triple);
+    let target = Target::from_triple(&triple).unwrap();
+    let machine = target
+        .create_target_machine(
+            &triple,
+            "generic",
+            "",
+            OptimizationLevel::None,
+            RelocMode::Default,
+            CodeModel::Default,
+        )
+        .unwrap();
 
-    // Create types
-    let llglobal = module.add_global(func_record_val.get_type(), None, func_record_var_name.as_str());
-    let comdat = module.get_or_insert_comdat(&func_record_var_name);
-
-    // Assign
-    llglobal.set_initializer(&func_record_val);
-    llglobal.set_constant(true);
-    llglobal.set_linkage(Linkage::LinkOnceODR);
-    llglobal.set_visibility(GlobalVisibility::Hidden);
-    llglobal.set_section(Some(&func_record_section_name));
-    llglobal.set_alignment(VAR_ALIGN_BYTES);
-    llglobal.set_comdat(comdat);
-
-    // Mark as used to prevent removal by LLVM optimizations
-    unsafe {
-        ffi::LLVMRustAppendToUsed(module.as_mut_ptr(), llglobal.as_pointer_value());
-    }
+    // Run pass (uses new pass manager)
+    let _ = module.run_passes("instrprof", &machine, PassBuilderOptions::create());
 }
+
+// TODO
+// - investigate codegen diffs for function/function blocks/programs

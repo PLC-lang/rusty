@@ -395,7 +395,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             {
                 let increment_intrinsic = Intrinsic::find("llvm.instrprof.increment").unwrap();
                 let increment_intrinsic_func = increment_intrinsic.get_declaration(module, &[]).unwrap();
-                let pgo_func_var = rustc_llvm_coverage::create_pgo_func_name_var(&current_function);
+                let pgo_func_var =
+                    rustc_llvm_coverage::interfaces::create_pgo_func_name_var(&current_function);
 
                 // Create types
                 let i64_type = self.llvm.context.i64_type();

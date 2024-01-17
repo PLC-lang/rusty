@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
     cell::RefCell,
-    ffi::CString,
     ops::Deref,
     path::{Path, PathBuf},
 };
@@ -15,7 +14,6 @@ use self::{
         pou_generator::{self, PouGenerator},
         variable_generator::VariableGenerator,
     },
-    instrument::InstrumentBuilder,
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
@@ -34,16 +32,13 @@ use inkwell::{
 };
 use inkwell::{
     module::Module,
-    passes::{PassBuilderOptions, PassManager, PassManagerBuilder},
+    passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use rustc_llvm_coverage::{
-    self,
-    types::{CounterExpression, CounterMappingRegion},
-};
+use rustc_llvm_coverage::types::CounterMappingRegion;
 
 mod debug;
 pub(crate) mod generators;
@@ -104,20 +99,6 @@ impl<'ink> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
-
-        // let mut pm = PassManager::create(());
-
-        // let pass_manager_builder = PassManagerBuilder::create();
-        // pass_manager_builder.populate_module_pass_manager(&pm);
-
-        // unsafe {
-        //     rustc_llvm_coverage::LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
-        // }
-        // let did_init = pm.initialize();
-        // println!("Did init: {}", did_init);
-        // let did_finalize = pm.finalize();
-        // println!("Did finalize: {:?}", did_finalize);
-
         CodeGen { module, debug, module_location: module_location.to_string() }
     }
 
@@ -236,9 +217,11 @@ impl<'ink> CodeGen<'ink> {
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
 
+        // TODO - configure cov builder here
         let filenames = vec!["/workspaces/corbanvilla_rusty".to_string(), self.module_location.clone()];
-        let cov_header =
-            rustc_llvm_coverage::interface::write_coverage_mapping_header(&self.module, filenames);
+        let cov_header = rustc_llvm_coverage::CoverageMappingHeader::new(filenames);
+        cov_header.write_coverage_mapping_header(&self.module);
+        // let cov_header = rustc_llvm_coverage::write_coverage_mapping_header(&self.module, filenames);
 
         let prg_func = self.module.get_function("main").expect("Unable to get prg");
 
@@ -246,7 +229,7 @@ impl<'ink> CodeGen<'ink> {
         let mapping_regions: Vec<CounterMappingRegion> =
             vec![CounterMappingRegion::code_region(counter1, 1, 1, 1, 2, 3)];
 
-        let func_record = rustc_llvm_coverage::interface::FunctionRecord::new(
+        let func_record = rustc_llvm_coverage::FunctionRecord::new(
             "main".to_string(),
             1,
             vec![self.module_location.clone()],
@@ -258,7 +241,7 @@ impl<'ink> CodeGen<'ink> {
 
         func_record.write_to_module(&self.module);
 
-        rustc_llvm_coverage::interface::run_instrumentation_lowering_pass(&self.module);
+        rustc_llvm_coverage::run_instrumentation_lowering_pass(&self.module);
 
         #[cfg(feature = "verify")]
         {
@@ -375,8 +358,6 @@ impl<'ink> GeneratedModule<'ink> {
         if let Some(parent) = output.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        // Log passes
-        println!("Optimization level: {:?}", optimization_level.opt_params());
         ////Run the passes
         machine
             .and_then(|it| {
@@ -469,25 +450,6 @@ impl<'ink> GeneratedModule<'ink> {
     pub fn persist_to_ir(&self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
         log::debug!("Output location: {}", output.to_string_lossy());
         log::debug!("{}", self.persist_to_string());
-
-        println!("Writing to IR");
-
-        // rustc_llvm_coverage::interface::run_legacy_coverage_pass(&self.module);
-
-        // let pm = PassManager::create(());
-        // unsafe {
-        //     rustc_llvm_coverage::LLVMRustAddInstrumentationPass(pm.as_mut_ptr());
-        // }
-        // let did_run = pm.run_on(&self.module);
-        // println!("Did run: {}", did_run);
-        // let did_init = pm.initialize();
-        // println!("Did init: {}", did_init);
-        // let did_finalize = pm.finalize();
-        // println!("Did finalize: {:?}", did_finalize);
-
-        // unsafe {
-        //     rustc_llvm_coverage::llvmrustruninstrumentationpass(self.module.as_mut_ptr());
-        // }
 
         self.module
             .print_to_file(&output)

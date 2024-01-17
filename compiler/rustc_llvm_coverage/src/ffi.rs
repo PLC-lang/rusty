@@ -4,12 +4,12 @@
 //
 // Function interface definitions are taken from [here](https://github.com/rust-lang/rust/blob/84c898d65adf2f39a5a98507f1fe0ce10a2b8dbc/compiler/rustc_codegen_llvm/src/llvm/ffi.rs#L1864).
 //
-use libc::{c_char, c_uint, c_void, size_t};
+use libc::{c_char, c_uint, size_t};
 use std::slice;
 
 use super::types::*;
 use inkwell::values::PointerValue;
-use llvm_sys::prelude::{LLVMModuleRef, LLVMPassManagerRef, LLVMValueRef};
+use llvm_sys::prelude::{LLVMModuleRef, LLVMValueRef};
 
 /// Appending to a Rust string -- used by RawRustStringOstream.
 #[no_mangle]
@@ -54,9 +54,7 @@ extern "C" {
 
     pub fn LLVMRustCoverageMappingVersion() -> u32;
 
-    // pub fn LLVMRustAddInstrumentationPass(PM: LLVMPassManagerRef);
-    // pub fn LLVMRustRunInstrumentationPass(M: LLVMModuleRef);
-
+    #[allow(improper_ctypes)]
     pub fn LLVMRustAppendToUsed(M: LLVMModuleRef, V: PointerValue);
 
 }
