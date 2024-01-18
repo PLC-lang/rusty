@@ -35,6 +35,7 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
+use instrument::CoverageInstrumentationBuilder;
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -47,8 +48,6 @@ mod llvm_index;
 mod llvm_typesystem;
 #[cfg(test)]
 mod tests;
-use rustc_llvm_coverage::*;
-use types::*;
 
 /// A wrapper around the LLVM context to allow passing it without exposing the inkwell dependencies
 pub struct CodegenContext(Context);
@@ -74,8 +73,8 @@ pub struct CodeGen<'ink> {
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
     pub debug: DebugBuilderEnum<'ink>,
-    /// the instrumentation builder (to be later hoisted out of the codegen struct)
-    // pub instrument: Option<
+    /// the instrumentation builder (possibly later hoisted out of the codegen struct)
+    pub instrument: Option<CoverageInstrumentationBuilder<'ink>>,
     pub module_location: String,
 }
 
@@ -99,7 +98,18 @@ impl<'ink> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
-        CodeGen { module, debug, module_location: module_location.to_string() }
+
+        // TODO - disable instr here
+        // TODO - local path shouldn't be hardcoded
+        let filenames = vec!["/workspaces/corbanvilla_rusty".to_string(), module_location.to_string()];
+        let instr_builder = instrument::CoverageInstrumentationBuilder::new(context, filenames);
+
+        CodeGen {
+            module,
+            debug,
+            instrument: Some(instr_builder),
+            module_location: module_location.to_string(),
+        }
     }
 
     pub fn generate_llvm_index(
@@ -193,7 +203,7 @@ impl<'ink> CodeGen<'ink> {
 
     /// generates all TYPEs, GLOBAL-sections and POUs of the given CompilationUnit
     pub fn generate(
-        self,
+        mut self,
         context: &'ink CodegenContext,
         unit: &CompilationUnit,
         annotations: &AstAnnotations,
@@ -204,12 +214,24 @@ impl<'ink> CodeGen<'ink> {
         let llvm = Llvm::new(context, context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
 
+        if let Some(instr_builder) = &mut self.instrument {
+            // Generate mapping header
+            instr_builder.initialize(&self.module);
+
+            instr_builder.create_function_records(unit, llvm_index, &self.module);
+        }
+
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation, &self.debug, &self.module)?;
+                    pou_generator.generate_implementation(
+                        implementation,
+                        &self.debug,
+                        &self.module,
+                        &self.instrument,
+                    )?;
                 }
             }
         }
@@ -217,31 +239,10 @@ impl<'ink> CodeGen<'ink> {
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
 
-        // TODO - configure cov builder here
-        let filenames = vec!["/workspaces/corbanvilla_rusty".to_string(), self.module_location.clone()];
-        let cov_header = rustc_llvm_coverage::CoverageMappingHeader::new(filenames);
-        cov_header.write_coverage_mapping_header(&self.module);
-        // let cov_header = rustc_llvm_coverage::write_coverage_mapping_header(&self.module, filenames);
-
-        let prg_func = self.module.get_function("main").expect("Unable to get prg");
-
-        let counter1 = Counter::counter_value_reference(CounterId::new(0));
-        let mapping_regions: Vec<CounterMappingRegion> =
-            vec![CounterMappingRegion::code_region(counter1, 1, 1, 1, 2, 3)];
-
-        let func_record = rustc_llvm_coverage::FunctionRecord::new(
-            "main".to_string(),
-            1,
-            vec![self.module_location.clone()],
-            Vec::new(),
-            mapping_regions,
-            true,
-            &cov_header,
-        );
-
-        func_record.write_to_module(&self.module);
-
-        rustc_llvm_coverage::run_instrumentation_lowering_pass(&self.module);
+        // Run the pass
+        if let Some(instr_builder) = &mut self.instrument {
+            instr_builder.finalize(&self.module);
+        }
 
         #[cfg(feature = "verify")]
         {

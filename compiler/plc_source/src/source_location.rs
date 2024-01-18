@@ -296,6 +296,18 @@ impl SourceLocation {
             true
         }
     }
+
+    // TOOD - there's probably a better way to do this
+    pub fn get_start_end(&self) -> (usize, usize, usize, usize) {
+        let span = self.get_span();
+        if let CodeSpan::Range(range) = span {
+            let (start_line, start_col, end_line, end_col) =
+                (range.start.line, range.start.column, range.end.line, range.end.column);
+            (start_line, start_col, end_line, end_col)
+        } else {
+            panic!("Error: expected CodeSpan::Range, found {:?}", span);
+        }
+    }
 }
 
 /**
