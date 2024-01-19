@@ -260,7 +260,7 @@ impl Diagnostic {
             severity,
             primary_location: SourceLocation::undefined(),
             secondary_locations: Default::default(),
-            error_code: "E001".into(), //Default error if none specified
+            error_code: "E001", //Default error if none specified
             sub_diagnostics: Default::default(),
             internal_error: Default::default(),
         }
