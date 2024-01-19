@@ -769,7 +769,7 @@ fn validate_variable_length_array_bound_function(
             if !idx_type.has_nature(TypeNature::Int, index) {
                 validator.push_diagnostic(
                     Diagnostic::error(format!(
-                        "Invalid type nature for generic argumet. {} is no {}",
+                        "Invalid type nature for generic argument. {} is no {}",
                         idx_type.get_name(),
                         TypeNature::Int
                     ))

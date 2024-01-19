@@ -329,7 +329,7 @@ fn validate_cast_literal<T: AnnotationMap>(
         validator.push_diagnostic(
             Diagnostic::error(format!(
                 "Cannot cast into {}, only elementary types are allowed",
-                literal.get_literal_value()
+                validator.context.slice(&statement.get_location())
             ))
             .with_error_code("E061")
             .with_location(location.clone()),

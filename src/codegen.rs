@@ -423,13 +423,6 @@ impl<'ink> GeneratedModule<'ink> {
         log::debug!("Output location: {}", output.to_string_lossy());
         log::debug!("{}", self.persist_to_string());
 
-        //pub fn io_write_error(file: &str, reason: &str) -> Diagnostic {
-        //    Diagnostic::GeneralError {
-        //        message: format!("Cannot write file {file} {reason}'"),
-        //        err_no: "E071"
-        //    }
-        //}
-
         self.module
             .print_to_file(&output)
             .map_err(|err| {

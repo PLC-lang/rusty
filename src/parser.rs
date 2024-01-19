@@ -367,10 +367,15 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
 
             if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &declaration {
                 if matches!(data_type, DataType::EnumType { .. } | DataType::StructType { .. }) {
+                    let datatype_name = declaration
+                        .get_location()
+                        .to_range()
+                        .map(|range| &lexer.get_src()[range])
+                        .expect("Expecing location to be a range during parsing");
                     lexer.accept_diagnostic(
                         ////TODO: This prints a debug version of the datatype, it should have a user readable version instead
                         Diagnostic::error(format!(
-                            "Data Type {data_type:?} not supported as a function return type!"
+                            "Data Type {datatype_name} not supported as a function return type!"
                         ))
                         .with_error_code("E027")
                         .with_location(declaration.get_location()),

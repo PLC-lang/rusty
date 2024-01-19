@@ -288,7 +288,7 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
     for input in &inputs {
         let input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
         let path = &input.to_string_lossy();
-        let paths = glob(path).context(format!("Failed to read glob patern {path}"))?;
+        let paths = glob(path).context(format!("Failed to read glob pattern {path}"))?;
 
         for p in paths {
             let path = p.context("Illegal Path")?;

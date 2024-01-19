@@ -144,8 +144,7 @@ impl<'a> Validator<'a> {
             };
 
             self.push_diagnostic(
-                //TODO: Should this be a warning?
-                Diagnostic::error(reason).with_error_code("E038").with_location(location.to_owned()),
+                Diagnostic::warning(reason).with_error_code("E038").with_location(location.to_owned()),
             );
         }
     }
