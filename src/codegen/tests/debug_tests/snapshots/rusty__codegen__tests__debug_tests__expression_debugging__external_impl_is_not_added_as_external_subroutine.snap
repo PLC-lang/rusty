@@ -11,11 +11,11 @@ source_filename = "main"
 @myPrg_instance = external global %myPrg, !dbg !0
 @__myFb__init = unnamed_addr constant %myFb zeroinitializer, !dbg !5
 
-declare !dbg !11 i32 @myFunc()
+declare i32 @myFunc()
 
-declare !dbg !15 void @myPrg(%myPrg*)
+declare void @myPrg(%myPrg*)
 
-declare !dbg !17 void @myFb(%myFb*)
+declare void @myFb(%myFb*)
 
 !llvm.module.flags = !{!8}
 !llvm.dbg.cu = !{!9}
@@ -31,12 +31,4 @@ declare !dbg !17 void @myFb(%myFb*)
 !8 = !{i32 2, !"Dwarf Version", i32 5}
 !9 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !10, splitDebugInlining: false)
 !10 = !{!0, !5}
-!11 = !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 2, type: !12, scopeLine: 3, flags: DIFlagPublic, spFlags: 0, retainedNodes: !14)
-!12 = !DISubroutineType(flags: DIFlagPublic, types: !13)
-!13 = !{null}
-!14 = <temporary!> !{}
-!15 = !DISubprogram(name: "myPrg", linkageName: "myPrg", scope: !2, file: !2, line: 4, type: !12, scopeLine: 5, flags: DIFlagPublic, spFlags: 0, retainedNodes: !16)
-!16 = <temporary!> !{}
-!17 = !DISubprogram(name: "myFb", linkageName: "myFb", scope: !2, file: !2, line: 6, type: !12, scopeLine: 7, flags: DIFlagPublic, spFlags: 0, retainedNodes: !18)
-!18 = <temporary!> !{}
 

@@ -611,6 +611,9 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     ) {
+        if matches!(pou.get_linkage(), LinkageType::External) {
+            return;
+        }
         let subprogram = self.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
         //Create function parameters
