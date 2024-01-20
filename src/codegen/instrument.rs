@@ -3,7 +3,7 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::values::{FunctionValue, GlobalValue};
-use plc_ast::ast::CompilationUnit;
+use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_source::source_location::CodeSpan;
 use rustc_llvm_coverage::types::{Counter, CounterId, CounterMappingRegion};
 use rustc_llvm_coverage::*;
@@ -39,6 +39,11 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
 
         // Loop through functions in AST, create function records
         for implementation in &unit.implementations {
+            // Skip non-internal functions (external links + built-ins)
+            if implementation.linkage != LinkageType::Internal {
+                continue;
+            }
+
             let func_name = implementation.name.clone();
             // TODO - hash strucutrally
             let struct_hash = rustc_llvm_coverage::interfaces::hash_str(&func_name);
