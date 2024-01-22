@@ -43,6 +43,11 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
             if implementation.linkage != LinkageType::Internal {
                 continue;
             }
+            // Skip no-definition functions
+            if module.get_function(&implementation.name).is_none() {
+                println!("Skipping undefined function: {}", &implementation.name);
+                continue;
+            }
 
             let func_name = implementation.name.clone();
             // TODO - hash strucutrally
@@ -94,14 +99,16 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
             let func_name = function_record.name.clone();
 
             // Check if not there:
-            if module.get_function(&func_name).is_none() {
-                if let Some(llvm_index_func) = llvm_index.find_associated_implementation(&func_name) {
-                    println!(
-                        "Func: {} not in module, but found in LLVM index func: {:?}",
-                        &func_name, llvm_index_func
-                    );
-                }
-            }
+            // if module.get_function(&func_name).is_none() {
+            //     println!("Skipping undefined function: {}", &func_name);
+            //     continue;
+            //     // if let Some(llvm_index_func) = llvm_index.find_associated_implementation(&func_name) {
+            //     //     println!(
+            //     //         "Func: {} not in module, but found in LLVM index func: {:?}",
+            //     //         &func_name, llvm_index_func
+            //     //     );
+            //     // }
+            // }
 
             // TODO - decide whether or not this needs to come from the module
             // Theoretically, they should both be identical
