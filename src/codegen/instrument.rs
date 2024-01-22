@@ -97,7 +97,9 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
             // let func = llvm_index
             //     .find_associated_implementation(&func_name)
             //     .expect("Function not found in LLVM index");
-            let func = module.get_function(&func_name).expect("Function not found in module!");
+            let func = module
+                .get_function(&func_name)
+                .expect(&format!("Function not found in module: {}", func_name));
 
             let func_pgo = rustc_llvm_coverage::interfaces::create_pgo_func_name_var(&func);
 
