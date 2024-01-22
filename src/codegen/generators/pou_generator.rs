@@ -290,7 +290,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let mut local_index = LlvmTypedIndex::create_child(self.llvm_index);
 
         let pou_name = &implementation.name;
-        println!("Generating implementation for {}", pou_name);
 
         let current_function = self.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
