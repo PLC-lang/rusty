@@ -1,4 +1,3 @@
-use insta::assert_snapshot;
 use plc_ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
@@ -15,6 +14,7 @@ use crate::{
     typesystem,
     validation::Validator,
 };
+use insta::assert_snapshot;
 
 #[test]
 fn duplicate_pous_validation() {
@@ -58,7 +58,7 @@ fn duplicate_function_and_type_is_no_issue() {
     "#,
     );
     // THEN there should be 0 duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -116,7 +116,7 @@ fn duplicate_enum_members_in_different_types_is_no_issue() {
         "#,
     );
     // THEN there should be no issues
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -236,7 +236,7 @@ fn duplicate_actions_in_different_pous_are_no_issue() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -258,7 +258,7 @@ fn automatically_generated_ptr_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -279,7 +279,7 @@ fn automatically_generated_string_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -298,7 +298,7 @@ fn automatically_generated_byref_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -317,7 +317,7 @@ fn automatically_generated_inout_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -336,7 +336,7 @@ fn automatically_generated_output_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -396,7 +396,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
     let mut validator = Validator::new(&ctxt);
     validator.perform_global_validation(&global_index);
     let diagnostics = validator.diagnostics();
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -497,7 +497,7 @@ fn duplicate_with_generic() {
     let mut validator = Validator::new(&ctxt);
     validator.perform_global_validation(&global_index);
     let diagnostics = validator.diagnostics();
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -529,7 +529,7 @@ fn generics_with_duplicate_symbol_dont_err() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 // #[test]

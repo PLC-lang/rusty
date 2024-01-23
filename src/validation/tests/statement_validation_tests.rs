@@ -65,7 +65,7 @@ fn assign_pointer_to_lword() {
     );
 
     //THEN every assignment is valid
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -220,7 +220,7 @@ fn string_compare_function_cause_no_error_if_functions_exist() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -284,7 +284,7 @@ fn wstring_compare_function_cause_no_error_if_functions_exist() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -323,7 +323,7 @@ fn switch_case() {
     );
 
     // THEN no errors should occure
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -473,7 +473,7 @@ fn subrange_compare_function_causes_no_error() {
     );
 
     // THEN the validator does not throw an error
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -501,7 +501,7 @@ fn aliased_subrange_compare_function_causes_no_error() {
     );
 
     // THEN the validator does not throw an error
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -529,7 +529,7 @@ fn aliased_int_compare_function_causes_no_error() {
     );
 
     // THEN the validator does not throw an error
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1181,7 +1181,7 @@ fn assigning_to_qualified_references_allowed() {
         "#,
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1199,7 +1199,7 @@ fn assigning_to_rvalue_allowed_for_directaccess() {
         "#,
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1223,7 +1223,7 @@ fn allowed_assignable_types() {
         "#,
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1269,7 +1269,7 @@ fn passing_compatible_numeric_types_to_functions_is_allowed() {
     "#,
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]

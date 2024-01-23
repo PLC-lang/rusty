@@ -120,7 +120,7 @@ fn literal_enum_elements_validate_without_errors() {
         END_PROGRAM",
     );
 
-    assert_snapshot!(&diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]

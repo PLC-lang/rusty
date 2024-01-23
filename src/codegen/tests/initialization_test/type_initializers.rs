@@ -558,7 +558,7 @@ fn partly_uninitialized_const_struct_will_not_report_errors() {
             END_VAR
         "#,
     );
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty())
 }
 
 #[test]
@@ -581,7 +581,7 @@ fn enums_with_inline_initializer_do_not_report_errors() {
         END_FUNCTION
         "#,
     );
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty())
 }
 
 #[test]

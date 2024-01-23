@@ -1,6 +1,4 @@
 mod edgecases {
-    use insta::assert_snapshot;
-
     use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
@@ -17,7 +15,7 @@ mod edgecases {
             ",
         );
 
-        assert_snapshot!(diagnostics)
+        assert!(diagnostics.is_empty());
     }
 
     // From https://github.com/PLC-lang/rusty/pull/748:
@@ -42,7 +40,7 @@ mod edgecases {
             ",
         );
 
-        assert_snapshot!(diagnostics);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
@@ -59,7 +57,7 @@ mod edgecases {
             ",
         );
 
-        assert_snapshot!(diagnostics);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
@@ -79,7 +77,7 @@ mod edgecases {
             ",
         );
 
-        assert_snapshot!(diagnostics);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
@@ -99,7 +97,7 @@ mod edgecases {
             ",
         );
 
-        assert_snapshot!(diagnostics);
+        assert!(diagnostics.is_empty());
     }
 }
 
@@ -546,7 +544,7 @@ mod functionblocks {
         );
 
         // No recursion because VAR_IN_OUT are treated as pointers
-        assert_snapshot!(diagnostics);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]

@@ -1,6 +1,5 @@
-use insta::assert_snapshot;
-
 use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 #[test]
 fn any_allows_all_natures() {
@@ -20,7 +19,7 @@ fn any_allows_all_natures() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -71,7 +70,7 @@ fn any_magnitude_allows_reals() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -90,7 +89,7 @@ fn any_magnitude_allows_ints() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -102,7 +101,7 @@ fn any_magnitude_allows_time() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -196,7 +195,7 @@ fn any_num_allows_reals() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -215,7 +214,7 @@ fn any_num_allows_ints() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -321,7 +320,7 @@ fn any_real_allows_reals() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -342,7 +341,7 @@ fn any_real_allows_ints() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -468,7 +467,7 @@ fn any_int_allows_ints() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -588,7 +587,7 @@ fn any_unsigned_allows_unsigned_ints() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -722,7 +721,7 @@ fn any_signed_allows_signed_ints() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -874,7 +873,7 @@ fn any_duration_allows_time() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1029,7 +1028,7 @@ fn any_bit_allows_bits() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1167,7 +1166,7 @@ fn any_chars_allows_chars() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1179,7 +1178,7 @@ fn any_chars_allows_string() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1305,7 +1304,7 @@ fn any_string_allows_string() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1419,7 +1418,7 @@ fn any_char_allows_chars() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1572,7 +1571,7 @@ fn any_date_allows_date() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]

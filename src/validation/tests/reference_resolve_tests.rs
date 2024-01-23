@@ -130,7 +130,7 @@ fn resolve_function_block_calls_field_access() {
        ",
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 /// tests wheter function_block types and member variables can be resolved and
@@ -269,7 +269,7 @@ fn program_vars_are_allowed_in_their_actions() {
        ",
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -296,7 +296,7 @@ fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
        ",
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -327,7 +327,7 @@ fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
        ",
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -359,5 +359,5 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
        ",
     );
 
-    assert_snapshot!(diagnostics);
+    assert!(diagnostics.is_empty());
 }

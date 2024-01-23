@@ -29,7 +29,7 @@ fn uninitialized_constants_fall_back_to_the_default() {
        ",
     );
 
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty());
 }
 
 #[test]

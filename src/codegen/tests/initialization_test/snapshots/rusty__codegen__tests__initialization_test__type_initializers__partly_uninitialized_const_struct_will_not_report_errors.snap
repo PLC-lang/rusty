@@ -1,5 +1,0 @@
----
-source: src/codegen/tests/initialization_test/type_initializers.rs
-expression: diagnostics
----
-
