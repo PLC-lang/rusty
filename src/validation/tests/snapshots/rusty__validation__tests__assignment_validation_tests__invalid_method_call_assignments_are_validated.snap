@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 19, offset: 425 }..TextLocation { line: 21, column: 22, offset: 428 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 24, offset: 430 }..TextLocation { line: 21, column: 27, offset: 433 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
+   ┌─ <internal>:22:20
+   │
+22 │             cl.foo(arr, arr); // invalid
+   │                    ^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
+   ┌─ <internal>:22:25
+   │
+22 │             cl.foo(arr, arr); // invalid
+   │                         ^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
+
 

@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/naming_validation_test.rs
-expression: res
+expression: "&result"
 ---
-SyntaxError { message: "T can not be used as a name because it is a built-in datatype", range: [SourceLocation { span: Range(TextLocation { line: 0, column: 5, offset: 5 }..TextLocation { line: 0, column: 6, offset: 6 }) }], err_no: type__invalid_name }
-SyntaxError { message: "T: Ambiguous datatype.", range: [SourceLocation { span: Range(TextLocation { line: 0, column: 5, offset: 5 }..TextLocation { line: 0, column: 6, offset: 6 }) }, SourceLocation { span: None }], err_no: duplicate_symbol }
+error: T can not be used as a name because it is a built-in datatype
+  ┌─ <internal>:1:6
+  │
+1 │ TYPE T : STRUCT x : DINT; END_STRUCT END_TYPE
+  │      ^ T can not be used as a name because it is a built-in datatype
+
+error: T: Ambiguous datatype.
+  ┌─ <internal>:1:6
+  │
+1 │ TYPE T : STRUCT x : DINT; END_STRUCT END_TYPE
+  │      ^ T: Ambiguous datatype.
+
 

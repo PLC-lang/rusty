@@ -1,7 +1,21 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 13, offset: 62 }..TextLocation { line: 2, column: 16, offset: 65 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }, SourceLocation { span: Range(TextLocation { line: 2, column: 13, offset: 62 }..TextLocation { line: 2, column: 16, offset: 65 }) }], err_no: duplicate_symbol }
+error: foo: Ambiguous datatype.
+  ┌─ <internal>:3:14
+  │
+2 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
+  │                         --- see also
+3 │         TYPE foo : INT; END_TYPE
+  │              ^^^ foo: Ambiguous datatype.
+
+error: foo: Ambiguous datatype.
+  ┌─ <internal>:2:25
+  │
+2 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
+  │                         ^^^ foo: Ambiguous datatype.
+3 │         TYPE foo : INT; END_TYPE
+  │              --- see also
+
 

@@ -1,10 +1,10 @@
-use plc_diagnostics::diagnostics::Diagnostic;
+use insta::assert_snapshot;
 
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::test_utils::tests::parse_and_validate_buffered;
 
 #[test]
 fn int_literal_casts_max_values_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
                 BYTE#255;
@@ -22,12 +22,12 @@ fn int_literal_casts_max_values_are_validated() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn bool_literal_casts_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM prg
             BOOL#TRUE;
@@ -41,12 +41,12 @@ fn bool_literal_casts_are_validated() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn string_literal_casts_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM prg
 
@@ -67,12 +67,12 @@ fn string_literal_casts_are_validated() {
        "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn real_literal_casts_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM prg
 
@@ -92,24 +92,24 @@ fn real_literal_casts_are_validated() {
        "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn literal_cast_with_non_literal() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "PROGRAM exp
             INT#[x];
         END_PROGRAM
 
         VAR_GLOBAL x : INT; END_VAR",
     );
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn literal_enum_elements_validate_without_errors() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         TYPE Animal: (Dog, Cat, Horse); END_TYPE
         TYPE Color: (Red, Yellow, Green); END_TYPE
@@ -120,13 +120,12 @@ fn literal_enum_elements_validate_without_errors() {
         END_PROGRAM",
     );
 
-    let empty: Vec<Diagnostic> = Vec::new();
-    assert_eq!(empty, diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn date_literal_casts_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM prg
             LINT#DT#1989-06-15-13:56:14.77;
@@ -147,12 +146,12 @@ fn date_literal_casts_are_validated() {
        "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn char_cast_validate() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM prg
 
@@ -166,5 +165,5 @@ fn char_cast_validate() {
        "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }

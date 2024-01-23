@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 115 }..TextLocation { line: 6, column: 20, offset: 123 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WCHAR'", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 137 }..TextLocation { line: 7, column: 20, offset: 145 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
+  ┌─ <internal>:7:13
+  │
+7 │             x := "A";
+  │             ^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'STRING' to 'WCHAR'
+  ┌─ <internal>:8:13
+  │
+8 │             y := 'B';
+  │             ^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'WCHAR'
+
 

@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "This will overflow for type UINT", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 45, offset: 65 }..TextLocation { line: 2, column: 47, offset: 67 }) }], err_no: var__overflow }
+error: This will overflow for type UINT
+  ┌─ <internal>:3:46
+  │
+3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
+  │                                              ^^ This will overflow for type UINT
+
 

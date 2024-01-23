@@ -1,0 +1,5 @@
+---
+source: src/validation/tests/reference_resolve_tests.rs
+expression: diagnostics
+---
+

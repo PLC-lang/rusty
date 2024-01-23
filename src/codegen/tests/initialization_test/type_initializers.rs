@@ -1,7 +1,9 @@
 use insta::assert_snapshot;
 
 use crate::{
-    test_utils::tests::{codegen, codegen_debug_without_unwrap, codegen_without_unwrap, parse_and_validate},
+    test_utils::tests::{
+        codegen, codegen_debug_without_unwrap, codegen_without_unwrap, parse_and_validate_buffered,
+    },
     DebugLevel,
 };
 
@@ -538,7 +540,7 @@ fn partly_uninitialized_const_struct_will_get_default_values() {
 
 #[test]
 fn partly_uninitialized_const_struct_will_not_report_errors() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             TYPE MyOtherDINT : DINT := 2 ; END_TYPE
             TYPE MyDINT      : MyOtherDINT; END_TYPE
@@ -556,12 +558,12 @@ fn partly_uninitialized_const_struct_will_not_report_errors() {
             END_VAR
         "#,
     );
-    assert_eq!(diagnostics, vec![]);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn enums_with_inline_initializer_do_not_report_errors() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         VAR_GLOBAL
               x : (red, yellow, green) := red;
@@ -579,7 +581,7 @@ fn enums_with_inline_initializer_do_not_report_errors() {
         END_FUNCTION
         "#,
     );
-    assert_eq!(diagnostics, vec![]);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]

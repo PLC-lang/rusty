@@ -1,0 +1,5 @@
+---
+source: src/validation/tests/recursive_validation_tests.rs
+expression: diagnostics
+---
+
