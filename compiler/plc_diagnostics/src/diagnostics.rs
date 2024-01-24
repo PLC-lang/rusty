@@ -6,207 +6,7 @@ use plc_source::{
     SourceCode,
 };
 
-mod diagnostics_registry {
-    macro_rules! add_diagnostic {
-    ($($number:ident, $desc:expr,)*) => {
-        use lazy_static::lazy_static;
-            lazy_static! {
-                static ref DIAGNOSTICS : HashMap<&'static str, &'static str> = {
-                let mut m : HashMap<&str, &str> = HashMap::new();
-                $( m.insert(stringify!($number), $desc);)*
-                m
-            };
-        }
-    }
-}
-
-    use std::collections::HashMap;
-
-    #[derive(Default)]
-    pub struct DiagnosticsRegistry(HashMap<&'static str, &'static str>);
-    add_diagnostic!(
-        E001,
-        include_str!("./error_codes/E001.md"), //General Error
-        E002,
-        include_str!("./error_codes/E002.md"), //General IO Error
-        E003,
-        include_str!("./error_codes/E003.md"), //Parameter Error
-        E004,
-        include_str!("./error_codes/E004.md"), //Duplicate Symbol
-        E005,
-        include_str!("./error_codes/E005.md"), //Generic LLVM Error
-        E006,
-        include_str!("./error_codes/E006.md"), //Missing Token
-        E007,
-        include_str!("./error_codes/E007.md"), //Unexpected Token
-        E008,
-        include_str!("./error_codes/E008.md"), //Invalid Range
-        E009,
-        include_str!("./error_codes/E009.md"), //Mismatched Parantheses
-        E010,
-        include_str!("./error_codes/E010.md"), //Invalid Time Literal
-        E011,
-        include_str!("./error_codes/E011.md"), //Invalid Number
-        E012,
-        include_str!("./error_codes/E012.md"), //Missing Case Condition
-        E013,
-        include_str!("./error_codes/E013.md"),
-        E014,
-        include_str!("./error_codes/E014.md"),
-        E015,
-        include_str!("./error_codes/E015.md"),
-        E016,
-        include_str!("./error_codes/E016.md"),
-        E017,
-        include_str!("./error_codes/E017.md"),
-        E018,
-        include_str!("./error_codes/E018.md"),
-        E019,
-        include_str!("./error_codes/E019.md"),
-        E020,
-        include_str!("./error_codes/E020.md"),
-        E021,
-        include_str!("./error_codes/E021.md"),
-        E022,
-        include_str!("./error_codes/E022.md"),
-        E023,
-        include_str!("./error_codes/E023.md"),
-        E024,
-        include_str!("./error_codes/E024.md"),
-        E025,
-        include_str!("./error_codes/E025.md"),
-        E026,
-        include_str!("./error_codes/E026.md"),
-        E027,
-        include_str!("./error_codes/E027.md"),
-        E028,
-        include_str!("./error_codes/E028.md"),
-        E029,
-        include_str!("./error_codes/E029.md"),
-        E030,
-        include_str!("./error_codes/E030.md"),
-        E031,
-        include_str!("./error_codes/E031.md"),
-        E032,
-        include_str!("./error_codes/E032.md"),
-        E033,
-        include_str!("./error_codes/E033.md"),
-        E034,
-        include_str!("./error_codes/E034.md"),
-        E035,
-        include_str!("./error_codes/E035.md"),
-        E036,
-        include_str!("./error_codes/E036.md"),
-        E037,
-        include_str!("./error_codes/E037.md"),
-        E038,
-        include_str!("./error_codes/E038.md"),
-        E039,
-        include_str!("./error_codes/E039.md"),
-        E040,
-        include_str!("./error_codes/E040.md"),
-        E041,
-        include_str!("./error_codes/E041.md"),
-        E042,
-        include_str!("./error_codes/E042.md"),
-        E043,
-        include_str!("./error_codes/E043.md"),
-        E044,
-        include_str!("./error_codes/E044.md"),
-        E045,
-        include_str!("./error_codes/E045.md"),
-        E046,
-        include_str!("./error_codes/E046.md"),
-        E047,
-        include_str!("./error_codes/E047.md"),
-        E048,
-        include_str!("./error_codes/E048.md"),
-        E049,
-        include_str!("./error_codes/E049.md"),
-        E050,
-        include_str!("./error_codes/E050.md"),
-        E051,
-        include_str!("./error_codes/E051.md"),
-        E052,
-        include_str!("./error_codes/E052.md"),
-        E053,
-        include_str!("./error_codes/E053.md"),
-        E054,
-        include_str!("./error_codes/E054.md"),
-        E055,
-        include_str!("./error_codes/E055.md"),
-        E056,
-        include_str!("./error_codes/E056.md"),
-        E057,
-        include_str!("./error_codes/E057.md"),
-        E058,
-        include_str!("./error_codes/E058.md"),
-        E059,
-        include_str!("./error_codes/E059.md"),
-        E060,
-        include_str!("./error_codes/E060.md"),
-        E061,
-        include_str!("./error_codes/E061.md"),
-        E062,
-        include_str!("./error_codes/E062.md"),
-        E063,
-        include_str!("./error_codes/E063.md"),
-        E064,
-        include_str!("./error_codes/E064.md"),
-        E065,
-        include_str!("./error_codes/E065.md"),
-        E066,
-        include_str!("./error_codes/E066.md"),
-        E067,
-        include_str!("./error_codes/E067.md"),
-        E068,
-        include_str!("./error_codes/E068.md"),
-        E069,
-        include_str!("./error_codes/E069.md"),
-        E070,
-        include_str!("./error_codes/E070.md"),
-        E071,
-        include_str!("./error_codes/E071.md"),
-        E072,
-        include_str!("./error_codes/E072.md"),
-        E073,
-        include_str!("./error_codes/E073.md"),
-        E074,
-        include_str!("./error_codes/E074.md"),
-        E075,
-        include_str!("./error_codes/E075.md"),
-        E076,
-        include_str!("./error_codes/E076.md"),
-        E077,
-        include_str!("./error_codes/E077.md"),
-        E078,
-        include_str!("./error_codes/E078.md"),
-        E079,
-        include_str!("./error_codes/E079.md"),
-        E080,
-        include_str!("./error_codes/E080.md"),
-        E081,
-        include_str!("./error_codes/E081.md"),
-        E082,
-        include_str!("./error_codes/E082.md"),
-        E083,
-        include_str!("./error_codes/E083.md"),
-        E084,
-        include_str!("./error_codes/E084.md"),
-        E085,
-        include_str!("./error_codes/E085.md"),
-        E086,
-        include_str!("./error_codes/E086.md"),
-        E087,
-        include_str!("./error_codes/E087.md"),
-        E088,
-        include_str!("./error_codes/E088.md"),
-        E089,
-        include_str!("./error_codes/E089.md"),
-        E090,
-        include_str!("./error_codes/E090.md"),
-    );
-}
+pub mod diagnostics_registry;
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -230,8 +30,6 @@ pub struct Diagnostic {
     primary_location: SourceLocation,
     /// Seconday locations relevant to the diagnostics
     secondary_locations: Option<Vec<SourceLocation>>,
-    /// Severity of the error being reported
-    severity: Severity,
     /// Error code for reference in the documentation
     error_code: &'static str,
     /// Children of the current diagnostic
@@ -254,10 +52,9 @@ impl From<std::io::Error> for Diagnostic {
 
 /// Builder for Diagnostics
 impl Diagnostic {
-    pub fn new(message: impl Into<String>, severity: Severity) -> Self {
+    pub fn new(message: impl Into<String>) -> Self {
         Diagnostic {
             message: message.into(),
-            severity,
             primary_location: SourceLocation::undefined(),
             secondary_locations: Default::default(),
             error_code: "E001", //Default error if none specified
@@ -267,13 +64,7 @@ impl Diagnostic {
     }
 
     pub fn error(message: impl Into<String>) -> Self {
-        Self::new(message, Severity::Error)
-    }
-    pub fn warning(message: impl Into<String>) -> Self {
-        Self::new(message, Severity::Warning)
-    }
-    pub fn info(message: impl Into<String>) -> Self {
-        Self::new(message, Severity::Info)
+        Self::new(message)
     }
 
     pub fn with_location(mut self, location: SourceLocation) -> Self {
@@ -346,7 +137,6 @@ impl PartialEq for Diagnostic {
             && self.message == other.message
             && self.primary_location == other.primary_location
             && self.secondary_locations == other.secondary_locations
-            && self.severity == other.severity
             && self.sub_diagnostics == other.sub_diagnostics
     }
 }
@@ -380,10 +170,6 @@ impl Diagnostic {
 
     pub fn get_type(&self) -> &'static str {
         self.error_code
-    }
-
-    pub fn get_severity(&self) -> Severity {
-        self.severity
     }
 
     pub fn get_sub_diagnostics(&self) -> &[Diagnostic] {

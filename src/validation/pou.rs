@@ -130,7 +130,7 @@ fn validate_program(validator: &mut Validator, pou: &Pou) {
 pub fn validate_action_container(validator: &mut Validator, implementation: &Implementation) {
     if implementation.pou_type == PouType::Action && implementation.type_name == "__unknown__" {
         validator.push_diagnostic(
-            Diagnostic::warning("Missing Actions Container Name")
+            Diagnostic::error("Missing Actions Container Name")
                 .with_error_code("E022")
                 .with_location(implementation.location.clone()),
         );

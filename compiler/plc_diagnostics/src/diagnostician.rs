@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    diagnostics::{Diagnostic, Severity},
+    diagnostics::{diagnostics_registry::DiagnosticsRegistry, Diagnostic, Severity},
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -69,7 +69,7 @@ impl Diagnostician {
     /// Creates a null-diagnostician that does not report diagnostics
     pub fn null_diagnostician() -> Diagnostician {
         Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
             reporter: Box::<NullDiagnosticReporter>::default(),
             filename_fileid_mapping: HashMap::new(),
         }
@@ -78,7 +78,7 @@ impl Diagnostician {
     /// Creates a buffered-diagnostician that saves its reports in a buffer
     pub fn buffered() -> Diagnostician {
         Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
             reporter: Box::new(CodeSpanDiagnosticReporter::buffered()),
             filename_fileid_mapping: HashMap::new(),
         }
@@ -88,7 +88,7 @@ impl Diagnostician {
     pub fn clang_format_diagnostician() -> Diagnostician {
         Diagnostician {
             reporter: Box::<ClangFormatDiagnosticReporter>::default(),
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
             filename_fileid_mapping: HashMap::new(),
         }
     }
@@ -123,7 +123,7 @@ impl Default for Diagnostician {
     fn default() -> Self {
         Self {
             reporter: Box::<CodeSpanDiagnosticReporter>::default(),
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
             filename_fileid_mapping: HashMap::new(),
         }
     }
@@ -135,18 +135,6 @@ impl Default for Diagnostician {
 pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
     fn assess(&self, d: &Diagnostic) -> Severity;
-}
-
-/// the default assessor will treat ImprovementSuggestions as warnings
-/// and everything else as errors
-#[derive(Default)]
-pub struct DefaultDiagnosticAssessor;
-
-impl DiagnosticAssessor for DefaultDiagnosticAssessor {
-    fn assess(&self, d: &Diagnostic) -> Severity {
-        //TODO: Refer to some severity map to reassign severity here.
-        d.get_severity()
-    }
 }
 
 impl std::fmt::Display for Severity {

@@ -439,7 +439,7 @@ fn validate_reference<T: AnnotationMap>(
             {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
-                    Diagnostic::info(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
+                    Diagnostic::error(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
                     .with_error_code("E060")
                     .with_location(location.clone())
                 );
@@ -578,7 +578,7 @@ fn visit_binary_expression<T: AnnotationMap>(
                 let rhs = validator.context.slice(&right.location);
 
                 validator.push_diagnostic(
-                    Diagnostic::warning(format!(
+                    Diagnostic::error(format!(
                         "This equal statement has no effect, did you mean `{lhs} := {rhs}`?"
                     ))
                     .with_error_code("E023")
@@ -755,7 +755,7 @@ fn validate_assignment<T: AnnotationMap>(
             // ...VAR_INPUT {ref} variable
             if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
                 validator.push_diagnostic(
-                    Diagnostic::warning("VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.")
+                    Diagnostic::error("VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.")
                     .with_error_code("E042")
                     .with_location(location.to_owned())
                     );
@@ -800,7 +800,7 @@ fn validate_assignment<T: AnnotationMap>(
         {
             if left_type.is_pointer() && right_type.is_pointer() {
                 validator.push_diagnostic(
-                    Diagnostic::warning(format!(
+                    Diagnostic::error(format!(
                         "Pointers {} and {} have different types",
                         get_datatype_name_or_slice(validator.context, left_type),
                         get_datatype_name_or_slice(validator.context, right_type)
@@ -832,7 +832,7 @@ pub(crate) fn validate_enum_variant_assignment(
     if left.is_enum() && left.get_name() != right.get_name() {
         validator.push_diagnostic(
             Diagnostic::error(format!("Assigned value is not a variant of {qualified_name}"))
-                .with_error_code("E039")
+                .with_error_code("E040")
                 .with_location(location),
         )
     }
@@ -1234,7 +1234,7 @@ fn _validate_assignment_type_sizes<T: AnnotationMap>(
         < right.get_type_information().get_size(context.index)
     {
         validator.push_diagnostic(
-            Diagnostic::info(format!(
+            Diagnostic::error(format!(
                 "Potential loss of information due to assigning '{}' to variable of type '{}'.",
                 left.get_name(),
                 right.get_name()

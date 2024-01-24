@@ -69,7 +69,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
 
     match (&pou.pou_type, block.variable_block_type) {
         (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => validator.push_diagnostic(
-            Diagnostic::warning(
+            Diagnostic::error(
                 "Variable Length Arrays are always by-ref, even when declared in a by-value block",
             )
             .with_error_code("E047")

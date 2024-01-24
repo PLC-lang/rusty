@@ -1981,9 +1981,11 @@ dependencies = [
  "anyhow",
  "codespan-reporting",
  "lazy_static",
+ "log",
  "plc_ast",
  "plc_source",
  "serde_json",
+ "toml",
 ]
 
 [[package]]

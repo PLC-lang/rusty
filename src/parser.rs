@@ -345,11 +345,9 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
         if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
             if let Some(init) = initializer {
                 lexer.accept_diagnostic(
-                    Diagnostic::warning(
-                        "Return types cannot have a default value, the value will be ignored",
-                    )
-                    .with_location(init.get_location())
-                    .with_error_code("E016"),
+                    Diagnostic::error("Return types cannot have a default value, the value will be ignored")
+                        .with_location(init.get_location())
+                        .with_error_code("E016"),
                 );
             }
 
@@ -653,7 +651,7 @@ fn parse_data_type_definition(
         let start_pos = lexer.last_range.start;
         //Report wrong keyword
         lexer.accept_diagnostic(
-            Diagnostic::warning("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
+            Diagnostic::error("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
                 .with_location(lexer.last_location())
                 .with_error_code("E015"),
         );
@@ -788,7 +786,7 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
                         .with_error_code("E009"),
                 );
             } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
-                lexer.accept_diagnostic(Diagnostic::warning(
+                lexer.accept_diagnostic(Diagnostic::error(
                     "Unusual type of parentheses around string size expression, consider using square parentheses '[]'").
                     with_location(error_range)
                     .with_error_code("E014")
@@ -997,7 +995,7 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
         //Report a diagnostic if blocktype is incompatible
         if !matches!(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(
-                Diagnostic::warning("Invalid pragma location: Only VAR_INPUT support by ref properties")
+                Diagnostic::error("Invalid pragma location: Only VAR_INPUT support by ref properties")
                     .with_error_code("E024")
                     .with_location(lexer.location()),
             )
