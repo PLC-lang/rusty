@@ -12,7 +12,10 @@ error: Recursive data structure `C -> E -> C` has infinite size
    ┌─ <internal>:10:18
    │
 10 │             TYPE C : STRUCT
-   │                  ^ Recursive data structure `C -> E -> C` has infinite size
+   │                  ^
+   │                  │
+   │                  Recursive data structure `C -> E -> C` has infinite size
+   │                  see also
    ·
 15 │             TYPE E : STRUCT
    │                  - see also

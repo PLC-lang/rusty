@@ -2,29 +2,29 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid type nature for generic argument. REAL is no Unsigned.
+error: Invalid type nature for generic argument. REAL is no ANY_UNSIGNED
    ┌─ <internal>:15:14
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no Unsigned.
+   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no ANY_UNSIGNED
 
-error: Invalid type nature for generic argument. DINT is no Unsigned.
+error: Invalid type nature for generic argument. DINT is no ANY_UNSIGNED
    ┌─ <internal>:15:38
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no Unsigned.
+   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no ANY_UNSIGNED
 
-error: Invalid type nature for generic argument. TIME is no Unsigned.
+error: Invalid type nature for generic argument. TIME is no ANY_UNSIGNED
    ┌─ <internal>:15:50
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no Unsigned.
+   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_UNSIGNED
 
-error: Invalid type nature for generic argument. BYTE is no Unsigned.
+error: Invalid type nature for generic argument. BYTE is no ANY_UNSIGNED
    ┌─ <internal>:15:60
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no Unsigned.
+   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no ANY_UNSIGNED
 
 error: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:15:70
@@ -32,11 +32,11 @@ error: Invalid assignment: cannot assign 'STRING' to 'UDINT'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'UDINT'
 
-error: Invalid type nature for generic argument. STRING is no Unsigned.
+error: Invalid type nature for generic argument. STRING is no ANY_UNSIGNED
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no Unsigned.
+   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_UNSIGNED
 
 error: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
    ┌─ <internal>:15:79
@@ -44,16 +44,16 @@ error: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'UDINT'
 
-error: Invalid type nature for generic argument. CHAR is no Unsigned.
+error: Invalid type nature for generic argument. CHAR is no ANY_UNSIGNED
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no Unsigned.
+   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no ANY_UNSIGNED
 
-error: Invalid type nature for generic argument. DATE is no Unsigned.
+error: Invalid type nature for generic argument. DATE is no ANY_UNSIGNED
    ┌─ <internal>:15:89
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no Unsigned.
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no ANY_UNSIGNED
 
 

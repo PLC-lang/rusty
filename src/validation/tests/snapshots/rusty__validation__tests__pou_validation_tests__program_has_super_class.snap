@@ -2,10 +2,10 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: A program cannot use EXTEND
+error: A program cannot use `EXTEND`
   ┌─ <internal>:5:17
   │
 5 │         PROGRAM prog EXTENDS cls
-  │                 ^^^^ A program cannot use EXTEND
+  │                 ^^^^ A program cannot use `EXTEND`
 
 

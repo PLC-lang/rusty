@@ -8,11 +8,11 @@ error: Invalid assignment: cannot assign 'REAL' to 'CHAR'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │              ^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'CHAR'
 
-error: Invalid type nature for generic argument. REAL is no Char.
+error: Invalid type nature for generic argument. REAL is no ANY_CHAR
    ┌─ <internal>:15:14
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no Char.
+   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no ANY_CHAR
 
 error: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
    ┌─ <internal>:15:24
@@ -20,11 +20,11 @@ error: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                        ^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. UDINT is no Char.
+error: Invalid type nature for generic argument. UDINT is no ANY_CHAR
    ┌─ <internal>:15:24
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no Char.
+   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no ANY_CHAR
 
 error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
    ┌─ <internal>:15:38
@@ -32,11 +32,11 @@ error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                      ^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. DINT is no Char.
+error: Invalid type nature for generic argument. DINT is no ANY_CHAR
    ┌─ <internal>:15:38
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no Char.
+   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no ANY_CHAR
 
 error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
    ┌─ <internal>:15:50
@@ -44,11 +44,11 @@ error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                  ^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
 
-error: Invalid type nature for generic argument. TIME is no Char.
+error: Invalid type nature for generic argument. TIME is no ANY_CHAR
    ┌─ <internal>:15:50
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no Char.
+   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_CHAR
 
 error: Invalid assignment: cannot assign 'BYTE' to 'CHAR'
    ┌─ <internal>:15:60
@@ -56,11 +56,11 @@ error: Invalid assignment: cannot assign 'BYTE' to 'CHAR'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                            ^^^^^^^^ Invalid assignment: cannot assign 'BYTE' to 'CHAR'
 
-error: Invalid type nature for generic argument. BYTE is no Char.
+error: Invalid type nature for generic argument. BYTE is no ANY_CHAR
    ┌─ <internal>:15:60
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no Char.
+   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no ANY_CHAR
 
 error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:15:70
@@ -68,11 +68,11 @@ error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Invalid type nature for generic argument. STRING is no Char.
+error: Invalid type nature for generic argument. STRING is no ANY_CHAR
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no Char.
+   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_CHAR
 
 error: Invalid assignment: cannot assign 'DATE' to 'CHAR'
    ┌─ <internal>:15:89
@@ -80,10 +80,10 @@ error: Invalid assignment: cannot assign 'DATE' to 'CHAR'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                                         ^^^^^^^^ Invalid assignment: cannot assign 'DATE' to 'CHAR'
 
-error: Invalid type nature for generic argument. DATE is no Char.
+error: Invalid type nature for generic argument. DATE is no ANY_CHAR
    ┌─ <internal>:15:89
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no Char.
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no ANY_CHAR
 
 

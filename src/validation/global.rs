@@ -34,26 +34,23 @@ impl GlobalValidator {
         locations: &[&SourceLocation],
         additional_text: Option<&str>,
     ) {
-        for (idx, v) in locations.iter().enumerate() {
-            let others = locations
-                .iter()
-                .enumerate()
-                .filter(|(j, _)| idx != (*j))
-                .map(|(_, it)| (*it).clone())
-                .collect::<Vec<_>>();
+        for v in locations.iter() {
+            let others = locations.iter().filter(|it| *it != v).map(|it| (*it).clone()).collect::<Vec<_>>();
 
             // If the SourceRange of `v` is undefined, we can assume the user choose a name which clashes
             // with an (internal) built-in datatype, hence the undefined location.
             if v.is_undefined() {
-                self.diagnostics.push(
-                    Diagnostic::error(format!(
-                        "{name} can not be used as a name because it is a built-in datatype"
-                    ))
-                    .with_error_code("E004")
-                    .with_secondary_locations(others),
-                );
+                for other in others {
+                    self.diagnostics.push(
+                        Diagnostic::error(format!(
+                            "{name} can not be used as a name because it is a built-in datatype"
+                        ))
+                        .with_location((other).clone())
+                        .with_error_code("E004"),
+                    );
+                }
             } else {
-                let additional_text = additional_text.unwrap_or("Duplicate Symbol.");
+                let additional_text = additional_text.unwrap_or("Duplicate symbol.");
                 self.push_diagnostic(
                     Diagnostic::error(format!("{name}: {additional_text}"))
                         .with_error_code("E004")

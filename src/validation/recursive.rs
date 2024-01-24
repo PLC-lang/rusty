@@ -116,8 +116,12 @@ impl RecursiveValidator {
                 } else {
                     diagnostic
                 };
-                let diagnostic =
-                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it.clone()));
+
+                let diagnostic = if ranges.len() > 1 {
+                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it.clone()))
+                } else {
+                    diagnostic
+                };
                 self.diagnostics.push(diagnostic);
             }
 

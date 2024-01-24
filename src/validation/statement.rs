@@ -739,7 +739,7 @@ fn validate_assignment<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::error(format!("Cannot assign to CONSTANT '{qualified_name}'"))
                         .with_error_code("E036")
-                        .with_location(right.get_location()),
+                        .with_location(left.get_location()),
                 );
             } else {
                 // ...enum variable where the RHS does not match its variants
@@ -802,8 +802,8 @@ fn validate_assignment<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::warning(format!(
                         "Pointers {} and {} have different types",
-                        left_type.get_name(),
-                        right_type.get_name()
+                        get_datatype_name_or_slice(validator.context, left_type),
+                        get_datatype_name_or_slice(validator.context, right_type)
                     ))
                     .with_error_code("E090")
                     .with_location(location.clone()),
@@ -1207,7 +1207,7 @@ fn validate_type_nature<T: AnnotationMap>(
             {
                 validator.push_diagnostic(
                     Diagnostic::error(format!(
-                        "Invalid type nature for generic argumet. {} is no {}",
+                        "Invalid type nature for generic argument. {} is no {}",
                         actual_type.get_name(),
                         generic_nature
                     ))

@@ -2,10 +2,10 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Expected literal
+error: Cannot cast into [x], only elementary types are allowed
   ┌─ <internal>:2:13
   │
 2 │             INT#[x];
-  │             ^^^^^^^ Expected literal
+  │             ^^^^^^^ Cannot cast into [x], only elementary types are allowed
 
 

@@ -2,10 +2,10 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Missing datatype : Sized Variadics require a known datatype.
+error: Missing datatype: Sized Variadics require a known datatype.
   ┌─ <internal>:5:27
   │
 5 │             args : {sized}...;
-  │                           ^^^ Missing datatype : Sized Variadics require a known datatype.
+  │                           ^^^ Missing datatype: Sized Variadics require a known datatype.
 
 

@@ -8,11 +8,11 @@ error: Invalid assignment: cannot assign 'STRING' to 'TIME'
 3 │         FUNCTION func1   : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
   │                                                             ^ Invalid assignment: cannot assign 'STRING' to 'TIME'
 
-error: Invalid type nature for generic argument. STRING is no Duration.
+error: Invalid type nature for generic argument. STRING is no ANY_DURATION
   ┌─ <internal>:3:61
   │
 3 │         FUNCTION func1   : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
-  │                                                             ^ Invalid type nature for generic argument. STRING is no Duration.
+  │                                                             ^ Invalid type nature for generic argument. STRING is no ANY_DURATION
 
 error: Invalid assignment: cannot assign 'WSTRING' to 'TIME'
   ┌─ <internal>:4:61
@@ -20,10 +20,10 @@ error: Invalid assignment: cannot assign 'WSTRING' to 'TIME'
 4 │         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
   │                                                             ^ Invalid assignment: cannot assign 'WSTRING' to 'TIME'
 
-error: Invalid type nature for generic argument. WSTRING is no Duration.
+error: Invalid type nature for generic argument. WSTRING is no ANY_DURATION
   ┌─ <internal>:4:61
   │
 4 │         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
-  │                                                             ^ Invalid type nature for generic argument. WSTRING is no Duration.
+  │                                                             ^ Invalid type nature for generic argument. WSTRING is no ANY_DURATION
 
 
