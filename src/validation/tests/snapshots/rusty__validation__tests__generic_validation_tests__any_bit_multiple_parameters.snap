@@ -1,14 +1,59 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 13, offset: 429 }..TextLocation { line: 14, column: 21, offset: 437 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 23, offset: 439 }..TextLocation { line: 14, column: 35, offset: 451 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 37, offset: 453 }..TextLocation { line: 14, column: 47, offset: 463 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 49, offset: 465 }..TextLocation { line: 14, column: 57, offset: 473 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 485 }..TextLocation { line: 14, column: 76, offset: 492 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 485 }..TextLocation { line: 14, column: 76, offset: 492 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 494 }..TextLocation { line: 14, column: 86, offset: 502 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 494 }..TextLocation { line: 14, column: 86, offset: 502 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Bit.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 88, offset: 504 }..TextLocation { line: 14, column: 96, offset: 512 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. REAL is no Bit.
+   ┌─ <internal>:15:14
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no Bit.
+
+error: Invalid type nature for generic argument. UDINT is no Bit.
+   ┌─ <internal>:15:24
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no Bit.
+
+error: Invalid type nature for generic argument. DINT is no Bit.
+   ┌─ <internal>:15:38
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no Bit.
+
+error: Invalid type nature for generic argument. TIME is no Bit.
+   ┌─ <internal>:15:50
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no Bit.
+
+error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+   ┌─ <internal>:15:70
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
+
+error: Invalid type nature for generic argument. STRING is no Bit.
+   ┌─ <internal>:15:70
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no Bit.
+
+error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+
+error: Invalid type nature for generic argument. CHAR is no Bit.
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no Bit.
+
+error: Invalid type nature for generic argument. DATE is no Bit.
+   ┌─ <internal>:15:89
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no Bit.
+
 

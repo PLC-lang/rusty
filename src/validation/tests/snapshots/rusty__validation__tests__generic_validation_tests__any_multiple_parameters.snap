@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 481 }..TextLocation { line: 14, column: 76, offset: 488 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 490 }..TextLocation { line: 14, column: 86, offset: 498 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+   ┌─ <internal>:15:70
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
+
+error: Invalid assignment: cannot assign 'CHAR' to 'DATE'
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DATE'
+
 

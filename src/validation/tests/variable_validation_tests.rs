@@ -1,10 +1,9 @@
 use crate::test_utils::tests::parse_and_validate_buffered;
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 use insta::assert_snapshot;
 
 #[test]
 fn uninitialized_constants_fall_back_to_the_default() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         VAR_GLOBAL
             gX : INT;
@@ -30,12 +29,12 @@ fn uninitialized_constants_fall_back_to_the_default() {
        ",
     );
 
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn unresolvable_variables_are_reported() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         VAR_GLOBAL
             gX : INT := 7 + cgX;
@@ -62,14 +61,14 @@ fn unresolvable_variables_are_reported() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn constant_on_illegal_var_blocks_cause_validation_issue() {
     // GIVEN different variable block types with the CONSTANT modifier
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         VAR_GLOBAL CONSTANT //OK
         END_VAR
@@ -111,14 +110,14 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn constant_fb_instances_are_illegal() {
     // GIVEN a couple of constants, including FB instances and class-instances
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION_BLOCK MyFb
             ;
@@ -140,14 +139,14 @@ fn constant_fb_instances_are_illegal() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn sized_varargs_require_type() {
     // GIVEN a function with a untyped sized variadic argument
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION f_with_var : INT
         VAR_INPUT
@@ -158,15 +157,16 @@ fn sized_varargs_require_type() {
       ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 mod overflows {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn overflows_with_literals() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         FUNCTION main : DINT
             VAR
@@ -206,12 +206,12 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn overflows_with_expressions() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         FUNCTION main : DINT
             VAR
@@ -251,12 +251,12 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn overflows_with_globals() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         VAR_GLOBAL
             a : INT := 32768;
@@ -265,12 +265,12 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn overflows_with_aliases() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         TYPE MyINT      : INT   := 60000; END_TYPE
         TYPE MyREAL     : REAL  := 3.50282347E+38; END_TYPE
@@ -278,12 +278,12 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn overflows_with_constants() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         VAR_GLOBAL CONSTANT
             a : INT := 16384; // OK
@@ -293,12 +293,12 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn overflows_with_non_global_constants() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         VAR_GLOBAL
             a : INT := 16384; // OK
@@ -311,11 +311,7 @@ mod overflows {
         // As of now we do not evaluate `c` because the variable block isn't defined to be constant.
         // If at some point we support evaluation such cases, this test should fail. See also:
         // https://github.com/PLC-lang/rusty/issues/847
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0].get_message(),
-            "Unresolved constant 'c' variable: 'a' is no const reference"
-        );
+        assert_snapshot!(diagnostics)
     }
 
     #[test]
@@ -323,7 +319,7 @@ mod overflows {
         // TODO(volsa): We currently only detect the first overflow value inside an array-initalizer because
         // the `evaluate_with_target_hint` method will return an error after it first detected such a value (i.e.
         // after `-1`).
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         VAR_GLOBAL
             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
@@ -331,12 +327,12 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics)
+        assert_snapshot!(diagnostics)
     }
 
     #[test]
     fn overflows_with_not() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         VAR_GLOBAL
             x : UINT := 1234;       // OK
@@ -345,12 +341,12 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn overflows_with_hex() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         VAR_GLOBAL
             x : UINT := WORD#16#ffff;   // OK
@@ -359,7 +355,7 @@ mod overflows {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 }
 

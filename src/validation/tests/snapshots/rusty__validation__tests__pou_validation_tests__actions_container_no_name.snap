@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/pou_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-ImprovementSuggestion { message: "Missing Actions Container Name", range: [SourceLocation { span: Range(TextLocation { line: 0, column: 24, offset: 24 }..TextLocation { line: 0, column: 34, offset: 34 }) }] }
+warning: Missing Actions Container Name
+  ┌─ <internal>:1:25
+  │
+1 │ ACTIONS ACTION myAction END_ACTION END_ACTIONS
+  │                         ^^^^^^^^^^ Missing Actions Container Name
+
 

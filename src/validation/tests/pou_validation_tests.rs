@@ -1,28 +1,29 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 #[test]
 fn function_no_return_unsupported() {
     // GIVEN FUNCTION with no return type
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate("FUNCTION foo VAR_INPUT END_VAR END_FUNCTION");
+    let diagnostics = parse_and_validate_buffered("FUNCTION foo VAR_INPUT END_VAR END_FUNCTION");
     // THEN there should be one diagnostic -> missing return type
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn actions_container_no_name() {
     // GIVEN ACTIONS without a name
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate("ACTIONS ACTION myAction END_ACTION END_ACTIONS");
+    let diagnostics = parse_and_validate_buffered("ACTIONS ACTION myAction END_ACTION END_ACTIONS");
     // THEN there should be one diagnostic -> missing action container name
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn class_has_implementation() {
     // GIVEN CLASS with an implementation
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS myCLASS
         VAR
@@ -33,14 +34,14 @@ fn class_has_implementation() {
     ",
     );
     // THEN there should be one diagnostic -> Class cannot have implementation
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn program_has_super_class() {
     // GIVEN PROGRAM with a super class
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS cls
         END_CLASS
@@ -50,14 +51,14 @@ fn program_has_super_class() {
     ",
     );
     // THEN there should be one diagnostic -> Program cannot have super class
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn function_has_super_class() {
     // GIVEN FUNCTION with a super class
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS cls
         END_CLASS
@@ -67,28 +68,28 @@ fn function_has_super_class() {
     ",
     );
     // THEN there should be one diagnostic -> Function cannot have super class
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn class_with_return_type() {
     // GIVEN class with a return type
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS cls : INT
         END_CLASS
     ",
     );
     // THEN there should be one diagnostic -> Class cannot have a return type
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn in_out_variable_not_allowed_in_class() {
     // GIVEN class with a VAR_IN_OUT
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS cls
         VAR_IN_OUT
@@ -98,14 +99,14 @@ fn in_out_variable_not_allowed_in_class() {
     ",
     );
     // THEN there should be one diagnostic -> Class cannot have a var in/out/inout block
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn input_variable_not_allowed_in_class() {
     // GIVEN class with a VAR_INPUT
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS cls
         VAR_INPUT
@@ -115,14 +116,14 @@ fn input_variable_not_allowed_in_class() {
     ",
     );
     // THEN there should be one diagnostic -> Class cannot have a var in/out/inout block
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn output_variable_not_allowed_in_class() {
     // GIVEN class with a VAR_OUTPUT
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS cls
         VAR_OUTPUT
@@ -132,14 +133,14 @@ fn output_variable_not_allowed_in_class() {
     ",
     );
     // THEN there should be one diagnostic -> Class cannot have a var in/out/inout block
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn local_variable_allowed_in_class() {
     // GIVEN class with a VAR
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         CLASS cls
         VAR
@@ -149,7 +150,7 @@ fn local_variable_allowed_in_class() {
     ",
     );
     // THEN there should be no diagnostic -> Class can have local var block
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -158,7 +159,7 @@ fn do_not_validate_external() {
     // for this kind of assignment our validator would report
     // potential loss of information (assigning bigger to smaller type)
     // WHEN ...
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
     PROGRAM main
     END_PROGRAM
@@ -179,7 +180,7 @@ fn do_not_validate_external() {
 
 #[test]
 fn in_out_variable_out_of_order() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
     PROGRAM mainProg
     VAR
@@ -220,5 +221,5 @@ fn in_out_variable_out_of_order() {
     ",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }

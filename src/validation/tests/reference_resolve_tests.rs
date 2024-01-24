@@ -1,11 +1,11 @@
-use crate::assert_validation_snapshot;
-use crate::test_utils::tests::parse_and_validate;
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 /// tests wheter simple local and global variables can be resolved and
 /// errors are reported properly
 #[test]
 fn resolve_simple_variable_references() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             VAR_GLOBAL
                 ga : INT;
@@ -23,14 +23,14 @@ fn resolve_simple_variable_references() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 /// tests wheter functions and function parameters can be resolved and
 /// errors are reported properly
 #[test]
 fn resolve_function_calls_and_parameters() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
            PROGRAM prg
                 VAR a : INT; END_VAR
@@ -47,14 +47,14 @@ fn resolve_function_calls_and_parameters() {
         ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 /// tests wheter structs and struct member variables can be resolved and
 /// errors are reported properly
 #[test]
 fn resole_struct_member_access() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             TYPE MySubStruct: STRUCT
                 subfield1: INT;
@@ -99,14 +99,14 @@ fn resole_struct_member_access() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 /// tests wheter function_block members can be resolved and
 /// errors are reported properly
 #[test]
 fn resolve_function_block_calls_field_access() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             FUNCTION_BLOCK FB
                 VAR_INPUT
@@ -130,14 +130,14 @@ fn resolve_function_block_calls_field_access() {
        ",
     );
 
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 /// tests wheter function_block types and member variables can be resolved and
 /// errors are reported properly
 #[test]
 fn resolve_function_block_calls_in_structs_and_field_access() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             FUNCTION_BLOCK FB
                 VAR_INPUT
@@ -167,13 +167,13 @@ fn resolve_function_block_calls_in_structs_and_field_access() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 /// tests wheter function's members cannot be access using the function's name as a qualifier
 #[test]
 fn resolve_function_members_via_qualifier() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
                 VAR
@@ -193,13 +193,13 @@ fn resolve_function_members_via_qualifier() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 /// tests whether references to privater variables do resolve, but end up in an validation problem
 #[test]
 fn reference_to_private_variable_is_illegal() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
                 VAR
@@ -213,7 +213,7 @@ fn reference_to_private_variable_is_illegal() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 /// tests whether an intermediate access like: `a.priv.b` (where priv is a var_local)
@@ -223,7 +223,7 @@ fn reference_to_private_variable_in_intermediate_fb() {
     // GIVEN a qualified reference prg.a.f.x where f is a
     // private member of a functionblock (VAR)
     // WHEN this is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             FUNCTION_BLOCK fb1
                 VAR
@@ -249,12 +249,12 @@ fn reference_to_private_variable_in_intermediate_fb() {
 
     // THEN we get a validtion-error for accessing fb1.f, but no follow-up errors for
     // the access of fb2 which is legit
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn program_vars_are_allowed_in_their_actions() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
                 VAR
@@ -269,12 +269,12 @@ fn program_vars_are_allowed_in_their_actions() {
        ",
     );
 
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM main
         VAR
@@ -296,12 +296,12 @@ fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
        ",
     );
 
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM mainProg
         VAR
@@ -327,12 +327,12 @@ fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
        ",
     );
 
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initialized() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM mainProg
         VAR
