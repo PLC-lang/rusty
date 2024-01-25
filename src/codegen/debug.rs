@@ -9,7 +9,7 @@ use inkwell::{
         DebugInfoBuilder,
     },
     module::Module,
-    values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
+    values::{FunctionValue, GlobalValue, PointerValue},
 };
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -178,14 +178,13 @@ impl<'ink> DebugBuilderEnum<'ink> {
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> Self {
-        let dwarf_version: BasicMetadataValueEnum<'ink> = context.i32_type().const_int(5, false).into();
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
             DebugLevel::VariablesOnly | DebugLevel::Full => {
-                module.add_metadata_flag(
-                    "Dwarf Version",
+                module.add_basic_value_flag(
+                    "Debug Info Version",
                     inkwell::module::FlagBehavior::Warning,
-                    context.metadata_node(&[dwarf_version]),
+                    context.i32_type().const_int(inkwell::debug_info::debug_metadata_version() as u64, false),
                 );
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
                 let root = root.unwrap_or_else(|| Path::new(""));
