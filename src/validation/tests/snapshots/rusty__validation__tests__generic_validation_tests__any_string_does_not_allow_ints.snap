@@ -1,21 +1,101 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'USINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 142 }..TextLocation { line: 3, column: 59, offset: 143 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. USINT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 142 }..TextLocation { line: 3, column: 59, offset: 143 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 216 }..TextLocation { line: 4, column: 58, offset: 217 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UINT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 216 }..TextLocation { line: 4, column: 58, offset: 217 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 58, offset: 291 }..TextLocation { line: 5, column: 59, offset: 292 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 58, offset: 291 }..TextLocation { line: 5, column: 59, offset: 292 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'ULINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 58, offset: 366 }..TextLocation { line: 6, column: 59, offset: 367 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. ULINT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 58, offset: 366 }..TextLocation { line: 6, column: 59, offset: 367 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'SINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 57, offset: 441 }..TextLocation { line: 8, column: 58, offset: 442 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. SINT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 57, offset: 441 }..TextLocation { line: 8, column: 58, offset: 442 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 56, offset: 514 }..TextLocation { line: 9, column: 57, offset: 515 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. INT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 56, offset: 514 }..TextLocation { line: 9, column: 57, offset: 515 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 57, offset: 588 }..TextLocation { line: 10, column: 58, offset: 589 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 57, offset: 588 }..TextLocation { line: 10, column: 58, offset: 589 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'LINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 57, offset: 662 }..TextLocation { line: 11, column: 58, offset: 663 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. LINT is no String.", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 57, offset: 662 }..TextLocation { line: 11, column: 58, offset: 663 }) }], err_no: type__invalid_nature }
+error: Invalid assignment: cannot assign 'USINT' to 'STRING'
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid assignment: cannot assign 'USINT' to 'STRING'
+
+error: Invalid type nature for generic argument. USINT is no String.
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. USINT is no String.
+
+error: Invalid assignment: cannot assign 'UINT' to 'STRING'
+  ┌─ <internal>:5:58
+  │
+5 │         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid assignment: cannot assign 'UINT' to 'STRING'
+
+error: Invalid type nature for generic argument. UINT is no String.
+  ┌─ <internal>:5:58
+  │
+5 │         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. UINT is no String.
+
+error: Invalid assignment: cannot assign 'UDINT' to 'STRING'
+  ┌─ <internal>:6:59
+  │
+6 │         FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid assignment: cannot assign 'UDINT' to 'STRING'
+
+error: Invalid type nature for generic argument. UDINT is no String.
+  ┌─ <internal>:6:59
+  │
+6 │         FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. UDINT is no String.
+
+error: Invalid assignment: cannot assign 'ULINT' to 'STRING'
+  ┌─ <internal>:7:59
+  │
+7 │         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid assignment: cannot assign 'ULINT' to 'STRING'
+
+error: Invalid type nature for generic argument. ULINT is no String.
+  ┌─ <internal>:7:59
+  │
+7 │         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. ULINT is no String.
+
+error: Invalid assignment: cannot assign 'SINT' to 'STRING'
+  ┌─ <internal>:9:58
+  │
+9 │         FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid assignment: cannot assign 'SINT' to 'STRING'
+
+error: Invalid type nature for generic argument. SINT is no String.
+  ┌─ <internal>:9:58
+  │
+9 │         FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. SINT is no String.
+
+error: Invalid assignment: cannot assign 'INT' to 'STRING'
+   ┌─ <internal>:10:57
+   │
+10 │         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
+   │                                                         ^ Invalid assignment: cannot assign 'INT' to 'STRING'
+
+error: Invalid type nature for generic argument. INT is no String.
+   ┌─ <internal>:10:57
+   │
+10 │         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
+   │                                                         ^ Invalid type nature for generic argument. INT is no String.
+
+error: Invalid assignment: cannot assign 'DINT' to 'STRING'
+   ┌─ <internal>:11:58
+   │
+11 │         FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+   │                                                          ^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+error: Invalid type nature for generic argument. DINT is no String.
+   ┌─ <internal>:11:58
+   │
+11 │         FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+   │                                                          ^ Invalid type nature for generic argument. DINT is no String.
+
+error: Invalid assignment: cannot assign 'LINT' to 'STRING'
+   ┌─ <internal>:12:58
+   │
+12 │         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+   │                                                          ^ Invalid assignment: cannot assign 'LINT' to 'STRING'
+
+error: Invalid type nature for generic argument. LINT is no String.
+   ┌─ <internal>:12:58
+   │
+12 │         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+   │                                                          ^ Invalid type nature for generic argument. LINT is no String.
+
 

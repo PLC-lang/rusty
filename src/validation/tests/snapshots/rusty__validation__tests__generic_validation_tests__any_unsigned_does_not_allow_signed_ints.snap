@@ -1,9 +1,29 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. SINT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 142 }..TextLocation { line: 2, column: 58, offset: 143 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. INT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 56, offset: 215 }..TextLocation { line: 3, column: 57, offset: 216 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 289 }..TextLocation { line: 4, column: 58, offset: 290 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LINT is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 57, offset: 363 }..TextLocation { line: 5, column: 58, offset: 364 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. SINT is no Unsigned.
+  ┌─ <internal>:3:58
+  │
+3 │         FUNCTION func1  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. SINT is no Unsigned.
+
+error: Invalid type nature for generic argument. INT is no Unsigned.
+  ┌─ <internal>:4:57
+  │
+4 │         FUNCTION func2  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
+  │                                                         ^ Invalid type nature for generic argument. INT is no Unsigned.
+
+error: Invalid type nature for generic argument. DINT is no Unsigned.
+  ┌─ <internal>:5:58
+  │
+5 │         FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. DINT is no Unsigned.
+
+error: Invalid type nature for generic argument. LINT is no Unsigned.
+  ┌─ <internal>:6:58
+  │
+6 │         FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. LINT is no Unsigned.
+
 

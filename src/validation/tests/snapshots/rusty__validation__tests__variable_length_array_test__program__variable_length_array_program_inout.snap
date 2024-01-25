@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/variable_length_array_test.rs
-expression: res
+expression: program_inout
 ---
-SyntaxError { message: "POU Type Program does not support a return type. Did you mean Function?", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 15, offset: 16 }..TextLocation { line: 1, column: 21, offset: 22 }) }], err_no: pou__unexpected_return_type }
-SemanticError { message: "Variable Length Arrays are not allowed to be defined inside a Program", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 12, offset: 54 }..TextLocation { line: 3, column: 15, offset: 57 }) }], err_no: vla__invalid_container }
+error: POU Type Program does not support a return type. Did you mean Function?
+  ┌─ <internal>:2:16
+  │
+2 │     PROGRAM fn : DINT
+  │                ^^^^^^ POU Type Program does not support a return type. Did you mean Function?
+
+error: Variable Length Arrays are not allowed to be defined inside a Program
+  ┌─ <internal>:4:13
+  │
+4 │             arr : ARRAY[*] OF DINT;
+  │             ^^^ Variable Length Arrays are not allowed to be defined inside a Program
+
 

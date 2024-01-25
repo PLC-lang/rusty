@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/literals_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Literal \"XY\" out of range (CHAR)", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 80 }..TextLocation { line: 6, column: 21, offset: 89 }) }], err_no: type__literal_out_of_range }
-SyntaxError { message: "Literal 'YZ' out of range (WCHAR)", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 103 }..TextLocation { line: 7, column: 22, offset: 113 }) }], err_no: type__literal_out_of_range }
+error: Literal "XY" out of range (CHAR)
+  ┌─ <internal>:7:13
+  │
+7 │             CHAR#"XY";
+  │             ^^^^^^^^^ Literal "XY" out of range (CHAR)
+
+error: Literal 'YZ' out of range (WCHAR)
+  ┌─ <internal>:8:13
+  │
+8 │             WCHAR#'YZ';
+  │             ^^^^^^^^^^ Literal 'YZ' out of range (WCHAR)
+
 

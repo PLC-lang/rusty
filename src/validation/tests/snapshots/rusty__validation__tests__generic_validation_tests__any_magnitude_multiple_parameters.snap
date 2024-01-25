@@ -1,11 +1,41 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Magnitude.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 59, offset: 481 }..TextLocation { line: 14, column: 67, offset: 489 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 491 }..TextLocation { line: 14, column: 76, offset: 498 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Magnitude.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 491 }..TextLocation { line: 14, column: 76, offset: 498 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'TIME'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 500 }..TextLocation { line: 14, column: 86, offset: 508 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Magnitude.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 500 }..TextLocation { line: 14, column: 86, offset: 508 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Magnitude.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 88, offset: 510 }..TextLocation { line: 14, column: 96, offset: 518 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. BYTE is no Magnitude.
+   ┌─ <internal>:15:60
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no Magnitude.
+
+error: Invalid assignment: cannot assign 'STRING' to 'TIME'
+   ┌─ <internal>:15:70
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
+
+error: Invalid type nature for generic argument. STRING is no Magnitude.
+   ┌─ <internal>:15:70
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no Magnitude.
+
+error: Invalid assignment: cannot assign 'CHAR' to 'TIME'
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'TIME'
+
+error: Invalid type nature for generic argument. CHAR is no Magnitude.
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no Magnitude.
+
+error: Invalid type nature for generic argument. DATE is no Magnitude.
+   ┌─ <internal>:15:89
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no Magnitude.
+
 

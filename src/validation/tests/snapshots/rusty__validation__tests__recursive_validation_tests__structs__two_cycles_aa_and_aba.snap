@@ -1,7 +1,20 @@
 ---
 source: src/validation/tests/recursive_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SemanticError { message: "Recursive data structure `A -> A` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 17, offset: 18 }..TextLocation { line: 1, column: 18, offset: 19 }) }], err_no: pou__recursive_data_structure }
-SemanticError { message: "Recursive data structure `A -> B -> A` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 17, offset: 18 }..TextLocation { line: 1, column: 18, offset: 19 }) }, SourceLocation { span: Range(TextLocation { line: 6, column: 17, offset: 125 }..TextLocation { line: 6, column: 18, offset: 126 }) }], err_no: pou__recursive_data_structure }
+error: Recursive data structure `A -> A` has infinite size
+  ┌─ <internal>:2:18
+  │
+2 │             TYPE A : STRUCT
+  │                  ^ Recursive data structure `A -> A` has infinite size
+
+error: Recursive data structure `A -> B -> A` has infinite size
+  ┌─ <internal>:2:18
+  │
+2 │             TYPE A : STRUCT
+  │                  ^ Recursive data structure `A -> B -> A` has infinite size
+  ·
+7 │             TYPE B : STRUCT
+  │                  - see also
+
 

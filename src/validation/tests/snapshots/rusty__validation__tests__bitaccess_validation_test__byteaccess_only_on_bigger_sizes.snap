@@ -1,8 +1,23 @@
 ---
 source: src/validation/tests/bitaccess_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Byte-Wise access requires a Numerical type larger than 8 bits", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 20, offset: 194 }..TextLocation { line: 9, column: 23, offset: 197 }) }], err_no: type__incompatible_directaccess }
-SyntaxError { message: "Byte-Wise access requires a Numerical type larger than 8 bits", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 21, offset: 220 }..TextLocation { line: 10, column: 24, offset: 223 }) }], err_no: type__incompatible_directaccess }
-SyntaxError { message: "Byte-Wise access requires a Numerical type larger than 8 bits", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 21, offset: 246 }..TextLocation { line: 11, column: 24, offset: 249 }) }], err_no: type__incompatible_directaccess }
+error: Byte-Wise access requires a Numerical type larger than 8 bits
+   ┌─ <internal>:10:21
+   │
+10 │             invalid.%B1;
+   │                     ^^^ Byte-Wise access requires a Numerical type larger than 8 bits
+
+error: Byte-Wise access requires a Numerical type larger than 8 bits
+   ┌─ <internal>:11:22
+   │
+11 │             invalid2.%B1;
+   │                      ^^^ Byte-Wise access requires a Numerical type larger than 8 bits
+
+error: Byte-Wise access requires a Numerical type larger than 8 bits
+   ┌─ <internal>:12:22
+   │
+12 │             invalid3.%B1;
+   │                      ^^^ Byte-Wise access requires a Numerical type larger than 8 bits
+
 

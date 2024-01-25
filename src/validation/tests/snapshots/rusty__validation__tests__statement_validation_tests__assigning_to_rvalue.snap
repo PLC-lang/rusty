@@ -1,8 +1,23 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 12, offset: 189 }..TextLocation { line: 11, column: 13, offset: 190 }) }], err_no: reference__expected }
-SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 12, offset: 209 }..TextLocation { line: 12, column: 13, offset: 210 }) }], err_no: reference__expected }
-SyntaxError { message: "Expression is not assignable", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 17, offset: 234 }..TextLocation { line: 13, column: 18, offset: 235 }) }], err_no: reference__expected }
+error: Expression is not assignable
+   ┌─ <internal>:12:13
+   │
+12 │             1 := 1;
+   │             ^ Expression is not assignable
+
+error: Expression is not assignable
+   ┌─ <internal>:13:13
+   │
+13 │             1 := i;
+   │             ^ Expression is not assignable
+
+error: Expression is not assignable
+   ┌─ <internal>:14:18
+   │
+14 │             func(1 := 1);
+   │                  ^ Expression is not assignable
+
 

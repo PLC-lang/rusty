@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/pou_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "A class cannot have a var in/out/inout blocks", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 14, offset: 15 }..TextLocation { line: 1, column: 17, offset: 18 }) }], err_no: syntax__generic_error }
+error: A class cannot have a var in/out/inout blocks
+  ┌─ <internal>:2:15
+  │
+2 │         CLASS cls
+  │               ^^^ A class cannot have a var in/out/inout blocks
+
 

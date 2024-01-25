@@ -1,6 +1,12 @@
 ---
 source: src/validation/tests/pou_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "A class cannot have an implementation", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 12, offset: 88 }..TextLocation { line: 6, column: 17, offset: 120 }) }], err_no: syntax__generic_error }
+error: A class cannot have an implementation
+  ┌─ <internal>:6:13
+  │  
+6 │ ╭             LIGHT := TRUE;
+7 │ │         END_CLASS
+  │ ╰─────────────────^ A class cannot have an implementation
+
 

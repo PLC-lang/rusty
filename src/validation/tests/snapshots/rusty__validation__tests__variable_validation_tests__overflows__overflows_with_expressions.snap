@@ -1,25 +1,125 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "This will overflow for type SINT", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 41, offset: 108 }..TextLocation { line: 4, column: 54, offset: 121 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type SINT", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 42, offset: 177 }..TextLocation { line: 5, column: 54, offset: 189 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type USINT", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 42, offset: 245 }..TextLocation { line: 6, column: 53, offset: 256 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type USINT", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 42, offset: 310 }..TextLocation { line: 7, column: 54, offset: 322 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 40, offset: 398 }..TextLocation { line: 10, column: 56, offset: 414 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 41, offset: 470 }..TextLocation { line: 11, column: 56, offset: 485 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UINT", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 41, offset: 541 }..TextLocation { line: 12, column: 52, offset: 552 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UINT", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 41, offset: 606 }..TextLocation { line: 13, column: 56, offset: 621 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type DINT", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 41, offset: 698 }..TextLocation { line: 16, column: 64, offset: 721 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type DINT", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 42, offset: 785 }..TextLocation { line: 17, column: 64, offset: 807 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UDINT", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 42, offset: 871 }..TextLocation { line: 18, column: 53, offset: 882 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type UDINT", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 42, offset: 944 }..TextLocation { line: 19, column: 64, offset: 966 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LINT", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 41, offset: 1051 }..TextLocation { line: 22, column: 76, offset: 1086 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LINT", range: [SourceLocation { span: Range(TextLocation { line: 23, column: 42, offset: 1162 }..TextLocation { line: 23, column: 76, offset: 1196 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type ULINT", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 42, offset: 1272 }..TextLocation { line: 24, column: 53, offset: 1283 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type ULINT", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 42, offset: 1357 }..TextLocation { line: 25, column: 77, offset: 1392 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type REAL", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 38, offset: 1487 }..TextLocation { line: 28, column: 61, offset: 1510 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type REAL", range: [SourceLocation { span: Range(TextLocation { line: 29, column: 38, offset: 1570 }..TextLocation { line: 29, column: 61, offset: 1593 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LREAL", range: [SourceLocation { span: Range(TextLocation { line: 32, column: 40, offset: 1679 }..TextLocation { line: 32, column: 72, offset: 1711 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LREAL", range: [SourceLocation { span: Range(TextLocation { line: 33, column: 40, offset: 1782 }..TextLocation { line: 33, column: 72, offset: 1814 }) }], err_no: var__overflow }
+error: This will overflow for type SINT
+  ┌─ <internal>:5:42
+  │
+5 │                 min_sint    : SINT  := ((-128 * 1) * 2);    // -128
+  │                                          ^^^^^^^^^^^^^ This will overflow for type SINT
+
+error: This will overflow for type SINT
+  ┌─ <internal>:6:43
+  │
+6 │                 max_sint    : SINT  :=  ((127 * 1) * 2);    //  127
+  │                                           ^^^^^^^^^^^^ This will overflow for type SINT
+
+error: This will overflow for type USINT
+  ┌─ <internal>:7:43
+  │
+7 │                 min_usint   : USINT  := ((1 * 1) * -2);     // 0
+  │                                           ^^^^^^^^^^^ This will overflow for type USINT
+
+error: This will overflow for type USINT
+  ┌─ <internal>:8:43
+  │
+8 │                 max_usint   : USINT  := ((256 * 1) * 2);    // 256
+  │                                           ^^^^^^^^^^^^ This will overflow for type USINT
+
+error: This will overflow for type INT
+   ┌─ <internal>:11:41
+   │
+11 │                 min_int     : INT  := ((-32_768 * 1) * 2);   // -32768
+   │                                         ^^^^^^^^^^^^^^^^ This will overflow for type INT
+
+error: This will overflow for type INT
+   ┌─ <internal>:12:42
+   │
+12 │                 max_int     : INT  :=  ((32_767 * 1) * 2);   //  32767
+   │                                          ^^^^^^^^^^^^^^^ This will overflow for type INT
+
+error: This will overflow for type UINT
+   ┌─ <internal>:13:42
+   │
+13 │                 min_uint    : UINT  := ((1 * 1) * -2);      // 0
+   │                                          ^^^^^^^^^^^ This will overflow for type UINT
+
+error: This will overflow for type UINT
+   ┌─ <internal>:14:42
+   │
+14 │                 max_uint    : UINT  := ((65_536 * 1) * 2);  // 65536
+   │                                          ^^^^^^^^^^^^^^^ This will overflow for type UINT
+
+error: This will overflow for type DINT
+   ┌─ <internal>:17:42
+   │
+17 │                 min_dint    : DINT  := ((-2_147_483_649 * 1) * 2);  // -2_147_483_648
+   │                                          ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type DINT
+
+error: This will overflow for type DINT
+   ┌─ <internal>:18:43
+   │
+18 │                 max_dint    : DINT  := (( 2_147_483_648 * 1) * 2);  //  2_147_483_647
+   │                                           ^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type DINT
+
+error: This will overflow for type UDINT
+   ┌─ <internal>:19:43
+   │
+19 │                 min_udint   : UDINT  := ((1 * 1) * -2);             // 0
+   │                                           ^^^^^^^^^^^ This will overflow for type UDINT
+
+error: This will overflow for type UDINT
+   ┌─ <internal>:20:43
+   │
+20 │                 max_udint   : UDINT  := ((4_294_967_296 * 1) * 2);  // 4_294_967_296
+   │                                           ^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type UDINT
+
+error: This will overflow for type LINT
+   ┌─ <internal>:23:42
+   │
+23 │                 min_lint    : LINT  := ((-9_223_372_036_854_775_808 * 1) * 2);  // -9_223_372_036_854_775_808
+   │                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LINT
+
+error: This will overflow for type LINT
+   ┌─ <internal>:24:43
+   │
+24 │                 max_lint    : LINT  := (( 9_223_372_036_854_775_807 * 1) * 2);  //  9_223_372_036_854_775_807
+   │                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LINT
+
+error: This will overflow for type ULINT
+   ┌─ <internal>:25:43
+   │
+25 │                 min_ulint   : ULINT  := ((1 * 1) * -2);                         // 0
+   │                                           ^^^^^^^^^^^ This will overflow for type ULINT
+
+error: This will overflow for type ULINT
+   ┌─ <internal>:26:43
+   │
+26 │                 max_ulint   : ULINT  := ((18_446_744_073_709_551_615 * 1) * 2); // 18_446_744_073_709_551_615
+   │                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type ULINT
+
+error: This will overflow for type REAL
+   ┌─ <internal>:29:39
+   │
+29 │                 min_real : REAL := ((-3.40282347E+38 * 1) * 2); // -3.40282347E+38
+   │                                       ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type REAL
+
+error: This will overflow for type REAL
+   ┌─ <internal>:30:39
+   │
+30 │                 max_real : REAL := (( 3.40282347E+38 * 1) * 2); //  3.40282347E+38
+   │                                       ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type REAL
+
+error: This will overflow for type LREAL
+   ┌─ <internal>:33:41
+   │
+33 │                 min_lreal : LREAL := ((-1.7976931348623157E+308 * 1) * 2); // -1.7976931348623157E+308
+   │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
+
+error: This will overflow for type LREAL
+   ┌─ <internal>:34:41
+   │
+34 │                 max_lreal : LREAL := (( 1.7976931348623157E+308 * 1) * 2); //  1.7976931348623157E+308
+   │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
+
 

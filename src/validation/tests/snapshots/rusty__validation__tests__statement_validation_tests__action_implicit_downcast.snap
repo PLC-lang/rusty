@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 29, offset: 213 }..TextLocation { line: 8, column: 37, offset: 221 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[1..3] OF LINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 31, offset: 276 }..TextLocation { line: 9, column: 38, offset: 283 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+  ┌─ <internal>:9:30
+  │
+9 │             fb.foo(var_lint, var_wstr); // downcast, invalid
+  │                              ^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+
+error: Invalid assignment: cannot assign 'ARRAY[1..3] OF LINT' to 'STRING'
+   ┌─ <internal>:10:32
+   │
+10 │             prog.bar(var_lint, var_arr); // downcast, invalid
+   │                                ^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..3] OF LINT' to 'STRING'
+
 
