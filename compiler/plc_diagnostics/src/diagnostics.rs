@@ -46,7 +46,7 @@ impl std::error::Error for Diagnostic {
 
 impl From<std::io::Error> for Diagnostic {
     fn from(value: std::io::Error) -> Self {
-        Diagnostic::error(value.to_string()).with_error_code("E002").with_internal_error(value.into())
+        Diagnostic::new(value.to_string()).with_error_code("E002").with_internal_error(value.into())
     }
 }
 
@@ -61,10 +61,6 @@ impl Diagnostic {
             sub_diagnostics: Default::default(),
             internal_error: Default::default(),
         }
-    }
-
-    pub fn error(message: impl Into<String>) -> Self {
-        Self::new(message)
     }
 
     pub fn with_location(mut self, location: SourceLocation) -> Self {
@@ -115,7 +111,7 @@ impl Diagnostic {
             message
         };
         let range = factory.create_range_to_end_of_line(line, column);
-        Diagnostic::error(message).with_error_code("E088").with_location(range)
+        Diagnostic::new(message).with_error_code("E088").with_location(range)
     }
 }
 
@@ -180,33 +176,33 @@ impl Diagnostic {
 //Helper methods for diagnostics
 impl Diagnostic {
     pub fn unexpected_token_found(expected: &str, found: &str, range: SourceLocation) -> Diagnostic {
-        Diagnostic::error(format!("Unexpected token: expected {expected} but found {found}"))
+        Diagnostic::new(format!("Unexpected token: expected {expected} but found {found}"))
             .with_error_code("E007")
             .with_location(range)
     }
 
     pub fn missing_function(location: SourceLocation) -> Diagnostic {
-        Diagnostic::error("Cannot generate code outside of function context.")
+        Diagnostic::new("Cannot generate code outside of function context.")
             .with_error_code("E072")
             .with_location(location)
     }
 
     pub fn codegen_error(message: impl Into<String>, location: SourceLocation) -> Diagnostic {
-        Diagnostic::error(message).with_location(location).with_error_code("E071")
+        Diagnostic::new(message).with_location(location).with_error_code("E071")
     }
 
     pub fn llvm_error(file: &str, llvm_error: &str) -> Diagnostic {
-        Diagnostic::error(format!("{file}: Internal llvm error: {:}", llvm_error)).with_error_code("E005")
+        Diagnostic::new(format!("{file}: Internal llvm error: {:}", llvm_error)).with_error_code("E005")
     }
 
     pub fn missing_token(expected_token: &str, range: SourceLocation) -> Diagnostic {
-        Diagnostic::error(format!("Missing expected Token {expected_token}"))
+        Diagnostic::new(format!("Missing expected Token {expected_token}"))
             .with_location(range)
             .with_error_code("E006")
     }
 
     pub fn invalid_parameter_count(expected: usize, received: usize, location: SourceLocation) -> Diagnostic {
-        Diagnostic::error(
+        Diagnostic::new(
              format!(
                 "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
             )).with_error_code("E032")
@@ -214,25 +210,23 @@ impl Diagnostic {
     }
 
     pub fn unknown_type(type_name: &str, location: SourceLocation) -> Diagnostic {
-        Diagnostic::error(format!("Unknown type: {type_name:}"))
-            .with_error_code("E052")
-            .with_location(location)
+        Diagnostic::new(format!("Unknown type: {type_name:}")).with_error_code("E052").with_location(location)
     }
 
     pub fn unresolved_reference(reference: &str, location: SourceLocation) -> Diagnostic {
-        Diagnostic::error(format!("Could not resolve reference to {reference:}"))
+        Diagnostic::new(format!("Could not resolve reference to {reference:}"))
             .with_error_code("E048")
             .with_location(location)
     }
 
     pub fn invalid_assignment(right_type: &str, left_type: &str, location: SourceLocation) -> Diagnostic {
-        Diagnostic::error(format!("Invalid assignment: cannot assign '{right_type}' to '{left_type}'"))
+        Diagnostic::new(format!("Invalid assignment: cannot assign '{right_type}' to '{left_type}'"))
             .with_error_code("E037")
             .with_location(location)
     }
 
     pub fn cannot_generate_initializer(variable_name: &str, location: SourceLocation) -> Diagnostic {
-        Self::error(format!(
+        Self::new(format!(
             "Cannot generate literal initializer for '{variable_name}': Value cannot be derived"
         ))
         .with_error_code("E041")
@@ -258,7 +252,7 @@ impl Diagnostic {
 // CFC related diagnostics
 impl Diagnostic {
     pub fn unnamed_control(location: SourceLocation) -> Diagnostic {
-        Diagnostic::error("Unnamed control").with_error_code("E087").with_location(location)
+        Diagnostic::new("Unnamed control").with_error_code("E087").with_location(location)
     }
 }
 

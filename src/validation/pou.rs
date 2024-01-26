@@ -23,7 +23,7 @@ pub fn visit_implementation<T: AnnotationMap>(
 ) {
     if implementation.pou_type == PouType::Class && !implementation.statements.is_empty() {
         validator.push_diagnostic(
-            Diagnostic::error("A class cannot have an implementation")
+            Diagnostic::new("A class cannot have an implementation")
                 .with_error_code("E017")
                 .with_location(implementation.location.to_owned()),
         );
@@ -42,7 +42,7 @@ pub fn visit_implementation<T: AnnotationMap>(
                         locations.push(first.location.clone());
                         locations.push(second.location.clone());
                         validator.push_diagnostic(
-                            Diagnostic::error(format!("{}: Duplicate label.", &first.name))
+                            Diagnostic::new(format!("{}: Duplicate label.", &first.name))
                                 .with_error_code("E018")
                                 .with_location(first.location.clone())
                                 .with_secondary_locations(locations),
@@ -79,7 +79,7 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
         )
     }) {
         validator.push_diagnostic(
-            Diagnostic::error("A class cannot have a var in/out/inout blocks")
+            Diagnostic::new("A class cannot have a var in/out/inout blocks")
                 .with_error_code("E019")
                 .with_location(pou.name_location.to_owned()),
         );
@@ -88,7 +88,7 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
     // classes cannot have a return type
     if context.index.find_return_type(&pou.name).is_some() {
         validator.push_diagnostic(
-            Diagnostic::error("A class cannot have a return type")
+            Diagnostic::new("A class cannot have a return type")
                 .with_error_code("E020")
                 .with_location(pou.name_location.clone()),
         );
@@ -99,7 +99,7 @@ fn validate_function<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, con
     // functions cannot use EXTENDS
     if pou.super_class.is_some() {
         validator.push_diagnostic(
-            Diagnostic::error("A function cannot use `EXTEND`")
+            Diagnostic::new("A function cannot use `EXTEND`")
                 .with_error_code("E021")
                 .with_location(pou.name_location.to_owned()),
         );
@@ -109,7 +109,7 @@ fn validate_function<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, con
     // functions must have a return type
     if return_type.is_none() {
         validator.push_diagnostic(
-            Diagnostic::error("Function Return type missing")
+            Diagnostic::new("Function Return type missing")
                 .with_error_code("E025")
                 .with_location(pou.name_location.clone()),
         );
@@ -120,7 +120,7 @@ fn validate_program(validator: &mut Validator, pou: &Pou) {
     // programs cannot use EXTENDS
     if pou.super_class.is_some() {
         validator.push_diagnostic(
-            Diagnostic::error("A program cannot use `EXTEND`")
+            Diagnostic::new("A program cannot use `EXTEND`")
                 .with_error_code("E021")
                 .with_location(pou.name_location.to_owned()),
         );
@@ -130,7 +130,7 @@ fn validate_program(validator: &mut Validator, pou: &Pou) {
 pub fn validate_action_container(validator: &mut Validator, implementation: &Implementation) {
     if implementation.pou_type == PouType::Action && implementation.type_name == "__unknown__" {
         validator.push_diagnostic(
-            Diagnostic::error("Missing Actions Container Name")
+            Diagnostic::new("Missing Actions Container Name")
                 .with_error_code("E022")
                 .with_location(implementation.location.clone()),
         );

@@ -144,7 +144,7 @@ impl<'a> Validator<'a> {
             };
 
             self.push_diagnostic(
-                Diagnostic::error(reason).with_error_code("E039").with_location(location.to_owned()),
+                Diagnostic::new(reason).with_error_code("E039").with_location(location.to_owned()),
             );
         }
     }

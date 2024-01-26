@@ -143,7 +143,7 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordEndClass => {
                 if !self.slice().to_string().contains('_') {
                     self.accept_diagnostic(
-                        Diagnostic::error(format!(
+                        Diagnostic::new(format!(
                             "the words in {} should be separated by a `_`",
                             self.slice()
                         ))

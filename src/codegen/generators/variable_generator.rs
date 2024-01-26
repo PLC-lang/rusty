@@ -80,7 +80,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             let global_variable =
                 self.generate_global_variable(variable, linkage).map_err(|err| match err.get_type() {
                     "E072" | "E048" => {
-                        Diagnostic::error(format!("Cannot generate literal initializer for `{name}`."))
+                        Diagnostic::new(format!("Cannot generate literal initializer for `{name}`."))
                             .with_error_code("E041")
                             .with_sub_diagnostic(err)
                     }

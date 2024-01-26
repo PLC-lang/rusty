@@ -1,9 +1,7 @@
+/// Returns a diagnostics map with the error code, default severity and a description
 macro_rules! add_diagnostic {
-($($number:ident, $severity:expr, $desc:expr,)*) => {
-    use lazy_static::lazy_static;
-        lazy_static! {
-            static ref DIAGNOSTICS : HashMap<&'static str, DiagnosticEntry> = {
-            let mut m : HashMap<&str, DiagnosticEntry> = HashMap::new();
+    ($($number:ident, $severity:expr, $desc:expr,)*) => {
+        { let mut m : HashMap<&str, DiagnosticEntry> = HashMap::new();
             $(
                 {
                     let code = stringify!($number);
@@ -11,9 +9,7 @@ macro_rules! add_diagnostic {
                 }
             )*
             m
-        };
-    }
-}
+        }}
 }
 
 use std::collections::HashMap;
@@ -58,7 +54,9 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
     }
 }
 
-add_diagnostic!(
+use lazy_static::lazy_static;
+lazy_static! {
+    static ref DIAGNOSTICS: HashMap<&'static str, DiagnosticEntry> = add_diagnostic!(
     E001,
     Error,
     include_str!("./error_codes/E001.md"), //General Error
@@ -109,19 +107,19 @@ add_diagnostic!(
     include_str!("./error_codes/E016.md"), //Return types cannot have a default value
     E017,
     Error,
-    include_str!("./error_codes/E017.md"),
+    include_str!("./error_codes/E017.md"), //Classes cannot contain implementations
     E018,
     Error,
-    include_str!("./error_codes/E018.md"),
+    include_str!("./error_codes/E018.md"), //Duplicate Label
     E019,
     Error,
-    include_str!("./error_codes/E019.md"),
+    include_str!("./error_codes/E019.md"), //Classes cannot contain IN_OUT variables
     E020,
     Error,
-    include_str!("./error_codes/E020.md"),
+    include_str!("./error_codes/E020.md"), //Classes cannot contain a return type
     E021,
     Error,
-    include_str!("./error_codes/E021.md"),
+    include_str!("./error_codes/E021.md"), //POUs cannot be extended
     E022,
     Warning,
     include_str!("./error_codes/E022.md"), //Missing action container
@@ -330,3 +328,4 @@ add_diagnostic!(
     Warning,
     include_str!("./error_codes/E090.md"), //Incompatible reference Assignment
 );
+}

@@ -111,7 +111,7 @@ pub fn visit_statement<T: AnnotationMap>(
             // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
             // see `control_parser` `parse_case_statement()`
             validator.push_diagnostic(
-                Diagnostic::error("Case condition used outside of case statement! Did you mean to use ';'?")
+                Diagnostic::new("Case condition used outside of case statement! Did you mean to use ';'?")
                     .with_error_code("E079")
                     .with_location(condition.get_location()),
             );
@@ -164,7 +164,7 @@ fn validate_reference_expression<T: AnnotationMap>(
                 visit_array_access(validator, base, i, context)
             } else {
                 validator.push_diagnostic(
-                    Diagnostic::error("Index-Access requires an array-value.")
+                    Diagnostic::new("Index-Access requires an array-value.")
                         .with_error_code("E069")
                         .with_location(statement.get_location()),
                 );
@@ -190,7 +190,7 @@ fn validate_reference_expression<T: AnnotationMap>(
         ReferenceAccess::Deref => {
             if base.is_none() {
                 validator.diagnostics.push(
-                    Diagnostic::error("Dereferencing requires a pointer-value.")
+                    Diagnostic::new("Dereferencing requires a pointer-value.")
                         .with_error_code("E068")
                         .with_location(statement.get_location()),
                 );
@@ -201,7 +201,7 @@ fn validate_reference_expression<T: AnnotationMap>(
                 validate_address_of_expression(validator, base, statement.get_location(), context);
             } else {
                 validator.diagnostics.push(
-                    Diagnostic::error("Address-of requires a value.")
+                    Diagnostic::new("Address-of requires a value.")
                         .with_error_code("E070")
                         .with_location(statement.get_location()),
                 );
@@ -225,7 +225,7 @@ fn validate_address_of_expression<T: AnnotationMap>(
 
     if !matches!(a, Some(StatementAnnotation::Variable { .. })) && !target.is_array_access() {
         validator.push_diagnostic(
-            Diagnostic::error("Invalid address-of operation").with_error_code("E066").with_location(location),
+            Diagnostic::new("Invalid address-of operation").with_error_code("E066").with_location(location),
         );
     }
 }
@@ -250,7 +250,7 @@ fn validate_direct_access<T: AnnotationMap>(
             validate_access_index(validator, context, index, access, base_type, &m.get_location());
         } else {
             validator.push_diagnostic(
-                Diagnostic::error(format!(
+                Diagnostic::new(format!(
                     "{access:?}-Wise access requires a Numerical type larger than {} bits",
                     access.get_bit_width()
                 ))
@@ -307,13 +307,13 @@ fn validate_cast_literal<T: AnnotationMap>(
         literal_type: &str,
         location: SourceLocation,
     ) -> Diagnostic {
-        Diagnostic::error(format!("Literal {literal_type} is not compatible to {cast_type}"))
+        Diagnostic::new(format!("Literal {literal_type} is not compatible to {cast_type}"))
             .with_error_code("E054")
             .with_location(location)
     }
 
     fn literal_out_of_range(literal: &str, range_hint: &str, location: SourceLocation) -> Diagnostic {
-        Diagnostic::error(format!("Literal {literal} out of range ({range_hint})"))
+        Diagnostic::new(format!("Literal {literal} out of range ({range_hint})"))
             .with_error_code("E053")
             .with_location(location)
     }
@@ -327,7 +327,7 @@ fn validate_cast_literal<T: AnnotationMap>(
 
     if !literal.is_cast_prefix_eligible() {
         validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "Cannot cast into {}, only elementary types are allowed",
                 validator.context.slice(&statement.get_location())
             ))
@@ -391,7 +391,7 @@ fn validate_access_index<T: AnnotationMap>(
             ) {
                 let range = helper::get_range(access_type, target_type, context.index);
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "{access_type:?}-Wise access for type {} must be in range {}..{}",
                         target_type.get_name(),
                         &range.start,
@@ -406,7 +406,7 @@ fn validate_access_index<T: AnnotationMap>(
             let ref_type = context.annotations.get_type_or_void(access_index, context.index);
             if !ref_type.get_type_information().is_int() {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!("Invalid type {} for direct variable access. Only variables of Integer types are allowed", ref_type.get_name()))
+                    Diagnostic::new(format!("Invalid type {} for direct variable access. Only variables of Integer types are allowed", ref_type.get_name()))
                     .with_error_code("E056")
                     .with_location(location.clone())
                 )
@@ -439,7 +439,7 @@ fn validate_reference<T: AnnotationMap>(
             {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
-                    Diagnostic::error(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
+                    Diagnostic::new(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
                     .with_error_code("E060")
                     .with_location(location.clone())
                 );
@@ -461,7 +461,7 @@ fn validate_reference<T: AnnotationMap>(
         {
             validator.push_diagnostic(
                 //TODO: maybe default to warning?
-                Diagnostic::error(format!("Illegal access to private member {qualified_name}"))
+                Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
                     .with_error_code("E049")
                     .with_location(location.clone()),
             );
@@ -506,7 +506,7 @@ fn visit_array_access<T: AnnotationMap>(
         }
 
         _ => validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "Invalid type {} for array access. Only variables of Array types are allowed",
                 target_type.get_name()
             ))
@@ -519,7 +519,7 @@ fn visit_array_access<T: AnnotationMap>(
 fn validate_array_access_dimensions(ndims: usize, dims: usize, validator: &mut Validator, access: &AstNode) {
     if ndims != dims {
         validator.push_diagnostic(
-            Diagnostic::error(format!("Expected array access with {ndims} dimensions, found {dims}"))
+            Diagnostic::new(format!("Expected array access with {ndims} dimensions, found {dims}"))
                 .with_error_code("E045")
                 .with_location(access.get_location()),
         )
@@ -538,7 +538,7 @@ fn validate_array_access<T: AnnotationMap>(
             if let Ok(range) = dimension.get_range(context.index) {
                 if !(range.start as i128 <= *value && range.end as i128 >= *value) {
                     validator.push_diagnostic(
-                        Diagnostic::error(format!(
+                        Diagnostic::new(format!(
                             "Array access must be in the range {}..{}",
                             range.start, range.end
                         ))
@@ -552,7 +552,7 @@ fn validate_array_access<T: AnnotationMap>(
         let type_info = context.annotations.get_type_or_void(access, context.index).get_type_information();
         if !type_info.is_int() {
             validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                             "Invalid type {} for array access. Only variables of Integer types are allowed to access an array",
                             type_info.get_name()
                     ))
@@ -578,7 +578,7 @@ fn visit_binary_expression<T: AnnotationMap>(
                 let rhs = validator.context.slice(&right.location);
 
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "This equal statement has no effect, did you mean `{lhs} := {rhs}`?"
                     ))
                     .with_error_code("E023")
@@ -629,7 +629,7 @@ fn validate_binary_expression<T: AnnotationMap>(
             && !compare_function_exists(left_type.get_name(), operator, context)
         {
             validator.push_diagnostic(
-                Diagnostic::error(format!(
+                Diagnostic::new(format!(
                     "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
                     crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
                         .unwrap_or_default()
@@ -711,7 +711,7 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
         }
 
         _ => validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "Expected a reference for parameter {} because their type is {}",
                 param.get_name(),
                 param.get_variable_type()
@@ -737,7 +737,7 @@ fn validate_assignment<T: AnnotationMap>(
             // ...constant variable
             if *constant {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!("Cannot assign to CONSTANT '{qualified_name}'"))
+                    Diagnostic::new(format!("Cannot assign to CONSTANT '{qualified_name}'"))
                         .with_error_code("E036")
                         .with_location(left.get_location()),
                 );
@@ -755,7 +755,7 @@ fn validate_assignment<T: AnnotationMap>(
             // ...VAR_INPUT {ref} variable
             if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
                 validator.push_diagnostic(
-                    Diagnostic::error("VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.")
+                    Diagnostic::new("VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.")
                     .with_error_code("E042")
                     .with_location(location.to_owned())
                     );
@@ -766,7 +766,7 @@ fn validate_assignment<T: AnnotationMap>(
         if !left.can_be_assigned_to() {
             let expression = validator.context.slice(&left.get_location());
             validator.push_diagnostic(
-                Diagnostic::error(format!("Expression {expression} is not assignable."))
+                Diagnostic::new(format!("Expression {expression} is not assignable."))
                     .with_error_code("E050")
                     .with_location(left.get_location()),
             );
@@ -800,7 +800,7 @@ fn validate_assignment<T: AnnotationMap>(
         {
             if left_type.is_pointer() && right_type.is_pointer() {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "Pointers {} and {} have different types",
                         get_datatype_name_or_slice(validator.context, left_type),
                         get_datatype_name_or_slice(validator.context, right_type)
@@ -831,7 +831,7 @@ pub(crate) fn validate_enum_variant_assignment(
 ) {
     if left.is_enum() && left.get_name() != right.get_name() {
         validator.push_diagnostic(
-            Diagnostic::error(format!("Assigned value is not a variant of {qualified_name}"))
+            Diagnostic::new(format!("Assigned value is not a variant of {qualified_name}"))
                 .with_error_code("E040")
                 .with_location(location),
         )
@@ -907,7 +907,7 @@ fn is_valid_string_to_char_assignment(
                 return true;
             } else {
                 validator.push_diagnostic(
-                    Diagnostic::error(
+                    Diagnostic::new(
                         format!("Value: '{value}' exceeds length for type: {}", left_type.get_name())
                             .as_str(),
                     )
@@ -937,7 +937,7 @@ fn is_invalid_pointer_assignment(
         && left_type.get_size_in_bits(index) < POINTER_SIZE
     {
         validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "The type {} {} is too small to hold a Pointer",
                 left_type.get_name(),
                 left_type.get_size_in_bits(index)
@@ -953,7 +953,7 @@ fn is_invalid_pointer_assignment(
         && right_type.get_size_in_bits(index) < POINTER_SIZE
     {
         validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "The type {} {} is too small to be stored in a Pointer",
                 right_type.get_name(),
                 right_type.get_size_in_bits(index)
@@ -1038,7 +1038,7 @@ fn validate_call<T: AnnotationMap>(
                         are_implicit_parameters = is_implicit;
                     } else if are_implicit_parameters != is_implicit {
                         validator.push_diagnostic(
-                            Diagnostic::error("Cannot mix implicit and explicit call parameters!")
+                            Diagnostic::new("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
                                 .with_location(param.get_location()),
                         );
@@ -1046,7 +1046,7 @@ fn validate_call<T: AnnotationMap>(
                 }
                 Err(err) => {
                     validator.push_diagnostic(
-                        Diagnostic::error("Invalid call parameters")
+                        Diagnostic::new("Invalid call parameters")
                             .with_error_code("E089")
                             .with_location(param.get_location())
                             .with_sub_diagnostic(err),
@@ -1075,7 +1075,7 @@ fn validate_call<T: AnnotationMap>(
                 declared_in_out_params.into_iter().for_each(|p| {
                     if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
                         validator.push_diagnostic(
-                            Diagnostic::error(format!("Missing inout parameter: {}", p.get_name()))
+                            Diagnostic::new(format!("Missing inout parameter: {}", p.get_name()))
                                 .with_error_code("E030")
                                 .with_location(operator.get_location()),
                         );
@@ -1132,7 +1132,7 @@ fn validate_case_statement<T: AnnotationMap>(
         // invalid case conditions
         if matches!(condition.get_stmt(), AstStatement::Assignment(_) | AstStatement::CallStatement(_)) {
             validator.push_diagnostic(
-                Diagnostic::error("Invalid case condition!")
+                Diagnostic::new("Invalid case condition!")
                     .with_error_code("E079")
                     .with_location(condition.get_location()),
             );
@@ -1144,7 +1144,7 @@ fn validate_case_statement<T: AnnotationMap>(
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "{}. Non constant variables are not supported in case conditions",
                         err.get_reason()
                     ))
@@ -1157,7 +1157,7 @@ fn validate_case_statement<T: AnnotationMap>(
                 if let Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(value)), .. }) = v {
                     if !cases.insert(value) {
                         validator.push_diagnostic(
-                            Diagnostic::error(format!(
+                            Diagnostic::new(format!(
                                 "Duplicate condition value: {value}. Occurred more than once!"
                             ))
                             .with_error_code("E078")
@@ -1194,7 +1194,7 @@ fn validate_type_nature<T: AnnotationMap>(
                 return;
             }
             validator.push_diagnostic(
-                Diagnostic::error(format!("Could not resolve generic type {generic_symbol} with {nature}"))
+                Diagnostic::new(format!("Could not resolve generic type {generic_symbol} with {nature}"))
                     .with_error_code("E064")
                     .with_location(statement.get_location()),
             );
@@ -1210,7 +1210,7 @@ fn validate_type_nature<T: AnnotationMap>(
                 | (type_hint.is_real() & actual_type.is_numerical()))
             {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "Invalid type nature for generic argument. {} is no {}",
                         actual_type.get_name(),
                         generic_nature
@@ -1234,7 +1234,7 @@ fn _validate_assignment_type_sizes<T: AnnotationMap>(
         < right.get_type_information().get_size(context.index)
     {
         validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "Potential loss of information due to assigning '{}' to variable of type '{}'.",
                 left.get_name(),
                 right.get_name()

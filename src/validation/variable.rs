@@ -34,7 +34,7 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
         && !matches!(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
     {
         validator.push_diagnostic(
-            Diagnostic::error("This variable block does not support the CONSTANT modifier")
+            Diagnostic::new("This variable block does not support the CONSTANT modifier")
                 .with_error_code("E034")
                 .with_location(block.location.clone()),
         )
@@ -58,7 +58,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
     let Some(pou) = pou else {
         if matches!(block.variable_block_type, VariableBlockType::Global) {
             validator.push_diagnostic(
-                Diagnostic::error("VLAs can not be defined as global variables")
+                Diagnostic::new("VLAs can not be defined as global variables")
                     .with_error_code("E044")
                     .with_location(variable.location.clone()),
             )
@@ -69,7 +69,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
 
     match (&pou.pou_type, block.variable_block_type) {
         (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => validator.push_diagnostic(
-            Diagnostic::error(
+            Diagnostic::new(
                 "Variable Length Arrays are always by-ref, even when declared in a by-value block",
             )
             .with_error_code("E047")
@@ -77,7 +77,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         ),
 
         (PouType::Program, _) => validator.push_diagnostic(
-            Diagnostic::error("Variable Length Arrays are not allowed to be defined inside a Program")
+            Diagnostic::new("Variable Length Arrays are not allowed to be defined inside a Program")
                 .with_error_code("E044")
                 .with_location(variable.location.clone()),
         ),
@@ -91,7 +91,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         | (PouType::FunctionBlock, VariableBlockType::InOut) => (),
 
         _ => validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "Variable Length Arrays are not allowed to be defined as {} variables inside a {}",
                 block.variable_block_type, pou.pou_type
             ))
@@ -125,7 +125,7 @@ fn validate_variable<T: AnnotationMap>(
         {
             Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "Unresolved constant `{}` variable: {}",
                         variable.name.as_str(),
                         reason.get_reason()
@@ -136,14 +136,14 @@ fn validate_variable<T: AnnotationMap>(
             }
             Some(ConstExpression::Unresolved { statement, .. }) => {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                    Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
                         .with_error_code("E033")
                         .with_location(statement.get_location()),
                 );
             }
             None if v_entry.is_constant() => {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                    Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
                         .with_error_code("E033")
                         .with_location(variable.location.clone()),
                 );
@@ -168,7 +168,7 @@ fn validate_variable<T: AnnotationMap>(
         if v_entry.is_constant() && data_type_is_fb_or_class_instance(v_entry.get_type_name(), context.index)
         {
             validator.push_diagnostic(
-                Diagnostic::error(format!(
+                Diagnostic::new(format!(
                     "Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant",
                     v_entry.get_name()
                 ))

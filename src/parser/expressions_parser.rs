@@ -523,7 +523,7 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
     } else if lexer.try_consume(&KeywordParensOpen) {
         let start = location.start;
         let multiplier = result.parse::<u32>().map_err(|e| {
-            Diagnostic::error(format!("Failed parsing number {result}"))
+            Diagnostic::new(format!("Failed parsing number {result}"))
                 .with_error_code("E011")
                 .with_location(lexer.source_range_factory.create_range(location))
                 .with_internal_error(e.into())
@@ -570,7 +570,7 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstNode,
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceLocation) -> Result<F, Diagnostic> {
     text.parse::<F>().map_err(|_| {
-        Diagnostic::error(format!("Failed parsing number {text}"))
+        Diagnostic::new(format!("Failed parsing number {text}"))
             .with_error_code("E011")
             .with_location(location.clone())
     })
@@ -695,7 +695,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstNode, Diagnostic> {
             //just eat all the digits
             char = chars.find(|(_, ch)| !ch.is_ascii_digit() && !ch.eq(&'.'));
             char.ok_or_else(|| {
-                Diagnostic::error("Invalid TIME Literal: Cannot parse segment.")
+                Diagnostic::new("Invalid TIME Literal: Cannot parse segment.")
                     .with_error_code("E010")
                     .with_location(location.clone())
             })
@@ -705,7 +705,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstNode, Diagnostic> {
         //expect a unit
         let unit = {
             let start = char.map(|(index, _)| index).ok_or_else(|| {
-                Diagnostic::error("Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)")
+                Diagnostic::new("Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)")
                     .with_error_code("E010")
                     .with_location(location.clone())
             })?;
@@ -730,20 +730,20 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstNode, Diagnostic> {
         if let Some(position) = position {
             //check if we assign out of order - every assignment before must have been a smaller position
             if prev_pos > position {
-                return Err(Diagnostic::error("Invalid TIME Literal: segments out of order, use d-h-m-s-ms")
+                return Err(Diagnostic::new("Invalid TIME Literal: segments out of order, use d-h-m-s-ms")
                     .with_error_code("E010")
                     .with_location(location));
             }
             prev_pos = position; //remember that we wrote this position
 
             if values[position].is_some() {
-                return Err(Diagnostic::error("Invalid TIME Literal: segments must be unique")
+                return Err(Diagnostic::new("Invalid TIME Literal: segments must be unique")
                     .with_error_code("E010")
                     .with_location(location));
             }
             values[position] = Some(number); //store the number
         } else {
-            return Err(Diagnostic::error(format!("Invalid TIME Literal: illegal unit '{unit}'"))
+            return Err(Diagnostic::new(format!("Invalid TIME Literal: illegal unit '{unit}'"))
                 .with_error_code("E010")
                 .with_location(location));
         }

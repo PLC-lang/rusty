@@ -768,7 +768,7 @@ fn validate_variable_length_array_bound_function(
 
             if !idx_type.has_nature(TypeNature::Int, index) {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "Invalid type nature for generic argument. {} is no {}",
                         idx_type.get_name(),
                         TypeNature::Int
@@ -791,7 +791,7 @@ fn validate_variable_length_array_bound_function(
 
                 if dimension_idx < 1 || dimension_idx > n_dimensions {
                     validator.push_diagnostic(
-                        Diagnostic::error("Index out of bound")
+                        Diagnostic::new("Index out of bound")
                             .with_error_code("E046")
                             .with_location(operator.get_location()),
                     )

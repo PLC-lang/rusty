@@ -219,7 +219,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             severity = severity.max(diagnostician.handle(&diagnostics));
         });
         if severity == Severity::Error {
-            Err(Diagnostic::error("Compilation aborted due to critical errors"))
+            Err(Diagnostic::new("Compilation aborted due to critical errors"))
         } else {
             Ok(())
         }
@@ -340,7 +340,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                         let unit_location = fs::canonicalize(unit_location)?;
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
-                                Diagnostic::error(format!(
+                                Diagnostic::new(format!(
                                     "Could not strip prefix for {}",
                                     current_dir.to_string_lossy()
                                 ))
@@ -391,7 +391,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let hw_conf = plc::hardware_binding::collect_hardware_configuration(&self.index)?;
         let generated_conf = plc::hardware_binding::generate_hardware_configuration(&hw_conf, format)?;
         File::create(location).and_then(|mut it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
-            Diagnostic::error(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
+            Diagnostic::new(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
         })?;
         Ok(())
     }
