@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 56, offset: 141 }..TextLocation { line: 2, column: 57, offset: 142 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LREAL is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 216 }..TextLocation { line: 3, column: 59, offset: 217 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. REAL is no Unsigned.
+  ┌─ <internal>:3:57
+  │
+3 │         FUNCTION func  : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
+  │                                                         ^ Invalid type nature for generic argument. REAL is no Unsigned.
+
+error: Invalid type nature for generic argument. LREAL is no Unsigned.
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. LREAL is no Unsigned.
+
 

@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Case condition used outside of case statement! Did you mean to use ';'?", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 12, offset: 86 }..TextLocation { line: 5, column: 32, offset: 106 }) }], err_no: case__case_condition_outside_case_statement }
-SyntaxError { message: "Case condition used outside of case statement! Did you mean to use ';'?", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 124 }..TextLocation { line: 6, column: 14, offset: 126 }) }], err_no: case__case_condition_outside_case_statement }
+error: Case condition used outside of case statement! Did you mean to use ';'?
+  ┌─ <internal>:6:13
+  │
+6 │             var1 := TOD#20:15:30:123;
+  │             ^^^^^^^^^^^^^^^^^^^^ Case condition used outside of case statement! Did you mean to use ';'?
+
+error: Case condition used outside of case statement! Did you mean to use ';'?
+  ┌─ <internal>:7:13
+  │
+7 │             23:
+  │             ^^ Case condition used outside of case statement! Did you mean to use ';'?
+
 

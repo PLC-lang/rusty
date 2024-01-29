@@ -1,7 +1,5 @@
-use crate::{
-    assert_validation_snapshot,
-    test_utils::tests::{parse_and_validate, parse_and_validate_buffered},
-};
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 #[test]
 fn any_allows_all_natures() {
@@ -20,8 +18,8 @@ fn any_allows_all_natures() {
         FUNCTION func10  : INT VAR x : str; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -46,8 +44,8 @@ fn any_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -57,8 +55,8 @@ fn non_resolved_generics_reported() {
         FUNCTION func  : INT  test(); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_MAGNITUDE    ##########
@@ -71,8 +69,8 @@ fn any_magnitude_allows_reals() {
         FUNCTION func2  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -90,8 +88,8 @@ fn any_magnitude_allows_ints() {
         FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -102,8 +100,8 @@ fn any_magnitude_allows_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -117,8 +115,8 @@ fn any_magnitude_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -129,8 +127,8 @@ fn any_magnitude_does_not_allow_strings() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -141,8 +139,8 @@ fn any_magnitude_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -156,8 +154,8 @@ fn any_magnitude_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -182,8 +180,8 @@ fn any_magnitude_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_NUMBER    ##########
@@ -196,8 +194,8 @@ fn any_num_allows_reals() {
         FUNCTION func2  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -215,8 +213,8 @@ fn any_num_allows_ints() {
         FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -227,8 +225,8 @@ fn any_num_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -242,8 +240,8 @@ fn any_num_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -254,8 +252,8 @@ fn any_num_does_not_allow_strings() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -266,8 +264,8 @@ fn any_num_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -281,8 +279,8 @@ fn any_num_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -307,8 +305,8 @@ fn any_num_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_REAL    ##########
@@ -321,8 +319,8 @@ fn any_real_allows_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -342,8 +340,8 @@ fn any_real_allows_ints() {
         FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -354,8 +352,8 @@ fn any_real_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -369,8 +367,8 @@ fn any_real_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -381,8 +379,8 @@ fn any_real_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -393,8 +391,8 @@ fn any_real_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -408,8 +406,8 @@ fn any_real_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -434,8 +432,8 @@ fn any_real_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_INT    ##########
@@ -448,8 +446,8 @@ fn any_int_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -468,8 +466,8 @@ fn any_int_allows_ints() {
         FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -480,8 +478,8 @@ fn any_int_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -495,8 +493,8 @@ fn any_int_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -507,8 +505,8 @@ fn any_int_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -519,8 +517,8 @@ fn any_int_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -534,8 +532,8 @@ fn any_int_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -560,8 +558,8 @@ fn any_int_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_UNSIGNED    ##########
@@ -574,8 +572,8 @@ fn any_unsigned_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -588,8 +586,8 @@ fn any_unsigned_allows_unsigned_ints() {
         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -602,8 +600,8 @@ fn any_unsigned_does_not_allow_signed_ints() {
         FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -614,8 +612,8 @@ fn any_unsigned_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -629,8 +627,8 @@ fn any_unsigned_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -641,8 +639,8 @@ fn any_unsigned_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -653,8 +651,8 @@ fn any_unsigned_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -668,8 +666,8 @@ fn any_unsigned_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -694,8 +692,8 @@ fn any_unsigned_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_SIGNED    ##########
@@ -708,8 +706,8 @@ fn any_signed_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -722,8 +720,8 @@ fn any_signed_allows_signed_ints() {
         FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -736,8 +734,8 @@ fn any_signed_does_not_allow_unsigned_ints() {
         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -748,8 +746,8 @@ fn any_signed_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -763,8 +761,8 @@ fn any_signed_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -775,8 +773,8 @@ fn any_signed_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -787,8 +785,8 @@ fn any_signed_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -802,8 +800,8 @@ fn any_signed_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -828,8 +826,8 @@ fn any_signed_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_DURATION    ##########
@@ -842,8 +840,8 @@ fn any_duration_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -862,8 +860,8 @@ fn any_duration_does_not_allow_ints() {
         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -874,8 +872,8 @@ fn any_duration_allows_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -889,8 +887,8 @@ fn any_duration_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -901,8 +899,8 @@ fn any_duration_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -913,8 +911,8 @@ fn any_duration_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -928,8 +926,8 @@ fn any_duration_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -954,8 +952,8 @@ fn any_duration_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_BIT    ##########
@@ -968,8 +966,8 @@ fn any_bit_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -988,8 +986,8 @@ fn any_bit_does_not_allow_ints() {
         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1000,8 +998,8 @@ fn any_bit_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1029,8 +1027,8 @@ fn any_bit_allows_bits() {
         END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1041,8 +1039,8 @@ fn any_bit_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1053,8 +1051,8 @@ fn any_bit_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1068,8 +1066,8 @@ fn any_bit_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1094,8 +1092,8 @@ fn any_bit_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_CHARS    ##########
@@ -1108,8 +1106,8 @@ fn any_chars_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1128,8 +1126,8 @@ fn any_chars_does_not_allow_ints() {
         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1140,8 +1138,8 @@ fn any_chars_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1155,8 +1153,8 @@ fn any_chars_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1167,8 +1165,8 @@ fn any_chars_allows_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1179,8 +1177,8 @@ fn any_chars_allows_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1194,8 +1192,8 @@ fn any_chars_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1220,8 +1218,8 @@ fn any_chars_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_STRING    ##########
@@ -1234,8 +1232,8 @@ fn any_string_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1254,8 +1252,8 @@ fn any_string_does_not_allow_ints() {
         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1266,8 +1264,8 @@ fn any_string_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1281,8 +1279,8 @@ fn any_string_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1293,8 +1291,8 @@ fn any_string_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1305,8 +1303,8 @@ fn any_string_allows_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1320,8 +1318,8 @@ fn any_string_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1346,8 +1344,8 @@ fn any_string_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_CHAR    ##########
@@ -1360,8 +1358,8 @@ fn any_char_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1380,8 +1378,8 @@ fn any_char_does_not_allow_ints() {
         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1392,8 +1390,8 @@ fn any_char_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1407,8 +1405,8 @@ fn any_char_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1419,8 +1417,8 @@ fn any_char_allows_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1431,8 +1429,8 @@ fn any_char_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1446,8 +1444,8 @@ fn any_char_does_not_allow_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1472,8 +1470,8 @@ fn any_char_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 // ##########    ANY_DATE    ##########
@@ -1486,8 +1484,8 @@ fn any_date_does_not_allow_reals() {
         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1506,8 +1504,8 @@ fn any_date_does_not_allow_ints() {
         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1518,8 +1516,8 @@ fn any_date_does_not_allow_time() {
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1533,8 +1531,8 @@ fn any_date_does_not_allow_bits() {
         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1545,8 +1543,8 @@ fn any_date_does_not_allow_chars() {
         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1557,8 +1555,8 @@ fn any_date_does_not_allow_string() {
         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1572,8 +1570,8 @@ fn any_date_allows_date() {
         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1598,8 +1596,8 @@ fn any_date_multiple_parameters() {
     END_FUNCTION
     ";
 
-    let diagnostics = parse_and_validate(src);
-    assert_validation_snapshot!(&diagnostics);
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]

@@ -1,7 +1,35 @@
 ---
 source: src/validation/tests/recursive_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 17, offset: 354 }..TextLocation { line: 17, column: 18, offset: 355 }) }, SourceLocation { span: Range(TextLocation { line: 22, column: 17, offset: 461 }..TextLocation { line: 22, column: 18, offset: 462 }) }, SourceLocation { span: Range(TextLocation { line: 26, column: 17, offset: 545 }..TextLocation { line: 26, column: 18, offset: 546 }) }, SourceLocation { span: Range(TextLocation { line: 30, column: 17, offset: 629 }..TextLocation { line: 30, column: 18, offset: 630 }) }], err_no: pou__recursive_data_structure }
-SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 17, offset: 102 }..TextLocation { line: 5, column: 18, offset: 103 }) }, SourceLocation { span: Range(TextLocation { line: 9, column: 17, offset: 186 }..TextLocation { line: 9, column: 18, offset: 187 }) }, SourceLocation { span: Range(TextLocation { line: 13, column: 17, offset: 270 }..TextLocation { line: 13, column: 18, offset: 271 }) }, SourceLocation { span: Range(TextLocation { line: 17, column: 17, offset: 354 }..TextLocation { line: 17, column: 18, offset: 355 }) }], err_no: pou__recursive_data_structure }
+error: Recursive data structure `F -> G -> H -> I -> F` has infinite size
+   ┌─ <internal>:18:18
+   │
+18 │             TYPE F : STRUCT
+   │                  ^ Recursive data structure `F -> G -> H -> I -> F` has infinite size
+   ·
+23 │             TYPE G : STRUCT
+   │                  - see also
+   ·
+27 │             TYPE H : STRUCT
+   │                  - see also
+   ·
+31 │             TYPE I : STRUCT
+   │                  - see also
+
+error: Recursive data structure `B -> C -> E -> F -> B` has infinite size
+   ┌─ <internal>:6:18
+   │
+ 6 │             TYPE B : STRUCT
+   │                  ^ Recursive data structure `B -> C -> E -> F -> B` has infinite size
+   ·
+10 │             TYPE C : STRUCT
+   │                  - see also
+   ·
+14 │             TYPE E : STRUCT
+   │                  - see also
+   ·
+18 │             TYPE F : STRUCT
+   │                  - see also
+
 

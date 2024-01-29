@@ -1,4 +1,5 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 macro_rules! assert_with_type_name {
     ($name:ident) => {
@@ -6,8 +7,9 @@ macro_rules! assert_with_type_name {
         #[allow(non_snake_case)]
         fn $name() {
             let name = stringify!($name);
-            let result = parse_and_validate(&format!("TYPE {name} : STRUCT x : DINT; END_STRUCT END_TYPE"));
-            assert_validation_snapshot!(&result)
+            let result =
+                parse_and_validate_buffered(&format!("TYPE {name} : STRUCT x : DINT; END_STRUCT END_TYPE"));
+            assert_snapshot!(&result)
         }
     };
 }
