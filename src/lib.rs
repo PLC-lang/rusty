@@ -170,8 +170,9 @@ pub enum OptimizationLevel {
 pub enum DebugLevel {
     #[default]
     None,
-    VariablesOnly,
-    Full,
+    VariablesOnly(usize),
+    Full(usize),
+    MatchLlvmVersion
 }
 
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {

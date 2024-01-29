@@ -141,6 +141,22 @@ pub struct CompileParameters {
     pub generate_varinfo: bool,
 
     #[clap(
+        name = "gdwarf",
+        long,
+        help = "Generate debug information in the specified DWARF format. The value of version may be either 2, 3, 4, or 5.",
+        parse(try_from_str = get_dwarf_version)
+    )]
+    pub generate_debug_with_version: Option<usize>,
+
+    #[clap(
+        name = "gdwarf-variables",
+        long,
+        help = "Generate debug information for global variables in the specified DWARF format. The value of version may be either 2, 3, 4, or 5.",
+        parse(try_from_str = get_dwarf_version)
+    )]
+    pub generate_varinfo_with_version: Option<usize>,
+
+    #[clap(
         name = "threads",
         long,
         short = 'j',
@@ -235,6 +251,14 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
     }
 }
 
+fn get_dwarf_version(version: &str) -> Result<usize, ParseIntError> {
+    if version.is_empty() {
+        return Ok(5)
+    }
+    let version = version.parse::<usize>()?;
+    Ok(version)
+}
+
 impl CompileParameters {
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
         CompileParameters::try_parse_from(args).and_then(|result| {
@@ -250,14 +274,32 @@ impl CompileParameters {
         })
     }
 
-    pub fn debug_level(&self) -> DebugLevel {
+    pub fn debug_level(&self) -> Result<DebugLevel, ParameterError> {
         if self.generate_debug {
-            DebugLevel::Full
-        } else if self.generate_varinfo {
-            DebugLevel::VariablesOnly
-        } else {
-            DebugLevel::None
+            return Ok(DebugLevel::Full(5));
         }
+        if self.generate_varinfo {
+            return Ok(DebugLevel::VariablesOnly(5));
+        }
+        if let Some(version) = self.generate_debug_with_version {
+            match version {
+                2 | 3 | 4 | 5 => return Ok(DebugLevel::Full(version)),
+                _ => {
+                    let mut cmd = CompileParameters::command();
+                    return Err(cmd.error(ErrorKind::InvalidValue, "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported"))
+                }
+            }
+        }
+        if let Some(version) = self.generate_varinfo_with_version {
+            match version {
+                2 | 3 | 4 | 5 => return Ok(DebugLevel::VariablesOnly(version)),
+                _ => {
+                    let mut cmd = CompileParameters::command();
+                    return Err(cmd.error(ErrorKind::InvalidValue, "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported"))
+                }
+            }
+        }
+        Ok(DebugLevel::None)
     }
 
     // convert the scattered bools from structopt into an enum

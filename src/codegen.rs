@@ -17,9 +17,7 @@ use self::{
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
-    output::FormatOption,
-    resolver::{AstAnnotations, Dependency, StringLiterals},
-    DebugLevel, OptimizationLevel, Target,
+    output::FormatOption, resolver::{AstAnnotations, Dependency, StringLiterals}, DebugLevel, OptimizationLevel, Target
 };
 
 use super::index::*;

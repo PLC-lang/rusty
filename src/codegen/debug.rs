@@ -9,17 +9,14 @@ use inkwell::{
         DebugInfoBuilder,
     },
     module::Module,
-    values::{FunctionValue, GlobalValue, PointerValue},
+    values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    datalayout::{Bytes, DataLayout, MemoryLocation},
-    index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
-    typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
-    DebugLevel, OptimizationLevel,
+    datalayout::{Bytes, DataLayout, MemoryLocation}, index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry}, typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE}, DebugLevel, OptimizationLevel
 };
 
 use super::generators::{llvm::Llvm, ADDRESS_SPACE_GLOBAL};
@@ -36,19 +33,10 @@ enum DebugEncoding {
     DW_ATE_UTF = 0x10,
 }
 
-impl From<DWARFEmissionKind> for DebugLevel {
-    fn from(kind: DWARFEmissionKind) -> Self {
-        match kind {
-            DWARFEmissionKind::Full => DebugLevel::Full,
-            _ => DebugLevel::None,
-        }
-    }
-}
-
 impl From<DebugLevel> for DWARFEmissionKind {
     fn from(level: DebugLevel) -> Self {
         match level {
-            DebugLevel::Full | DebugLevel::VariablesOnly => DWARFEmissionKind::Full,
+            DebugLevel::Full(_) | DebugLevel::VariablesOnly(_) => DWARFEmissionKind::Full,
             _ => DWARFEmissionKind::None,
         }
     }
@@ -176,53 +164,66 @@ impl<'ink> DebugBuilderEnum<'ink> {
         module: &Module<'ink>,
         root: Option<&Path>,
         optimization: OptimizationLevel,
-        debug_level: DebugLevel,
+        debug_level: DebugLevel
     ) -> Self {
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
-            DebugLevel::VariablesOnly | DebugLevel::Full => {
+            DebugLevel::VariablesOnly(version) | DebugLevel::Full(version) => {
+                let dwarf_version: BasicMetadataValueEnum<'ink> = context.i32_type().const_int(version as u64, false).into();
+                module.add_metadata_flag(
+                    "Dwarf Version",
+                    inkwell::module::FlagBehavior::Warning,
+                    context.metadata_node(&[dwarf_version]),
+                );
+                set_debug_builder_enum(context, module, root, optimization, debug_level)
+            }
+            DebugLevel::MatchLlvmVersion => {
                 module.add_basic_value_flag(
                     "Debug Info Version",
                     inkwell::module::FlagBehavior::Warning,
                     context.i32_type().const_int(inkwell::debug_info::debug_metadata_version() as u64, false),
                 );
-                let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
-                let root = root.unwrap_or_else(|| Path::new(""));
-                let filename = path.strip_prefix(root).unwrap_or(path).to_str().unwrap_or_default();
-                let (debug_info, compile_unit) = module.create_debug_info_builder(
-                    true,
-                    inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
-                    filename,
-                    root.to_str().unwrap_or_default(),
-                    "RuSTy Structured text Compiler",
-                    optimization.is_optimized(),
-                    "",
-                    0,
-                    "",
-                    debug_level.into(),
-                    0,
-                    false,
-                    false,
-                    "",
-                    "",
-                );
-
-                let dbg_obj = DebugBuilder {
-                    context,
-                    debug_info,
-                    compile_unit,
-                    types: Default::default(),
-                    variables: Default::default(),
-                    optimization,
-                    files: Default::default(),
-                };
-                match debug_level {
-                    DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
-                    DebugLevel::Full => DebugBuilderEnum::Full(dbg_obj),
-                    _ => unreachable!("Only variables or full debug can reach this"),
-                }
+                set_debug_builder_enum(context, module, root, optimization, debug_level)
             }
         }
+    }
+}
+
+fn set_debug_builder_enum<'ink>(context: &'ink Context, module: &Module<'ink>, root: Option<&Path>, optimization: OptimizationLevel, debug_level: DebugLevel) -> DebugBuilderEnum<'ink> {
+    let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
+    let root = root.unwrap_or_else(|| Path::new(""));
+    let filename = path.strip_prefix(root).unwrap_or(path).to_str().unwrap_or_default();
+    let (debug_info, compile_unit) = module.create_debug_info_builder(
+        true,
+        inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
+        filename,
+        root.to_str().unwrap_or_default(),
+        "RuSTy Structured text Compiler",
+        optimization.is_optimized(),
+        "",
+        0,
+        "",
+        debug_level.into(),
+        0,
+        false,
+        false,
+        "",
+        "",
+    );
+
+    let dbg_obj = DebugBuilder {
+        context,
+        debug_info,
+        compile_unit,
+        types: Default::default(),
+        variables: Default::default(),
+        optimization,
+        files: Default::default(),
+    };
+    match debug_level {
+        DebugLevel::VariablesOnly(_) => DebugBuilderEnum::VariablesOnly(dbg_obj),
+        DebugLevel::Full(_) => DebugBuilderEnum::Full(dbg_obj),
+        _ => unreachable!("Only variables or full debug can reach this"),
     }
 }
 

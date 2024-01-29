@@ -18,7 +18,7 @@ use std::{
 use cli::{CompileParameters, ParameterError};
 use pipelines::AnnotatedProject;
 use plc::{
-    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads,
+    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -247,7 +247,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     let context = CodegenContext::create();
     let mut options = CompileOptions::default();
     if debug {
-        options.debug_level = DebugLevel::Full;
+        options.debug_level = DebugLevel::Full(5);
     }
     let module = project.generate_single_module(&context, &options)?;
 
@@ -273,7 +273,7 @@ fn generate(
         output_format,
         optimization: compile_parameters.optimization,
         error_format: compile_parameters.error_format,
-        debug_level: compile_parameters.debug_level(),
+        debug_level: compile_parameters.debug_level()?,
     };
     let res = if compile_parameters.single_module {
         log::info!("Using single module mode");
