@@ -166,10 +166,10 @@ impl CounterMappingRegion {
 
     // This function might be used in the future; the LLVM API is still evolving, as is coverage
     // support.
-    #[allow(dead_code)]
-    pub(crate) fn branch_region(
+    // #[allow(dead_code)]
+    pub fn branch_region(
         counter: Counter,
-        false_counter: Counter,
+        // false_counter: Counter,
         file_id: u32,
         start_line: u32,
         start_col: u32,
@@ -178,7 +178,8 @@ impl CounterMappingRegion {
     ) -> Self {
         Self {
             counter,
-            false_counter,
+            // false_counter,
+            false_counter: Counter::ZERO,
             file_id,
             expanded_file_id: 0,
             start_line,

@@ -35,12 +35,32 @@ impl MappingRegionGenerator {
         Self { mapping_regions: Vec::new(), next_counter_id: 0, file_id }
     }
 
-    /// Returns the index of the counter id added
-    pub fn add_mapping_region(&mut self, source: &SourceLocation) -> u32 {
+    // Returns the index of the counter id added
+    pub fn add_code_mapping_region(&mut self, source: &SourceLocation) -> u32 {
         let (start_line, start_col, end_line, end_col) = source.get_start_end();
         let counter_id = self.next_counter_id;
         let counter = Counter::counter_value_reference(CounterId::new(counter_id));
         let mapping_region = CounterMappingRegion::code_region(
+            counter,
+            self.file_id,
+            start_line.try_into().unwrap(),
+            start_col.try_into().unwrap(),
+            end_line.try_into().unwrap(),
+            end_col.try_into().unwrap(),
+        );
+        self.mapping_regions.push(mapping_region);
+        self.next_counter_id += 1;
+
+        // Return the index of the counter id added
+        counter_id
+    }
+
+    /// Returns the index of the counter id added
+    pub fn add_branch_mapping_region(&mut self, source: &SourceLocation) -> u32 {
+        let (start_line, start_col, end_line, end_col) = source.get_start_end();
+        let counter_id = self.next_counter_id;
+        let counter = Counter::counter_value_reference(CounterId::new(counter_id));
+        let mapping_region = CounterMappingRegion::branch_region(
             counter,
             self.file_id,
             start_line.try_into().unwrap(),
@@ -155,6 +175,7 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
         let counter_index = match self.ast_counter_lookup.get(&ast_id) {
             Some(counter_index) => counter_index,
             None => {
+                // TODO - figure out why this happens
                 println!("Ast Not Registered: {} (from function {})", ast_id, func_name);
                 return;
             }
@@ -192,7 +213,7 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
 
         // Map entire function
         let mut mapping_region_generator = MappingRegionGenerator::new(file_id);
-        let func_ctr_id = mapping_region_generator.add_mapping_region(&implementation.location);
+        let func_ctr_id = mapping_region_generator.add_code_mapping_region(&implementation.location);
         assert!(func_ctr_id == 0);
 
         // DFS function statements
@@ -243,7 +264,19 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
                 AstControlStatement::ForLoop(statement) => (),
                 AstControlStatement::WhileLoop(statement) => (),
                 AstControlStatement::RepeatLoop(statement) => (),
-                AstControlStatement::Case(statement) => (),
+                AstControlStatement::Case(statement) => {
+                    // Loop through case blocks
+                    for block in &statement.case_blocks {
+                        // Setup ast->id mapping, store region location
+                        self.register_ast_list_as_region(&block.body, mapping_region_generator);
+                        // Recurse
+                        self.generate_coverage_records(&block.body, mapping_region_generator);
+                    }
+
+                    // Else block
+                    self.register_ast_list_as_region(&statement.else_block, mapping_region_generator);
+                    self.generate_coverage_records(&statement.else_block, mapping_region_generator);
+                }
             }
         }
     }
@@ -265,7 +298,7 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
         let span = first_block.location.span(&last_block.location);
 
         // Map the span, store the counter id in the lookup table (key at first_block.ast_id)
-        let ctr_id = mapping_region_generator.add_mapping_region(&span);
+        let ctr_id = mapping_region_generator.add_branch_mapping_region(&span);
         self.ast_counter_lookup.insert(first_block.id, ctr_id.try_into().unwrap());
     }
 
