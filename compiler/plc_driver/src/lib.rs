@@ -18,7 +18,7 @@ use std::{
 use cli::{CompileParameters, ParameterError};
 use pipelines::AnnotatedProject;
 use plc::{
-    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads
+    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -247,7 +247,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     let context = CodegenContext::create();
     let mut options = CompileOptions::default();
     if debug {
-        options.debug_level = DebugLevel::Full(5);
+        options.debug_level = DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
     }
     let module = project.generate_single_module(&context, &options)?;
 

@@ -253,7 +253,7 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 
 fn get_dwarf_version(version: &str) -> Result<usize, ParseIntError> {
     if version.is_empty() {
-        return Ok(5)
+        return Ok(5);
     }
     let version = version.parse::<usize>()?;
     Ok(version)
@@ -276,17 +276,20 @@ impl CompileParameters {
 
     pub fn debug_level(&self) -> Result<DebugLevel, ParameterError> {
         if self.generate_debug {
-            return Ok(DebugLevel::Full(5));
+            return Ok(DebugLevel::Full(plc::DEFAULT_DWARF_VERSION));
         }
         if self.generate_varinfo {
-            return Ok(DebugLevel::VariablesOnly(5));
+            return Ok(DebugLevel::VariablesOnly(plc::DEFAULT_DWARF_VERSION));
         }
         if let Some(version) = self.generate_debug_with_version {
             match version {
                 2 | 3 | 4 | 5 => return Ok(DebugLevel::Full(version)),
                 _ => {
                     let mut cmd = CompileParameters::command();
-                    return Err(cmd.error(ErrorKind::InvalidValue, "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported"))
+                    return Err(cmd.error(
+                        ErrorKind::InvalidValue,
+                        "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported",
+                    ));
                 }
             }
         }
@@ -295,7 +298,10 @@ impl CompileParameters {
                 2 | 3 | 4 | 5 => return Ok(DebugLevel::VariablesOnly(version)),
                 _ => {
                     let mut cmd = CompileParameters::command();
-                    return Err(cmd.error(ErrorKind::InvalidValue, "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported"))
+                    return Err(cmd.error(
+                        ErrorKind::InvalidValue,
+                        "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported",
+                    ));
                 }
             }
         }

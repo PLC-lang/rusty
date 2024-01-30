@@ -32,7 +32,7 @@ source_filename = "main"
 !14 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
 !15 = !DIGlobalVariableExpression(var: !16, expr: !DIExpression())
 !16 = distinct !DIGlobalVariable(name: "__myStruct2__init", scope: !2, file: !2, line: 8, type: !8, isLocal: false, isDefinition: true)
-!17 = !{i32 2, !"Debug Info Version", i32 3}
+!17 = !{i32 2, !"Dwarf Version", i32 5}
 !18 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !19, splitDebugInlining: false)
 !19 = !{!0, !13, !15}
 

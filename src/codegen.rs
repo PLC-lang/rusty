@@ -17,7 +17,9 @@ use self::{
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
-    output::FormatOption, resolver::{AstAnnotations, Dependency, StringLiterals}, DebugLevel, OptimizationLevel, Target
+    output::FormatOption,
+    resolver::{AstAnnotations, Dependency, StringLiterals},
+    DebugLevel, OptimizationLevel, Target,
 };
 
 use super::index::*;
@@ -88,10 +90,18 @@ impl<'ink> CodeGen<'ink> {
         module_location: &str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
+        output_format: FormatOption,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
-        let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
+        let debug = debug::DebugBuilderEnum::new(
+            context,
+            &module,
+            root,
+            optimization_level,
+            debug_level,
+            output_format,
+        );
         CodeGen { module, debug, module_location: module_location.to_string() }
     }
 
