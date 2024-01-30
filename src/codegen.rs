@@ -103,6 +103,7 @@ impl<'ink> CodeGen<'ink> {
         // TODO - local path shouldn't be hardcoded
         let filenames = vec!["/workspaces/corbanvilla_rusty".to_string(), module_location.to_string()];
         let instr_builder = instrument::CoverageInstrumentationBuilder::new(context, filenames);
+        // instrument::CoverageInstrumentationBuilder::new(/*context, */ &module, filenames);
 
         CodeGen {
             module,

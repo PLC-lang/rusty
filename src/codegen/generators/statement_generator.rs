@@ -6,6 +6,7 @@ use super::{
     llvm::Llvm,
 };
 use crate::{
+    codegen::instrument::CoverageInstrumentationBuilder,
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     index::{ImplementationIndexEntry, Index},
@@ -16,6 +17,7 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
+    module::Module,
     values::{BasicValueEnum, FunctionValue, PointerValue},
 };
 use plc_ast::{
@@ -55,6 +57,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     pub current_loop_continue: Option<BasicBlock<'a>>,
 
     pub debug: &'b DebugBuilderEnum<'a>,
+    pub instrumentation: &'b Option<CoverageInstrumentationBuilder<'a>>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -66,6 +69,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a, 'b>,
         debug: &'b DebugBuilderEnum<'a>,
+        instrumentation: &'b Option<CoverageInstrumentationBuilder<'a>>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
@@ -78,10 +82,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             current_loop_exit: None,
             current_loop_continue: None,
             debug,
+            instrumentation,
         }
     }
 
-    /// convinience method to create an expression-generator
+    /// convenience method to create an expression-generator
     fn create_expr_generator(&'a self) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator::new(
             self.llvm,
@@ -758,6 +763,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             //Generate if statement content
 
             builder.position_at_end(conditional_block);
+
+            // Generate counter increment
+            if let Some(instr_builder) = self.instrumentation {
+                if let Some(first_ast) = block.body.first() {
+                    // instr_builder.emit_branch_increment(
+                    //     builder,
+                    //     current_function.get_name().to_str().unwrap(),
+                    //     first_ast.id,
+                    // );
+                }
+            }
+
             self.generate_body(&block.body)?;
             builder.build_unconditional_branch(continue_block);
         }
@@ -765,6 +782,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         if let Some(else_block) = else_block {
             builder.position_at_end(else_block);
+            // TODO - if else block[0] exists, then generate a ctr increment real quick
             self.generate_body(else_body)?;
             builder.build_unconditional_branch(continue_block);
         }

@@ -14,6 +14,7 @@ use interfaces::*;
 use types::*;
 
 use inkwell::builder::Builder;
+use inkwell::context::Context;
 use inkwell::intrinsics::Intrinsic;
 use inkwell::module::Module;
 use inkwell::passes::PassBuilderOptions;

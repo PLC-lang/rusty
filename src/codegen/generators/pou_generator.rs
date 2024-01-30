@@ -390,9 +390,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &local_index,
                 &function_context,
                 debug,
+                instrumentation,
             );
 
-            // Emit instrumentation before funciton body
+            // Emit instrumentation before function body
             if let Some(instr_builder) = instrumentation {
                 instr_builder.emit_function_increment(
                     &self.llvm.builder,

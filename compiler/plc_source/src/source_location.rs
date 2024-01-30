@@ -302,7 +302,8 @@ impl SourceLocation {
         let span = self.get_span();
         if let CodeSpan::Range(range) = span {
             let (start_line, start_col, end_line, end_col) =
-                (range.start.line, range.start.column, range.end.line, range.end.column);
+                // TODO - rusty devs will understand what needs to be done here w/ line + 1
+                (range.start.line + 1, range.start.column + 1, range.end.line + 1, range.end.column + 1);
             (start_line, start_col, end_line, end_col)
         } else {
             panic!("Error: expected CodeSpan::Range, found {:?}", span);
