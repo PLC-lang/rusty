@@ -125,36 +125,26 @@ pub struct CompileParameters {
         name = "debug",
         long,
         short = 'g',
-        help = "Generate source-level debug information",
+        help = "Generate source-level debug information, uses the default dwarf version unless otherwise specified",
+        value_name = "dwarf version",
         global = true,
-        group = "dbg"
+        group = "dbg",
+        default_missing_value(plc::DEFAULT_DWARF_VERSION),
+        parse(try_from_str = get_debug_version)
     )]
-    pub generate_debug: bool,
+    pub generate_debug: Option<usize>,
 
     #[clap(
         name = "debug-variables",
         long,
-        help = "Generate debug information for global variables",
+        help = "Generate debug information for global variables, uses the default dwarf version unless otherwise specified.",
+        value_name = "dwarf version",
         global = true,
-        group = "dbg"
+        group = "dbg",
+        default_missing_value(plc::DEFAULT_DWARF_VERSION),
+        parse(try_from_str = get_debug_version)
     )]
-    pub generate_varinfo: bool,
-
-    #[clap(
-        name = "gdwarf",
-        long,
-        help = "Generate debug information in the specified DWARF format. The value of version may be either 2, 3, 4, or 5.",
-        parse(try_from_str = get_dwarf_version)
-    )]
-    pub generate_debug_with_version: Option<usize>,
-
-    #[clap(
-        name = "gdwarf-variables",
-        long,
-        help = "Generate debug information for global variables in the specified DWARF format. The value of version may be either 2, 3, 4, or 5.",
-        parse(try_from_str = get_dwarf_version)
-    )]
-    pub generate_varinfo_with_version: Option<usize>,
+    pub generate_varinfo: Option<usize>,
 
     #[clap(
         name = "threads",
@@ -251,12 +241,20 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
     }
 }
 
-fn get_dwarf_version(version: &str) -> Result<usize, ParseIntError> {
-    if version.is_empty() {
-        return Ok(5);
+pub fn get_debug_version(value: &str) -> Result<usize, ParameterError> {
+    let Ok(version) = value.parse::<usize>() else {
+        return Err(CompileParameters::command().error(ErrorKind::InvalidValue, "Version must be either 2, 3, 4 or 5"))
+    };
+
+    match version {
+        2 | 3 | 4 | 5 => Ok(version),
+        _ => {
+            return Err(CompileParameters::command().error(
+                ErrorKind::InvalidValue,
+                "Invalid Dwarf version - only versions 2, 3, 4 and 5 are supported",
+            ));
+        }
     }
-    let version = version.parse::<usize>()?;
-    Ok(version)
 }
 
 impl CompileParameters {
@@ -274,38 +272,15 @@ impl CompileParameters {
         })
     }
 
-    pub fn debug_level(&self) -> Result<DebugLevel, ParameterError> {
-        if self.generate_debug {
-            return Ok(DebugLevel::Full(plc::DEFAULT_DWARF_VERSION));
+    pub fn debug_level(&self) -> DebugLevel {
+        if let Some(version) = self.generate_debug {
+            return DebugLevel::Full(version);
         }
-        if self.generate_varinfo {
-            return Ok(DebugLevel::VariablesOnly(plc::DEFAULT_DWARF_VERSION));
+        if let Some(version) = self.generate_varinfo {
+            return DebugLevel::VariablesOnly(version);
         }
-        if let Some(version) = self.generate_debug_with_version {
-            match version {
-                2 | 3 | 4 | 5 => return Ok(DebugLevel::Full(version)),
-                _ => {
-                    let mut cmd = CompileParameters::command();
-                    return Err(cmd.error(
-                        ErrorKind::InvalidValue,
-                        "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported",
-                    ));
-                }
-            }
-        }
-        if let Some(version) = self.generate_varinfo_with_version {
-            match version {
-                2 | 3 | 4 | 5 => return Ok(DebugLevel::VariablesOnly(version)),
-                _ => {
-                    let mut cmd = CompileParameters::command();
-                    return Err(cmd.error(
-                        ErrorKind::InvalidValue,
-                        "Invalid Dwarf-version. Only 2, 3, 4 or 5 are supported",
-                    ));
-                }
-            }
-        }
-        Ok(DebugLevel::None)
+
+        DebugLevel::None
     }
 
     // convert the scattered bools from structopt into an enum
@@ -373,6 +348,7 @@ impl CompileParameters {
 mod cli_tests {
     use super::{CompileParameters, SubCommands};
     use clap::{CommandFactory, ErrorKind};
+    use plc::DEFAULT_DWARF_VERSION;
     use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
@@ -780,5 +756,81 @@ mod cli_tests {
                 )
                 .to_string()
         )
+    }
+
+    #[test]
+    fn test_dwarf_version_default() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--debug")).unwrap();
+
+        assert_eq!(parameters.generate_debug, Some(DEFAULT_DWARF_VERSION.parse().unwrap()));
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "-g")).unwrap();
+
+        assert_eq!(parameters.generate_debug, Some(DEFAULT_DWARF_VERSION.parse().unwrap()));
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--debug-variables")).unwrap();
+
+        assert_eq!(parameters.generate_varinfo, Some(DEFAULT_DWARF_VERSION.parse().unwrap()));
+    }
+
+    #[test]
+    fn test_dwarf_version_override() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--debug", "2")).unwrap();
+
+        assert_eq!(parameters.generate_debug, Some(2));
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "-g", "3")).unwrap();
+
+        assert_eq!(parameters.generate_debug, Some(3));
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--debug-variables", "4")).unwrap();
+
+        assert_eq!(parameters.generate_varinfo, Some(4));
+    }
+
+    #[test]
+    fn invalid_dwarf_version() {
+        let error = CompileParameters::parse(vec_of_strings!("input.st", "--debug", "1")).unwrap_err();
+
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+        assert!(error
+            .to_string()
+            .contains("Invalid Dwarf version - only versions 2, 3, 4 and 5 are supported"));
+        let inner = &error.info;
+        assert_eq!(inner[1], "1");
+
+        let error = CompileParameters::parse(vec_of_strings!("input.st", "-g", "6")).unwrap_err();
+
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+        assert!(error
+            .to_string()
+            .contains("Invalid Dwarf version - only versions 2, 3, 4 and 5 are supported"));
+        let inner = &error.info;
+        assert_eq!(inner[1], "6");
+
+        let error =
+            CompileParameters::parse(vec_of_strings!("input.st", "--debug-variables", "99")).unwrap_err();
+
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+        assert!(error
+            .to_string()
+            .contains("Invalid Dwarf version - only versions 2, 3, 4 and 5 are supported"));
+        let inner = &error.info;
+        assert_eq!(inner[1], "99");
+
+        let error = CompileParameters::parse(vec_of_strings!("input.st", "--debug", "abc")).unwrap_err();
+
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+        assert!(error.to_string().contains("Version must be either 2, 3, 4 or 5"));
+        let inner = &error.info;
+        assert_eq!(inner[1], "abc");
+    }
+
+    #[test]
+    fn test_default_dwarf_version_is_not_set_if_argument_is_not_given() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+
+        assert!(parameters.generate_debug.is_none());
     }
 }

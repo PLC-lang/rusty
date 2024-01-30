@@ -247,7 +247,9 @@ fn generate_to_string_internal<T: SourceContainer>(
     let context = CodegenContext::create();
     let mut options = CompileOptions::default();
     if debug {
-        options.debug_level = DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
+        options.debug_level = DebugLevel::Full(
+            plc::DEFAULT_DWARF_VERSION.parse::<usize>().expect("This constant is always a digit"),
+        );
     }
     let module = project.generate_single_module(&context, &options)?;
 
@@ -273,7 +275,7 @@ fn generate(
         output_format,
         optimization: compile_parameters.optimization,
         error_format: compile_parameters.error_format,
-        debug_level: compile_parameters.debug_level()?,
+        debug_level: compile_parameters.debug_level(),
     };
     let res = if compile_parameters.single_module {
         log::info!("Using single module mode");

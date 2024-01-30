@@ -48,7 +48,7 @@ pub mod typesystem;
 pub mod validation;
 extern crate shell_words;
 
-pub const DEFAULT_DWARF_VERSION: usize = 5;
+pub const DEFAULT_DWARF_VERSION: &str = "5";
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub enum Target {

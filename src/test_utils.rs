@@ -183,7 +183,13 @@ pub mod tests {
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
-        codegen_debug_without_unwrap(src, DebugLevel::Full(crate::DEFAULT_DWARF_VERSION)).unwrap()
+        codegen_debug_without_unwrap(
+            src,
+            DebugLevel::Full(
+                crate::DEFAULT_DWARF_VERSION.parse::<usize>().expect("This constant is always a digit"),
+            ),
+        )
+        .unwrap()
     }
 
     pub fn codegen(src: &str) -> String {
