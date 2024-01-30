@@ -322,6 +322,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         self.llvm.builder.position_at_end(block);
         blocks.insert("entry".into(), block);
 
+        // TODO - don't hardcode this name
+        let increment_function = local_index.find_associated_implementation("llvm.instrprof.increment");
         let function_context = FunctionContext {
             linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
                 || {
@@ -333,6 +335,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )?,
             function: current_function,
             blocks,
+            increment_function,
         };
 
         let mut param_index = 0;

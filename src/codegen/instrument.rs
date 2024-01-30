@@ -1,6 +1,7 @@
 use super::LlvmTypedIndex;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
+use inkwell::intrinsics::Intrinsic;
 use inkwell::module::Module;
 use inkwell::values::{FunctionValue, GlobalValue};
 use plc_ast::ast::{AstId, AstNode, AstStatement, CompilationUnit, Implementation, LinkageType};
@@ -141,7 +142,8 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
     pub fn emit_branch_increment<'ctx>(
         &self,
         builder: &Builder<'ink>,
-        module: &Module<'ctx>,
+        context: &Context,
+        increment_intrinsic_func: &FunctionValue<'ink>,
         func_name: &str,
         ast_id: AstId,
     ) {
@@ -152,9 +154,11 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
 
         let counter_index =
             self.ast_counter_lookup.get(&ast_id).expect(&format!("Counter not found for AstId {}", ast_id));
-        rustc_llvm_coverage::emit_counter_increment(
+
+        rustc_llvm_coverage::emit_counter_increment_with_function(
             builder,
-            module,
+            context,
+            increment_intrinsic_func,
             &pgo_pointer,
             func_record.structural_hash,
             num_counters.try_into().unwrap(),
@@ -258,5 +262,12 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
         // Map the span, store the counter id in the lookup table (key at first_block.ast_id)
         let ctr_id = mapping_region_generator.add_mapping_region(&span);
         self.ast_counter_lookup.insert(first_block.id, ctr_id.try_into().unwrap());
+    }
+
+    pub fn get_increment_function(&self, module: &Module<'ink>) -> FunctionValue<'ink> {
+        let increment_intrinsic = Intrinsic::find("llvm.instrprof.increment").unwrap();
+        let increment_intrinsic_func = increment_intrinsic.get_declaration(module, &[]).unwrap();
+
+        increment_intrinsic_func
     }
 }

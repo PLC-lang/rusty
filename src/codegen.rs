@@ -199,6 +199,13 @@ impl<'ink> CodeGen<'ink> {
             index.associate_utf16_literal(literal, literal_variable);
         }
 
+        // Add the increment intrinsic to the index
+        if let Some(instr_builder) = &mut self.instrument {
+            let increment_function = instr_builder.get_increment_function(&self.module);
+            let increment_function_name = increment_function.get_name().to_str().unwrap();
+            index.associate_implementation(increment_function_name, increment_function);
+        }
+
         Ok(index)
     }
 

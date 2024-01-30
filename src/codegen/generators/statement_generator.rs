@@ -38,6 +38,9 @@ pub struct FunctionContext<'ink, 'b> {
     pub function: FunctionValue<'ink>,
     /// The blocks/labels this function can use
     pub blocks: HashMap<String, BasicBlock<'ink>>,
+    // TODO - there may be a better spot for this, but it works for now
+    /// Increment intrinsic
+    pub increment_function: Option<FunctionValue<'ink>>,
 }
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
@@ -767,11 +770,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             // Generate counter increment
             if let Some(instr_builder) = self.instrumentation {
                 if let Some(first_ast) = block.body.first() {
-                    // instr_builder.emit_branch_increment(
-                    //     builder,
-                    //     current_function.get_name().to_str().unwrap(),
-                    //     first_ast.id,
-                    // );
+                    instr_builder.emit_branch_increment(
+                        builder,
+                        context,
+                        &self.get_increment_function(),
+                        current_function.get_name().to_str().unwrap(),
+                        first_ast.id,
+                    );
                 }
             }
 
@@ -783,6 +788,20 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         if let Some(else_block) = else_block {
             builder.position_at_end(else_block);
             // TODO - if else block[0] exists, then generate a ctr increment real quick
+
+            // Generate counter increment
+            if let Some(instr_builder) = self.instrumentation {
+                if let Some(first_ast) = else_body.first() {
+                    instr_builder.emit_branch_increment(
+                        builder,
+                        context,
+                        &self.get_increment_function(),
+                        current_function.get_name().to_str().unwrap(),
+                        first_ast.id,
+                    );
+                }
+            }
+
             self.generate_body(else_body)?;
             builder.build_unconditional_branch(continue_block);
         }
@@ -858,6 +877,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn get_llvm_deps(&self) -> (&Builder, FunctionValue, &Context) {
         (&self.llvm.builder, self.function_context.function, self.llvm.context)
+    }
+
+    fn get_increment_function(&self) -> FunctionValue {
+        self.function_context.increment_function.expect("Increment function not set")
     }
 }
 

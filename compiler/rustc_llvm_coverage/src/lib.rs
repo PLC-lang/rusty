@@ -19,6 +19,7 @@ use inkwell::intrinsics::Intrinsic;
 use inkwell::module::Module;
 use inkwell::passes::PassBuilderOptions;
 use inkwell::targets::{CodeModel, InitializationConfig, RelocMode, Target, TargetTriple};
+use inkwell::values::FunctionValue;
 use inkwell::values::PointerValue;
 use inkwell::OptimizationLevel;
 use std::ffi::CString;
@@ -262,6 +263,31 @@ pub fn emit_counter_increment<'ink, 'ctx>(
 
     builder.build_call(
         increment_intrinsic_func,
+        &[(*pgo_function_var).into(), i64_hash.into(), i32_num_counters.into(), i64_counter_idx.into()],
+        "increment_call",
+    );
+}
+
+/// TODO - merge with function from above
+pub fn emit_counter_increment_with_function<'ink>(
+    builder: &Builder<'ink>,
+    context: &Context,
+    increment_intrinsic_func: &FunctionValue<'ink>,
+    pgo_function_var: &PointerValue<'ink>,
+    structural_hash: u64,
+    num_counters: u32,
+    counter_idx: u64,
+) {
+    // Create types
+    let i64_type = context.i64_type();
+    let i32_type = context.i32_type();
+
+    let i64_hash = i64_type.const_int(structural_hash, false);
+    let i32_num_counters = i32_type.const_int(num_counters.into(), false);
+    let i64_counter_idx = i64_type.const_int(counter_idx, false);
+
+    builder.build_call(
+        *increment_intrinsic_func,
         &[(*pgo_function_var).into(), i64_hash.into(), i32_num_counters.into(), i64_counter_idx.into()],
         "increment_call",
     );

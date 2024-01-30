@@ -520,7 +520,7 @@ if [[ $build -ne 0 ]]; then
 	# Show coverage
 	echo "Coverage"
 	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT
-	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT -show-regions 
+	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT -show-regions
 	echo "-----------------------------------"
 
 	echo "Export"
