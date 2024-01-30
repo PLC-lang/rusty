@@ -343,7 +343,7 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|it| it.get_range(index))
             //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
-            .map_err(|err| Diagnostic::codegen_error(&err, SourceLocation::undefined()))?;
+            .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
         let inner_type = self.get_or_create_debug_type(inner_type, index)?;
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
@@ -389,7 +389,8 @@ impl<'ink> DebugBuilder<'ink> {
         self.types
             .get(&dt_name)
             .ok_or_else(|| {
-                Diagnostic::debug_error(format!("Cannot find debug information for type {dt_name}"))
+                Diagnostic::error(format!("Cannot find debug information for type {dt_name}"))
+                    .with_error_code("E076")
             })
             .map(|it| it.to_owned())
     }
@@ -670,7 +671,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DataTypeInformation::String { size: string_size, encoding, .. } => {
                     let length = string_size
                         .as_int_value(index)
-                        .map_err(|err| Diagnostic::codegen_error(&err, SourceLocation::undefined()))?;
+                        .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
                     self.create_string_type(name, length, *encoding, size, alignment, index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }

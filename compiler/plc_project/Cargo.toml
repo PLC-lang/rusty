@@ -16,6 +16,7 @@ jsonschema = "0.17"
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
 glob = "*"
+anyhow.workspace = true
 
 [dev-dependencies]
 insta = "1.31.0"

@@ -32,40 +32,40 @@ error: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
 56 │     myFB(var_inout_struct1 := v_struct2); // INVALID
    │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
 
-error: Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT1'
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
    ┌─ <internal>:67:5
    │
 67 │     v_ref_to_struct1 := REF(v_real); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT1'
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO STRUCT1'
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
    ┌─ <internal>:68:5
    │
 68 │     v_ref_to_struct1 := REF(v_string); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO STRUCT1'
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_CHAR' to 'REF_TO STRUCT1'
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
    ┌─ <internal>:69:5
    │
 69 │     v_ref_to_struct1 := REF(v_char); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_CHAR' to 'REF_TO STRUCT1'
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT1'
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
    ┌─ <internal>:71:5
    │
 71 │     v_ref_to_struct1 := &(v_real); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT1'
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO STRUCT1'
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
    ┌─ <internal>:72:5
    │
 72 │     v_ref_to_struct1 := &(v_string); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO STRUCT1'
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_CHAR' to 'REF_TO STRUCT1'
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
    ┌─ <internal>:73:5
    │
 73 │     v_ref_to_struct1 := &(v_char); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_CHAR' to 'REF_TO STRUCT1'
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
 
 

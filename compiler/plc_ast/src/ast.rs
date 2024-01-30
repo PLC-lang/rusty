@@ -157,6 +157,30 @@ impl TypeNature {
     }
 }
 
+impl Display for TypeNature {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let name = match self {
+            TypeNature::Any => "ANY",
+            TypeNature::Derived => "ANY_DERIVED",
+            TypeNature::Elementary => "ANY_ELEMENTARY",
+            TypeNature::Magnitude => "ANY_MAGNITUDE",
+            TypeNature::Num => "ANY_NUMBER",
+            TypeNature::Real => "ANY_REAL",
+            TypeNature::Int => "ANY_INT",
+            TypeNature::Signed => "ANY_SIGNED",
+            TypeNature::Unsigned => "ANY_UNSIGNED",
+            TypeNature::Duration => "ANY_DURATION",
+            TypeNature::Bit => "ANY_BIT",
+            TypeNature::Chars => "ANY_CHARS",
+            TypeNature::String => "ANY_STRING",
+            TypeNature::Char => "ANY_CHAR",
+            TypeNature::Date => "ANY_DATE",
+            TypeNature::__VLA => "__ANY_VLA",
+        };
+        write!(f, "{name}")
+    }
+}
+
 impl DirectAccessType {
     /// Returns the size of the bitaccess result
     pub fn get_bit_width(&self) -> u64 {
@@ -376,21 +400,6 @@ impl Variable {
             location: self.data_type_declaration.get_location(),
         };
         std::mem::replace(&mut self.data_type_declaration, new_data_type)
-    }
-}
-
-pub trait DiagnosticInfo {
-    fn get_description(&self) -> String;
-    fn get_location(&self) -> SourceLocation;
-}
-
-impl DiagnosticInfo for AstNode {
-    fn get_description(&self) -> String {
-        format!("{self:?}")
-    }
-
-    fn get_location(&self) -> SourceLocation {
-        self.get_location()
     }
 }
 

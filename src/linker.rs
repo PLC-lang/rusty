@@ -205,15 +205,20 @@ pub enum LinkerError {
     Path(PathBuf),
 }
 
+//TODO: This should be of type error, or we should be using anyhow/thiserror here
 impl From<LinkerError> for Diagnostic {
     fn from(error: LinkerError) -> Self {
         match error {
-            LinkerError::Link(e) => Diagnostic::link_error(&e),
+            LinkerError::Link(e) => {
+                Diagnostic::error(format!("An error occurred during linking: {e}")).with_error_code("E077")
+            }
             LinkerError::Path(path) => {
-                Diagnostic::link_error(&format!("path contains invalid UTF-8 characters: {}", path.display()))
+                Diagnostic::error(format!("path contains invalid UTF-8 characters: {}", path.display()))
+                    .with_error_code("E077")
             }
             LinkerError::Target(tgt) => {
-                Diagnostic::link_error(&format!("linker not available for target platform: {tgt}"))
+                Diagnostic::error(format!("linker not available for target platform: {tgt}"))
+                    .with_error_code("E077")
             }
         }
     }

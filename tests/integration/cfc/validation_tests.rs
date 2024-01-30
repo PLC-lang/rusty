@@ -15,7 +15,7 @@ fn duplicate_label_validation() {
     let mut diagnostician = Diagnostician::buffered();
     diagnostician.register_file("<internal>.cfc".to_string(), "".into());
     let (ctxt, project) = parse_and_annotate("plc", vec![cfc_file]).unwrap();
-    project.validate(&ctxt, &mut diagnostician).unwrap();
+    project.validate(&ctxt, &mut diagnostician).expect_err("Expecting a validation problem");
     assert_snapshot!(diagnostician.buffer().unwrap())
 }
 

@@ -8,6 +8,7 @@
 //!  - Shared Objects
 //!  - Executables
 
+use anyhow::Result;
 use std::{
     env,
     ffi::OsStr,
@@ -118,7 +119,7 @@ impl Display for CompileError {
     }
 }
 
-pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), CompileError> {
+pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
     let compile_parameters = CompileParameters::parse(args)?;
     let project = get_project(&compile_parameters)?;
@@ -195,11 +196,9 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         if let Err(res) = res {
             diagnostician.handle(&[res]);
-            return Err(Diagnostic::GeneralError {
-                message: "Compilation aborted due to previous errors".into(),
-                err_no: plc_diagnostics::errno::ErrNo::codegen__general,
-            }
-            .into());
+            return Err(Diagnostic::error("Compilation aborted due to previous errors")
+                .with_error_code("E071")
+                .into());
         }
     }
 
@@ -253,10 +252,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     }
     let module = project.generate_single_module(&context, &options)?;
 
-    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::GeneralError {
-        message: "Cannot generate module".to_string(),
-        err_no: plc_diagnostics::errno::ErrNo::general__err,
-    })
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::error("Cannot generate module"))
 }
 
 fn generate(
@@ -330,7 +326,7 @@ fn generate(
     Ok(())
 }
 
-fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf>, Diagnostic> {
+fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf>> {
     let current_dir = env::current_dir()?;
     //Create a project from either the subcommand or single params
     let project = if let Some(command) = &compile_parameters.commands {
@@ -347,7 +343,7 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
                 }
             })
             .or_else(|| get_config(&current_dir))
-            .ok_or_else(|| Diagnostic::param_error("Could not find 'plc.json'"))?;
+            .ok_or_else(|| Diagnostic::error("Could not find 'plc.json'").with_error_code("E003"))?;
         Project::from_config(&config)
     } else {
         //Build with parameters
