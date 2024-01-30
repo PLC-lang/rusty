@@ -163,6 +163,7 @@ pub mod tests {
             "main",
             crate::OptimizationLevel::None,
             debug_level,
+            Default::default(),
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator
@@ -182,7 +183,7 @@ pub mod tests {
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
-        codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
+        codegen_debug_without_unwrap(src, DebugLevel::Full(crate::DEFAULT_DWARF_VERSION)).unwrap()
     }
 
     pub fn codegen(src: &str) -> String {
@@ -230,6 +231,7 @@ pub mod tests {
                     &unit.file_name,
                     crate::OptimizationLevel::None,
                     debug_level,
+                    Default::default(),
                 );
                 let llvm_index = code_generator.generate_llvm_index(
                     context,

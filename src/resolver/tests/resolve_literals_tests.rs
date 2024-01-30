@@ -545,7 +545,7 @@ fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs(
 
     // x := 0
     let x = &elements[0];
-    assert_eq!(&annotations.get_type_hint(&x, &index).unwrap().name, "STRUCT1");
+    assert_eq!(&annotations.get_type_hint(x, &index).unwrap().name, "STRUCT1");
 
     // arr := [(y := 0), (z := 0)]
     let AstStatement::Assignment(assignment) = &elements[1].stmt else { panic!() };
@@ -556,9 +556,9 @@ fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs(
 
     // y := 0
     let AstStatement::ParenExpression(y) = &elements[0].stmt else { panic!() };
-    assert_eq!(&annotations.get_type_hint(&y, &index).unwrap().name, "STRUCT2");
+    assert_eq!(&annotations.get_type_hint(y, &index).unwrap().name, "STRUCT2");
 
     // z := 0
     let AstStatement::ParenExpression(z) = &elements[1].stmt else { panic!() };
-    assert_eq!(&annotations.get_type_hint(&z, &index).unwrap().name, "STRUCT2");
+    assert_eq!(&annotations.get_type_hint(z, &index).unwrap().name, "STRUCT2");
 }
