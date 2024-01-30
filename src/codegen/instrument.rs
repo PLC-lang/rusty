@@ -152,8 +152,13 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
         let pgo_pointer = func_pgo_var.as_pointer_value();
         let num_counters = func_record.mapping_regions.len();
 
-        let counter_index =
-            self.ast_counter_lookup.get(&ast_id).expect(&format!("Counter not found for AstId {}", ast_id));
+        let counter_index = match self.ast_counter_lookup.get(&ast_id) {
+            Some(counter_index) => counter_index,
+            None => {
+                println!("Ast Not Registered: {} (from function {})", ast_id, func_name);
+                return;
+            }
+        };
 
         rustc_llvm_coverage::emit_counter_increment_with_function(
             builder,
