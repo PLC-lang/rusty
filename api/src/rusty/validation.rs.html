@@ -170,6 +170,8 @@
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -315,7 +317,9 @@
                 <span class="kw">continue</span>;
             };
 
-            <span class="self">self</span>.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
+            <span class="self">self</span>.push_diagnostic(
+                Diagnostic::warning(reason).with_error_code(<span class="string">&quot;E038&quot;</span>).with_location(location.to_owned()),
+            );
         }
     }
 

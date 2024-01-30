@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["INTERNAL_LLVM_ERROR"],"enum":["Diagnostic"],"struct":["SerdeError"]};
+window.SIDEBAR_ITEMS = {"constant":["INTERNAL_LLVM_ERROR"],"enum":["Severity"],"struct":["Diagnostic"]};

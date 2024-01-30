@@ -307,14 +307,13 @@
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     path::{Path, PathBuf},
 };
 
+<span class="kw">use </span>anyhow::{Context, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>glob::glob;
-<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use crate</span>::{
     build_config::{LinkageInfo, ProjectConfig},
@@ -433,7 +432,7 @@
 <span class="comment">//configuration
 </span><span class="kw">impl </span>Project&lt;PathBuf&gt; {
     <span class="doccomment">/// Retrieve a project for compilation from a json description
-    </span><span class="kw">pub fn </span>from_config(config: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>from_config(config: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>project_config = ProjectConfig::from_file(config)<span class="question-mark">?</span>;
         <span class="kw">let </span>libraries = project_config
             .libraries
@@ -465,7 +464,7 @@
                     library: Library::Compiled(compiled_library),
                 })
             })
-            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
+            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;&gt;()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>current_dir = env::current_dir()<span class="question-mark">?</span>;
         <span class="kw">let </span>location = config.parent().map(Path::to_path_buf).or(<span class="prelude-val">Some</span>(current_dir));
@@ -593,16 +592,15 @@
     }
 }
 
-<span class="kw">fn </span>resolve_file_paths(location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;, inputs: Vec&lt;PathBuf&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;PathBuf&gt;, Diagnostic&gt; {
+<span class="kw">fn </span>resolve_file_paths(location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;, inputs: Vec&lt;PathBuf&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;PathBuf&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>sources = Vec::new();
     <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>inputs {
         <span class="kw">let </span>input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
         <span class="kw">let </span>path = <span class="kw-2">&amp;</span>input.to_string_lossy();
-        <span class="kw">let </span>paths = glob(path)
-            .map_err(|e| Diagnostic::param_error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Failed to read glob pattern: {path}, ({e})&quot;</span>)))<span class="question-mark">?</span>;
+        <span class="kw">let </span>paths = glob(path).context(<span class="macro">format!</span>(<span class="string">&quot;Failed to read glob pattern {path}&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">for </span>p <span class="kw">in </span>paths {
-            <span class="kw">let </span>path = p.map_err(|err| Diagnostic::param_error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Illegal path: {err}&quot;</span>)))<span class="question-mark">?</span>;
+            <span class="kw">let </span>path = p.context(<span class="string">&quot;Illegal Path&quot;</span>)<span class="question-mark">?</span>;
             sources.push(path);
         }
     }

@@ -940,6 +940,14 @@
 <a href="#940" id="940">940</a>
 <a href="#941" id="941">941</a>
 <a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>inkwell::{
@@ -1205,7 +1213,7 @@
                         <span class="comment">// return size of llvm type
                         </span><span class="kw">let </span>size = generator.llvm_index
                             .get_associated_type(type_name)
-                            .map_err(|<span class="kw">_</span>| Diagnostic::codegen_error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not find associated data type: {type_name}&quot;</span>), location.clone())
+                            .map_err(|<span class="kw">_</span>| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">&quot;Could not find associated data type: {type_name}&quot;</span>), location.clone())
                             )<span class="question-mark">?</span>.size_of()
                             .ok_or_else(|| Diagnostic::codegen_error(<span class="string">&quot;Parameter type is not sized.&quot;</span>, location.clone()))<span class="question-mark">?
                             </span>.as_basic_value_enum();
@@ -1709,11 +1717,15 @@
             <span class="kw">let </span>idx_type = annotations.get_type_or_void(idx, index);
 
             <span class="kw">if </span>!idx_type.has_nature(TypeNature::Int, index) {
-                validator.push_diagnostic(Diagnostic::invalid_type_nature(
-                    idx_type.get_name(),
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, TypeNature::Int),
-                    idx.get_location(),
-                ))
+                validator.push_diagnostic(
+                    Diagnostic::error(<span class="macro">format!</span>(
+                        <span class="string">&quot;Invalid type nature for generic argument. {} is no {}&quot;</span>,
+                        idx_type.get_name(),
+                        TypeNature::Int
+                    ))
+                    .with_error_code(<span class="string">&quot;E062&quot;</span>)
+                    .with_location(idx.get_location()),
+                )
             }
 
             <span class="comment">// TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
@@ -1728,7 +1740,11 @@
                 };
 
                 <span class="kw">if </span>dimension_idx &lt; <span class="number">1 </span>|| dimension_idx &gt; n_dimensions {
-                    validator.push_diagnostic(Diagnostic::index_out_of_bounds(operator.get_location()))
+                    validator.push_diagnostic(
+                        Diagnostic::error(<span class="string">&quot;Index out of bound&quot;</span>)
+                            .with_error_code(<span class="string">&quot;E046&quot;</span>)
+                            .with_location(operator.get_location()),
+                    )
                 }
             };
         }
@@ -1756,7 +1772,7 @@
     // once we abort codegen on critical errors, revisit and change to unreachable where possible
     </span><span class="kw">if </span>!data_type_information.is_vla() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Expected VLA type, received {}&quot;</span>, data_type_information.get_name()),
+            <span class="macro">format!</span>(<span class="string">&quot;Expected VLA type, received {}&quot;</span>, data_type_information.get_name()),
             location,
         ));
     };
@@ -1772,7 +1788,7 @@
                     <span class="macro">unreachable!</span>(<span class="string">&quot;type cannot be VOID&quot;</span>)
                 };
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Invalid literal type. Expected INT type, received {type_name} type&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">&quot;Invalid literal type. Expected INT type, received {type_name} type&quot;</span>),
                     location,
                 ));
             };
@@ -1788,7 +1804,7 @@
 
             <span class="kw">if </span>!value.is_int_value() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Expected INT value, found {}&quot;</span>, value.get_type()),
+                    <span class="macro">format!</span>(<span class="string">&quot;Expected INT value, found {}&quot;</span>, value.get_type()),
                     location,
                 ));
             };

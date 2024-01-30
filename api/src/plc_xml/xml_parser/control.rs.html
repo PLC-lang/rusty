@@ -245,6 +245,10 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstFactory, AstNode};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -273,12 +277,14 @@
     <span class="kw">let </span><span class="prelude-val">Some</span>(ref_local_id) = control.ref_local_id <span class="kw">else </span>{
         <span class="kw">let </span>location =
             session.range_factory.create_block_location(control.local_id, control.execution_order_id);
-        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::empty_control_statement(location));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Control statement has no connection&quot;</span>).with_error_code(<span class="string">&quot;E081&quot;</span>).with_location(location));
     };
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(node) = index.get(<span class="kw-2">&amp;</span>ref_local_id) <span class="kw">else </span>{
         <span class="kw">let </span>location = session.range_factory.create_block_location(ref_local_id, <span class="prelude-val">None</span>);
-        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::undefined_node(control.local_id, ref_local_id, location));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Node {} is referencing a non-existing element with ID {ref_local_id}&quot;</span>,control.local_id))
+                   .with_error_code(<span class="string">&quot;E082&quot;</span>)
+                   .with_location(location));
     };
 
     <span class="kw">match </span>node {
@@ -291,7 +297,9 @@
             <span class="kw">let </span>location_other =
                 session.range_factory.create_block_location(ref_local_id, node.get_exec_id());
 
-            <span class="prelude-val">Err</span>(Diagnostic::unexpected_nodes(location_control.span(<span class="kw-2">&amp;</span>location_other)))
+            <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Unexpected relationship between nodes&quot;</span>)
+                .with_error_code(<span class="string">&quot;E083&quot;</span>)
+                .with_location(location_control.span(<span class="kw-2">&amp;</span>location_other)))
         }
     }
 }

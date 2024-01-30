@@ -1111,6 +1111,38 @@
 <a href="#1111" id="1111">1111</a>
 <a href="#1112" id="1112">1112</a>
 <a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1415,7 +1447,11 @@
         <span class="string">&quot;ANY_DATE&quot; </span>=&gt; TypeNature::Date,
         <span class="string">&quot;__ANY_VLA&quot; </span>=&gt; TypeNature::__VLA,
         <span class="kw">_ </span>=&gt; {
-            lexer.accept_diagnostic(Diagnostic::unknown_type_nature(nature, lexer.location()));
+            lexer.accept_diagnostic(
+                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Unkown type nature `{nature}`&quot;</span>))
+                    .with_location(lexer.location())
+                    .with_error_code(<span class="string">&quot;E063&quot;</span>),
+            );
             TypeNature::Any
         }
     }
@@ -1453,21 +1489,42 @@
     <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordColon) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((declaration, initializer)) = parse_data_type_definition(lexer, <span class="prelude-val">None</span>) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = initializer {
-                lexer.accept_diagnostic(Diagnostic::unexpected_initializer_on_function_return(
-                    init.get_location(),
-                ));
+                lexer.accept_diagnostic(
+                    Diagnostic::warning(
+                        <span class="string">&quot;Return types cannot have a default value, the value will be ignored&quot;</span>,
+                    )
+                    .with_location(init.get_location())
+                    .with_error_code(<span class="string">&quot;E016&quot;</span>),
+                );
             }
 
             <span class="kw">if </span>!<span class="macro">matches!</span>(pou_type, PouType::Function | PouType::Method { .. }) {
-                lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
-                    pou_type,
-                    lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
-                ));
+                lexer.accept_diagnostic(
+                    Diagnostic::error(<span class="macro">format!</span>(
+                        <span class="string">&quot;POU Type {pou_type:?} does not support a return type. Did you mean Function?&quot;
+                    </span>))
+                    .with_error_code(<span class="string">&quot;E026&quot;</span>)
+                    .with_location(
+                        lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
+                    ),
+                )
             }
 
             <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, .. } = <span class="kw-2">&amp;</span>declaration {
                 <span class="kw">if </span><span class="macro">matches!</span>(data_type, DataType::EnumType { .. } | DataType::StructType { .. }) {
-                    lexer.accept_diagnostic(Diagnostic::function_unsupported_return_type(<span class="kw-2">&amp;</span>declaration))
+                    <span class="kw">let </span>datatype_name = declaration
+                        .get_location()
+                        .to_range()
+                        .map(|range| <span class="kw-2">&amp;</span>lexer.get_src()[range])
+                        .expect(<span class="string">&quot;Expecing location to be a range during parsing&quot;</span>);
+                    lexer.accept_diagnostic(
+                        <span class="comment">////TODO: This prints a debug version of the datatype, it should have a user readable version instead
+                        </span>Diagnostic::error(<span class="macro">format!</span>(
+                            <span class="string">&quot;Data Type {datatype_name} not supported as a function return type!&quot;
+                        </span>))
+                        .with_error_code(<span class="string">&quot;E027&quot;</span>)
+                        .with_location(declaration.get_location()),
+                    )
                 }
             }
             <span class="prelude-val">Some</span>(declaration)
@@ -1740,10 +1797,11 @@
     } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordPointer) {
         <span class="kw">let </span>start_pos = lexer.last_range.start;
         <span class="comment">//Report wrong keyword
-        </span>lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-            message: <span class="string">&quot;&#39;POINTER TO&#39; is not a standard keyword, use REF_TO instead&quot;</span>.to_string(),
-            range: <span class="macro">vec!</span>[lexer.last_location()],
-        });
+        </span>lexer.accept_diagnostic(
+            Diagnostic::warning(<span class="string">&quot;`POINTER TO` is not a standard keyword, use `REF_TO` instead&quot;</span>)
+                .with_location(lexer.last_location())
+                .with_error_code(<span class="string">&quot;E015&quot;</span>),
+        );
         <span class="kw">if let </span><span class="prelude-val">Err</span>(diag) = lexer.expect(KeywordTo) {
             lexer.accept_diagnostic(diag);
         } <span class="kw">else </span>{
@@ -1869,16 +1927,17 @@
             <span class="kw">if </span>(opening_token == KeywordParensOpen &amp;&amp; lexer.token == KeywordSquareParensClose)
                 || (opening_token == KeywordSquareParensOpen &amp;&amp; lexer.token == KeywordParensClose)
             {
-                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-                    message: <span class="string">&quot;Mismatched types of parentheses around string size expression&quot;</span>.into(),
-                    range: <span class="macro">vec!</span>[error_range],
-                });
+                lexer.accept_diagnostic(
+                    Diagnostic::error(<span class="string">&quot;Mismatched types of parentheses around string size expression&quot;</span>)
+                        .with_location(error_range)
+                        .with_error_code(<span class="string">&quot;E009&quot;</span>),
+                );
             } <span class="kw">else if </span>opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
-                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-                    message: <span class="string">&quot;Unusual type of parentheses around string size expression, consider using square parentheses &#39;[]&#39;&quot;
-                        </span>.into(),
-                    range: <span class="macro">vec!</span>[error_range],
-                });
+                lexer.accept_diagnostic(Diagnostic::warning(
+                    <span class="string">&quot;Unusual type of parentheses around string size expression, consider using square parentheses &#39;[]&#39;&quot;</span>).
+                    with_location(error_range)
+                    .with_error_code(<span class="string">&quot;E014&quot;</span>)
+                );
             }
 
             <span class="prelude-val">Some</span>(size_expr)
@@ -1984,7 +2043,11 @@
         <span class="kw">let </span>is_variable_length = <span class="kw">match </span>is_variable_length {
             <span class="prelude-val">Some</span>(val) =&gt; val,
             <span class="prelude-val">None </span>=&gt; {
-                Diagnostic::invalid_range_statement(<span class="kw-2">&amp;</span>range, range.get_location());
+                lexer.accept_diagnostic(
+                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Expected a range statement, got {range:?} instead&quot;</span>))
+                        .with_location(range.get_location())
+                        .with_error_code(<span class="string">&quot;E008&quot;</span>),
+                );
                 <span class="bool-val">false
             </span>}
         };
@@ -2078,10 +2141,11 @@
     <span class="kw">let </span>argument_property = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>PropertyByRef) {
         <span class="comment">//Report a diagnostic if blocktype is incompatible
         </span><span class="kw">if </span>!<span class="macro">matches!</span>(block_type, KeywordVarInput) {
-            lexer.accept_diagnostic(Diagnostic::invalid_pragma_location(
-                <span class="string">&quot;Only VAR_INPUT support by ref properties&quot;</span>,
-                lexer.location(),
-            ))
+            lexer.accept_diagnostic(
+                Diagnostic::warning(<span class="string">&quot;Invalid pragma location: Only VAR_INPUT support by ref properties&quot;</span>)
+                    .with_error_code(<span class="string">&quot;E024&quot;</span>)
+                    .with_location(lexer.location()),
+            )
         }
         ArgumentProperty::ByRef
     } <span class="kw">else </span>{

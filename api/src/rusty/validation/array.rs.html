@@ -196,6 +196,24 @@
 <a href="#196" id="196">196</a>
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for validating array assignments both in their syntax and semantics.
 //!
 //! Specifically this module checks if the array assignments start with a leading `[` symbol and the fed
@@ -267,7 +285,11 @@
 ) {
     <span class="kw">let </span>stmt_rhs = peel(rhs_stmt);
     <span class="kw">if </span>!(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
-        validator.push_diagnostic(Diagnostic::array_assignment(stmt_rhs.get_location()));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;Array assignments must be surrounded with `[]`&quot;</span>)
+                .with_error_code(<span class="string">&quot;E043&quot;</span>)
+                .with_location(stmt_rhs.get_location()),
+        );
         <span class="kw">return</span>; <span class="comment">// Return here, because array size validation is error-prone with incorrect assignments
     </span>}
 
@@ -281,7 +303,13 @@
     <span class="kw">if </span>len_lhs &lt; len_rhs {
         <span class="kw">let </span>name = statement.lhs_name(validator.context);
         <span class="kw">let </span>location = stmt_rhs.get_location();
-        validator.push_diagnostic(Diagnostic::array_size(<span class="kw-2">&amp;</span>name, len_lhs, len_rhs, location));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="macro">format!</span>(
+                <span class="string">&quot;Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided&quot;
+            </span>))
+            .with_error_code(<span class="string">&quot;E043&quot;</span>)
+            .with_location(location),
+        );
     }
 }
 
@@ -303,13 +331,21 @@
     <span class="kw">match </span>elements {
         AstStatement::ExpressionList(expressions) =&gt; {
             <span class="kw">for </span>invalid <span class="kw">in </span>expressions.iter().filter(|it| !it.is_paren()) {
-                validator.push_diagnostic(Diagnostic::array_struct_assignment(invalid.get_location()));
+                validator.push_diagnostic(
+                    Diagnostic::error(<span class="string">&quot;Struct initializers within arrays have to be wrapped by `()`&quot;</span>)
+                        .with_error_code(<span class="string">&quot;E043&quot;</span>)
+                        .with_location(invalid.get_location()),
+                );
             }
         }
 
         <span class="comment">// arr := [foo := 0]
         </span>AstStatement::Assignment(..) =&gt; {
-            validator.push_diagnostic(Diagnostic::array_struct_assignment(rhs_stmt.get_location()));
+            validator.push_diagnostic(
+                Diagnostic::error(<span class="string">&quot;Struct initializers within arrays have to be wrapped by `()`&quot;</span>)
+                    .with_error_code(<span class="string">&quot;E043&quot;</span>)
+                    .with_location(rhs_stmt.get_location()),
+            );
         }
 
         <span class="kw">_ </span>=&gt; (),

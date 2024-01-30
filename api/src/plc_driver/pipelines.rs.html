@@ -494,6 +494,8 @@
 <a href="#494" id="494">494</a>
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -517,9 +519,8 @@
     ConfigFormat, Target,
 };
 <span class="kw">use </span>plc_diagnostics::{
-    diagnostician::{Diagnostician, Severity},
-    diagnostics::Diagnostic,
-    errno::ErrNo,
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
 };
 <span class="kw">use </span>plc_index::GlobalContext;
 <span class="kw">use </span>project::{
@@ -690,11 +691,8 @@
             </span><span class="kw">let </span>diagnostics = validator.diagnostics();
             severity = severity.max(diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics));
         });
-        <span class="kw">if </span>severity == Severity::Critical {
-            <span class="prelude-val">Err</span>(Diagnostic::GeneralError {
-                message: <span class="string">&quot;Compilation aborted due to critical errors&quot;</span>.into(),
-                err_no: ErrNo::general__err,
-            })
+        <span class="kw">if </span>severity == Severity::Error {
+            <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to critical errors&quot;</span>))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
@@ -814,7 +812,13 @@
                         <span class="kw">let </span>unit_location = PathBuf::from(<span class="kw-2">&amp;</span>unit.file_name);
                         <span class="kw">let </span>unit_location = std::fs::canonicalize(unit_location)<span class="question-mark">?</span>;
                         <span class="kw">let </span>output_name = <span class="kw">if </span>unit_location.starts_with(current_dir) {
-                            unit_location.strip_prefix(current_dir)<span class="question-mark">?
+                            unit_location.strip_prefix(current_dir).map_err(|it| {
+                                Diagnostic::error(<span class="macro">format!</span>(
+                                    <span class="string">&quot;Could not strip prefix for {}&quot;</span>,
+                                    current_dir.to_string_lossy()
+                                ))
+                                .with_internal_error(it.into())
+                            })<span class="question-mark">?
                         </span>} <span class="kw">else if </span>unit_location.has_root() {
                             <span class="kw">let </span>root = Path::new(<span class="string">&quot;/&quot;</span>).canonicalize()<span class="question-mark">?</span>;
                             unit_location.strip_prefix(root).expect(<span class="string">&quot;Name has root&quot;</span>)
@@ -860,7 +864,7 @@
         <span class="kw">let </span>hw_conf = plc::hardware_binding::collect_hardware_configuration(<span class="kw-2">&amp;</span><span class="self">self</span>.index)<span class="question-mark">?</span>;
         <span class="kw">let </span>generated_conf = plc::hardware_binding::generate_hardware_configuration(<span class="kw-2">&amp;</span>hw_conf, format)<span class="question-mark">?</span>;
         File::create(location).and_then(|<span class="kw-2">mut </span>it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
-            Diagnostic::GeneralError { err_no: ErrNo::general__io_err, message: it.to_string() }
+            Diagnostic::error(it.to_string()).with_internal_error(it.into()).with_error_code(<span class="string">&quot;E002&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -946,7 +950,7 @@
                 <span class="comment">// Only initialize a linker if we need to use it
                 </span><span class="kw">let </span>target_triple = <span class="self">self</span>.target.get_target_triple();
                 <span class="kw">let </span><span class="kw-2">mut </span>linker = plc::linker::Linker::new(
-                    target_triple.as_str().to_str()<span class="question-mark">?</span>,
+                    <span class="kw-2">&amp;</span>target_triple.as_str().to_string_lossy(),
                     link_options.linker.as_deref(),
                 )<span class="question-mark">?</span>;
                 <span class="kw">for </span>obj <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.objects {

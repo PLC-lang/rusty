@@ -1361,6 +1361,10 @@
 <a href="#1361" id="1361">1361</a>
 <a href="#1362" id="1362">1362</a>
 <a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1532,6 +1536,10 @@
 
     <span class="kw">pub fn </span>is_vla(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.get_type_information().is_vla()
+    }
+
+    <span class="kw">pub fn </span>is_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_type_information().is_pointer()
     }
 
     <span class="doccomment">/// returns true if this type is an array, struct or string

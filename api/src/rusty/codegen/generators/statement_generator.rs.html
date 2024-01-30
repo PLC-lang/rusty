@@ -1187,10 +1187,10 @@
                     left_type,
                 )
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(Diagnostic::syntax_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>),
-                    element.get_location(),
-                ))
+                <span class="comment">//TODO: using the global context we could get a slice here
+                </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>))
+                    .with_error_code(<span class="string">&quot;E055&quot;</span>)
+                    .with_location(element.get_location()))
             }<span class="question-mark">?</span>;
             <span class="kw">for </span>element <span class="kw">in </span>direct_access {
                 <span class="kw">let </span>rhs_next = <span class="kw">if let </span>AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -1201,10 +1201,10 @@
                         left_type,
                     )
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(Diagnostic::syntax_error(
-                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>),
-                        element.get_location(),
-                    ))
+                    <span class="comment">//TODO: using the global context we could get a slice here
+                    </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>))
+                        .with_error_code(<span class="string">&quot;E055&quot;</span>)
+                        .with_location(element.get_location()))
                 }<span class="question-mark">?</span>;
                 rhs = <span class="self">self</span>.llvm.builder.build_int_add(rhs, rhs_next, <span class="string">&quot;&quot;</span>);
             }
@@ -1661,7 +1661,7 @@
                 <span class="kw">let </span>value_ptr =
                     <span class="self">self</span>.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
-                            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate return variable for {call_name:}&quot;</span>),
+                            <span class="macro">format!</span>(<span class="string">&quot;Cannot generate return variable for {call_name:}&quot;</span>),
                             SourceLocation::undefined(),
                         )
                     })<span class="question-mark">?</span>;

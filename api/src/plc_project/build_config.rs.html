@@ -431,10 +431,13 @@
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>jsonschema::JSONSchema;
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::Result;
+<span class="kw">use </span>jsonschema::JSONSchema;
 <span class="kw">use </span>plc::Target;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
-<span class="kw">use </span>plc_diagnostics::diagnostics::SerdeError;
 <span class="kw">use </span>regex::Captures;
 <span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -496,19 +499,17 @@
 <span class="kw">impl </span>ProjectConfig {
     <span class="doccomment">/// Returns a project from the given json-source
     /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
-    </span><span class="kw">pub fn </span>try_parse(source: BuildDescriptionSource) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>try_parse(source: BuildDescriptionSource) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>content = source.source.as_str();
         <span class="kw">let </span>content = resolve_environment_variables(content)<span class="question-mark">?</span>;
-        <span class="kw">let </span>config: ProjectConfig = serde_json::from_str(<span class="kw-2">&amp;</span>content).map_err(|err| {
-            <span class="kw">let </span>err = SerdeError::from(err);
-            err.into_diagnostic(<span class="kw-2">&amp;</span>source)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>config: ProjectConfig =
+            serde_json::from_str(<span class="kw-2">&amp;</span>content).map_err(|err| Diagnostic::from_serde_error(err, <span class="kw-2">&amp;</span>source))<span class="question-mark">?</span>;
         config.validate()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(config)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_file(config: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_file(config: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="comment">//read from file
         </span><span class="kw">let </span>content = fs::read_to_string(config)<span class="question-mark">?</span>;
         <span class="kw">let </span>content = BuildDescriptionSource::new(content, config);
@@ -519,7 +520,7 @@
         <span class="prelude-val">Ok</span>(project)
     }
 
-    <span class="kw">fn </span>get_schema() -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, Diagnostic&gt; {
+    <span class="kw">fn </span>get_schema() -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf&gt; {
         <span class="kw">let </span>current_exe_dir =
             std::env::current_exe()<span class="question-mark">?</span>.parent().map(|it| it.to_path_buf()).unwrap_or_default();
         <span class="kw">let </span>schema_dir = current_exe_dir.join(<span class="string">&quot;schema&quot;</span>);
@@ -533,13 +534,17 @@
         };
         <span class="kw">let </span>path = schema_dir.join(<span class="string">&quot;plc-json.schema&quot;</span>);
         <span class="kw">if </span>!path.exists() {
-            <span class="prelude-val">Err</span>(Diagnostic::io_read_error(<span class="kw-2">&amp;</span>path.to_string_lossy(), <span class="string">&quot;File not found&quot;</span>))
+            <span class="prelude-val">Err</span>(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                <span class="macro">format!</span>(<span class="string">&quot;{}: File not found&quot;</span>, path.to_string_lossy()),
+            )
+            .into())
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(path)
         }
     }
 
-    <span class="kw">fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+    <span class="kw">fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>schema_path = <span class="kw">match </span><span class="self">Self</span>::get_schema() {
             <span class="prelude-val">Ok</span>(path) =&gt; path,
             <span class="prelude-val">Err</span>(error) =&gt; {
@@ -565,13 +570,14 @@
             }
 
             <span class="comment">// XXX: jsonschema does not provide error messages with location info
-            </span>Diagnostic::invalid_build_description_file(message, <span class="prelude-val">None</span>)
-        })
+            </span>Diagnostic::error(message).with_error_code(<span class="string">&quot;E088&quot;</span>)
+        })<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="comment">//TODO: I don&#39;t think this belongs here
-</span><span class="kw">fn </span>resolve_environment_variables(to_replace: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+</span><span class="kw">fn </span>resolve_environment_variables(to_replace: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
     <span class="kw">let </span>pattern = Regex::new(<span class="string">r&quot;\$(\w+)&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>result = pattern.replace_all(to_replace, |it: <span class="kw-2">&amp;</span>Captures| {
         <span class="kw">let </span>original = it.get(<span class="number">0</span>).map(|it| it.as_str().to_string()).unwrap();

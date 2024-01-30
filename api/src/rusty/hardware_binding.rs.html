@@ -280,8 +280,10 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{DirectAccessType, HardwareAccessType};
-<span class="kw">use </span>plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>serde::{
     ser::{SerializeSeq, SerializeStruct},
     Serialize, Serializer,
@@ -424,7 +426,7 @@
         .collect();
 
     conf.map(|hardware_binding| HardwareConfiguration { index, hardware_binding })
-        .map_err(|message| Diagnostic::GeneralError { err_no: ErrNo::general__io_err, message })
+        .map_err(|message| Diagnostic::error(message).with_error_code(<span class="string">&quot;E002&quot;</span>))
 }
 
 <span class="kw">pub fn </span>generate_hardware_configuration(
@@ -432,10 +434,12 @@
     format: ConfigFormat,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
     <span class="kw">match </span>format {
-        ConfigFormat::JSON =&gt; serde_json::to_string_pretty(<span class="kw-2">&amp;</span>config)
-            .map_err(|e| Diagnostic::GeneralError { message: e.to_string(), err_no: ErrNo::general__io_err }),
-        ConfigFormat::TOML =&gt; toml::ser::to_string_pretty(<span class="kw-2">&amp;</span>config)
-            .map_err(|e| Diagnostic::GeneralError { message: e.to_string(), err_no: ErrNo::general__io_err }),
+        ConfigFormat::JSON =&gt; serde_json::to_string_pretty(<span class="kw-2">&amp;</span>config).map_err(|e| {
+            Diagnostic::error(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
+        }),
+        ConfigFormat::TOML =&gt; toml::ser::to_string_pretty(<span class="kw-2">&amp;</span>config).map_err(|e| {
+            Diagnostic::error(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
+        }),
     }
 }
 

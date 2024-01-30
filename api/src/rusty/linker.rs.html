@@ -253,6 +253,11 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre></div><pre class="rust"><code><span class="comment">// This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
@@ -460,15 +465,20 @@
     </span>Path(PathBuf),
 }
 
-<span class="kw">impl </span>From&lt;LinkerError&gt; <span class="kw">for </span>Diagnostic {
+<span class="comment">//TODO: This should be of type error, or we should be using anyhow/thiserror here
+</span><span class="kw">impl </span>From&lt;LinkerError&gt; <span class="kw">for </span>Diagnostic {
     <span class="kw">fn </span>from(error: LinkerError) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>error {
-            LinkerError::Link(e) =&gt; Diagnostic::link_error(<span class="kw-2">&amp;</span>e),
+            LinkerError::Link(e) =&gt; {
+                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;An error occurred during linking: {e}&quot;</span>)).with_error_code(<span class="string">&quot;E077&quot;</span>)
+            }
             LinkerError::Path(path) =&gt; {
-                Diagnostic::link_error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>, path.display()))
+                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>, path.display()))
+                    .with_error_code(<span class="string">&quot;E077&quot;</span>)
             }
             LinkerError::Target(tgt) =&gt; {
-                Diagnostic::link_error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;linker not available for target platform: {tgt}&quot;</span>))
+                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;linker not available for target platform: {tgt}&quot;</span>))
+                    .with_error_code(<span class="string">&quot;E077&quot;</span>)
             }
         }
     }

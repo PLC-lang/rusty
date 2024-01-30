@@ -123,6 +123,10 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>plc_ast::provider::IdProvider;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -159,7 +163,14 @@
     {
         <span class="kw">match </span>container.load_source(encoding) {
             <span class="prelude-val">Ok</span>(value) =&gt; <span class="self">self</span>.sources.insert(container.get_location_str(), value),
-            <span class="prelude-val">Err</span>(why) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::io_read_error(container.get_location_str(), <span class="kw-2">&amp;</span>why)),
+            <span class="prelude-val">Err</span>(why) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(
+                    <span class="string">&quot;Cannot read file &#39;{}&#39;: {}&#39;&quot;</span>,
+                    container.get_location_str(),
+                    <span class="kw-2">&amp;</span>why
+                ))
+                .with_error_code(<span class="string">&quot;E002&quot;</span>))
+            }
         };
 
         <span class="prelude-val">Ok</span>(())
@@ -191,13 +202,13 @@
     </span><span class="doccomment">/// Returns a (whitespace) trimmed slice representing the specified location of the source code.
     /// For example if the location represents `ARRAY[1..5]\n\nOF\t  DINT` the slice `ARRAY[1..5] OF DINT` will be returned instead.
     </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; String {
-        <span class="kw">let </span>slice = <span class="self">self</span>.slice_original(location);
+        <span class="kw">let </span>slice = <span class="self">self</span>.slice_raw(location);
         slice.split_whitespace().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot; &quot;</span>)
     }
 
     <span class="doccomment">/// Returns a slice representing the specified location of the source code.
     /// If the location, i.e. file path, does not exist an empty string will be returned.
-    </span><span class="kw">pub fn </span>slice_original(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="kw-2">&amp;</span>str {
+    </span><span class="kw">pub fn </span>slice_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">let </span>path = location.get_file_name().unwrap_or(<span class="string">&quot;&lt;internal&gt;&quot;</span>);
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(code) = <span class="self">self</span>.sources.get(path) <span class="kw">else </span>{ <span class="kw">return </span><span class="string">&quot;&quot; </span>};
@@ -242,10 +253,7 @@
         <span class="kw">let </span>location = factory.create_range(<span class="number">0</span>..input.source.len());
 
         <span class="macro">assert_eq!</span>(ctxt.slice(<span class="kw-2">&amp;</span>location), <span class="string">&quot;ARRAY[1..5] OF DINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(
-            ctxt.slice_original(<span class="kw-2">&amp;</span>location),
-            <span class="string">&quot;ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT&quot;
-        </span>);
+        <span class="macro">assert_eq!</span>(ctxt.slice_raw(<span class="kw-2">&amp;</span>location), <span class="string">&quot;ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT&quot;</span>);
     }
 }
 </code></pre></div></section></main></body></html>

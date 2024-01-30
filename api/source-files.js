@@ -118,7 +118,7 @@ var sourcesIndex = JSON.parse('{\
 "plc":["",[],["main.rs"]],\
 "plc_ast":["",[],["ast.rs","control_statements.rs","lib.rs","literals.rs","pre_processor.rs","provider.rs"]],\
 "plc_derive":["",[],["lib.rs"]],\
-"plc_diagnostics":["",[["reporter",[],["clang.rs","codespan.rs","null.rs"]]],["diagnostician.rs","diagnostics.rs","errno.rs","lib.rs","reporter.rs"]],\
+"plc_diagnostics":["",[["reporter",[],["clang.rs","codespan.rs","null.rs"]]],["diagnostician.rs","diagnostics.rs","lib.rs","reporter.rs"]],\
 "plc_driver":["",[],["cli.rs","lib.rs","pipelines.rs","runner.rs"]],\
 "plc_index":["",[],["lib.rs"]],\
 "plc_project":["",[],["build_config.rs","lib.rs","object.rs","project.rs"]],\

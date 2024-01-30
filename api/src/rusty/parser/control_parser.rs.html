@@ -213,6 +213,7 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
     ast::{AstFactory, AstNode, AstStatement},
     control_statements::ConditionalBlock,
@@ -397,10 +398,11 @@
             } <span class="kw">else </span>{
                 <span class="comment">//If no current condition is available, log a diagnostic and add an empty condition
                 </span><span class="kw">if </span>current_condition.is_none() {
-                    lexer.accept_diagnostic(Diagnostic::syntax_error(
-                        <span class="string">&quot;Missing Case-Condition&quot;</span>,
-                        lexer.location(),
-                    ));
+                    lexer.accept_diagnostic(
+                        Diagnostic::error(<span class="string">&quot;Missing Case-Condition&quot;</span>)
+                            .with_error_code(<span class="string">&quot;E012&quot;</span>)
+                            .with_location(lexer.location()),
+                    );
                     current_condition =
                         <span class="prelude-val">Some</span>(Box::new(AstFactory::create_empty_statement(lexer.location(), lexer.next_id())));
                 }

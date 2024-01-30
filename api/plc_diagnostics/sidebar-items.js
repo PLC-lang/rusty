@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["diagnostician","diagnostics","errno","reporter"]};
+window.SIDEBAR_ITEMS = {"mod":["diagnostician","diagnostics","reporter"]};

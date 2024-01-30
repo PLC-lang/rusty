@@ -159,31 +159,10 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use crate</span>::{
-    diagnostics::Diagnostic,
-    errno::ErrNo,
+    diagnostics::{Diagnostic, Severity},
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -216,13 +195,10 @@
     </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[Diagnostic]) -&gt; Severity {
         <span class="kw">let </span>resolved_diagnostics = diagnostics
             .iter()
-            .flat_map(|it| <span class="kw">match </span>it {
-                Diagnostic::CombinedDiagnostic { inner_diagnostics, .. } =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[it];
-                    res.extend(inner_diagnostics.iter().collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>Diagnostic&gt;&gt;());
-                    res
-                }
-                <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[it],
+            .flat_map(|it| {
+                <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[it];
+                res.extend(it.get_sub_diagnostics());
+                res
             })
             .map(|d| ResolvedDiagnostics {
                 message: d.get_message().to_string(),
@@ -329,30 +305,14 @@
 
 <span class="kw">impl </span>DiagnosticAssessor <span class="kw">for </span>DefaultDiagnosticAssessor {
     <span class="kw">fn </span>assess(<span class="kw-2">&amp;</span><span class="self">self</span>, d: <span class="kw-2">&amp;</span>Diagnostic) -&gt; Severity {
-        <span class="kw">match </span>d {
-            <span class="comment">// improvements become warnings
-            </span>Diagnostic::ImprovementSuggestion { .. } =&gt; Severity::Warning,
-            <span class="kw">_ if </span><span class="kw-2">*</span>d.get_type() == ErrNo::reference__unresolved =&gt; Severity::Critical,
-            <span class="comment">// everything else becomes an error
-            </span><span class="kw">_ </span>=&gt; Severity::Error,
-        }
+        <span class="comment">//TODO: Refer to some severity map to reassign severity here.
+        </span>d.get_severity()
     }
-}
-
-<span class="doccomment">/// a diagnostics severity
-</span><span class="attr">#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-</span><span class="kw">pub enum </span>Severity {
-    <span class="attr">#[default]
-    </span>Info,
-    Warning,
-    Error,
-    Critical,
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>Severity {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>severity = <span class="kw">match </span><span class="self">self </span>{
-            Severity::Critical =&gt; <span class="string">&quot;critical&quot;</span>,
             Severity::Error =&gt; <span class="string">&quot;error&quot;</span>,
             Severity::Warning =&gt; <span class="string">&quot;warning&quot;</span>,
             Severity::Info =&gt; <span class="string">&quot;info&quot;</span>,

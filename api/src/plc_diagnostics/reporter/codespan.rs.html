@@ -157,7 +157,7 @@
 };
 <span class="kw">use </span>plc_source::source_location::CodeSpan;
 
-<span class="kw">use </span><span class="kw">crate</span>::diagnostician::Severity;
+<span class="kw">use </span><span class="kw">crate</span>::diagnostics::Severity;
 
 <span class="kw">use super</span>::{DiagnosticReporter, ResolvedDiagnostics};
 
@@ -252,7 +252,7 @@
     <span class="kw">fn </span>report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
         <span class="kw">for </span>d <span class="kw">in </span>diagnostics {
             <span class="kw">let </span>diagnostic_factory = <span class="kw">match </span>d.severity {
-                Severity::Critical | Severity::Error =&gt; codespan_reporting::diagnostic::Diagnostic::error(),
+                Severity::Error =&gt; codespan_reporting::diagnostic::Diagnostic::error(),
                 Severity::Warning =&gt; codespan_reporting::diagnostic::Diagnostic::warning(),
                 Severity::Info =&gt; codespan_reporting::diagnostic::Diagnostic::note(),
             };

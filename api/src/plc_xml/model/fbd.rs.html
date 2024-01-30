@@ -928,6 +928,7 @@
 <a href="#928" id="928">928</a>
 <a href="#929" id="929">929</a>
 <a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>indexmap::{IndexMap, IndexSet};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocationFactory;
@@ -1165,18 +1166,16 @@
                     kind: ConnectorKind::Source, name, ref_local_id, ..
                 })) =&gt; {
                     current = ref_local_id.ok_or_else(|| {
-                        Diagnostic::unconnected_source(
-                            name.as_ref(),
-                            source_location_factory.create_block_location(current, <span class="prelude-val">None</span>),
-                        )
+                        Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Source &#39;{name}&#39; is not connected.&quot;</span>))
+                            .with_error_code(<span class="string">&quot;E084&quot;</span>)
+                            .with_location(source_location_factory.create_block_location(current, <span class="prelude-val">None</span>))
                     })<span class="question-mark">?
                 </span>}
                 <span class="prelude-val">Some</span>(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =&gt; {
                     current = <span class="kw-2">*</span>source_connections.get(name.as_ref()).ok_or_else(|| {
-                        Diagnostic::sink_without_associated_source(
-                            name.as_ref(),
-                            source_location_factory.create_block_location(current, <span class="prelude-val">None</span>),
-                        )
+                        Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Expected a corresponding source-connection mark for sink &#39;{name}&#39;, but could not find one.&quot;</span>))
+                            .with_error_code(<span class="string">&quot;E086&quot;</span>)
+                            .with_location(source_location_factory.create_block_location(current, <span class="prelude-val">None</span>))
                     })<span class="question-mark">?
                 </span>}
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(current),
@@ -1192,8 +1191,11 @@
                 <span class="kw">let </span>node = <span class="self">self</span>.get(<span class="kw-2">&amp;</span>current).expect(<span class="string">&quot;Node exists&quot;</span>);
                 msg.push_str(node.get_name());
 
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::cyclic_connection(
-                    msg.to_string(),
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(
+                    <span class="string">&quot;Sink is connected to itself. Found the following recursion: {msg}&quot;
+                </span>))
+                .with_error_code(<span class="string">&quot;E085&quot;</span>)
+                .with_location(
                     source_location_factory.create_block_location(node.get_id(), node.get_exec_id()),
                 ));
             }

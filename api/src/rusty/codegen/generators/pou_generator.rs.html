@@ -1040,7 +1040,7 @@
 
         <span class="kw">let </span>current_function = <span class="self">self</span>.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not find generated stub for {pou_name}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">&quot;Could not find generated stub for {pou_name}&quot;</span>),
                 implementation.location.clone(),
             )
         })<span class="question-mark">?</span>;
@@ -1073,7 +1073,7 @@
             linking_context: <span class="self">self</span>.index.find_implementation_by_name(<span class="kw-2">&amp;</span>implementation.name).ok_or_else(
                 || {
                     Diagnostic::codegen_error(
-                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not find implementation for {}&quot;</span>, <span class="kw-2">&amp;</span>implementation.name),
+                        <span class="macro">format!</span>(<span class="string">&quot;Could not find implementation for {}&quot;</span>, <span class="kw-2">&amp;</span>implementation.name),
                         implementation.location.clone(),
                     )
                 },
@@ -1182,7 +1182,7 @@
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.context.void_type().fn_type(<span class="kw-2">&amp;</span>params, is_var_args)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Unsupported return type {return_type:?}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">&quot;Unsupported return type {return_type:?}&quot;</span>),
                 SourceLocation::undefined(),
             )),
         }
@@ -1383,7 +1383,7 @@
         <span class="kw">let </span>variable_llvm_type = <span class="self">self
             </span>.llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))<span class="question-mark">?</span>;
+            .map_err(|err| err.with_location(variable.source_location.clone()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>type_size = variable_llvm_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error(<span class="string">&quot;Couldn&#39;t determine type size&quot;</span>, variable.source_location.clone())

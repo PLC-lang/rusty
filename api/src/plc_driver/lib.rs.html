@@ -374,10 +374,6 @@
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -388,7 +384,8 @@
 //!  - Shared Objects
 //!  - Executables
 
-</span><span class="kw">use </span>std::{
+</span><span class="kw">use </span>anyhow::Result;
+<span class="kw">use </span>std::{
     env,
     ffi::OsStr,
     fmt::{Debug, Display},
@@ -498,7 +495,7 @@
     }
 }
 
-<span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;(), CompileError&gt; {
+<span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="comment">//Parse the arguments
     </span><span class="kw">let </span>compile_parameters = CompileParameters::parse(args)<span class="question-mark">?</span>;
     <span class="kw">let </span>project = get_project(<span class="kw-2">&amp;</span>compile_parameters)<span class="question-mark">?</span>;
@@ -575,11 +572,9 @@
         .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         <span class="kw">if let </span><span class="prelude-val">Err</span>(res) = res {
             diagnostician.handle(<span class="kw-2">&amp;</span>[res]);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::GeneralError {
-                message: <span class="string">&quot;Compilation aborted due to previous errors&quot;</span>.into(),
-                err_no: plc_diagnostics::errno::ErrNo::codegen__general,
-            }
-            .into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to previous errors&quot;</span>)
+                .with_error_code(<span class="string">&quot;E071&quot;</span>)
+                .into());
         }
     }
 
@@ -631,10 +626,7 @@
     }
     <span class="kw">let </span>module = project.generate_single_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>options)<span class="question-mark">?</span>;
 
-    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::GeneralError {
-        message: <span class="string">&quot;Cannot generate module&quot;</span>.to_string(),
-        err_no: plc_diagnostics::errno::ErrNo::general__err,
-    })
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::error(<span class="string">&quot;Cannot generate module&quot;</span>))
 }
 
 <span class="kw">fn </span>generate(
@@ -708,7 +700,7 @@
     </span><span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn </span>get_project(compile_parameters: <span class="kw-2">&amp;</span>CompileParameters) -&gt; <span class="prelude-ty">Result</span>&lt;Project&lt;PathBuf&gt;, Diagnostic&gt; {
+<span class="kw">fn </span>get_project(compile_parameters: <span class="kw-2">&amp;</span>CompileParameters) -&gt; <span class="prelude-ty">Result</span>&lt;Project&lt;PathBuf&gt;&gt; {
     <span class="kw">let </span>current_dir = env::current_dir()<span class="question-mark">?</span>;
     <span class="comment">//Create a project from either the subcommand or single params
     </span><span class="kw">let </span>project = <span class="kw">if let </span><span class="prelude-val">Some</span>(command) = <span class="kw-2">&amp;</span>compile_parameters.commands {
@@ -725,7 +717,7 @@
                 }
             })
             .or_else(|| get_config(<span class="kw-2">&amp;</span>current_dir))
-            .ok_or_else(|| Diagnostic::param_error(<span class="string">&quot;Could not find &#39;plc.json&#39;&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| Diagnostic::error(<span class="string">&quot;Could not find &#39;plc.json&#39;&quot;</span>).with_error_code(<span class="string">&quot;E003&quot;</span>))<span class="question-mark">?</span>;
         Project::from_config(<span class="kw-2">&amp;</span>config)
     } <span class="kw">else </span>{
         <span class="comment">//Build with parameters

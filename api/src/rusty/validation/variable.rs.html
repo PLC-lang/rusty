@@ -218,6 +218,27 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -253,7 +274,11 @@
     <span class="kw">if </span>block.constant
         &amp;&amp; !<span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
     {
-        validator.push_diagnostic(Diagnostic::invalid_constant_block(block.location.clone()))
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;This variable block does not support the CONSTANT modifier&quot;</span>)
+                .with_error_code(<span class="string">&quot;E034&quot;</span>)
+                .with_location(block.location.clone()),
+        )
     }
 }
 
@@ -272,25 +297,31 @@
 /// - InOut within Function-Block
 </span><span class="kw">fn </span>validate_vla(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Pou&gt;, block: <span class="kw-2">&amp;</span>VariableBlock, variable: <span class="kw-2">&amp;</span>Variable) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = pou <span class="kw">else </span>{
+
         <span class="kw">if </span><span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::Global) {
-            validator.push_diagnostic(Diagnostic::invalid_vla_container(
-                <span class="string">&quot;VLAs can not be defined as global variables&quot;</span>.to_string(),
-                variable.location.clone(),
-            ))
+            validator.push_diagnostic(Diagnostic::error(<span class="string">&quot;VLAs can not be defined as global variables&quot;</span>)
+                                      .with_error_code(<span class="string">&quot;E044&quot;</span>)
+                                      .with_location( variable.location.clone())
+            )
         }
 
         <span class="kw">return</span>;
     };
 
     <span class="kw">match </span>(<span class="kw-2">&amp;</span>pou.pou_type, block.variable_block_type) {
-        (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) =&gt; {
-            validator.push_diagnostic(Diagnostic::vla_by_val_warning(variable.location.clone()))
-        }
+        (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) =&gt; validator.push_diagnostic(
+            Diagnostic::warning(
+                <span class="string">&quot;Variable Length Arrays are always by-ref, even when declared in a by-value block&quot;</span>,
+            )
+            .with_error_code(<span class="string">&quot;E047&quot;</span>)
+            .with_location(variable.location.clone()),
+        ),
 
-        (PouType::Program, <span class="kw">_</span>) =&gt; validator.push_diagnostic(Diagnostic::invalid_vla_container(
-            <span class="string">&quot;Variable Length Arrays are not allowed to be defined inside a Program&quot;</span>.to_string(),
-            variable.location.clone(),
-        )),
+        (PouType::Program, <span class="kw">_</span>) =&gt; validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;Variable Length Arrays are not allowed to be defined inside a Program&quot;</span>)
+                .with_error_code(<span class="string">&quot;E044&quot;</span>)
+                .with_location(variable.location.clone()),
+        ),
 
         (
             PouType::Function | PouType::Method { .. },
@@ -300,13 +331,14 @@
         )
         | (PouType::FunctionBlock, VariableBlockType::InOut) =&gt; (),
 
-        <span class="kw">_ </span>=&gt; validator.push_diagnostic(Diagnostic::invalid_vla_container(
-            <span class="macro">format!</span>(
+        <span class="kw">_ </span>=&gt; validator.push_diagnostic(
+            Diagnostic::error(<span class="macro">format!</span>(
                 <span class="string">&quot;Variable Length Arrays are not allowed to be defined as {} variables inside a {}&quot;</span>,
                 block.variable_block_type, pou.pou_type
-            ),
-            variable.location.clone(),
-        )),
+            ))
+            .with_error_code(<span class="string">&quot;E044&quot;</span>)
+            .with_location(variable.location.clone()),
+        ),
     }
 }
 
@@ -333,25 +365,29 @@
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(<span class="kw-2">&amp;</span>initial_id))
         {
             <span class="prelude-val">Some</span>(ConstExpression::Unresolvable { reason, statement }) <span class="kw">if </span>reason.is_misc() =&gt; {
-                validator.push_diagnostic(Diagnostic::unresolved_constant(
-                    variable.name.as_str(),
-                    <span class="prelude-val">Some</span>(reason.get_reason()),
-                    statement.get_location(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(<span class="macro">format!</span>(
+                        <span class="string">&quot;Unresolved constant `{}` variable: {}&quot;</span>,
+                        variable.name.as_str(),
+                        reason.get_reason()
+                    ))
+                    .with_error_code(<span class="string">&quot;E033&quot;</span>)
+                    .with_location(statement.get_location()),
+                );
             }
             <span class="prelude-val">Some</span>(ConstExpression::Unresolved { statement, .. }) =&gt; {
-                validator.push_diagnostic(Diagnostic::unresolved_constant(
-                    variable.name.as_str(),
-                    <span class="prelude-val">None</span>,
-                    statement.get_location(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Unresolved constant `{}` variable&quot;</span>, variable.name.as_str(),))
+                        .with_error_code(<span class="string">&quot;E033&quot;</span>)
+                        .with_location(statement.get_location()),
+                );
             }
             <span class="prelude-val">None </span><span class="kw">if </span>v_entry.is_constant() =&gt; {
-                validator.push_diagnostic(Diagnostic::unresolved_constant(
-                    variable.name.as_str(),
-                    <span class="prelude-val">None</span>,
-                    variable.location.clone(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Unresolved constant `{}` variable&quot;</span>, variable.name.as_str(),))
+                        .with_error_code(<span class="string">&quot;E033&quot;</span>)
+                        .with_location(variable.location.clone()),
+                );
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(rhs) = variable.initializer.as_ref() {
@@ -372,8 +408,14 @@
         <span class="comment">// check if we declared a constant fb-instance or class-instance
         </span><span class="kw">if </span>v_entry.is_constant() &amp;&amp; data_type_is_fb_or_class_instance(v_entry.get_type_name(), context.index)
         {
-            validator
-                .push_diagnostic(Diagnostic::invalid_constant(v_entry.get_name(), variable.location.clone()));
+            validator.push_diagnostic(
+                Diagnostic::error(<span class="macro">format!</span>(
+                    <span class="string">&quot;Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant&quot;</span>,
+                    v_entry.get_name()
+                ))
+                .with_error_code(<span class="string">&quot;E035&quot;</span>)
+                .with_location(variable.location.clone()),
+            );
         }
     }
 }

@@ -120,6 +120,22 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{Implementation, LinkageType, Pou, PouType, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -144,14 +160,16 @@
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">&#39;_</span>, T&gt;,
 ) {
     <span class="kw">if </span>implementation.pou_type == PouType::Class &amp;&amp; !implementation.statements.is_empty() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            <span class="string">&quot;A class cannot have an implementation&quot;</span>,
-            implementation.location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;A class cannot have an implementation&quot;</span>)
+                .with_error_code(<span class="string">&quot;E017&quot;</span>)
+                .with_location(implementation.location.to_owned()),
+        );
     }
     <span class="kw">if </span>implementation.linkage != LinkageType::External {
         validate_action_container(validator, implementation);
-        <span class="comment">//Validate the label uniquiness
+        <span class="comment">//Validate the label uniqueness
+
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(labels) = context.index.get_labels(<span class="kw-2">&amp;</span>implementation.name) {
             <span class="kw">for </span>(<span class="kw">_</span>, labels) <span class="kw">in </span>labels.entries() {
                 <span class="kw">let </span><span class="kw-2">mut </span>label_iter = labels.iter();
@@ -161,11 +179,12 @@
                         </span><span class="kw">let </span><span class="kw-2">mut </span>locations: Vec&lt;<span class="kw">_</span>&gt; = label_iter.map(|it| it.location.clone()).collect();
                         locations.push(first.location.clone());
                         locations.push(second.location.clone());
-                        validator.push_diagnostic(Diagnostic::duplicate_label(
-                            <span class="kw-2">&amp;</span>first.name,
-                            first.location.clone(),
-                            locations,
-                        ));
+                        validator.push_diagnostic(
+                            Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;{}: Duplicate label.&quot;</span>, <span class="kw-2">&amp;</span>first.name))
+                                .with_error_code(<span class="string">&quot;E018&quot;</span>)
+                                .with_location(first.location.clone())
+                                .with_secondary_locations(locations),
+                        );
                     }
                 }
             }
@@ -190,56 +209,69 @@
 
 <span class="kw">fn </span>validate_class&lt;T: AnnotationMap&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou, context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;) {
     <span class="comment">// var in/out/inout blocks are not allowed inside of class declaration
+    // TODO: This should be on each block
     </span><span class="kw">if </span>pou.variable_blocks.iter().any(|it| {
         <span class="macro">matches!</span>(
             it.variable_block_type,
             VariableBlockType::InOut | VariableBlockType::Input(<span class="kw">_</span>) | VariableBlockType::Output
         )
     }) {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            <span class="string">&quot;A class cannot have a var in/out/inout blocks&quot;</span>,
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;A class cannot have a var in/out/inout blocks&quot;</span>)
+                .with_error_code(<span class="string">&quot;E019&quot;</span>)
+                .with_location(pou.name_location.to_owned()),
+        );
     }
 
     <span class="comment">// classes cannot have a return type
     </span><span class="kw">if </span>context.index.find_return_type(<span class="kw-2">&amp;</span>pou.name).is_some() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            <span class="string">&quot;A class cannot have a return type&quot;</span>,
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;A class cannot have a return type&quot;</span>)
+                .with_error_code(<span class="string">&quot;E020&quot;</span>)
+                .with_location(pou.name_location.clone()),
+        );
     }
 }
 
 <span class="kw">fn </span>validate_function&lt;T: AnnotationMap&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou, context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;) {
     <span class="comment">// functions cannot use EXTENDS
     </span><span class="kw">if </span>pou.super_class.is_some() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            <span class="string">&quot;A function cannot use EXTEND&quot;</span>,
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;A function cannot use `EXTEND`&quot;</span>)
+                .with_error_code(<span class="string">&quot;E021&quot;</span>)
+                .with_location(pou.name_location.to_owned()),
+        );
     }
 
     <span class="kw">let </span>return_type = context.index.find_return_type(<span class="kw-2">&amp;</span>pou.name);
     <span class="comment">// functions must have a return type
     </span><span class="kw">if </span>return_type.is_none() {
-        validator.push_diagnostic(Diagnostic::function_return_missing(pou.name_location.to_owned()));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;Function Return type missing&quot;</span>)
+                .with_error_code(<span class="string">&quot;E025&quot;</span>)
+                .with_location(pou.name_location.clone()),
+        );
     }
 }
 
 <span class="kw">fn </span>validate_program(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou) {
     <span class="comment">// programs cannot use EXTENDS
     </span><span class="kw">if </span>pou.super_class.is_some() {
-        validator.push_diagnostic(Diagnostic::syntax_error(
-            <span class="string">&quot;A program cannot use EXTEND&quot;</span>,
-            pou.name_location.to_owned(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error(<span class="string">&quot;A program cannot use `EXTEND`&quot;</span>)
+                .with_error_code(<span class="string">&quot;E021&quot;</span>)
+                .with_location(pou.name_location.to_owned()),
+        );
     }
 }
 
 <span class="kw">pub fn </span>validate_action_container(validator: <span class="kw-2">&amp;mut </span>Validator, implementation: <span class="kw-2">&amp;</span>Implementation) {
     <span class="kw">if </span>implementation.pou_type == PouType::Action &amp;&amp; implementation.type_name == <span class="string">&quot;__unknown__&quot; </span>{
-        validator.push_diagnostic(Diagnostic::missing_action_container(implementation.location.clone()));
+        validator.push_diagnostic(
+            Diagnostic::warning(<span class="string">&quot;Missing Actions Container Name&quot;</span>)
+                .with_error_code(<span class="string">&quot;E022&quot;</span>)
+                .with_location(implementation.location.clone()),
+        );
     }
 }
 </code></pre></div></section></main></body></html>

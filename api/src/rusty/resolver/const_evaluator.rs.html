@@ -1301,7 +1301,7 @@
     index: <span class="kw-2">&amp;</span>Index,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;, UnresolvableKind&gt; {
     <span class="kw">if </span>!variable.is_constant() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;&#39;{name}&#39; is no const reference&quot;</span>)));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;`{name}` is no const reference&quot;</span>)));
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(ConstExpression::Resolved(statement)) =

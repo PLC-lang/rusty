@@ -2720,6 +2720,18 @@
 <a href="#2720" id="2720">2720</a>
 <a href="#2721" id="2721">2721</a>
 <a href="#2722" id="2722">2722</a>
+<a href="#2723" id="2723">2723</a>
+<a href="#2724" id="2724">2724</a>
+<a href="#2725" id="2725">2725</a>
+<a href="#2726" id="2726">2726</a>
+<a href="#2727" id="2727">2727</a>
+<a href="#2728" id="2728">2728</a>
+<a href="#2729" id="2729">2729</a>
+<a href="#2730" id="2730">2730</a>
+<a href="#2731" id="2731">2731</a>
+<a href="#2732" id="2732">2732</a>
+<a href="#2733" id="2733">2733</a>
+<a href="#2734" id="2734">2734</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -3066,7 +3078,9 @@
                 <span class="prelude-val">Ok</span>(reference)
             }
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Diagnostic::casting_error(access_type.get_name(), <span class="string">&quot;Integer Type&quot;</span>, index.get_location()))
+            <span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Cannot cast from {} to Integer Type&quot;</span>, access_type.get_name()))
+                .with_error_code(<span class="string">&quot;E051&quot;</span>)
+                .with_location(index.get_location()))
         }
     }
 
@@ -3167,7 +3181,7 @@
             .find_associated_implementation(implementation_name) <span class="comment">// using the non error option to control the output error
             </span>.ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;No callable implementation associated to {implementation_name:?}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">&quot;No callable implementation associated to {implementation_name:?}&quot;</span>),
                     operator.get_location(),
                 )
             })<span class="question-mark">?</span>;
@@ -3278,7 +3292,7 @@
 
                     <span class="kw">let </span>output = builder.build_struct_gep(parameter_struct, index, <span class="string">&quot;&quot;</span>).map_err(|<span class="kw">_</span>| {
                         Diagnostic::codegen_error(
-                            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {parameter:#?}&quot;</span>),
+                            <span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {parameter:#?}&quot;</span>),
                             parameter.source_location.clone(),
                         )
                     })<span class="question-mark">?</span>;
@@ -3737,7 +3751,7 @@
             .find_associated_pou_type(function_name) <span class="comment">//Using find instead of get to control the compile error
             </span>.ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;No type associated with &#39;{instance_name:}&#39;&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">&quot;No type associated with &#39;{instance_name:}&#39;&quot;</span>),
                     context.get_location(),
                 )
             })<span class="question-mark">?</span>;
@@ -3876,7 +3890,7 @@
 
             <span class="kw">let </span>pointer_to_param = builder.build_struct_gep(parameter_struct, index, <span class="string">&quot;&quot;</span>).map_err(|<span class="kw">_</span>| {
                 Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {expression:#?}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {expression:#?}&quot;</span>),
                     expression.get_location(),
                 )
             })<span class="question-mark">?</span>;
@@ -4077,7 +4091,7 @@
         <span class="kw">let </span>start_offset = dimension
             .start_offset
             .as_int_value(<span class="self">self</span>.index)
-            .map_err(|it| Diagnostic::codegen_error(<span class="kw-2">&amp;</span>it, access_expression.get_location()))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::codegen_error(it, access_expression.get_location()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>access_value = <span class="self">self</span>.generate_expression(access_expression)<span class="question-mark">?</span>;
         <span class="comment">//If start offset is not 0, adjust the current statement with an add operation
@@ -4491,7 +4505,7 @@
     </span><span class="kw">pub fn </span>generate_literal(<span class="kw-2">&amp;</span><span class="self">self</span>, literal_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>cannot_generate_literal = || {
             Diagnostic::codegen_error(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate Literal for {literal_statement:?}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">&quot;Cannot generate Literal for {literal_statement:?}&quot;</span>),
                 literal_statement.get_location(),
             )
         };
@@ -4623,7 +4637,12 @@
             DataTypeInformation::Integer { size: <span class="number">16</span>, .. } <span class="kw">if </span>expected_type.is_character() =&gt; {
                 <span class="self">self</span>.llvm.create_llvm_const_i16_char(value, location).map(ExpressionValue::RValue)
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::cannot_generate_string_literal(expected_type.get_name(), location.clone())),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(
+                <span class="string">&quot;Cannot generate String-Literal for type {}&quot;</span>,
+                expected_type.get_name()
+            ))
+            .with_error_code(<span class="string">&quot;E074&quot;</span>)
+            .with_location(location.clone())),
         }
     }
 
@@ -4645,7 +4664,7 @@
             .or_else(|| <span class="self">self</span>.annotations.get_type(statement, <span class="self">self</span>.index))
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;no type hint available for {statement:#?}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">&quot;no type hint available for {statement:#?}&quot;</span>),
                     statement.get_location(),
                 )
             })
@@ -4714,7 +4733,7 @@
                 ));
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;Expected {} fields for Struct {}, but found {}.&quot;</span>,
                         struct_type.count_fields(),
                         struct_name,
@@ -4725,7 +4744,7 @@
             }
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Expected Struct-literal, got {assignments:#?}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">&quot;Expected Struct-literal, got {assignments:#?}&quot;</span>),
                 assignments.get_location(),
             ))
         }
@@ -4903,7 +4922,7 @@
             Operator::And =&gt; builder.build_conditional_branch(lhs, right_branch, continue_branch),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate phi-expression for operator {operator:}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">&quot;Cannot generate phi-expression for operator {operator:}&quot;</span>),
                     left.get_location(),
                 ))
             }
@@ -5292,11 +5311,16 @@
         AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
             <span class="comment">//explicit
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::reference_expected(param_statement.get_location()));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(
+                    <span class="comment">//TODO: use global context to get an expression slice
+                    </span>Diagnostic::error(<span class="string">&quot;Expression is not assignable&quot;</span>)
+                        .with_error_code(<span class="string">&quot;E050&quot;</span>)
+                        .with_location(param_statement.get_location())
+                );
             };
             <span class="kw">let </span>loc = declared_parameters
                 .iter()
-                .position(|p| p.get_name() == left_name)
+                .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
                 .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))<span class="question-mark">?</span>;
             (loc, data.right.as_ref(), <span class="bool-val">false</span>)
         }
