@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "The type DWORD 32 is too small to hold a Pointer", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 174 }..TextLocation { line: 8, column: 26, offset: 188 }) }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign 'REF_TO INT' to 'DWORD'", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 174 }..TextLocation { line: 8, column: 26, offset: 188 }) }], err_no: var__invalid_assignment }
+error: The type DWORD 32 is too small to hold a Pointer
+  ┌─ <internal>:9:13
+  │
+9 │             address := ptr;         //should throw error as address is too small to store full pointer
+  │             ^^^^^^^^^^^^^^ The type DWORD 32 is too small to hold a Pointer
+
+error: Invalid assignment: cannot assign 'REF_TO INT' to 'DWORD'
+  ┌─ <internal>:9:13
+  │
+9 │             address := ptr;         //should throw error as address is too small to store full pointer
+  │             ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO INT' to 'DWORD'
+
 

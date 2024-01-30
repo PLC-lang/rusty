@@ -1,14 +1,59 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 13, offset: 432 }..TextLocation { line: 14, column: 21, offset: 440 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 23, offset: 442 }..TextLocation { line: 14, column: 35, offset: 454 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 49, offset: 468 }..TextLocation { line: 14, column: 57, offset: 476 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 59, offset: 478 }..TextLocation { line: 14, column: 67, offset: 486 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 488 }..TextLocation { line: 14, column: 76, offset: 495 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 69, offset: 488 }..TextLocation { line: 14, column: 76, offset: 495 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 497 }..TextLocation { line: 14, column: 86, offset: 505 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 497 }..TextLocation { line: 14, column: 86, offset: 505 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 88, offset: 507 }..TextLocation { line: 14, column: 96, offset: 515 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. REAL is no Signed.
+   ┌─ <internal>:15:14
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no Signed.
+
+error: Invalid type nature for generic argument. UDINT is no Signed.
+   ┌─ <internal>:15:24
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no Signed.
+
+error: Invalid type nature for generic argument. TIME is no Signed.
+   ┌─ <internal>:15:50
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no Signed.
+
+error: Invalid type nature for generic argument. BYTE is no Signed.
+   ┌─ <internal>:15:60
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no Signed.
+
+error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+   ┌─ <internal>:15:70
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+
+error: Invalid type nature for generic argument. STRING is no Signed.
+   ┌─ <internal>:15:70
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no Signed.
+
+error: Invalid assignment: cannot assign 'CHAR' to 'DINT'
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DINT'
+
+error: Invalid type nature for generic argument. CHAR is no Signed.
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no Signed.
+
+error: Invalid type nature for generic argument. DATE is no Signed.
+   ┌─ <internal>:15:89
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no Signed.
+
 

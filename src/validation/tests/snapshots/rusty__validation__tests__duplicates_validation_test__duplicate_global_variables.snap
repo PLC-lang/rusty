@@ -1,7 +1,23 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "a: Ambiguous global variable.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 12, offset: 32 }..TextLocation { line: 2, column: 13, offset: 33 }) }, SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 128 }..TextLocation { line: 8, column: 13, offset: 129 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "a: Ambiguous global variable.", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 128 }..TextLocation { line: 8, column: 13, offset: 129 }) }, SourceLocation { span: Range(TextLocation { line: 2, column: 12, offset: 32 }..TextLocation { line: 2, column: 13, offset: 33 }) }], err_no: duplicate_symbol }
+error: a: Ambiguous global variable.
+  ┌─ <internal>:3:13
+  │
+3 │             a: INT;
+  │             ^ a: Ambiguous global variable.
+  ·
+9 │             a: BOOL;
+  │             - see also
+
+error: a: Ambiguous global variable.
+  ┌─ <internal>:9:13
+  │
+3 │             a: INT;
+  │             - see also
+  ·
+9 │             a: BOOL;
+  │             ^ a: Ambiguous global variable.
+
 

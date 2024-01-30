@@ -1,10 +1,35 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 55, offset: 140 }..TextLocation { line: 2, column: 56, offset: 141 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 56, offset: 213 }..TextLocation { line: 3, column: 57, offset: 214 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 287 }..TextLocation { line: 4, column: 58, offset: 288 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 56, offset: 360 }..TextLocation { line: 5, column: 57, offset: 361 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Unsigned.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 57, offset: 434 }..TextLocation { line: 6, column: 58, offset: 435 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. DATE_AND_TIME is no Unsigned.
+  ┌─ <internal>:3:56
+  │
+3 │         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
+  │                                                        ^ Invalid type nature for generic argument. DATE_AND_TIME is no Unsigned.
+
+error: Invalid type nature for generic argument. DATE_AND_TIME is no Unsigned.
+  ┌─ <internal>:4:57
+  │
+4 │         FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+  │                                                         ^ Invalid type nature for generic argument. DATE_AND_TIME is no Unsigned.
+
+error: Invalid type nature for generic argument. DATE is no Unsigned.
+  ┌─ <internal>:5:58
+  │
+5 │         FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. DATE is no Unsigned.
+
+error: Invalid type nature for generic argument. TIME_OF_DAY is no Unsigned.
+  ┌─ <internal>:6:57
+  │
+6 │         FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+  │                                                         ^ Invalid type nature for generic argument. TIME_OF_DAY is no Unsigned.
+
+error: Invalid type nature for generic argument. TIME_OF_DAY is no Unsigned.
+  ┌─ <internal>:7:58
+  │
+7 │         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. TIME_OF_DAY is no Unsigned.
+
 

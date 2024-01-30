@@ -1,8 +1,9 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 #[test]
 fn arithmetic_builtins_allow_mixing_of_fp_and_int_params() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main : LINT
         VAR
@@ -25,7 +26,7 @@ fn arithmetic_builtins_allow_mixing_of_fp_and_int_params() {
 #[test]
 #[ignore = "FIXME: no validation for incompatible types for arithmetic operations"]
 fn arithmetic_builtins_called_with_incompatible_types() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main : DINT
         VAR
@@ -40,12 +41,12 @@ fn arithmetic_builtins_called_with_incompatible_types() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn arithmetic_builtins_called_with_invalid_param_count() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main : DINT
         VAR
@@ -60,13 +61,13 @@ fn arithmetic_builtins_called_with_invalid_param_count() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 #[ignore = "FIXME: no validation for incompatible type comparisons"]
 fn comparison_builtins_called_with_incompatible_types() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main : DINT
         VAR
@@ -81,12 +82,12 @@ fn comparison_builtins_called_with_incompatible_types() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn comparison_builtins_called_with_invalid_param_count() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main : DINT
         VAR
@@ -101,5 +102,5 @@ fn comparison_builtins_called_with_invalid_param_count() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }

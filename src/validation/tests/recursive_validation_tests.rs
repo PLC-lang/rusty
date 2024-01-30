@@ -1,9 +1,9 @@
 mod edgecases {
-    use crate::test_utils::tests::parse_and_validate;
+    use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
     fn pointers_should_not_be_considered_as_cycle() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -15,7 +15,7 @@ mod edgecases {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 0);
+        assert!(diagnostics.is_empty());
     }
 
     // From https://github.com/PLC-lang/rusty/pull/748:
@@ -26,7 +26,7 @@ mod edgecases {
     // This test covers the above edge-case
     #[test]
     fn external_function_should_not_trigger() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             {external}
             FUNCTION TIME : TIME
@@ -40,12 +40,12 @@ mod edgecases {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 0);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
     fn struct_and_function_with_same_name() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION TM : TM
             END_FUNCTION
@@ -57,12 +57,12 @@ mod edgecases {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 0);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
     fn struct_and_function_with_same_name_2() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION TM : DINT
                 VAR_INPUT
@@ -77,12 +77,12 @@ mod edgecases {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 0);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
     fn struct_and_function_with_same_name_3() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION TM : DINT
                 VAR_INPUT
@@ -97,16 +97,17 @@ mod edgecases {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 0);
+        assert!(diagnostics.is_empty());
     }
 }
 
 mod structs {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn one_cycle_abca() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -127,12 +128,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_self_a() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 a : A;
@@ -140,12 +141,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_multiple_self_a() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 a1 : A;
@@ -155,12 +156,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_aba() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -172,12 +173,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_bcb() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -193,12 +194,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_with_multiple_identical_members_aba() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b1 : B;
@@ -212,12 +213,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn two_cycles_aa_and_aba() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 a : A;
@@ -230,12 +231,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn two_cycles_branch_cc_and_cec() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -256,12 +257,12 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn two_cycles_with_branch() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -298,17 +299,17 @@ mod structs {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 }
 
 mod arrays {
-
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn two_cycles_aa_and_aba() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 a : ARRAY[0..1] OF A;
@@ -321,12 +322,12 @@ mod arrays {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_bcb() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : ARRAY[0..1] OF B;
@@ -342,12 +343,12 @@ mod arrays {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_with_multiple_identical_members_aba() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b1 : ARRAY[0..1] OF B;
@@ -361,12 +362,12 @@ mod arrays {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_aba_output() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : ARRAY [0..1] OF B;
@@ -380,12 +381,12 @@ mod arrays {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_aba_input() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : ARRAY [0..1] OF B;
@@ -399,12 +400,12 @@ mod arrays {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn two_cycles_with_branch_input() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION_BLOCK A
                 VAR_INPUT
@@ -449,16 +450,17 @@ mod arrays {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 }
 
 mod functionblocks {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn one_cycle_aba_var() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION_BLOCK A
                 VAR
@@ -475,12 +477,12 @@ mod functionblocks {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_aba_input() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION_BLOCK A
                 VAR_INPUT
@@ -497,12 +499,12 @@ mod functionblocks {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_aba_output() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION_BLOCK A
                 VAR_OUTPUT
@@ -519,12 +521,12 @@ mod functionblocks {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_aba_inout() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION_BLOCK A
                 VAR_IN_OUT
@@ -542,12 +544,12 @@ mod functionblocks {
         );
 
         // No recursion because VAR_IN_OUT are treated as pointers
-        assert_eq!(diagnostics.len(), 0);
+        assert!(diagnostics.is_empty());
     }
 
     #[test]
     fn two_cycles_with_branch_input() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION_BLOCK A
                 VAR_INPUT
@@ -600,17 +602,18 @@ mod functionblocks {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 }
 
 mod mixed_structs_and_functionblocks {
 
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn one_cycle_aba_output() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -624,12 +627,12 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn one_cycle_aba_input() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             TYPE A : STRUCT
                 b : B;
@@ -643,12 +646,12 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 
     #[test]
     fn two_cycles_with_branch_input() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION_BLOCK A
                 VAR_INPUT
@@ -693,6 +696,6 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_validation_snapshot!(&diagnostics);
+        assert_snapshot!(&diagnostics);
     }
 }

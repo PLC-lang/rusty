@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 23, offset: 43 }..TextLocation { line: 2, column: 28, offset: 48 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 23, offset: 73 }..TextLocation { line: 3, column: 32, offset: 82 }) }], err_no: var__overflow }
+error: This will overflow for type INT
+  ┌─ <internal>:3:24
+  │
+3 │             a : INT := 32768;
+  │                        ^^^^^ This will overflow for type INT
+
+error: This will overflow for type INT
+  ┌─ <internal>:4:24
+  │
+4 │             b : INT := 32767 + 1;
+  │                        ^^^^^^^^^ This will overflow for type INT
+
 

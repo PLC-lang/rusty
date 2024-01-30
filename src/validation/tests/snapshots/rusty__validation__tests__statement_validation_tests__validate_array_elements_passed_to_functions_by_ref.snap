@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 17, offset: 323 }..TextLocation { line: 16, column: 18, offset: 324 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 20, offset: 326 }..TextLocation { line: 16, column: 21, offset: 327 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
+   ┌─ <internal>:17:18
+   │
+17 │             func(x, x);                                    // Invalid because we pass a whole array
+   │                  ^ Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
+   ┌─ <internal>:17:21
+   │
+17 │             func(x, x);                                    // Invalid because we pass a whole array
+   │                     ^ Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
+
 

@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 16, offset: 466 }..TextLocation { line: 15, column: 24, offset: 474 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+   ┌─ <internal>:16:17
+   │
+16 │                 var_wstr, // invalid
+   │                 ^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+
 

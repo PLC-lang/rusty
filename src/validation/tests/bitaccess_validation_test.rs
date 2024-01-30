@@ -1,8 +1,9 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 #[test]
 fn bitaccess_only_on_bit_types() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -23,12 +24,12 @@ fn bitaccess_only_on_bit_types() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn byteaccess_only_on_bigger_sizes() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -46,12 +47,12 @@ fn byteaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn wordaccess_only_on_bigger_sizes() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -69,12 +70,12 @@ fn wordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn dwordaccess_only_on_bigger_sizes() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -92,12 +93,12 @@ fn dwordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn bitaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -111,12 +112,12 @@ fn bitaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn byteaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -129,12 +130,12 @@ fn byteaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn wordaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -146,12 +147,12 @@ fn wordaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn dwordaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -162,12 +163,12 @@ fn dwordaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn reference_direct_access_only_with_ints() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
             VAR
@@ -180,5 +181,5 @@ fn reference_direct_access_only_with_ints() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
