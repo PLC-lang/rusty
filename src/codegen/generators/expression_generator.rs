@@ -344,7 +344,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 Ok(reference)
             }
         } else {
-            Err(Diagnostic::casting_error(access_type.get_name(), "Integer Type", index.get_location()))
+            Err(Diagnostic::error(format!("Cannot cast from {} to Integer Type", access_type.get_name()))
+                .with_error_code("E051")
+                .with_location(index.get_location()))
         }
     }
 
@@ -445,7 +447,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_associated_implementation(implementation_name) // using the non error option to control the output error
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    &format!("No callable implementation associated to {implementation_name:?}"),
+                    format!("No callable implementation associated to {implementation_name:?}"),
                     operator.get_location(),
                 )
             })?;
@@ -556,7 +558,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                         Diagnostic::codegen_error(
-                            &format!("Cannot build generate parameter: {parameter:#?}"),
+                            format!("Cannot build generate parameter: {parameter:#?}"),
                             parameter.source_location.clone(),
                         )
                     })?;
@@ -1015,7 +1017,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_associated_pou_type(function_name) //Using find instead of get to control the compile error
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    &format!("No type associated with '{instance_name:}'"),
+                    format!("No type associated with '{instance_name:}'"),
                     context.get_location(),
                 )
             })?;
@@ -1154,7 +1156,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             let pointer_to_param = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                 Diagnostic::codegen_error(
-                    &format!("Cannot build generate parameter: {expression:#?}"),
+                    format!("Cannot build generate parameter: {expression:#?}"),
                     expression.get_location(),
                 )
             })?;
@@ -1355,7 +1357,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let start_offset = dimension
             .start_offset
             .as_int_value(self.index)
-            .map_err(|it| Diagnostic::codegen_error(&it, access_expression.get_location()))?;
+            .map_err(|it| Diagnostic::codegen_error(it, access_expression.get_location()))?;
 
         let access_value = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
@@ -1769,7 +1771,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_literal(&self, literal_statement: &AstNode) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let cannot_generate_literal = || {
             Diagnostic::codegen_error(
-                &format!("Cannot generate Literal for {literal_statement:?}"),
+                format!("Cannot generate Literal for {literal_statement:?}"),
                 literal_statement.get_location(),
             )
         };
@@ -1901,7 +1903,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             DataTypeInformation::Integer { size: 16, .. } if expected_type.is_character() => {
                 self.llvm.create_llvm_const_i16_char(value, location).map(ExpressionValue::RValue)
             }
-            _ => Err(Diagnostic::cannot_generate_string_literal(expected_type.get_name(), location.clone())),
+            _ => Err(Diagnostic::error(format!(
+                "Cannot generate String-Literal for type {}",
+                expected_type.get_name()
+            ))
+            .with_error_code("E074")
+            .with_location(location.clone())),
         }
     }
 
@@ -1923,7 +1930,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .or_else(|| self.annotations.get_type(statement, self.index))
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    &format!("no type hint available for {statement:#?}"),
+                    format!("no type hint available for {statement:#?}"),
                     statement.get_location(),
                 )
             })
@@ -1992,7 +1999,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ));
             } else {
                 Err(Diagnostic::codegen_error(
-                    &format!(
+                    format!(
                         "Expected {} fields for Struct {}, but found {}.",
                         struct_type.count_fields(),
                         struct_name,
@@ -2003,7 +2010,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         } else {
             Err(Diagnostic::codegen_error(
-                &format!("Expected Struct-literal, got {assignments:#?}"),
+                format!("Expected Struct-literal, got {assignments:#?}"),
                 assignments.get_location(),
             ))
         }
@@ -2181,7 +2188,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch),
             _ => {
                 return Err(Diagnostic::codegen_error(
-                    &format!("Cannot generate phi-expression for operator {operator:}"),
+                    format!("Cannot generate phi-expression for operator {operator:}"),
                     left.get_location(),
                 ))
             }
@@ -2570,11 +2577,16 @@ pub fn get_implicit_call_parameter<'a>(
         AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
             //explicit
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
-                return Err(Diagnostic::reference_expected(param_statement.get_location()));
+                return Err(
+                    //TODO: use global context to get an expression slice
+                    Diagnostic::error("Expression is not assignable")
+                        .with_error_code("E050")
+                        .with_location(param_statement.get_location())
+                );
             };
             let loc = declared_parameters
                 .iter()
-                .position(|p| p.get_name() == left_name)
+                .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
                 .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))?;
             (loc, data.right.as_ref(), false)
         }

@@ -8,11 +8,11 @@ error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
 3 │         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
 
-error: Invalid type nature for generic argument. TIME is no Chars.
+error: Invalid type nature for generic argument. TIME is no ANY_CHARS
   ┌─ <internal>:3:58
   │
 3 │         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
-  │                                                          ^ Invalid type nature for generic argument. TIME is no Chars.
+  │                                                          ^ Invalid type nature for generic argument. TIME is no ANY_CHARS
 
 error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
   ┌─ <internal>:4:59
@@ -20,10 +20,10 @@ error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
 4 │         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
 
-error: Invalid type nature for generic argument. TIME is no Chars.
+error: Invalid type nature for generic argument. TIME is no ANY_CHARS
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
-  │                                                           ^ Invalid type nature for generic argument. TIME is no Chars.
+  │                                                           ^ Invalid type nature for generic argument. TIME is no ANY_CHARS
 
 

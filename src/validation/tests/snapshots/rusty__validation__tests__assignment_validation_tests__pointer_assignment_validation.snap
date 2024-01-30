@@ -26,17 +26,17 @@ error: Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
 29 │     v_word := v_ptr_int; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
 
-error: Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO INT'
+warning: Pointers REF_TO INT and __POINTER_TO_REAL have different types
    ┌─ <internal>:31:5
    │
 31 │     v_ptr_int := &v_real; // INVALID -> TODO: should be valid
-   │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO INT'
+   │     ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_REAL have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO INT'
+warning: Pointers REF_TO INT and __POINTER_TO_STRING have different types
    ┌─ <internal>:41:5
    │
 41 │     v_ptr_int := &v_string; // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO INT'
+   │     ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_STRING have different types
 
 error: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:42:5

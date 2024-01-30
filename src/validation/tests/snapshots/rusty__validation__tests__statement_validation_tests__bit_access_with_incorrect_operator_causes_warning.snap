@@ -8,10 +8,10 @@ error: Could not resolve reference to n1
 12 │             Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
    │                         ^^ Could not resolve reference to n1
 
-warning: If you meant to directly access a bit/byte/word/.., use %X/%B/%Wn1 instead.
+note: If you meant to directly access a bit/byte/word/..., use %X/%B/%Wn1 instead.
    ┌─ <internal>:12:25
    │
 12 │             Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
-   │                         ^^ If you meant to directly access a bit/byte/word/.., use %X/%B/%Wn1 instead.
+   │                         ^^ If you meant to directly access a bit/byte/word/..., use %X/%B/%Wn1 instead.
 
 
