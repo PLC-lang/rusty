@@ -202,11 +202,33 @@ pub enum SubCommands {
         )]
         build_config: Option<String>,
     },
+
+    /// Prints out various configuration options
+    Config {
+        #[clap(
+            name = "config-format",
+            group = "config",
+            default_value = "json",
+            help = "Format of the configuration file, if supported"
+        )]
+        format: ConfigFormat,
+
+        #[clap(subcommand)]
+        option: ConfigOption,
+    },
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
+pub enum ConfigOption {
+    #[clap(help = "Prints the plc.json schema used for validation")]
+    Schema,
 }
 
 impl SubCommands {
     pub fn get_build_configuration(&self) -> Option<&str> {
-        let (SubCommands::Build { build_config, .. } | SubCommands::Check { build_config }) = self;
+        let (SubCommands::Build { build_config, .. } | SubCommands::Check { build_config }) = self else {
+            return None;
+        };
         build_config.as_deref()
     }
 }
@@ -341,6 +363,13 @@ impl CompileParameters {
             }
             _ => None,
         }
+    }
+
+    pub fn get_config_options(&self) -> Option<(ConfigOption, ConfigFormat)> {
+        let Some(SubCommands::Config { format, option }) = &self.commands else {
+            return None
+        };
+        Some((*option, *format))
     }
 }
 

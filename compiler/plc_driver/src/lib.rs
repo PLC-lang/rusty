@@ -122,6 +122,9 @@ impl Display for CompileError {
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
     let compile_parameters = CompileParameters::parse(args)?;
+    if let Some((options, format)) = compile_parameters.get_config_options() {
+        return print_config_options(options, format);
+    }
     let project = get_project(&compile_parameters)?;
     let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     let location = project.get_location().map(|it| it.to_path_buf());
@@ -201,6 +204,20 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
                 .into());
         }
     }
+
+    Ok(())
+}
+
+fn print_config_options(
+    option: cli::ConfigOption,
+    _format: plc::ConfigFormat,
+) -> std::result::Result<(), anyhow::Error> {
+    match option {
+        cli::ConfigOption::Schema => {
+            let schema = include_str!("../../plc_project/schema/plc-json.schema");
+            println!("{schema}");
+        }
+    };
 
     Ok(())
 }
