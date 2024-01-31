@@ -163,7 +163,6 @@ pub mod tests {
             "main",
             crate::OptimizationLevel::None,
             debug_level,
-            Default::default(),
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator
@@ -186,7 +185,17 @@ pub mod tests {
         codegen_debug_without_unwrap(
             src,
             DebugLevel::Full(
-                crate::DEFAULT_DWARF_VERSION.parse::<usize>().expect("This constant is always a digit"),
+                crate::DEFAULT_DWARF_VERSION,
+            ),
+        )
+        .unwrap()
+    }
+
+    pub fn codegen_with_debug_version(src: &str, dwarf_version: usize) -> String {
+        codegen_debug_without_unwrap(
+            src,
+            DebugLevel::Full(
+                dwarf_version,
             ),
         )
         .unwrap()
@@ -237,7 +246,6 @@ pub mod tests {
                     &unit.file_name,
                     crate::OptimizationLevel::None,
                     debug_level,
-                    Default::default(),
                 );
                 let llvm_index = code_generator.generate_llvm_index(
                     context,

@@ -90,7 +90,6 @@ impl<'ink> CodeGen<'ink> {
         module_location: &str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
-        output_format: FormatOption,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
@@ -100,7 +99,6 @@ impl<'ink> CodeGen<'ink> {
             root,
             optimization_level,
             debug_level,
-            output_format,
         );
         CodeGen { module, debug, module_location: module_location.to_string() }
     }

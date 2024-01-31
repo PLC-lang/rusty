@@ -264,7 +264,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     let mut options = CompileOptions::default();
     if debug {
         options.debug_level = DebugLevel::Full(
-            plc::DEFAULT_DWARF_VERSION.parse::<usize>().expect("This constant is always a digit"),
+            plc::DEFAULT_DWARF_VERSION,
         );
     }
     let module = project.generate_single_module(&context, &options)?;

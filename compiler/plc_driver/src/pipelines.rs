@@ -247,7 +247,6 @@ impl AnnotatedProject {
             &unit.file_name,
             compile_options.optimization,
             compile_options.debug_level,
-            compile_options.output_format,
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types

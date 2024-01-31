@@ -74,7 +74,7 @@ fn multiple_files_with_debug_info() {
         vec![],
         "root",
         DebugLevel::Full(
-            plc::DEFAULT_DWARF_VERSION.parse::<usize>().expect("This constant is always a digit"),
+            plc::DEFAULT_DWARF_VERSION,
         ),
     )
     .unwrap();
@@ -119,7 +119,7 @@ fn multiple_files_in_different_locations_with_debug_info() {
         vec![],
         "root",
         DebugLevel::Full(
-            plc::DEFAULT_DWARF_VERSION.parse::<usize>().expect("This constant is always a digit"),
+            plc::DEFAULT_DWARF_VERSION,
         ),
     )
     .unwrap();

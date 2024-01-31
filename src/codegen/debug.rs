@@ -18,7 +18,6 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
     index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
-    output::FormatOption,
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
@@ -169,7 +168,6 @@ impl<'ink> DebugBuilderEnum<'ink> {
         root: Option<&Path>,
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
-        output_format: FormatOption,
     ) -> Self {
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
@@ -181,20 +179,18 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     inkwell::module::FlagBehavior::Warning,
                     context.metadata_node(&[dwarf_version]),
                 );
-                // when emitting IR, `LLVMParseIRInContext` expects "Debug Info Version" metadata, with the specified version
+                // `LLVMParseIRInContext` expects "Debug Info Version" metadata, with the specified version
                 // matching the LLVM version or otherwise it will emit a warning and strip DI from the IR.
                 // These metadata flags are not mutually exclusive.
-                if matches!(output_format, FormatOption::IR) {
-                    let dwarf_version: BasicMetadataValueEnum<'ink> = context
-                        .i32_type()
-                        .const_int(inkwell::debug_info::debug_metadata_version() as u64, false)
-                        .into();
-                    module.add_metadata_flag(
-                        "Debug Info Version",
-                        inkwell::module::FlagBehavior::Warning,
-                        context.metadata_node(&[dwarf_version]),
-                    );
-                }
+                let dwarf_version: BasicMetadataValueEnum<'ink> = context
+                    .i32_type()
+                    .const_int(inkwell::debug_info::debug_metadata_version() as u64, false)
+                    .into();
+                module.add_metadata_flag(
+                    "Debug Info Version",
+                    inkwell::module::FlagBehavior::Warning,
+                    context.metadata_node(&[dwarf_version]),
+                );
 
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
                 let root = root.unwrap_or_else(|| Path::new(""));
