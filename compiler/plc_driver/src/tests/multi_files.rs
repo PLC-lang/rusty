@@ -69,15 +69,9 @@ fn multiple_files_with_debug_info() {
         "file2.st",
     );
     //When the are generated
-    let results = compile_with_root(
-        vec![src1, src2],
-        vec![],
-        "root",
-        DebugLevel::Full(
-            plc::DEFAULT_DWARF_VERSION,
-        ),
-    )
-    .unwrap();
+    let results =
+        compile_with_root(vec![src1, src2], vec![], "root", DebugLevel::Full(plc::DEFAULT_DWARF_VERSION))
+            .unwrap();
     assert_eq!(results.len(), 2);
     //The datatypes do not conflics
     //The functions are defined correctly
@@ -114,15 +108,9 @@ fn multiple_files_in_different_locations_with_debug_info() {
         "lib/file2.st",
     );
     //When the are generated
-    let results = compile_with_root(
-        vec![src1, src2],
-        vec![],
-        "root",
-        DebugLevel::Full(
-            plc::DEFAULT_DWARF_VERSION,
-        ),
-    )
-    .unwrap();
+    let results =
+        compile_with_root(vec![src1, src2], vec![], "root", DebugLevel::Full(plc::DEFAULT_DWARF_VERSION))
+            .unwrap();
     assert_eq!(results.len(), 2);
     //The datatypes do not conflics
     //The functions are defined correctly

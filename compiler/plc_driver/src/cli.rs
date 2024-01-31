@@ -128,7 +128,7 @@ pub struct CompileParameters {
         short = 'g',
         help = "Generate source-level debug information",
         global = true,
-        group = "dbg",
+        group = "dbg"
     )]
     pub generate_debug: bool,
 
@@ -137,7 +137,7 @@ pub struct CompileParameters {
         long,
         help = "Generate debug information for global variables",
         global = true,
-        group = "dbg",
+        group = "dbg"
     )]
     pub generate_varinfo: bool,
 
@@ -801,7 +801,13 @@ mod cli_tests {
     fn test_gdwarf_and_debug_mutually_exclusive() {
         assert!(CompileParameters::parse(vec_of_strings!("input.st", "--debug", "--gdwarf", "2")).is_err());
         assert!(CompileParameters::parse(vec_of_strings!("input.st", "-g", "--gdwarf", "4")).is_err());
-        assert!(CompileParameters::parse(vec_of_strings!("input.st", "--debug-variables", "--gdwarf-variables", "3")).is_err());
+        assert!(CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--debug-variables",
+            "--gdwarf-variables",
+            "3"
+        ))
+        .is_err());
     }
 
     #[test]

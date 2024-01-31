@@ -181,7 +181,7 @@ fn test_dwarf_version_override() {
         gInt : myInt;
     END_VAR
     "#,
-    4
+        4,
     );
 
     assert_snapshot!(codegen)

@@ -93,13 +93,7 @@ impl<'ink> CodeGen<'ink> {
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
-        let debug = debug::DebugBuilderEnum::new(
-            context,
-            &module,
-            root,
-            optimization_level,
-            debug_level,
-        );
+        let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
         CodeGen { module, debug, module_location: module_location.to_string() }
     }
 
