@@ -517,10 +517,15 @@ if [[ $build -ne 0 ]]; then
 	llvm-profdata-14 merge $PROFRAW -o $PROFEXPORT
 	echo "-----------------------------------"
 
+	# Generate report
+	echo "Generating profdata"
+	llvm-cov-14 report -instr-profile=$PROFEXPORT hello_world.st.out
+	echo "-----------------------------------"
+
 	# Show coverage
 	echo "Coverage"
 	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT
-	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT -show-regions
+	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT -show-regions -show-branches=count --show-expansions
 	echo "-----------------------------------"
 
 	echo "Export"
