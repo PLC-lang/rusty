@@ -110,11 +110,11 @@ pub enum RegionKind {
 #[repr(C)]
 pub struct CounterMappingRegion {
     /// The counter type and type-dependent counter data, if any.
-    counter: Counter,
+    pub counter: Counter,
 
     /// If the `RegionKind` is a `BranchRegion`, this represents the counter
     /// for the false branch of the region.
-    false_counter: Counter,
+    pub false_counter: Counter,
 
     /// An indirect reference to the source filename. In the LLVM Coverage Mapping Format, the
     /// file_id is an index into a function-specific `virtual_file_mapping` array of indexes
@@ -139,7 +139,7 @@ pub struct CounterMappingRegion {
     /// mapping region is a gap area.
     end_col: u32,
 
-    kind: RegionKind,
+    pub kind: RegionKind,
 }
 
 impl CounterMappingRegion {
@@ -169,7 +169,7 @@ impl CounterMappingRegion {
     // #[allow(dead_code)]
     pub fn branch_region(
         counter: Counter,
-        // false_counter: Counter,
+        false_counter: Counter,
         file_id: u32,
         start_line: u32,
         start_col: u32,
@@ -178,8 +178,7 @@ impl CounterMappingRegion {
     ) -> Self {
         Self {
             counter,
-            // false_counter,
-            false_counter: Counter::ZERO,
+            false_counter,
             file_id,
             expanded_file_id: 0,
             start_line,
@@ -286,12 +285,12 @@ pub enum CounterKind {
 pub struct Counter {
     // Important: The layout (order and types of fields) must match its C++ counterpart.
     pub kind: CounterKind,
-    id: u32,
+    pub id: u32,
 }
 
 impl Counter {
     /// A `Counter` of kind `Zero`. For this counter kind, the `id` is not used.
-    pub(crate) const ZERO: Self = Self { kind: CounterKind::Zero, id: 0 };
+    pub const ZERO: Self = Self { kind: CounterKind::Zero, id: 0 };
 
     /// Constructs a new `Counter` of kind `CounterValueReference`.
     pub fn counter_value_reference(counter_id: CounterId) -> Self {

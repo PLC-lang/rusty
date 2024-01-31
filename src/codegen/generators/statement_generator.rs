@@ -428,6 +428,20 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             load_suffix: self.load_suffix.clone(),
             ..*self
         };
+
+        // Generate counter increment
+        if let Some(instr_builder) = self.instrumentation {
+            if let Some(first_ast) = body.first() {
+                instr_builder.emit_branch_increment(
+                    builder,
+                    context,
+                    &self.get_increment_function(),
+                    current_function.get_name().to_str().unwrap(),
+                    first_ast.id,
+                );
+            }
+        }
+
         body_generator.generate_body(body)?;
         builder.build_unconditional_branch(increment_block);
 
@@ -462,6 +476,17 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Continue
         builder.position_at_end(continue_block);
+
+        // Increment false counter
+        if let Some(instr_builder) = self.instrumentation {
+            instr_builder.emit_branch_increment(
+                builder,
+                context,
+                &self.get_increment_function(),
+                current_function.get_name().to_str().unwrap(),
+                end.id,
+            );
+        }
 
         Ok(())
     }
@@ -739,12 +764,35 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             load_suffix: self.load_suffix.clone(),
             ..*self
         };
+        if let Some(instr_builder) = self.instrumentation {
+            if let Some(first_ast) = body.first() {
+                instr_builder.emit_branch_increment(
+                    builder,
+                    context,
+                    &self.get_increment_function(),
+                    current_function.get_name().to_str().unwrap(),
+                    first_ast.id,
+                );
+            }
+        }
         body_generator.generate_body(body)?;
         //Loop back
         builder.build_unconditional_branch(condition_check);
 
         //Continue
         builder.position_at_end(continue_block);
+
+        // Increment false counter
+        if let Some(instr_builder) = self.instrumentation {
+            instr_builder.emit_branch_increment(
+                builder,
+                context,
+                &self.get_increment_function(),
+                current_function.get_name().to_str().unwrap(),
+                condition.id,
+            );
+        }
+
         Ok((condition_check, while_body))
     }
 
