@@ -374,6 +374,23 @@
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -498,6 +515,9 @@
 <span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="comment">//Parse the arguments
     </span><span class="kw">let </span>compile_parameters = CompileParameters::parse(args)<span class="question-mark">?</span>;
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((options, format)) = compile_parameters.get_config_options() {
+        <span class="kw">return </span>print_config_options(options, format);
+    }
     <span class="kw">let </span>project = get_project(<span class="kw-2">&amp;</span>compile_parameters)<span class="question-mark">?</span>;
     <span class="kw">let </span>output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     <span class="kw">let </span>location = project.get_location().map(|it| it.to_path_buf());
@@ -577,6 +597,20 @@
                 .into());
         }
     }
+
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn </span>print_config_options(
+    option: cli::ConfigOption,
+    _format: plc::ConfigFormat,
+) -&gt; std::result::Result&lt;(), anyhow::Error&gt; {
+    <span class="kw">match </span>option {
+        cli::ConfigOption::Schema =&gt; {
+            <span class="kw">let </span>schema = <span class="macro">include_str!</span>(<span class="string">&quot;../../plc_project/schema/plc-json.schema&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">&quot;{schema}&quot;</span>);
+        }
+    };
 
     <span class="prelude-val">Ok</span>(())
 }

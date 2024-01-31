@@ -734,6 +734,35 @@
 <a href="#734" id="734">734</a>
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 <span class="kw">use </span>encoding_rs::Encoding;
@@ -932,11 +961,33 @@
         )]
         </span>build_config: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
+
+    <span class="doccomment">/// Prints out various configuration options
+    </span>Config {
+        <span class="attr">#[clap(
+            name = <span class="string">&quot;config-format&quot;</span>,
+            group = <span class="string">&quot;config&quot;</span>,
+            default_value = <span class="string">&quot;json&quot;</span>,
+            help = <span class="string">&quot;Format of the configuration file, if supported&quot;
+        </span>)]
+        </span>format: ConfigFormat,
+
+        <span class="attr">#[clap(subcommand)]
+        </span>option: ConfigOption,
+    },
+}
+
+<span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
+</span><span class="kw">pub enum </span>ConfigOption {
+    <span class="attr">#[clap(help = <span class="string">&quot;Prints the plc.json schema used for validation&quot;</span>)]
+    </span>Schema,
 }
 
 <span class="kw">impl </span>SubCommands {
     <span class="kw">pub fn </span>get_build_configuration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="kw">let </span>(SubCommands::Build { build_config, .. } | SubCommands::Check { build_config }) = <span class="self">self</span>;
+        <span class="kw">let </span>(SubCommands::Build { build_config, .. } | SubCommands::Check { build_config }) = <span class="self">self </span><span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        };
         build_config.as_deref()
     }
 }
@@ -1054,6 +1105,13 @@
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
+    }
+
+    <span class="kw">pub fn </span>get_config_options(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(ConfigOption, ConfigFormat)&gt; {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(SubCommands::Config { format, option }) = <span class="kw-2">&amp;</span><span class="self">self</span>.commands <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">None
+        </span>};
+        <span class="prelude-val">Some</span>((<span class="kw-2">*</span>option, <span class="kw-2">*</span>format))
     }
 }
 
