@@ -243,6 +243,13 @@ pub enum SubCommands {
 pub enum ConfigOption {
     #[clap(help = "Prints the plc.json schema used for validation")]
     Schema,
+    #[clap(help = "Prints the configuration for the project")]
+    Diagnostics {
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
+        build_config: Option<String>,
+    },
 }
 
 impl SubCommands {
