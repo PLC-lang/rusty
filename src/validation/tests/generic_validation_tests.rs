@@ -1599,3 +1599,33 @@ fn any_date_multiple_parameters() {
     let diagnostics = parse_and_validate_buffered(src);
     assert_snapshot!(&diagnostics);
 }
+
+#[test]
+fn generic_call_with_formal_parameter() {
+    let src = "
+    FUNCTION FOO < T: ANY_NUM >: T
+    VAR_INPUT
+        x: T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION FOO__DINT: DINT
+    VAR_INPUT
+        x: DINT;
+    END_VAR
+        FOO__DINT := x + 0;
+    END_FUNCTION
+
+    FUNCTION main: DINT
+    VAR
+        myLocalNumber: DINT := 2;
+    END_VAR
+        myLocalNumber := FOO(x := myLocalNumber); // okay
+        myLocalNumber := FOO(y := 0); // unresolved reference
+        myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
+    END_FUNCTION
+";
+
+    let diagnostics = parse_and_validate_buffered(src);
+    insta::assert_snapshot!(diagnostics);
+}
