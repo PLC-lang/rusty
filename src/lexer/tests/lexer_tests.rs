@@ -794,10 +794,10 @@ fn multi_named_keywords_without_underscore_test() {
     let d1 = lexer.diagnostics.first().unwrap();
     let d2 = lexer.diagnostics.last().unwrap();
 
-    assert_eq!(d1.get_message(), "the words in VARINPUT should be separated by a '_'");
+    assert_eq!(d1.get_message(), "the words in VARINPUT should be separated by a `_`");
     assert_eq!(d1.get_location().to_range().unwrap(), (0..8));
 
-    assert_eq!(d2.get_message(), "the words in ENDREPEAT should be separated by a '_'");
+    assert_eq!(d2.get_message(), "the words in ENDREPEAT should be separated by a `_`");
     assert_eq!(d2.get_location().to_range().unwrap(), (191..200));
 }
 

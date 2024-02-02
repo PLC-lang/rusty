@@ -6,7 +6,10 @@ error: Recursive data structure `F -> G -> H -> I -> F` has infinite size
    ┌─ <internal>:26:28
    │
 26 │             FUNCTION_BLOCK F
-   │                            ^ Recursive data structure `F -> G -> H -> I -> F` has infinite size
+   │                            ^
+   │                            │
+   │                            Recursive data structure `F -> G -> H -> I -> F` has infinite size
+   │                            see also
    ·
 33 │             FUNCTION_BLOCK G
    │                            - see also
@@ -21,7 +24,10 @@ error: Recursive data structure `B -> C -> E -> F -> B` has infinite size
    ┌─ <internal>:8:28
    │
  8 │             FUNCTION_BLOCK B
-   │                            ^ Recursive data structure `B -> C -> E -> F -> B` has infinite size
+   │                            ^
+   │                            │
+   │                            Recursive data structure `B -> C -> E -> F -> B` has infinite size
+   │                            see also
    ·
 14 │             FUNCTION_BLOCK C
    │                            - see also

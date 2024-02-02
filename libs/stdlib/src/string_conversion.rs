@@ -69,3 +69,49 @@ pub extern "C" fn CHAR_TO_WCHAR(input: u8) -> u16 {
     res.encode_utf16(&mut arr);
     arr[0]
 }
+
+///.
+/// Converts STRING to CHAR
+/// # Safety
+/// uses raw pointer
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn STRING_TO_CHAR(input: *const u8) -> u8 {
+    *input
+}
+
+///.
+/// Converts WSTRING to WCHAR
+/// # Safety
+/// uses raw pointer
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn WSTRING_TO_WCHAR(input: *const u16) -> u16 {
+    *input
+}
+
+///.
+/// Converts CHAR to STRING
+/// # Safety
+/// uses raw pointer
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn CHAR_TO_STRING(dest: *mut u8, input: u8) -> i32 {
+    *dest = input;
+    0
+}
+
+///.
+/// Converts WCHAR to WSTRING
+/// # Safety
+/// uses raw pointer
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn WCHAR_TO_WSTRING(dest: *mut u16, input: u16) -> i32 {
+    *dest = input;
+    0
+}

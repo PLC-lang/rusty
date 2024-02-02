@@ -2,29 +2,29 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid type nature for generic argument. REAL is no Bit.
+error: Invalid type nature for generic argument. REAL is no ANY_BIT
    ┌─ <internal>:15:14
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no Bit.
+   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no ANY_BIT
 
-error: Invalid type nature for generic argument. UDINT is no Bit.
+error: Invalid type nature for generic argument. UDINT is no ANY_BIT
    ┌─ <internal>:15:24
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no Bit.
+   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no ANY_BIT
 
-error: Invalid type nature for generic argument. DINT is no Bit.
+error: Invalid type nature for generic argument. DINT is no ANY_BIT
    ┌─ <internal>:15:38
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no Bit.
+   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no ANY_BIT
 
-error: Invalid type nature for generic argument. TIME is no Bit.
+error: Invalid type nature for generic argument. TIME is no ANY_BIT
    ┌─ <internal>:15:50
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no Bit.
+   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_BIT
 
 error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:15:70
@@ -32,11 +32,11 @@ error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
 
-error: Invalid type nature for generic argument. STRING is no Bit.
+error: Invalid type nature for generic argument. STRING is no ANY_BIT
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no Bit.
+   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_BIT
 
 error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
    ┌─ <internal>:15:79
@@ -44,16 +44,16 @@ error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'BYTE'
 
-error: Invalid type nature for generic argument. CHAR is no Bit.
+error: Invalid type nature for generic argument. CHAR is no ANY_BIT
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no Bit.
+   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no ANY_BIT
 
-error: Invalid type nature for generic argument. DATE is no Bit.
+error: Invalid type nature for generic argument. DATE is no ANY_BIT
    ┌─ <internal>:15:89
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no Bit.
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no ANY_BIT
 
 

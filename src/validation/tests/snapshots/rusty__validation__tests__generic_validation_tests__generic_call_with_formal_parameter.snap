@@ -2,17 +2,23 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: diagnostics
 ---
+error: Invalid call parameters
+   ┌─ <internal>:20:30
+   │
+20 │         myLocalNumber := FOO(y := 0); // unresolved reference
+   │                              ^^^^^^ Invalid call parameters
+
 error: Could not resolve reference to y
    ┌─ <internal>:20:30
    │
 20 │         myLocalNumber := FOO(y := 0); // unresolved reference
    │                              ^ Could not resolve reference to y
 
-error: Invalid type nature for generic argument. __STRING_19 is no Num.
+error: Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
    ┌─ <internal>:21:35
    │
 21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
-   │                                   ^^^^^^^^^^^^^^^^^^^^^ Invalid type nature for generic argument. __STRING_19 is no Num.
+   │                                   ^^^^^^^^^^^^^^^^^^^^^ Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
 
 error: Invalid assignment: cannot assign 'STRING' to 'USINT'
    ┌─ <internal>:21:30

@@ -1,6 +1,6 @@
 use codespan_reporting::files::{Files, Location, SimpleFile, SimpleFiles};
 
-use crate::diagnostician::Severity;
+use crate::diagnostics::Severity;
 
 use super::{DiagnosticReporter, ResolvedDiagnostics};
 

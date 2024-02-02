@@ -2,29 +2,29 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid type nature for generic argument. REAL is no Duration.
+error: Invalid type nature for generic argument. REAL is no ANY_DURATION
    ┌─ <internal>:15:14
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no Duration.
+   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no ANY_DURATION
 
-error: Invalid type nature for generic argument. UDINT is no Duration.
+error: Invalid type nature for generic argument. UDINT is no ANY_DURATION
    ┌─ <internal>:15:24
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no Duration.
+   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. DINT is no Duration.
+error: Invalid type nature for generic argument. DINT is no ANY_DURATION
    ┌─ <internal>:15:38
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no Duration.
+   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. BYTE is no Duration.
+error: Invalid type nature for generic argument. BYTE is no ANY_DURATION
    ┌─ <internal>:15:60
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no Duration.
+   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no ANY_DURATION
 
 error: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:15:70
@@ -32,11 +32,11 @@ error: Invalid assignment: cannot assign 'STRING' to 'TIME'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
 
-error: Invalid type nature for generic argument. STRING is no Duration.
+error: Invalid type nature for generic argument. STRING is no ANY_DURATION
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no Duration.
+   │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_DURATION
 
 error: Invalid assignment: cannot assign 'CHAR' to 'TIME'
    ┌─ <internal>:15:79
@@ -44,16 +44,16 @@ error: Invalid assignment: cannot assign 'CHAR' to 'TIME'
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'TIME'
 
-error: Invalid type nature for generic argument. CHAR is no Duration.
+error: Invalid type nature for generic argument. CHAR is no ANY_DURATION
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no Duration.
+   │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no ANY_DURATION
 
-error: Invalid type nature for generic argument. DATE is no Duration.
+error: Invalid type nature for generic argument. DATE is no ANY_DURATION
    ┌─ <internal>:15:89
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no Duration.
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no ANY_DURATION
 
 

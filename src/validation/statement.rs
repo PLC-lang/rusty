@@ -110,9 +110,11 @@ pub fn visit_statement<T: AnnotationMap>(
             // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
             // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
             // see `control_parser` `parse_case_statement()`
-            validator.push_diagnostic(Diagnostic::case_condition_used_outside_case_statement(
-                condition.get_location(),
-            ));
+            validator.push_diagnostic(
+                Diagnostic::error("Case condition used outside of case statement! Did you mean to use ';'?")
+                    .with_error_code("E079")
+                    .with_location(condition.get_location()),
+            );
             visit_statement(validator, condition, context);
         }
         AstStatement::JumpStatement(JumpStatement { condition, target }) => {
@@ -161,10 +163,11 @@ fn validate_reference_expression<T: AnnotationMap>(
             if let Some(base) = base {
                 visit_array_access(validator, base, i, context)
             } else {
-                validator.push_diagnostic(Diagnostic::invalid_operation(
-                    "Index-Access requires an array-value.",
-                    statement.get_location(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error("Index-Access requires an array-value.")
+                        .with_error_code("E069")
+                        .with_location(statement.get_location()),
+                );
             }
         }
         ReferenceAccess::Cast(c) => {
@@ -186,20 +189,22 @@ fn validate_reference_expression<T: AnnotationMap>(
         }
         ReferenceAccess::Deref => {
             if base.is_none() {
-                validator.diagnostics.push(Diagnostic::invalid_operation(
-                    "Dereferencing requires a pointer-value.",
-                    statement.get_location(),
-                ));
+                validator.diagnostics.push(
+                    Diagnostic::error("Dereferencing requires a pointer-value.")
+                        .with_error_code("E068")
+                        .with_location(statement.get_location()),
+                );
             }
         }
         ReferenceAccess::Address => {
             if let Some(base) = base {
                 validate_address_of_expression(validator, base, statement.get_location(), context);
             } else {
-                validator.diagnostics.push(Diagnostic::invalid_operation(
-                    "Address-of requires a value.",
-                    statement.get_location(),
-                ));
+                validator.diagnostics.push(
+                    Diagnostic::error("Address-of requires a value.")
+                        .with_error_code("E070")
+                        .with_location(statement.get_location()),
+                );
             }
         }
     }
@@ -217,10 +222,11 @@ fn validate_address_of_expression<T: AnnotationMap>(
     }
 
     let a = context.annotations.get(target);
-    //TODO: resolver should also annotate information whether this results in an LValue or RValue
-    // array-access results in a value, but it is an LValue :-(
+
     if !matches!(a, Some(StatementAnnotation::Variable { .. })) && !target.is_array_access() {
-        validator.push_diagnostic(Diagnostic::invalid_operation("Invalid address-of operation", location));
+        validator.push_diagnostic(
+            Diagnostic::error("Invalid address-of operation").with_error_code("E066").with_location(location),
+        );
     }
 }
 
@@ -240,22 +246,17 @@ fn validate_direct_access<T: AnnotationMap>(
             .get_type_for_annotation(context.index, base_annotation)
             .unwrap_or(context.index.get_void_type())
             .get_type_information();
-        if base_type.is_int() {
-            if !helper::is_compatible(access, base_type, context.index) {
-                validator.push_diagnostic(Diagnostic::incompatible_directaccess(
-                    &format!("{access:?}"),
-                    access.get_bit_width(),
-                    m.get_location(),
-                ))
-            } else {
-                validate_access_index(validator, context, index, access, base_type, &m.get_location());
-            }
+        if base_type.is_int() && helper::is_compatible(access, base_type, context.index) {
+            validate_access_index(validator, context, index, access, base_type, &m.get_location());
         } else {
-            validator.push_diagnostic(Diagnostic::incompatible_directaccess(
-                &format!("{access:?}"),
-                access.get_bit_width(),
-                m.get_location(),
-            ))
+            validator.push_diagnostic(
+                Diagnostic::error(format!(
+                    "{access:?}-Wise access requires a Numerical type larger than {} bits",
+                    access.get_bit_width()
+                ))
+                .with_error_code("E055")
+                .with_location(m.get_location()),
+            )
         }
     }
 }
@@ -301,6 +302,22 @@ fn validate_cast_literal<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    fn incompatible_literal_cast(
+        cast_type: &str,
+        literal_type: &str,
+        location: SourceLocation,
+    ) -> Diagnostic {
+        Diagnostic::error(format!("Literal {literal_type} is not compatible to {cast_type}"))
+            .with_error_code("E054")
+            .with_location(location)
+    }
+
+    fn literal_out_of_range(literal: &str, range_hint: &str, location: SourceLocation) -> Diagnostic {
+        Diagnostic::error(format!("Literal {literal} out of range ({range_hint})"))
+            .with_error_code("E053")
+            .with_location(location)
+    }
+
     let cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
     let literal_type = context.index.get_type_information_or_void(
         get_literal_actual_signed_type_name(literal, !cast_type.is_unsigned_int())
@@ -309,9 +326,16 @@ fn validate_cast_literal<T: AnnotationMap>(
     );
 
     if !literal.is_cast_prefix_eligible() {
-        validator.push_diagnostic(Diagnostic::literal_expected(location.clone()))
+        validator.push_diagnostic(
+            Diagnostic::error(format!(
+                "Cannot cast into {}, only elementary types are allowed",
+                validator.context.slice(&statement.get_location())
+            ))
+            .with_error_code("E061")
+            .with_location(location.clone()),
+        )
     } else if cast_type.is_date_or_time_type() || literal_type.is_date_or_time_type() {
-        validator.push_diagnostic(Diagnostic::incompatible_literal_cast(
+        validator.push_diagnostic(incompatible_literal_cast(
             cast_type.get_name(),
             literal_type.get_name(),
             location.clone(),
@@ -320,7 +344,7 @@ fn validate_cast_literal<T: AnnotationMap>(
     } else if cast_type.is_int() && literal_type.is_int() {
         // INTs with INTs
         if cast_type.get_semantic_size(context.index) < literal_type.get_semantic_size(context.index) {
-            validator.push_diagnostic(Diagnostic::literal_out_of_range(
+            validator.push_diagnostic(literal_out_of_range(
                 literal.get_literal_value().as_str(),
                 cast_type.get_name(),
                 location.clone(),
@@ -330,7 +354,7 @@ fn validate_cast_literal<T: AnnotationMap>(
         let value = literal.get_literal_value();
         // value contains "" / ''
         if value.len() > 3 {
-            validator.push_diagnostic(Diagnostic::literal_out_of_range(
+            validator.push_diagnostic(literal_out_of_range(
                 value.as_str(),
                 cast_type.get_name(),
                 location.clone(),
@@ -340,7 +364,7 @@ fn validate_cast_literal<T: AnnotationMap>(
         // different types
         // REAL#100 is fine, other differences are not
         if !(cast_type.is_float() && literal_type.is_int()) {
-            validator.push_diagnostic(Diagnostic::incompatible_literal_cast(
+            validator.push_diagnostic(incompatible_literal_cast(
                 cast_type.get_name(),
                 literal.get_literal_value().as_str(),
                 location.clone(),
@@ -365,21 +389,27 @@ fn validate_access_index<T: AnnotationMap>(
                 target_type,
                 context.index,
             ) {
-                validator.push_diagnostic(Diagnostic::incompatible_directaccess_range(
-                    &format!("{access_type:?}"),
-                    target_type.get_name(),
-                    helper::get_range(access_type, target_type, context.index),
-                    location.clone(),
-                ))
+                let range = helper::get_range(access_type, target_type, context.index);
+                validator.push_diagnostic(
+                    Diagnostic::error(format!(
+                        "{access_type:?}-Wise access for type {} must be in range {}..{}",
+                        target_type.get_name(),
+                        &range.start,
+                        &range.end
+                    ))
+                    .with_error_code("E057")
+                    .with_location(location.clone()),
+                )
             }
         }
         AstStatement::ReferenceExpr(_) => {
             let ref_type = context.annotations.get_type_or_void(access_index, context.index);
             if !ref_type.get_type_information().is_int() {
-                validator.push_diagnostic(Diagnostic::incompatible_directaccess_variable(
-                    ref_type.get_name(),
-                    location.clone(),
-                ))
+                validator.push_diagnostic(
+                    Diagnostic::error(format!("Invalid type {} for direct variable access. Only variables of Integer types are allowed", ref_type.get_name()))
+                    .with_error_code("E056")
+                    .with_location(location.clone())
+                )
             }
         }
         _ => unreachable!(),
@@ -408,12 +438,11 @@ fn validate_reference<T: AnnotationMap>(
             if base.is_some() && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
             {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
-                validator.push_diagnostic(Diagnostic::ImprovementSuggestion {
-                    message: format!(
-                        "If you meant to directly access a bit/byte/word/.., use %X/%B/%W{ref_name} instead.",
-                    ),
-                    range: vec![location.clone()],
-                });
+                validator.push_diagnostic(
+                    Diagnostic::info(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
+                    .with_error_code("E060")
+                    .with_location(location.clone())
+                );
             }
         }
     } else if let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
@@ -430,7 +459,12 @@ fn validate_reference<T: AnnotationMap>(
                     !qualified_name.starts_with(pou) && !qualified_name.starts_with(container)
                 })
         {
-            validator.push_diagnostic(Diagnostic::illegal_access(qualified_name.as_str(), location.clone()));
+            validator.push_diagnostic(
+                //TODO: maybe default to warning?
+                Diagnostic::error(format!("Illegal access to private member {qualified_name}"))
+                    .with_error_code("E049")
+                    .with_location(location.clone()),
+            );
         }
     }
 }
@@ -471,16 +505,24 @@ fn visit_array_access<T: AnnotationMap>(
             validate_array_access_dimensions(*ndims, dims, validator, access);
         }
 
-        _ => validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
-            target_type.get_name(),
-            access.get_location(),
-        )),
+        _ => validator.push_diagnostic(
+            Diagnostic::error(format!(
+                "Invalid type {} for array access. Only variables of Array types are allowed",
+                target_type.get_name()
+            ))
+            .with_error_code("E059")
+            .with_location(access.get_location()),
+        ),
     }
 }
 
 fn validate_array_access_dimensions(ndims: usize, dims: usize, validator: &mut Validator, access: &AstNode) {
     if ndims != dims {
-        validator.push_diagnostic(Diagnostic::invalid_array_access(ndims, dims, access.get_location()))
+        validator.push_diagnostic(
+            Diagnostic::error(format!("Expected array access with {ndims} dimensions, found {dims}"))
+                .with_error_code("E045")
+                .with_location(access.get_location()),
+        )
     }
 }
 
@@ -495,20 +537,28 @@ fn validate_array_access<T: AnnotationMap>(
         if let Some(dimension) = dimensions.get(dimension_index) {
             if let Ok(range) = dimension.get_range(context.index) {
                 if !(range.start as i128 <= *value && range.end as i128 >= *value) {
-                    validator.push_diagnostic(Diagnostic::incompatible_array_access_range(
-                        range,
-                        access.get_location(),
-                    ))
+                    validator.push_diagnostic(
+                        Diagnostic::error(format!(
+                            "Array access must be in the range {}..{}",
+                            range.start, range.end
+                        ))
+                        .with_error_code("E058")
+                        .with_location(access.get_location()),
+                    )
                 }
             }
         }
     } else {
         let type_info = context.annotations.get_type_or_void(access, context.index).get_type_information();
         if !type_info.is_int() {
-            validator.push_diagnostic(Diagnostic::incompatible_array_access_type(
-                type_info.get_name(),
-                access.get_location(),
-            ))
+            validator.push_diagnostic(
+                    Diagnostic::error(format!(
+                            "Invalid type {} for array access. Only variables of Integer types are allowed to access an array",
+                            type_info.get_name()
+                    ))
+                    .with_error_code("E059")
+                    .with_location(access.get_location())
+            )
         }
     }
 }
@@ -524,12 +574,16 @@ fn visit_binary_expression<T: AnnotationMap>(
     match operator {
         Operator::Equal => {
             if context.annotations.get_type_hint(statement, context.index).is_none() {
-                let slice_lhs = validator.context.slice(&left.location);
-                let slice_rhs = validator.context.slice(&right.location);
+                let lhs = validator.context.slice(&left.location);
+                let rhs = validator.context.slice(&right.location);
 
-                validator.push_diagnostic(Diagnostic::assignment_instead_of_equal(
-                    &slice_lhs, &slice_rhs, statement,
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::warning(format!(
+                        "This equal statement has no effect, did you mean `{lhs} := {rhs}`?"
+                    ))
+                    .with_error_code("E023")
+                    .with_location(statement.get_location()),
+                );
             }
 
             validate_binary_expression(validator, statement, operator, left, right, context)
@@ -574,13 +628,17 @@ fn validate_binary_expression<T: AnnotationMap>(
         if operator.is_comparison_operator()
             && !compare_function_exists(left_type.get_name(), operator, context)
         {
-            validator.push_diagnostic(Diagnostic::missing_compare_function(
-                crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
-                    .unwrap_or_default()
-                    .as_str(),
-                left_type.get_name(),
-                statement.get_location(),
-            ));
+            validator.push_diagnostic(
+                Diagnostic::error(format!(
+                    "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
+                    crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
+                        .unwrap_or_default()
+                        .as_str(),
+                    left_type.get_name(),
+                ))
+                .with_error_code("E073")
+                .with_location(statement.get_location()),
+            );
         }
     }
 }
@@ -652,11 +710,15 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
             validate_call_by_ref(validator, param, &data.right);
         }
 
-        _ => validator.push_diagnostic(Diagnostic::invalid_argument_type(
-            param.get_name(),
-            &param.get_variable_type().to_string(),
-            arg.get_location(),
-        )),
+        _ => validator.push_diagnostic(
+            Diagnostic::error(format!(
+                "Expected a reference for parameter {} because their type is {}",
+                param.get_name(),
+                param.get_variable_type()
+            ))
+            .with_error_code("E031")
+            .with_location(arg.get_location()),
+        ),
     }
 }
 
@@ -674,10 +736,11 @@ fn validate_assignment<T: AnnotationMap>(
         {
             // ...constant variable
             if *constant {
-                validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
-                    qualified_name.as_str(),
-                    left.get_location(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(format!("Cannot assign to CONSTANT '{qualified_name}'"))
+                        .with_error_code("E036")
+                        .with_location(left.get_location()),
+                );
             } else {
                 // ...enum variable where the RHS does not match its variants
                 validate_enum_variant_assignment(
@@ -691,13 +754,22 @@ fn validate_assignment<T: AnnotationMap>(
 
             // ...VAR_INPUT {ref} variable
             if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
-                validator.push_diagnostic(Diagnostic::var_input_ref_assignment(location.to_owned()));
+                validator.push_diagnostic(
+                    Diagnostic::warning("VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.")
+                    .with_error_code("E042")
+                    .with_location(location.to_owned())
+                    );
             }
         }
 
         // ...or if whatever we got is not assignable, output an error
         if !left.can_be_assigned_to() {
-            validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+            let expression = validator.context.slice(&left.get_location());
+            validator.push_diagnostic(
+                Diagnostic::error(format!("Expression {expression} is not assignable."))
+                    .with_error_code("E050")
+                    .with_location(left.get_location()),
+            );
         }
     }
 
@@ -726,11 +798,23 @@ fn validate_assignment<T: AnnotationMap>(
         if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
-            validator.push_diagnostic(Diagnostic::invalid_assignment(
-                &get_datatype_name_or_slice(validator.context, right_type),
-                &get_datatype_name_or_slice(validator.context, left_type),
-                location.clone(),
-            ));
+            if left_type.is_pointer() && right_type.is_pointer() {
+                validator.push_diagnostic(
+                    Diagnostic::warning(format!(
+                        "Pointers {} and {} have different types",
+                        get_datatype_name_or_slice(validator.context, left_type),
+                        get_datatype_name_or_slice(validator.context, right_type)
+                    ))
+                    .with_error_code("E090")
+                    .with_location(location.clone()),
+                );
+            } else {
+                validator.push_diagnostic(Diagnostic::invalid_assignment(
+                    &get_datatype_name_or_slice(validator.context, right_type),
+                    &get_datatype_name_or_slice(validator.context, left_type),
+                    location.clone(),
+                ));
+            }
         } else if right.is_literal() {
             // TODO: See https://github.com/PLC-lang/rusty/issues/857
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
@@ -746,7 +830,11 @@ pub(crate) fn validate_enum_variant_assignment(
     location: SourceLocation,
 ) {
     if left.is_enum() && left.get_name() != right.get_name() {
-        validator.push_diagnostic(Diagnostic::enum_variant_mismatch(qualified_name, location))
+        validator.push_diagnostic(
+            Diagnostic::error(format!("Assigned value is not a variant of {qualified_name}"))
+                .with_error_code("E039")
+                .with_location(location),
+        )
     }
 }
 
@@ -818,10 +906,14 @@ fn is_valid_string_to_char_assignment(
             if value.len() == 1 {
                 return true;
             } else {
-                validator.push_diagnostic(Diagnostic::syntax_error(
-                    format!("Value: '{value}' exceeds length for type: {}", left_type.get_name()).as_str(),
-                    location.clone(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(
+                        format!("Value: '{value}' exceeds length for type: {}", left_type.get_name())
+                            .as_str(),
+                    )
+                    .with_error_code("E065")
+                    .with_location(location.clone()),
+                );
                 return false;
             }
         }
@@ -844,12 +936,15 @@ fn is_invalid_pointer_assignment(
         && !left_type.is_pointer()
         && left_type.get_size_in_bits(index) < POINTER_SIZE
     {
-        validator.push_diagnostic(Diagnostic::incompatible_type_size(
-            left_type.get_name(),
-            left_type.get_size_in_bits(index),
-            "hold a",
-            location.clone(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error(format!(
+                "The type {} {} is too small to hold a Pointer",
+                left_type.get_name(),
+                left_type.get_size_in_bits(index)
+            ))
+            .with_error_code("E065")
+            .with_location(location.clone()),
+        );
         return true;
     }
     //check if size allocated to Pointer is standart pointer size (u64)
@@ -857,12 +952,15 @@ fn is_invalid_pointer_assignment(
         && !right_type.is_pointer()
         && right_type.get_size_in_bits(index) < POINTER_SIZE
     {
-        validator.push_diagnostic(Diagnostic::incompatible_type_size(
-            right_type.get_name(),
-            right_type.get_size_in_bits(index),
-            "to be stored in a",
-            location.clone(),
-        ));
+        validator.push_diagnostic(
+            Diagnostic::error(format!(
+                "The type {} {} is too small to be stored in a Pointer",
+                right_type.get_name(),
+                right_type.get_size_in_bits(index)
+            ))
+            .with_error_code("E065")
+            .with_location(location.clone()),
+        );
         return true;
     }
     false
@@ -918,29 +1016,42 @@ fn validate_call<T: AnnotationMap>(
 
         // validate parameters
         for (i, param) in passed_parameters.iter().enumerate() {
-            if let Ok((parameter_location_in_parent, right, is_implicit)) =
-                get_implicit_call_parameter(param, &declared_parameters, i)
-            {
-                let left = declared_parameters.get(parameter_location_in_parent);
-                if let Some(left) = left {
-                    validate_call_by_ref(validator, left, param);
-                    // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
-                    // save actual location in parent for InOut validation
-                    variable_location_in_parent.push(left.get_location_in_parent());
-                }
+            match get_implicit_call_parameter(param, &declared_parameters, i) {
+                Ok((parameter_location_in_parent, right, is_implicit)) => {
+                    let left = declared_parameters.get(parameter_location_in_parent);
+                    if let Some(left) = left {
+                        validate_call_by_ref(validator, left, param);
+                        // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                        // save actual location in parent for InOut validation
+                        variable_location_in_parent.push(left.get_location_in_parent());
+                    }
 
-                // explicit call parameter assignments will be handled by
-                // `visit_statement()` via `Assignment` and `OutputAssignment`
-                if is_implicit {
-                    validate_assignment(validator, right, None, &param.get_location(), context);
-                }
+                    // explicit call parameter assignments will be handled by
+                    // `visit_statement()` via `Assignment` and `OutputAssignment`
+                    if is_implicit {
+                        validate_assignment(validator, right, None, &param.get_location(), context);
+                    }
 
-                // mixing implicit and explicit parameters is not allowed
-                // allways compare to the first passed parameter
-                if i == 0 {
-                    are_implicit_parameters = is_implicit;
-                } else if are_implicit_parameters != is_implicit {
-                    validator.push_diagnostic(Diagnostic::invalid_parameter_type(param.get_location()));
+                    // mixing implicit and explicit parameters is not allowed
+                    // allways compare to the first passed parameter
+                    if i == 0 {
+                        are_implicit_parameters = is_implicit;
+                    } else if are_implicit_parameters != is_implicit {
+                        validator.push_diagnostic(
+                            Diagnostic::error("Cannot mix implicit and explicit call parameters!")
+                                .with_error_code("E031")
+                                .with_location(param.get_location()),
+                        );
+                    }
+                }
+                Err(err) => {
+                    validator.push_diagnostic(
+                        Diagnostic::error("Invalid call parameters")
+                            .with_error_code("E089")
+                            .with_location(param.get_location())
+                            .with_sub_diagnostic(err),
+                    );
+                    break;
                 }
             }
 
@@ -963,10 +1074,11 @@ fn validate_call<T: AnnotationMap>(
                 // check if all inouts were passed to the pou call
                 declared_in_out_params.into_iter().for_each(|p| {
                     if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
-                        validator.push_diagnostic(Diagnostic::missing_inout_parameter(
-                            p.get_name(),
-                            operator.get_location(),
-                        ));
+                        validator.push_diagnostic(
+                            Diagnostic::error(format!("Missing inout parameter: {}", p.get_name()))
+                                .with_error_code("E030")
+                                .with_location(operator.get_location()),
+                        );
                     }
                 });
             }
@@ -1019,7 +1131,11 @@ fn validate_case_statement<T: AnnotationMap>(
 
         // invalid case conditions
         if matches!(condition.get_stmt(), AstStatement::Assignment(_) | AstStatement::CallStatement(_)) {
-            validator.push_diagnostic(Diagnostic::invalid_case_condition(condition.get_location()));
+            validator.push_diagnostic(
+                Diagnostic::error("Invalid case condition!")
+                    .with_error_code("E079")
+                    .with_location(condition.get_location()),
+            );
         }
 
         // validate for duplicate conditions
@@ -1027,19 +1143,26 @@ fn validate_case_statement<T: AnnotationMap>(
         const_evaluator::evaluate(condition, context.qualifier, context.index)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
-                validator.push_diagnostic(Diagnostic::non_constant_case_condition(
-                    err.get_reason(),
-                    condition.get_location(),
-                ))
+                validator.push_diagnostic(
+                    Diagnostic::error(format!(
+                        "{}. Non constant variables are not supported in case conditions",
+                        err.get_reason()
+                    ))
+                    .with_error_code("E080")
+                    .with_location(condition.get_location()),
+                )
             })
             .map(|v| {
                 // check for duplicates if we got a value
                 if let Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(value)), .. }) = v {
                     if !cases.insert(value) {
-                        validator.push_diagnostic(Diagnostic::duplicate_case_condition(
-                            &value,
-                            condition.get_location(),
-                        ));
+                        validator.push_diagnostic(
+                            Diagnostic::error(format!(
+                                "Duplicate condition value: {value}. Occurred more than once!"
+                            ))
+                            .with_error_code("E078")
+                            .with_location(condition.get_location()),
+                        );
                     }
                 };
             })
@@ -1070,11 +1193,11 @@ fn validate_type_nature<T: AnnotationMap>(
             if let AstStatement::Identifier(_) = statement.get_stmt() {
                 return;
             }
-            validator.push_diagnostic(Diagnostic::unresolved_generic_type(
-                generic_symbol,
-                &format!("{nature:?}"),
-                statement.get_location(),
-            ))
+            validator.push_diagnostic(
+                Diagnostic::error(format!("Could not resolve generic type {generic_symbol} with {nature}"))
+                    .with_error_code("E064")
+                    .with_location(statement.get_location()),
+            );
         } else if let Some((actual_type, generic_nature)) = context
             .annotations
             .get_type(statement, context.index)
@@ -1086,11 +1209,15 @@ fn validate_type_nature<T: AnnotationMap>(
                 // INT parameter for REAL is allowed
                 | (type_hint.is_real() & actual_type.is_numerical()))
             {
-                validator.push_diagnostic(Diagnostic::invalid_type_nature(
-                    actual_type.get_name(),
-                    format!("{generic_nature:?}").as_str(),
-                    statement.get_location(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(format!(
+                        "Invalid type nature for generic argument. {} is no {}",
+                        actual_type.get_name(),
+                        generic_nature
+                    ))
+                    .with_error_code("E062")
+                    .with_location(statement.get_location()),
+                );
             }
         }
     }
@@ -1106,11 +1233,15 @@ fn _validate_assignment_type_sizes<T: AnnotationMap>(
     if left.get_type_information().get_size(context.index)
         < right.get_type_information().get_size(context.index)
     {
-        validator.push_diagnostic(Diagnostic::implicit_downcast(
-            left.get_name(),
-            right.get_name(),
-            location.clone(),
-        ))
+        validator.push_diagnostic(
+            Diagnostic::info(format!(
+                "Potential loss of information due to assigning '{}' to variable of type '{}'.",
+                left.get_name(),
+                right.get_name()
+            ))
+            .with_error_code("E067")
+            .with_location(location.clone()),
+        )
     }
 }
 

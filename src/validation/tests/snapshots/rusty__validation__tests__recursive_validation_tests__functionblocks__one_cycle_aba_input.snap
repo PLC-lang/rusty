@@ -6,7 +6,10 @@ error: Recursive data structure `A -> B -> A` has infinite size
   ┌─ <internal>:2:28
   │
 2 │             FUNCTION_BLOCK A
-  │                            ^ Recursive data structure `A -> B -> A` has infinite size
+  │                            ^
+  │                            │
+  │                            Recursive data structure `A -> B -> A` has infinite size
+  │                            see also
   ·
 9 │             FUNCTION_BLOCK B
   │                            - see also

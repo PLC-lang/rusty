@@ -8,11 +8,11 @@ error: Invalid parameter count. Received 0 parameters while 2 parameters were ex
 7 │             ADD();
   │             ^^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
 
-error: Could not resolve generic type T with nature Num
+error: Could not resolve generic type T with ANY_NUMBER
   ┌─ <internal>:7:13
   │
 7 │             ADD();
-  │             ^^^^^^ Could not resolve generic type T with nature Num
+  │             ^^^^^^ Could not resolve generic type T with ANY_NUMBER
 
 error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
   ┌─ <internal>:8:13
