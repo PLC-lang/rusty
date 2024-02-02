@@ -1282,6 +1282,10 @@
 <a href="#1282" id="1282">1282</a>
 <a href="#1283" id="1283">1283</a>
 <a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::{
@@ -2473,6 +2477,10 @@
     {
         <span class="kw">if let </span>DataTypeInformation::Generic { generic_symbol, nature, .. } = type_hint.get_type_information()
         {
+            <span class="comment">// we might be validating an identifier of a formal parameter assignment (FOO(x := 0))
+            </span><span class="kw">if let </span>AstStatement::Identifier(<span class="kw">_</span>) = statement.get_stmt() {
+                <span class="kw">return</span>;
+            }
             validator.push_diagnostic(
                 Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Could not resolve generic type {generic_symbol} with {nature}&quot;</span>))
                     .with_error_code(<span class="string">&quot;E064&quot;</span>)
