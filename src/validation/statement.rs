@@ -1189,6 +1189,10 @@ fn validate_type_nature<T: AnnotationMap>(
     {
         if let DataTypeInformation::Generic { generic_symbol, nature, .. } = type_hint.get_type_information()
         {
+            // we might be validating an identifier of a formal parameter assignment (FOO(x := 0))
+            if let AstStatement::Identifier(_) = statement.get_stmt() {
+                return;
+            }
             validator.push_diagnostic(
                 Diagnostic::error(format!("Could not resolve generic type {generic_symbol} with {nature}"))
                     .with_error_code("E064")
