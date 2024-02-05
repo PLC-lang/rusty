@@ -1,13 +1,53 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. USINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 144 }..TextLocation { line: 3, column: 59, offset: 145 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 218 }..TextLocation { line: 4, column: 58, offset: 219 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 58, offset: 293 }..TextLocation { line: 5, column: 59, offset: 294 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 58, offset: 368 }..TextLocation { line: 6, column: 59, offset: 369 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. SINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 57, offset: 443 }..TextLocation { line: 8, column: 58, offset: 444 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. INT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 56, offset: 516 }..TextLocation { line: 9, column: 57, offset: 517 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 57, offset: 590 }..TextLocation { line: 10, column: 58, offset: 591 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LINT is no Duration.", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 57, offset: 664 }..TextLocation { line: 11, column: 58, offset: 665 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. USINT is no ANY_DURATION
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. USINT is no ANY_DURATION
+
+error: Invalid type nature for generic argument. UINT is no ANY_DURATION
+  ┌─ <internal>:5:58
+  │
+5 │         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. UINT is no ANY_DURATION
+
+error: Invalid type nature for generic argument. UDINT is no ANY_DURATION
+  ┌─ <internal>:6:59
+  │
+6 │         FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. UDINT is no ANY_DURATION
+
+error: Invalid type nature for generic argument. ULINT is no ANY_DURATION
+  ┌─ <internal>:7:59
+  │
+7 │         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. ULINT is no ANY_DURATION
+
+error: Invalid type nature for generic argument. SINT is no ANY_DURATION
+  ┌─ <internal>:9:58
+  │
+9 │         FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. SINT is no ANY_DURATION
+
+error: Invalid type nature for generic argument. INT is no ANY_DURATION
+   ┌─ <internal>:10:57
+   │
+10 │         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
+   │                                                         ^ Invalid type nature for generic argument. INT is no ANY_DURATION
+
+error: Invalid type nature for generic argument. DINT is no ANY_DURATION
+   ┌─ <internal>:11:58
+   │
+11 │         FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+   │                                                          ^ Invalid type nature for generic argument. DINT is no ANY_DURATION
+
+error: Invalid type nature for generic argument. LINT is no ANY_DURATION
+   ┌─ <internal>:12:58
+   │
+12 │         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+   │                                                          ^ Invalid type nature for generic argument. LINT is no ANY_DURATION
+
 

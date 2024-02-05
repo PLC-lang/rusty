@@ -228,9 +228,9 @@ fn non_const_references_to_int_compile_time_evaluation() {
 
     debug_assert_eq!(
         vec![
-            UnresolvableConstant::new(global!(index, "nok_a"), "'a' is no const reference"),
-            UnresolvableConstant::new(global!(index, "nok_b"), "'b' is no const reference"),
-            UnresolvableConstant::new(global!(index, "temp"), "'a' is no const reference"),
+            UnresolvableConstant::new(global!(index, "nok_a"), "`a` is no const reference"),
+            UnresolvableConstant::new(global!(index, "nok_b"), "`b` is no const reference"),
+            UnresolvableConstant::new(global!(index, "temp"), "`a` is no const reference"),
             UnresolvableConstant::incomplete_initialzation(&global!(index, "incomplete")), //this one is fine, but one depency cannot be resolved
         ],
         unresolvable

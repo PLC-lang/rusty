@@ -1,14 +1,59 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "The type DINT 32 is too small to hold a Pointer", range: [SourceLocation { span: Range(TextLocation { line: 27, column: 4, offset: 412 }..TextLocation { line: 27, column: 23, offset: 431 }) }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign 'REF_TO INT' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 27, column: 4, offset: 412 }..TextLocation { line: 27, column: 23, offset: 431 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "The type WORD 16 is too small to hold a Pointer", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 4, offset: 448 }..TextLocation { line: 28, column: 23, offset: 467 }) }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 4, offset: 448 }..TextLocation { line: 28, column: 23, offset: 467 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO INT'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 4, offset: 519 }..TextLocation { line: 30, column: 24, offset: 539 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO INT'", range: [SourceLocation { span: Range(TextLocation { line: 40, column: 4, offset: 898 }..TextLocation { line: 40, column: 26, offset: 920 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 41, column: 4, offset: 937 }..TextLocation { line: 41, column: 26, offset: 959 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 43, column: 4, offset: 1041 }..TextLocation { line: 43, column: 24, offset: 1061 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceLocation { span: Range(TextLocation { line: 47, column: 4, offset: 1191 }..TextLocation { line: 47, column: 35, offset: 1222 }) }], err_no: var__invalid_assignment }
+error: The type DINT 32 is too small to hold a Pointer
+   ┌─ <internal>:28:5
+   │
+28 │     v_dint := v_ptr_int; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^ The type DINT 32 is too small to hold a Pointer
+
+error: Invalid assignment: cannot assign 'REF_TO INT' to 'DINT'
+   ┌─ <internal>:28:5
+   │
+28 │     v_dint := v_ptr_int; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO INT' to 'DINT'
+
+error: The type WORD 16 is too small to hold a Pointer
+   ┌─ <internal>:29:5
+   │
+29 │     v_word := v_ptr_int; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^ The type WORD 16 is too small to hold a Pointer
+
+error: Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
+   ┌─ <internal>:29:5
+   │
+29 │     v_word := v_ptr_int; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
+
+warning: Pointers REF_TO INT and __POINTER_TO_REAL have different types
+   ┌─ <internal>:31:5
+   │
+31 │     v_ptr_int := &v_real; // INVALID -> TODO: should be valid
+   │     ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_REAL have different types
+
+warning: Pointers REF_TO INT and __POINTER_TO_STRING have different types
+   ┌─ <internal>:41:5
+   │
+41 │     v_ptr_int := &v_string; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_STRING have different types
+
+error: Invalid assignment: cannot assign 'STRING' to 'INT'
+   ┌─ <internal>:42:5
+   │
+42 │     v_ptr_int^ := v_string; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
+
+error: Invalid assignment: cannot assign 'CHAR' to 'INT'
+   ┌─ <internal>:44:5
+   │
+44 │     v_ptr_int^ := v_char; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'INT'
+
+error: Invalid assignment: cannot assign 'STRING' to 'INT'
+   ┌─ <internal>:48:5
+   │
+48 │     v_ptr_int^ := v_arr_string_3[0]; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
+
 

@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Could not resolve generic type T with nature String", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 30, offset: 86 }..TextLocation { line: 2, column: 37, offset: 93 }) }], err_no: type__unresolved_generic }
+error: Could not resolve generic type T with ANY_STRING
+  ┌─ <internal>:3:31
+  │
+3 │         FUNCTION func  : INT  test(); END_FUNCTION
+  │                               ^^^^^^^ Could not resolve generic type T with ANY_STRING
+
 

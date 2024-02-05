@@ -1,9 +1,10 @@
-use crate::assert_validation_snapshot;
-use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
+use insta::assert_snapshot;
+
+use crate::test_utils::tests::parse_and_validate_buffered;
 
 #[test]
 fn constant_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     VAR_GLOBAL CONSTANT
         v_global : BOOL;
@@ -16,12 +17,12 @@ fn constant_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn real_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -75,12 +76,12 @@ fn real_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn int_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -159,12 +160,12 @@ fn int_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn duration_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -218,12 +219,12 @@ fn duration_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn bit_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -277,12 +278,12 @@ fn bit_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn string_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -341,12 +342,12 @@ fn string_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn char_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -409,12 +410,12 @@ fn char_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn date_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -468,12 +469,12 @@ fn date_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn pointer_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -526,12 +527,12 @@ fn pointer_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn array_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION main : DINT
     VAR
@@ -588,12 +589,12 @@ fn array_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn struct_assignment_validation() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         TYPE STRUCT1 :
         STRUCT
@@ -671,12 +672,12 @@ fn struct_assignment_validation() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION main : DINT
         VAR
@@ -688,7 +689,7 @@ fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
         END_FUNCTION"#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -775,7 +776,7 @@ fn action_call_parameters_are_only_validated_outside_of_parent_pou_contexts() {
 
 #[test]
 fn implicit_invalid_action_call_assignments_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK fb_t
         VAR
@@ -804,12 +805,12 @@ fn implicit_invalid_action_call_assignments_are_validated() {
         "#,
     );
 
-    assert_validation_snapshot!(&diagnostics)
+    assert_snapshot!(&diagnostics)
 }
 
 #[test]
 fn invalid_method_call_assignments_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         CLASS cl_t
         VAR
@@ -836,12 +837,12 @@ fn invalid_method_call_assignments_are_validated() {
         "#,
     );
 
-    assert_validation_snapshot!(&diagnostics)
+    assert_snapshot!(&diagnostics)
 }
 
 #[test]
 fn invalid_function_block_instantiation_is_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK fb_t
         VAR_INPUT
@@ -861,12 +862,12 @@ fn invalid_function_block_instantiation_is_validated() {
         END_PROGRAM"#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn implicit_action_downcasts_are_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK fb_t
         VAR
@@ -897,12 +898,12 @@ fn implicit_action_downcasts_are_validated() {
         "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION fn : DINT
                 VAR_INPUT
@@ -937,12 +938,12 @@ fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
             ",
         );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 fn enum_variants_mismatch() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         TYPE Animal: (Dog, Cat, Horse); END_TYPE
 
@@ -960,12 +961,12 @@ fn enum_variants_mismatch() {
         END_PROGRAM",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 fn string_type_alias_assignment_can_be_validated() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         TYPE MY_STR : STRING; END_TYPE
         TYPE MY_OTHER_STR: STRING[256]; END_TYPE
@@ -982,5 +983,5 @@ fn string_type_alias_assignment_can_be_validated() {
         ",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }

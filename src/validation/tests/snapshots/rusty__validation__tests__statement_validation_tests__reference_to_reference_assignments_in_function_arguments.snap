@@ -1,11 +1,41 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_INT' to 'REF_TO STRUCT_params'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 12, offset: 1286 }..TextLocation { line: 46, column: 34, offset: 1308 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT_params'", range: [SourceLocation { span: Range(TextLocation { line: 47, column: 12, offset: 1322 }..TextLocation { line: 47, column: 34, offset: 1344 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO STRUCT_params'", range: [SourceLocation { span: Range(TextLocation { line: 48, column: 12, offset: 1358 }..TextLocation { line: 48, column: 34, offset: 1380 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_INT' to 'REF_TO STRUCT_params'", range: [SourceLocation { span: Range(TextLocation { line: 54, column: 12, offset: 1588 }..TextLocation { line: 54, column: 32, offset: 1608 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT_params'", range: [SourceLocation { span: Range(TextLocation { line: 55, column: 12, offset: 1622 }..TextLocation { line: 55, column: 32, offset: 1642 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO___global_global6' to 'REF_TO STRUCT_params'", range: [SourceLocation { span: Range(TextLocation { line: 56, column: 12, offset: 1656 }..TextLocation { line: 56, column: 32, offset: 1676 }) }], err_no: var__invalid_assignment }
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
+   ┌─ <internal>:47:13
+   │
+47 │             input1 := REF(global4),
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
+
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
+   ┌─ <internal>:48:13
+   │
+48 │             input2 := REF(global5),
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
+
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have different types
+   ┌─ <internal>:49:13
+   │
+49 │             input3 := REF(global6),
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have different types
+
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
+   ┌─ <internal>:55:13
+   │
+55 │             input1 := &(global4),
+   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
+
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
+   ┌─ <internal>:56:13
+   │
+56 │             input2 := &(global5),
+   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
+
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO___global_global6 have different types
+   ┌─ <internal>:57:13
+   │
+57 │             input3 := &(global6),
+   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO___global_global6 have different types
+
 

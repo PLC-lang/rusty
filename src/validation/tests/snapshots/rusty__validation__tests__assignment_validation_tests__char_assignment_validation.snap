@@ -1,30 +1,155 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 31, column: 4, offset: 531 }..TextLocation { line: 31, column: 21, offset: 548 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 32, column: 4, offset: 565 }..TextLocation { line: 32, column: 22, offset: 583 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 33, column: 4, offset: 600 }..TextLocation { line: 33, column: 21, offset: 617 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 34, column: 4, offset: 634 }..TextLocation { line: 34, column: 22, offset: 652 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 35, column: 4, offset: 669 }..TextLocation { line: 35, column: 20, offset: 685 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 36, column: 4, offset: 702 }..TextLocation { line: 36, column: 21, offset: 719 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 37, column: 4, offset: 736 }..TextLocation { line: 37, column: 20, offset: 752 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 4, offset: 769 }..TextLocation { line: 38, column: 28, offset: 793 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 4, offset: 810 }..TextLocation { line: 39, column: 20, offset: 826 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 40, column: 4, offset: 843 }..TextLocation { line: 40, column: 26, offset: 865 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING[1]' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 41, column: 4, offset: 882 }..TextLocation { line: 41, column: 23, offset: 901 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 42, column: 4, offset: 933 }..TextLocation { line: 42, column: 24, offset: 953 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 44, column: 4, offset: 1013 }..TextLocation { line: 44, column: 17, offset: 1026 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 45, column: 4, offset: 1043 }..TextLocation { line: 45, column: 22, offset: 1061 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 1078 }..TextLocation { line: 46, column: 29, offset: 1103 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Value: 'string' exceeds length for type: CHAR", range: [SourceLocation { span: Range(TextLocation { line: 47, column: 4, offset: 1120 }..TextLocation { line: 47, column: 22, offset: 1138 }) }], err_no: syntax__generic_error }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 47, column: 4, offset: 1120 }..TextLocation { line: 47, column: 22, offset: 1138 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 50, column: 4, offset: 1219 }..TextLocation { line: 50, column: 21, offset: 1236 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 51, column: 4, offset: 1253 }..TextLocation { line: 51, column: 23, offset: 1272 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 52, column: 4, offset: 1289 }..TextLocation { line: 52, column: 19, offset: 1304 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 53, column: 4, offset: 1321 }..TextLocation { line: 53, column: 26, offset: 1343 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 54, column: 4, offset: 1360 }..TextLocation { line: 54, column: 24, offset: 1380 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 55, column: 4, offset: 1397 }..TextLocation { line: 55, column: 27, offset: 1420 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 56, column: 4, offset: 1437 }..TextLocation { line: 56, column: 28, offset: 1461 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceLocation { span: Range(TextLocation { line: 57, column: 4, offset: 1478 }..TextLocation { line: 57, column: 31, offset: 1505 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'LREAL' to 'CHAR'
+   ┌─ <internal>:32:5
+   │
+32 │     v_char := v_lreal; // INVALID
+   │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'LREAL' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'REAL' to 'CHAR'
+   ┌─ <internal>:33:5
+   │
+33 │     v_char := REAL#2.0; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
+   ┌─ <internal>:34:5
+   │
+34 │     v_char := v_udint; // INVALID
+   │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
+   ┌─ <internal>:35:5
+   │
+35 │     v_char := UDINT#10; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
+   ┌─ <internal>:36:5
+   │
+36 │     v_char := v_dint; // INVALID
+   │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
+   ┌─ <internal>:37:5
+   │
+37 │     v_char := DINT#20; // INVALID
+   │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
+   ┌─ <internal>:38:5
+   │
+38 │     v_char := v_time; // INVALID
+   │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
+   ┌─ <internal>:39:5
+   │
+39 │     v_char := TIME#10h20m30s; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'WORD' to 'CHAR'
+   ┌─ <internal>:40:5
+   │
+40 │     v_char := v_word; // INVALID
+   │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WORD' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'WORD' to 'CHAR'
+   ┌─ <internal>:41:5
+   │
+41 │     v_char := WORD#16#ffff; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WORD' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'STRING[1]' to 'CHAR'
+   ┌─ <internal>:42:5
+   │
+42 │     v_char := v_string1; // INVALID -> should work
+   │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING[1]' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+   ┌─ <internal>:43:5
+   │
+43 │     v_char := STRING#'a'; // INVALID -> should work
+   │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
+   ┌─ <internal>:45:5
+   │
+45 │     v_char := "a"; // INVALID
+   │     ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+   ┌─ <internal>:46:5
+   │
+46 │     v_char := v_string; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+   ┌─ <internal>:47:5
+   │
+47 │     v_char := STRING#'string'; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
+
+error: Value: 'string' exceeds length for type: CHAR
+   ┌─ <internal>:48:5
+   │
+48 │     v_char := 'string'; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Value: 'string' exceeds length for type: CHAR
+
+error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+   ┌─ <internal>:48:5
+   │
+48 │     v_char := 'string'; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
+   ┌─ <internal>:51:5
+   │
+51 │     v_char := v_wchar; // INVALID
+   │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
+   ┌─ <internal>:52:5
+   │
+52 │     v_char := WCHAR#"c"; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+   ┌─ <internal>:53:5
+   │
+53 │     v_char := v_tod; // INVALID
+   │     ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+   ┌─ <internal>:54:5
+   │
+54 │     v_char := TOD#15:36:30; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'INT' to 'CHAR'
+   ┌─ <internal>:55:5
+   │
+55 │     v_char := v_ptr_int^; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+   ┌─ <internal>:56:5
+   │
+56 │     v_char := v_ptr_string^; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'INT' to 'CHAR'
+   ┌─ <internal>:57:5
+   │
+57 │     v_char := v_arr_int_3[0]; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'CHAR'
+
+error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+   ┌─ <internal>:58:5
+   │
+58 │     v_char := v_arr_string_3[0]; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
+
 

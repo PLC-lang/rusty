@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "This will overflow for type WORD", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 29, offset: 95 }..TextLocation { line: 3, column: 37, offset: 103 }) }], err_no: var__overflow }
-SyntaxError { message: "Literal 1048575 out of range (WORD)", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 24, offset: 90 }..TextLocation { line: 3, column: 37, offset: 103 }) }], err_no: type__literal_out_of_range }
+warning: This will overflow for type WORD
+  ┌─ <internal>:4:30
+  │
+4 │             y : UINT := WORD#16#fffff;  // Not OK, should have been `ffff` not `ffff_f_`
+  │                              ^^^^^^^^ This will overflow for type WORD
+
+error: Literal 1048575 out of range (WORD)
+  ┌─ <internal>:4:25
+  │
+4 │             y : UINT := WORD#16#fffff;  // Not OK, should have been `ffff` not `ffff_f_`
+  │                         ^^^^^^^^^^^^^ Literal 1048575 out of range (WORD)
+
 

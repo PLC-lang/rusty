@@ -1,10 +1,35 @@
 ---
 source: src/validation/tests/builtin_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid parameter count. Received 0 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 116 }..TextLocation { line: 6, column: 15, offset: 119 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Could not resolve generic type T with nature Num", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 116 }..TextLocation { line: 6, column: 18, offset: 122 }) }], err_no: type__unresolved_generic }
-SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 135 }..TextLocation { line: 7, column: 15, offset: 138 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Invalid parameter count. Received 4 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 156 }..TextLocation { line: 8, column: 15, offset: 159 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Invalid parameter count. Received 4 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 12, offset: 223 }..TextLocation { line: 9, column: 15, offset: 226 }) }], err_no: call__invalid_parameter_count }
+error: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+  ┌─ <internal>:7:13
+  │
+7 │             ADD();
+  │             ^^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+
+error: Could not resolve generic type T with ANY_NUMBER
+  ┌─ <internal>:7:13
+  │
+7 │             ADD();
+  │             ^^^^^^ Could not resolve generic type T with ANY_NUMBER
+
+error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+  ┌─ <internal>:8:13
+  │
+8 │             MUL(x1);
+  │             ^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+
+error: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+  ┌─ <internal>:9:13
+  │
+9 │             DIV(x2, x2, x1, x2); // DIV and SUB are not extensible
+  │             ^^^ Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+
+error: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+   ┌─ <internal>:10:13
+   │
+10 │             SUB(x2, x2, x1, x2);
+   │             ^^^ Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+
 

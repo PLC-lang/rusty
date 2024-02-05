@@ -1,9 +1,9 @@
+use anyhow::Result;
 use std::env;
-fn main() {
+
+fn main() -> Result<()> {
     //Initialize the logging
     env_logger::init();
     let args: Vec<String> = env::args().collect();
-    if let Err(err) = plc_driver::compile(&args) {
-        err.exit()
-    }
+    plc_driver::compile(&args)
 }

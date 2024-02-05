@@ -134,11 +134,7 @@ fn link_missing_file() {
 
     match res {
         Err(err) => {
-            assert!(err
-                .into_diagnostic()
-                .unwrap()
-                .get_message()
-                .contains("Compilation aborted due to previous errors"));
+            assert!(err.to_string().contains("Compilation aborted due to previous errors"));
         }
         _ => panic!("Expected link failure"),
     }

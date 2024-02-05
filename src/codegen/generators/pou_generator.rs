@@ -289,7 +289,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let current_function = self.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
-                &format!("Could not find generated stub for {pou_name}"),
+                format!("Could not find generated stub for {pou_name}"),
                 implementation.location.clone(),
             )
         })?;
@@ -322,7 +322,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
                 || {
                     Diagnostic::codegen_error(
-                        &format!("Could not find implementation for {}", &implementation.name),
+                        format!("Could not find implementation for {}", &implementation.name),
                         implementation.location.clone(),
                     )
                 },
@@ -431,7 +431,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             }
             None => Ok(self.llvm.context.void_type().fn_type(&params, is_var_args)),
             _ => Err(Diagnostic::codegen_error(
-                &format!("Unsupported return type {return_type:?}"),
+                format!("Unsupported return type {return_type:?}"),
                 SourceLocation::undefined(),
             )),
         }
@@ -632,7 +632,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let variable_llvm_type = self
             .llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))?;
+            .map_err(|err| err.with_location(variable.source_location.clone()))?;
 
         let type_size = variable_llvm_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error("Couldn't determine type size", variable.source_location.clone())

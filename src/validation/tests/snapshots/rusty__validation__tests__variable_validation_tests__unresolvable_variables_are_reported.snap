@@ -1,8 +1,23 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Unresolved constant 'cx' variable", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 28, offset: 372 }..TextLocation { line: 18, column: 30, offset: 374 }) }], err_no: var__unresolved_constant }
-SyntaxError { message: "Could not resolve reference to a", range: [SourceLocation { span: Range(TextLocation { line: 20, column: 29, offset: 453 }..TextLocation { line: 20, column: 30, offset: 454 }) }], err_no: reference__unresolved }
-SyntaxError { message: "Unresolved constant 'cai' variable", range: [SourceLocation { span: Range(TextLocation { line: 20, column: 29, offset: 453 }..TextLocation { line: 20, column: 30, offset: 454 }) }], err_no: var__unresolved_constant }
+error: Unresolved constant `cx` variable
+   ┌─ <internal>:19:29
+   │
+19 │                 cx : INT := cx;  //unresolvable
+   │                             ^^ Unresolved constant `cx` variable
+
+error: Could not resolve reference to a
+   ┌─ <internal>:21:30
+   │
+21 │                 cai : INT := a;  //unresolvable
+   │                              ^ Could not resolve reference to a
+
+error: Unresolved constant `cai` variable
+   ┌─ <internal>:21:30
+   │
+21 │                 cai : INT := a;  //unresolvable
+   │                              ^ Unresolved constant `cai` variable
+
 

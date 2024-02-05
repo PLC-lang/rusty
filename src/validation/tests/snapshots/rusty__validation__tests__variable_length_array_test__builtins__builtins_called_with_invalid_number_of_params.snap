@@ -1,17 +1,77 @@
 ---
 source: src/validation/tests/variable_length_array_test.rs
-expression: res
+expression: diagnostics
 ---
-SyntaxError { message: "Invalid parameter count. Received 0 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 12, offset: 251 }..TextLocation { line: 12, column: 23, offset: 262 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 12, offset: 278 }..TextLocation { line: 13, column: 23, offset: 289 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 12, offset: 308 }..TextLocation { line: 14, column: 23, offset: 319 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 24, offset: 320 }..TextLocation { line: 14, column: 25, offset: 321 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 24, offset: 320 }..TextLocation { line: 14, column: 25, offset: 321 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid parameter count. Received 4 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 12, offset: 336 }..TextLocation { line: 15, column: 23, offset: 347 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Invalid parameter count. Received 0 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 12, offset: 376 }..TextLocation { line: 17, column: 23, offset: 387 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 12, offset: 403 }..TextLocation { line: 18, column: 23, offset: 414 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Invalid parameter count. Received 1 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 12, offset: 433 }..TextLocation { line: 19, column: 23, offset: 444 }) }], err_no: call__invalid_parameter_count }
-SyntaxError { message: "Expected a reference for parameter arr because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 24, offset: 445 }..TextLocation { line: 19, column: 25, offset: 446 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 24, offset: 445 }..TextLocation { line: 19, column: 25, offset: 446 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid parameter count. Received 4 parameters while 2 parameters were expected.", range: [SourceLocation { span: Range(TextLocation { line: 20, column: 12, offset: 461 }..TextLocation { line: 20, column: 23, offset: 472 }) }], err_no: call__invalid_parameter_count }
+error: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+   ┌─ <internal>:13:13
+   │
+13 │             LOWER_BOUND();
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+
+error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   ┌─ <internal>:14:13
+   │
+14 │             LOWER_BOUND(vla);
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+
+error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   ┌─ <internal>:15:13
+   │
+15 │             LOWER_BOUND(1);
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+
+error: Expected a reference for parameter arr because their type is InOut
+   ┌─ <internal>:15:25
+   │
+15 │             LOWER_BOUND(1);
+   │                         ^ Expected a reference for parameter arr because their type is InOut
+
+error: Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:15:25
+   │
+15 │             LOWER_BOUND(1);
+   │                         ^ Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
+
+error: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+   ┌─ <internal>:16:13
+   │
+16 │             LOWER_BOUND(vla, 1, 2, 3);
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+
+error: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+   ┌─ <internal>:18:13
+   │
+18 │             UPPER_BOUND();
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+
+error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   ┌─ <internal>:19:13
+   │
+19 │             UPPER_BOUND(vla);
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+
+error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   ┌─ <internal>:20:13
+   │
+20 │             UPPER_BOUND(1);
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+
+error: Expected a reference for parameter arr because their type is InOut
+   ┌─ <internal>:20:25
+   │
+20 │             UPPER_BOUND(1);
+   │                         ^ Expected a reference for parameter arr because their type is InOut
+
+error: Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:20:25
+   │
+20 │             UPPER_BOUND(1);
+   │                         ^ Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
+
+error: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+   ┌─ <internal>:21:13
+   │
+21 │             UPPER_BOUND(vla, 1, 2, 3);
+   │             ^^^^^^^^^^^ Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+
 

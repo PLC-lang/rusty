@@ -1,10 +1,35 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid type nature for generic argument. BOOL is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 140 }..TextLocation { line: 2, column: 58, offset: 141 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 57, offset: 214 }..TextLocation { line: 3, column: 58, offset: 215 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. WORD is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 57, offset: 288 }..TextLocation { line: 4, column: 58, offset: 289 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 58, offset: 363 }..TextLocation { line: 5, column: 59, offset: 364 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Signed.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 58, offset: 438 }..TextLocation { line: 6, column: 59, offset: 439 }) }], err_no: type__invalid_nature }
+error: Invalid type nature for generic argument. BOOL is no ANY_SIGNED
+  ┌─ <internal>:3:58
+  │
+3 │         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. BOOL is no ANY_SIGNED
+
+error: Invalid type nature for generic argument. BYTE is no ANY_SIGNED
+  ┌─ <internal>:4:58
+  │
+4 │         FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. BYTE is no ANY_SIGNED
+
+error: Invalid type nature for generic argument. WORD is no ANY_SIGNED
+  ┌─ <internal>:5:58
+  │
+5 │         FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. WORD is no ANY_SIGNED
+
+error: Invalid type nature for generic argument. DWORD is no ANY_SIGNED
+  ┌─ <internal>:6:59
+  │
+6 │         FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. DWORD is no ANY_SIGNED
+
+error: Invalid type nature for generic argument. LWORD is no ANY_SIGNED
+  ┌─ <internal>:7:59
+  │
+7 │         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. LWORD is no ANY_SIGNED
+
 
