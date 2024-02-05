@@ -851,18 +851,20 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                 rhs = validator.context.slice(&right.location),
                 lhs = get_datatype_name_or_slice(validator.context, left)
             );
-            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()))
+
+            validator.push_diagnostic(
+                Diagnostic::error(message).with_location(right.get_location()).with_error_code("E040"),
+            )
         }
 
-        // TODO(volsa): Convert these to a warning once https://github.com/PLC-lang/rusty/pull/1063 is merged
         // Before returning, we want to give some possible improvement suggestions
         if variant.is_some() && right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
-            let mut msg = "Consider using enums of the same kind".to_string();
+            let mut message = "Consider using enums of the same kind".to_string();
             if let Some(value) = variant {
-                msg = format!("{msg}, i.e. `{} := {}`", validator.context.slice(left_loc), value.0);
+                message = format!("{message}, i.e. `{} := {}`", validator.context.slice(left_loc), value.0);
             }
 
-            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(msg, right.get_location()));
+            validator.push_diagnostic(Diagnostic::info(message).with_location(right.get_location()));
         }
 
         if right.is_literal_integer() {
@@ -871,20 +873,20 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                 message = format!("{message}, i.e. `{} := {}`", validator.context.slice(left_loc), value.0);
             }
 
-            validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+            validator.push_diagnostic(Diagnostic::info(message).with_location(right.get_location()));
         }
 
         return; // Avoid getting into fall-back
     }
 
-    // TODO: Also a warning rather than an error
     // Fallback, in case we haven't found a value
     if left.get_name() != right_datatype.get_name() {
         let message = format!(
             "Value of {qualified_name} is evaluated at run-time, can not verify if value is valid for enum `{}`",
             get_datatype_name_or_slice(validator.context, left)
         );
-        validator.push_diagnostic(Diagnostic::enum_variant_mismatch(message, right.get_location()));
+
+        validator.push_diagnostic(Diagnostic::info(message).with_location(right.get_location()));
     }
 }
 

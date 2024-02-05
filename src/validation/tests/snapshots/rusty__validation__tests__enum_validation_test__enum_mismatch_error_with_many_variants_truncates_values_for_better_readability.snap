@@ -8,7 +8,7 @@ error: `1000` is not a valid value for enum `Color`
 7 │             myColor := 1000;
   │                        ^^^^ `1000` is not a valid value for enum `Color`
 
-error: Consider using enums rather than literal integers
+note: Consider using enums rather than literal integers
   ┌─ <internal>:7:24
   │
 7 │             myColor := 1000;

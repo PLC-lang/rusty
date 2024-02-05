@@ -8,7 +8,7 @@ error: `red` is not a valid value for enum `(metallic := 1, matte := 2, neon := 
 7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
   │                                                               ^^^ `red` is not a valid value for enum `(metallic := 1, matte := 2, neon := 3) := red`
 
-error: Consider using enums of the same kind, i.e. `var1 := x1`
+note: Consider using enums of the same kind, i.e. `var1 := x1`
    ┌─ <internal>:10:55
    │
 10 │                 var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // warning
@@ -26,13 +26,13 @@ error: `7` is not a valid value for enum `(a, b, c) := 7`
 12 │                 var3 : (a, b, c) := 7;                          // error
    │                                     ^ `7` is not a valid value for enum `(a, b, c) := 7`
 
-error: Consider using enums rather than literal integers
+note: Consider using enums rather than literal integers
    ┌─ <internal>:12:37
    │
 12 │                 var3 : (a, b, c) := 7;                          // error
    │                                     ^ Consider using enums rather than literal integers
 
-error: Consider using enums rather than literal integers, i.e. `x := green`
+note: Consider using enums rather than literal integers, i.e. `x := green`
   ┌─ <internal>:2:45
   │
 2 │                 x : (red, yellow, green) := 2; // error

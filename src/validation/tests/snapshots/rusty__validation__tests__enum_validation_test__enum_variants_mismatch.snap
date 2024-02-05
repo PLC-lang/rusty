@@ -2,43 +2,43 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-error: Consider using enums rather than literal integers, i.e. `localState := Idle`
+note: Consider using enums rather than literal integers, i.e. `localState := Idle`
    ┌─ <internal>:18:31
    │
 18 │                 localState := 0;
    │                               ^ Consider using enums rather than literal integers, i.e. `localState := Idle`
 
-error: Consider using enums rather than literal integers, i.e. `localState := Working`
+note: Consider using enums rather than literal integers, i.e. `localState := Working`
    ┌─ <internal>:19:31
    │
 19 │                 localState := 100;
    │                               ^^^ Consider using enums rather than literal integers, i.e. `localState := Working`
 
-error: Consider using enums rather than literal integers, i.e. `color := red`
+note: Consider using enums rather than literal integers, i.e. `color := red`
    ┌─ <internal>:24:26
    │
 24 │                 color := 0;
    │                          ^ Consider using enums rather than literal integers, i.e. `color := red`
 
-error: Consider using enums rather than literal integers, i.e. `color := green`
+note: Consider using enums rather than literal integers, i.e. `color := green`
    ┌─ <internal>:25:26
    │
 25 │                 color := 1;
    │                          ^ Consider using enums rather than literal integers, i.e. `color := green`
 
-error: Consider using enums rather than literal integers, i.e. `color := blue`
+note: Consider using enums rather than literal integers, i.e. `color := blue`
    ┌─ <internal>:26:26
    │
 26 │                 color := 2;
    │                          ^ Consider using enums rather than literal integers, i.e. `color := blue`
 
-error: Consider using enums of the same kind, i.e. `color := red`
+note: Consider using enums of the same kind, i.e. `color := red`
    ┌─ <internal>:28:26
    │
 28 │                 color := State.Idle;    // State.Idle == 0 == Color.Red
    │                          ^^^^^^^^^^ Consider using enums of the same kind, i.e. `color := red`
 
-error: Consider using enums of the same kind, i.e. `localState := Idle`
+note: Consider using enums of the same kind, i.e. `localState := Idle`
    ┌─ <internal>:29:31
    │
 29 │                 localState := red;      // Color.Red  == 0 == State.Idle
@@ -50,7 +50,7 @@ error: `99` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
 38 │                 color := 99;
    │                          ^^ `99` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
 
-error: Consider using enums rather than literal integers
+note: Consider using enums rather than literal integers
    ┌─ <internal>:38:26
    │
 38 │                 color := 99;
@@ -68,7 +68,7 @@ error: `invalidReferenceForEnum` is not a valid value for enum `(red := 0, green
 40 │                 color := invalidReferenceForEnum;
    │                          ^^^^^^^^^^^^^^^^^^^^^^^ `invalidReferenceForEnum` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
 
-error: Value of main.color is evaluated at run-time, can not verify if value is valid for enum `(red := 0, green := 1, blue := 2)`
+note: Value of main.color is evaluated at run-time, can not verify if value is valid for enum `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:41:26
    │
 41 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
@@ -80,7 +80,7 @@ error: `99` is not a valid value for enum `State`
 43 │                 localState := 99;
    │                               ^^ `99` is not a valid value for enum `State`
 
-error: Consider using enums rather than literal integers
+note: Consider using enums rather than literal integers
    ┌─ <internal>:43:31
    │
 43 │                 localState := 99;
