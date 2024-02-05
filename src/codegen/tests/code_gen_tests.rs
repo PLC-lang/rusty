@@ -3027,7 +3027,7 @@ fn constant_propagation_of_struct_fields_on_assignment() {
     );
 
     // The snapshot of the given IR is currently not 100% correct because `MyStruct.value` isn't
-    // constant-propagated and instead the value required a `load` instruction. The underlying issue
+    // constant-propagated and instead the value requires a `load` instruction. The underlying issue
     // is due to getting a qualified name of `STRUCT1.value` instead of `MyStruct.value` in `generate_expression_value`
     // and `generate_constant_expression`.
     //
@@ -3040,7 +3040,7 @@ fn constant_propagation_of_struct_fields_on_assignment() {
     // ```
     // store i32 %load_value, 99, ...
     // ```
-    // then good job!
+    // then you've probably fixed https://github.com/PLC-lang/rusty/issues/288
     insta::assert_snapshot!(result);
 }
 
