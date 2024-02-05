@@ -3040,7 +3040,7 @@ fn constant_propagation_of_struct_fields_on_assignment() {
     // ```
     // store i32 %load_value, 99, ...
     // ```
-    // then good job!
+    // ...hit me up for a free coffee!
     insta::assert_snapshot!(result);
 }
 
