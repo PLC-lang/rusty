@@ -171,6 +171,10 @@ impl DataType {
         self.get_type_information().is_vla()
     }
 
+    pub fn is_pointer(&self) -> bool {
+        self.get_type_information().is_pointer()
+    }
+
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()

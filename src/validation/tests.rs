@@ -14,15 +14,3 @@ mod reference_resolve_tests;
 mod statement_validation_tests;
 mod variable_length_array_test;
 mod variable_validation_tests;
-
-#[macro_export]
-macro_rules! assert_validation_snapshot {
-    ($diagnostics:expr) => {{
-        let mut res = String::new();
-        for ele in $diagnostics {
-            res.push_str(&format!("{:?}\n", ele));
-        }
-
-        insta::assert_snapshot!(res);
-    }};
-}

@@ -14,7 +14,7 @@ fn mul_with_ints() {
     END_FUNCTION
     "#;
 
-    let expected = 1 * 2 * 3 * 4 * 1000 * 5;
+    let expected = 2 * 3 * 4 * 1000 * 5;
     let res: i64 = compile_and_run_no_params(prog.to_string());
     assert_eq!(expected, res);
 }

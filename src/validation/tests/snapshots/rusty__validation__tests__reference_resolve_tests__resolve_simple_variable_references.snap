@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: res
+expression: diagnostics
 ---
-SyntaxError { message: "Could not resolve reference to b", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 16, offset: 168 }..TextLocation { line: 9, column: 17, offset: 169 }) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to gb", range: [SourceLocation { span: Range(TextLocation { line: 11, column: 16, offset: 207 }..TextLocation { line: 11, column: 18, offset: 209 }) }], err_no: reference__unresolved }
+error: Could not resolve reference to b
+   ┌─ <internal>:10:17
+   │
+10 │                 b;
+   │                 ^ Could not resolve reference to b
+
+error: Could not resolve reference to gb
+   ┌─ <internal>:12:17
+   │
+12 │                 gb;
+   │                 ^^ Could not resolve reference to gb
+
 

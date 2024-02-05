@@ -1,9 +1,29 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'USINT'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 137 }..TextLocation { line: 2, column: 58, offset: 138 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 137 }..TextLocation { line: 2, column: 58, offset: 138 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'USINT'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 212 }..TextLocation { line: 3, column: 59, offset: 213 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 58, offset: 212 }..TextLocation { line: 3, column: 59, offset: 213 }) }], err_no: type__invalid_nature }
+error: Invalid assignment: cannot assign 'CHAR' to 'USINT'
+  ┌─ <internal>:3:58
+  │
+3 │         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid assignment: cannot assign 'CHAR' to 'USINT'
+
+error: Invalid type nature for generic argument. CHAR is no ANY_INT
+  ┌─ <internal>:3:58
+  │
+3 │         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. CHAR is no ANY_INT
+
+error: Invalid assignment: cannot assign 'WCHAR' to 'USINT'
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid assignment: cannot assign 'WCHAR' to 'USINT'
+
+error: Invalid type nature for generic argument. WCHAR is no ANY_INT
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. WCHAR is no ANY_INT
+
 

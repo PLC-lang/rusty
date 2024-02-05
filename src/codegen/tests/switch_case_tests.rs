@@ -42,7 +42,7 @@ fn switch_case_duplicate_integer_literal_integer() {
         assert_eq!(
             Diagnostic::GeneralError {
                 message: "Duplicate integer as switch case\n  switch i32 %load_input, label %else [\n    i32 2, label %case\n    i32 2, label %case1\n  ]\ni32 2\n".into(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
+                err_no: "E071",
             },
             msg
         )
@@ -76,7 +76,7 @@ fn switch_case_duplicate_integer_literal_integer_and_const() {
         assert_eq!(
             Diagnostic::GeneralError {
                 message: "Duplicate integer as switch case\n  switch i32 %load_input, label %else [\n    i32 2, label %case\n    i32 2, label %case1\n  ]\ni32 2\n".into(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
+                err_no: "E071",
             },
             msg
         )
@@ -106,7 +106,7 @@ fn switch_case_duplicate_integer_literal_integer_and_binary_expression() {
         assert_eq!(
             Diagnostic::GeneralError {
                 message: "Duplicate integer as switch case\n  switch i32 %load_input, label %else [\n    i32 2, label %case\n    i32 2, label %case1\n  ]\ni32 2\n".into(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
+                err_no: "E071",
             },
             msg
         )
@@ -142,7 +142,7 @@ fn switch_case_duplicate_integer_const() {
         assert_eq!(
             Diagnostic::GeneralError {
                 message: "Duplicate integer as switch case\n  switch i32 %load_input, label %else [\n    i32 2, label %case\n    i32 2, label %case1\n  ]\ni32 2\n".into(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
+                err_no: "E071",
             },
             msg
         )
@@ -176,7 +176,7 @@ fn switch_case_duplicate_integer_const_and_binary_expression() {
         assert_eq!(
             Diagnostic::GeneralError {
                 message: "Duplicate integer as switch case\n  switch i32 %load_input, label %else [\n    i32 2, label %case\n    i32 2, label %case1\n  ]\ni32 2\n".into(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
+                err_no: "E071",
             },
             msg
         )
@@ -206,7 +206,7 @@ fn switch_case_duplicate_integer_binary_expression() {
         assert_eq!(
             Diagnostic::GeneralError {
                 message: "Duplicate integer as switch case\n  switch i32 %load_input, label %else [\n    i32 2, label %case\n    i32 2, label %case1\n  ]\ni32 2\n".into(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
+                err_no: "E071",
             },
             msg
         )

@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/bitaccess_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "DWord-Wise access for type LWORD must be in the range 0..1", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 18, offset: 106 }..TextLocation { line: 5, column: 21, offset: 109 }) }], err_no: type__incompatible_directaccess_range }
+error: DWord-Wise access for type LWORD must be in range 0..1
+  ┌─ <internal>:6:19
+  │
+6 │                 d.%D2;
+  │                   ^^^ DWord-Wise access for type LWORD must be in range 0..1
+
 

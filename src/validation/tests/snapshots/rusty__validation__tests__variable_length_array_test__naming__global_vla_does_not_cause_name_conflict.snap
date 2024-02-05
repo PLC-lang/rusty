@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/variable_length_array_test.rs
-expression: res
+expression: diag
 ---
-SemanticError { message: "VLAs can not be defined as global variables", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 12, offset: 32 }..TextLocation { line: 2, column: 15, offset: 35 }) }], err_no: vla__invalid_container }
+error: VLAs can not be defined as global variables
+  ┌─ <internal>:3:13
+  │
+3 │             vla : ARRAY[*, *] OF DINT;
+  │             ^^^ VLAs can not be defined as global variables
+
 

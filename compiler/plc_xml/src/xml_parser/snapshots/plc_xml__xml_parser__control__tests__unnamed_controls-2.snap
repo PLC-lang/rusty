@@ -3,34 +3,38 @@ source: compiler/plc_xml/src/xml_parser/control.rs
 expression: diagnostics
 ---
 [
-    SemanticError {
+    Diagnostic {
         message: "Unnamed control",
-        range: [
-            SourceLocation {
-                span: Block {
-                    local_id: 1,
-                    execution_order: Some(
-                        0,
-                    ),
-                    inner_range: None,
-                },
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 1,
+                execution_order: Some(
+                    0,
+                ),
+                inner_range: None,
             },
-        ],
-        err_no: cfc__unnamed_control,
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: "E087",
+        sub_diagnostics: [],
+        internal_error: None,
     },
-    SemanticError {
+    Diagnostic {
         message: "Unnamed control",
-        range: [
-            SourceLocation {
-                span: Block {
-                    local_id: 2,
-                    execution_order: Some(
-                        1,
-                    ),
-                    inner_range: None,
-                },
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 2,
+                execution_order: Some(
+                    1,
+                ),
+                inner_range: None,
             },
-        ],
-        err_no: cfc__unnamed_control,
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: "E087",
+        sub_diagnostics: [],
+        internal_error: None,
     },
 ]

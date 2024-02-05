@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid constant y - Functionblock- and Class-instances cannot be delcared constant", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 12, offset: 319 }..TextLocation { line: 14, column: 13, offset: 320 }) }], err_no: var__invalid_constant }
-SyntaxError { message: "Invalid constant z - Functionblock- and Class-instances cannot be delcared constant", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 12, offset: 341 }..TextLocation { line: 15, column: 13, offset: 342 }) }], err_no: var__invalid_constant }
+error: Invalid constant y - Functionblock- and Class-instances cannot be delcared constant
+   ┌─ <internal>:15:13
+   │
+15 │             y : MyFb;
+   │             ^ Invalid constant y - Functionblock- and Class-instances cannot be delcared constant
+
+error: Invalid constant z - Functionblock- and Class-instances cannot be delcared constant
+   ┌─ <internal>:16:13
+   │
+16 │             z : cls;
+   │             ^ Invalid constant z - Functionblock- and Class-instances cannot be delcared constant
+
 
