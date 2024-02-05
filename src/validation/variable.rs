@@ -33,7 +33,11 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
     if block.constant
         && !matches!(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
     {
-        validator.push_diagnostic(Diagnostic::invalid_constant_block(block.location.clone()))
+        validator.push_diagnostic(
+            Diagnostic::error("This variable block does not support the CONSTANT modifier")
+                .with_error_code("E034")
+                .with_location(block.location.clone()),
+        )
     }
 }
 
@@ -52,25 +56,31 @@ pub fn visit_variable<T: AnnotationMap>(
 /// - InOut within Function-Block
 fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBlock, variable: &Variable) {
     let Some(pou) = pou else {
+
         if matches!(block.variable_block_type, VariableBlockType::Global) {
-            validator.push_diagnostic(Diagnostic::invalid_vla_container(
-                "VLAs can not be defined as global variables".to_string(),
-                variable.location.clone(),
-            ))
+            validator.push_diagnostic(Diagnostic::error("VLAs can not be defined as global variables")
+                                      .with_error_code("E044")
+                                      .with_location( variable.location.clone())
+            )
         }
 
         return;
     };
 
     match (&pou.pou_type, block.variable_block_type) {
-        (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => {
-            validator.push_diagnostic(Diagnostic::vla_by_val_warning(variable.location.clone()))
-        }
+        (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => validator.push_diagnostic(
+            Diagnostic::warning(
+                "Variable Length Arrays are always by-ref, even when declared in a by-value block",
+            )
+            .with_error_code("E047")
+            .with_location(variable.location.clone()),
+        ),
 
-        (PouType::Program, _) => validator.push_diagnostic(Diagnostic::invalid_vla_container(
-            "Variable Length Arrays are not allowed to be defined inside a Program".to_string(),
-            variable.location.clone(),
-        )),
+        (PouType::Program, _) => validator.push_diagnostic(
+            Diagnostic::error("Variable Length Arrays are not allowed to be defined inside a Program")
+                .with_error_code("E044")
+                .with_location(variable.location.clone()),
+        ),
 
         (
             PouType::Function | PouType::Method { .. },
@@ -80,13 +90,14 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         )
         | (PouType::FunctionBlock, VariableBlockType::InOut) => (),
 
-        _ => validator.push_diagnostic(Diagnostic::invalid_vla_container(
-            format!(
+        _ => validator.push_diagnostic(
+            Diagnostic::error(format!(
                 "Variable Length Arrays are not allowed to be defined as {} variables inside a {}",
                 block.variable_block_type, pou.pou_type
-            ),
-            variable.location.clone(),
-        )),
+            ))
+            .with_error_code("E044")
+            .with_location(variable.location.clone()),
+        ),
     }
 }
 
@@ -113,25 +124,29 @@ fn validate_variable<T: AnnotationMap>(
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
         {
             Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
-                validator.push_diagnostic(Diagnostic::unresolved_constant(
-                    variable.name.as_str(),
-                    Some(reason.get_reason()),
-                    statement.get_location(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(format!(
+                        "Unresolved constant `{}` variable: {}",
+                        variable.name.as_str(),
+                        reason.get_reason()
+                    ))
+                    .with_error_code("E033")
+                    .with_location(statement.get_location()),
+                );
             }
             Some(ConstExpression::Unresolved { statement, .. }) => {
-                validator.push_diagnostic(Diagnostic::unresolved_constant(
-                    variable.name.as_str(),
-                    None,
-                    statement.get_location(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                        .with_error_code("E033")
+                        .with_location(statement.get_location()),
+                );
             }
             None if v_entry.is_constant() => {
-                validator.push_diagnostic(Diagnostic::unresolved_constant(
-                    variable.name.as_str(),
-                    None,
-                    variable.location.clone(),
-                ));
+                validator.push_diagnostic(
+                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                        .with_error_code("E033")
+                        .with_location(variable.location.clone()),
+                );
             }
             _ => {
                 if let Some(rhs) = variable.initializer.as_ref() {
@@ -152,8 +167,14 @@ fn validate_variable<T: AnnotationMap>(
         // check if we declared a constant fb-instance or class-instance
         if v_entry.is_constant() && data_type_is_fb_or_class_instance(v_entry.get_type_name(), context.index)
         {
-            validator
-                .push_diagnostic(Diagnostic::invalid_constant(v_entry.get_name(), variable.location.clone()));
+            validator.push_diagnostic(
+                Diagnostic::error(format!(
+                    "Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant",
+                    v_entry.get_name()
+                ))
+                .with_error_code("E035")
+                .with_location(variable.location.clone()),
+            );
         }
     }
 }

@@ -8,11 +8,11 @@ error: Invalid assignment: cannot assign 'REAL' to 'STRING'
 3 │         FUNCTION func  : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid assignment: cannot assign 'REAL' to 'STRING'
 
-error: Invalid type nature for generic argument. REAL is no String.
+error: Invalid type nature for generic argument. REAL is no ANY_STRING
   ┌─ <internal>:3:57
   │
 3 │         FUNCTION func  : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
-  │                                                         ^ Invalid type nature for generic argument. REAL is no String.
+  │                                                         ^ Invalid type nature for generic argument. REAL is no ANY_STRING
 
 error: Invalid assignment: cannot assign 'LREAL' to 'STRING'
   ┌─ <internal>:4:59
@@ -20,10 +20,10 @@ error: Invalid assignment: cannot assign 'LREAL' to 'STRING'
 4 │         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'LREAL' to 'STRING'
 
-error: Invalid type nature for generic argument. LREAL is no String.
+error: Invalid type nature for generic argument. LREAL is no ANY_STRING
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
-  │                                                           ^ Invalid type nature for generic argument. LREAL is no String.
+  │                                                           ^ Invalid type nature for generic argument. LREAL is no ANY_STRING
 
 

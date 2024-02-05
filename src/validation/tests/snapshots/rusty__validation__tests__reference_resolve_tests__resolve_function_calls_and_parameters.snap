@@ -20,6 +20,12 @@ error: Could not resolve reference to c
 7 │                 foo(x := c);
   │                          ^ Could not resolve reference to c
 
+error: Invalid call parameters
+  ┌─ <internal>:8:21
+  │
+8 │                 foo(y := a);
+  │                     ^^^^^^ Invalid call parameters
+
 error: Could not resolve reference to y
   ┌─ <internal>:8:21
   │

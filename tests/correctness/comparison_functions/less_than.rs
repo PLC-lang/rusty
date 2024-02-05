@@ -17,7 +17,7 @@ fn builtin_lt_with_ints_monotonic() {
     let mut main = MainType::default();
 
     let res: bool = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, false);
+    assert!(!res);
 }
 
 #[test]
@@ -37,7 +37,7 @@ fn builtin_lt_with_ints() {
     let mut main = MainType::default();
 
     let res: bool = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, false);
+    assert!(!res);
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn builtin_lt_with_floats_monotonic() {
     let mut main = MainType::default();
 
     let res: bool = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, false);
+    assert!(!res);
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn builtin_lt_with_floats() {
     let mut main = MainType::default();
 
     let res: bool = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, false);
+    assert!(!res);
 }
 
 #[test]
@@ -98,5 +98,5 @@ fn builtin_lt_with_mixed_ints_and_floats() {
     let mut main = MainType::default();
 
     let res: bool = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, false);
+    assert!(!res);
 }

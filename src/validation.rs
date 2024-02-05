@@ -143,7 +143,9 @@ impl<'a> Validator<'a> {
                 continue;
             };
 
-            self.push_diagnostic(Diagnostic::overflow(reason.to_owned(), location.to_owned()));
+            self.push_diagnostic(
+                Diagnostic::warning(reason).with_error_code("E038").with_location(location.to_owned()),
+            );
         }
     }
 

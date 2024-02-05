@@ -8,11 +8,11 @@ error: Invalid assignment: cannot assign 'STRING' to 'USINT'
 3 │         FUNCTION func1   : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
   │                                                             ^ Invalid assignment: cannot assign 'STRING' to 'USINT'
 
-error: Invalid type nature for generic argument. STRING is no Int.
+error: Invalid type nature for generic argument. STRING is no ANY_INT
   ┌─ <internal>:3:61
   │
 3 │         FUNCTION func1   : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
-  │                                                             ^ Invalid type nature for generic argument. STRING is no Int.
+  │                                                             ^ Invalid type nature for generic argument. STRING is no ANY_INT
 
 error: Invalid assignment: cannot assign 'WSTRING' to 'USINT'
   ┌─ <internal>:4:61
@@ -20,10 +20,10 @@ error: Invalid assignment: cannot assign 'WSTRING' to 'USINT'
 4 │         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
   │                                                             ^ Invalid assignment: cannot assign 'WSTRING' to 'USINT'
 
-error: Invalid type nature for generic argument. WSTRING is no Int.
+error: Invalid type nature for generic argument. WSTRING is no ANY_INT
   ┌─ <internal>:4:61
   │
 4 │         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
-  │                                                             ^ Invalid type nature for generic argument. WSTRING is no Int.
+  │                                                             ^ Invalid type nature for generic argument. WSTRING is no ANY_INT
 
 

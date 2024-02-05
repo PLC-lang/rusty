@@ -142,10 +142,14 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordEndMethod
             | Token::KeywordEndClass => {
                 if !self.slice().to_string().contains('_') {
-                    self.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-                        message: format!("the words in {} should be separated by a '_'", self.slice()),
-                        range: vec![self.location()],
-                    });
+                    self.accept_diagnostic(
+                        Diagnostic::warning(format!(
+                            "the words in {} should be separated by a `_`",
+                            self.slice()
+                        ))
+                        .with_error_code("E013")
+                        .with_location(self.location()),
+                    );
                 }
             }
             _ => {}

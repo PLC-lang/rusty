@@ -6,7 +6,10 @@ error: Recursive data structure `A -> B -> A` has infinite size
   ┌─ <internal>:2:18
   │
 2 │             TYPE A : STRUCT
-  │                  ^ Recursive data structure `A -> B -> A` has infinite size
+  │                  ^
+  │                  │
+  │                  Recursive data structure `A -> B -> A` has infinite size
+  │                  see also
   ·
 8 │             TYPE B : STRUCT
   │                  - see also

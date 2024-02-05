@@ -2,21 +2,26 @@
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
 ---
-define void @foo(i32 %0) !dbg !3 {
+define i32 @foo(i32 %0) !dbg !3 {
 entry:
+  %foo = alloca i32, align 4, !dbg !8
   %val = alloca i32, align 4, !dbg !8
   call void @llvm.dbg.declare(metadata i32* %val, metadata !9, metadata !DIExpression()), !dbg !10
   store i32 %0, i32* %val, align 4, !dbg !8
-  %load_val = load i32, i32* %val, align 4, !dbg !11
-  %tmpVar = icmp eq i32 %load_val, 5, !dbg !11
-  br i1 %tmpVar, label %then_block, label %else_block, !dbg !11
+  call void @llvm.dbg.declare(metadata i32* %foo, metadata !11, metadata !DIExpression()), !dbg !12
+  store i32 0, i32* %foo, align 4, !dbg !8
+  %load_val = load i32, i32* %val, align 4, !dbg !13
+  %tmpVar = icmp eq i32 %load_val, 5, !dbg !13
+  br i1 %tmpVar, label %then_block, label %else_block, !dbg !13
 
 then_block:                                       ; preds = %entry
-  ret void, !dbg !8
+  %foo_ret = load i32, i32* %foo, align 4, !dbg !8
+  ret i32 %foo_ret, !dbg !8
 
 else_block:                                       ; preds = %entry
-  store i32 10, i32* %val, align 4, !dbg !12
-  ret void, !dbg !12
+  store i32 10, i32* %val, align 4, !dbg !14
+  %foo_ret1 = load i32, i32* %foo, align 4, !dbg !14
+  ret i32 %foo_ret1, !dbg !14
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -37,6 +42,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !7 = !{}
 !8 = !DILocation(line: 3, scope: !3)
 !9 = !DILocalVariable(name: "val", scope: !3, file: !2, line: 1, type: !6)
-!10 = !DILocation(line: 1, column: 23, scope: !3)
-!11 = !DILocation(line: 2, scope: !3)
-!12 = !DILocation(line: 5, scope: !3)
+!10 = !DILocation(line: 1, column: 30, scope: !3)
+!11 = !DILocalVariable(name: "foo", scope: !3, file: !2, line: 1, type: !6, align: 32)
+!12 = !DILocation(line: 1, column: 9, scope: !3)
+!13 = !DILocation(line: 2, scope: !3)
+!14 = !DILocation(line: 5, scope: !3)

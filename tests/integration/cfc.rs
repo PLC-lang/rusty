@@ -307,7 +307,7 @@ mod ir {
     #[test]
     // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
     fn conditional_return_debug() {
-        let declaration = "FUNCTION foo VAR_INPUT val : DINT; END_VAR";
+        let declaration = "FUNCTION foo : DINT VAR_INPUT val : DINT; END_VAR";
         let content = SPou::init("foo", "function", declaration).with_fbd(vec![
             // IF val = 1 THEN RETURN
             &SInVariable::id(2).with_expression("val = 5"),

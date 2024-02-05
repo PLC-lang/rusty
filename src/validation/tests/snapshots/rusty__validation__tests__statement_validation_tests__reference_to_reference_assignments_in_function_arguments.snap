@@ -2,40 +2,40 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign '__POINTER_TO_INT' to 'REF_TO STRUCT_params'
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
    ┌─ <internal>:47:13
    │
 47 │             input1 := REF(global4),
-   │             ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_INT' to 'REF_TO STRUCT_params'
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT_params'
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
    ┌─ <internal>:48:13
    │
 48 │             input2 := REF(global5),
-   │             ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT_params'
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO STRUCT_params'
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have different types
    ┌─ <internal>:49:13
    │
 49 │             input3 := REF(global6),
-   │             ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_STRING' to 'REF_TO STRUCT_params'
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_INT' to 'REF_TO STRUCT_params'
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
    ┌─ <internal>:55:13
    │
 55 │             input1 := &(global4),
-   │             ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_INT' to 'REF_TO STRUCT_params'
+   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT_params'
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
    ┌─ <internal>:56:13
    │
 56 │             input2 := &(global5),
-   │             ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_REAL' to 'REF_TO STRUCT_params'
+   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
 
-error: Invalid assignment: cannot assign '__POINTER_TO___global_global6' to 'REF_TO STRUCT_params'
+warning: Pointers REF_TO STRUCT_params and __POINTER_TO___global_global6 have different types
    ┌─ <internal>:57:13
    │
 57 │             input3 := &(global6),
-   │             ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO___global_global6' to 'REF_TO STRUCT_params'
+   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO___global_global6 have different types
 
 

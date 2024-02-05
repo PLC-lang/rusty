@@ -1,7 +1,7 @@
+use anyhow::Result;
 use jsonschema::JSONSchema;
 use plc::Target;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_diagnostics::diagnostics::SerdeError;
 use regex::Captures;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -63,19 +63,17 @@ pub struct ProjectConfig {
 impl ProjectConfig {
     /// Returns a project from the given json-source
     /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
-    pub fn try_parse(source: BuildDescriptionSource) -> Result<Self, Diagnostic> {
+    pub fn try_parse(source: BuildDescriptionSource) -> Result<Self> {
         let content = source.source.as_str();
         let content = resolve_environment_variables(content)?;
-        let config: ProjectConfig = serde_json::from_str(&content).map_err(|err| {
-            let err = SerdeError::from(err);
-            err.into_diagnostic(&source)
-        })?;
+        let config: ProjectConfig =
+            serde_json::from_str(&content).map_err(|err| Diagnostic::from_serde_error(err, &source))?;
         config.validate()?;
 
         Ok(config)
     }
 
-    pub(crate) fn from_file(config: &Path) -> Result<Self, Diagnostic> {
+    pub(crate) fn from_file(config: &Path) -> Result<Self> {
         //read from file
         let content = fs::read_to_string(config)?;
         let content = BuildDescriptionSource::new(content, config);
@@ -86,37 +84,9 @@ impl ProjectConfig {
         Ok(project)
     }
 
-    fn get_schema() -> Result<PathBuf, Diagnostic> {
-        let current_exe_dir =
-            std::env::current_exe()?.parent().map(|it| it.to_path_buf()).unwrap_or_default();
-        let schema_dir = current_exe_dir.join("schema");
-        #[cfg(feature = "integration")]
-        //Fallback to the build location
-        let schema_dir = if !&schema_dir.exists() {
-            let project_dir: PathBuf = env!("CARGO_MANIFEST_DIR").into();
-            project_dir.join("schema")
-        } else {
-            schema_dir
-        };
-        let path = schema_dir.join("plc-json.schema");
-        if !path.exists() {
-            Err(Diagnostic::io_read_error(&path.to_string_lossy(), "File not found"))
-        } else {
-            Ok(path)
-        }
-    }
-
-    fn validate(&self) -> Result<(), Diagnostic> {
-        let schema_path = match Self::get_schema() {
-            Ok(path) => path,
-            Err(error) => {
-                eprintln!("Could not find schema, validation skipped. Original error: {error:?}");
-                //Skip validation but do not fail
-                return Ok(());
-            }
-        };
-        let schema = fs::read_to_string(schema_path).map_err(Diagnostic::from)?;
-        let schema_obj = serde_json::from_str(&schema).expect("A valid schema");
+    fn validate(&self) -> Result<()> {
+        let schema = include_str!("../schema/plc-json.schema");
+        let schema_obj = serde_json::from_str(schema).expect("A valid schema");
         let compiled = JSONSchema::compile(&schema_obj).expect("A valid schema");
         let instance = json!(self);
         compiled.validate(&instance).map_err(|errors| {
@@ -132,13 +102,14 @@ impl ProjectConfig {
             }
 
             // XXX: jsonschema does not provide error messages with location info
-            Diagnostic::invalid_build_description_file(message, None)
-        })
+            Diagnostic::error(message).with_error_code("E088")
+        })?;
+        Ok(())
     }
 }
 
 //TODO: I don't think this belongs here
-fn resolve_environment_variables(to_replace: &str) -> Result<String, Diagnostic> {
+fn resolve_environment_variables(to_replace: &str) -> Result<String> {
     let pattern = Regex::new(r"\$(\w+)")?;
     let result = pattern.replace_all(to_replace, |it: &Captures| {
         let original = it.get(0).map(|it| it.as_str().to_string()).unwrap();
