@@ -1,7 +1,13 @@
 ---
 source: src/codegen/tests/codegen_error_messages_tests.rs
-expression: msg
+expression: result
 ---
-error: Cannot generate literal initializer for 'a': Value cannot be derived
+error: Cannot generate literal initializer for `a`.
+
+error: Could not resolve reference to b
+  ┌─ <internal>:3:24
+  │
+3 │             a : INT := b;
+  │                        ^ Could not resolve reference to b
 
 
