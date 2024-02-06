@@ -549,7 +549,23 @@ fn validate_array_access<T: AnnotationMap>(
             }
         }
     } else {
-        let type_info = context.annotations.get_type_or_void(access, context.index).get_type_information();
+        let type_info = if !access.is_call() {
+            context.annotations.get_type(access, context.index)
+        } else {
+            // XXX: myArray[FOO()], FOO being a function/action/... with no return type (i.e. VOID) should not be reported
+            // as unresolvable, but rather with the attempted VOID access.
+            Some(context.annotations.get_type_or_void(access, context.index))
+        }.map(|it| it.get_type_information());
+
+        let Some(type_info) = type_info else {
+            let loc = access.get_location();
+            let expr = validator.context.slice(&loc);
+            validator.push_diagnostic(
+                    Diagnostic::unresolved_reference(&expr, loc)
+            );
+            return;
+        };
+
         if !type_info.is_int() {
             validator.push_diagnostic(
                     Diagnostic::error(format!(

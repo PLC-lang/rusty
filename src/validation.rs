@@ -12,11 +12,7 @@ use crate::{
 };
 
 use self::{
-    global::GlobalValidator,
-    pou::{visit_implementation, visit_pou},
-    recursive::RecursiveValidator,
-    types::visit_user_type_declaration,
-    variable::visit_variable_block,
+    const_expressions::ConstExpressionValidator, global::GlobalValidator, pou::{visit_implementation, visit_pou}, recursive::RecursiveValidator, types::visit_user_type_declaration, variable::visit_variable_block
 };
 
 mod array;
@@ -26,6 +22,7 @@ mod recursive;
 mod statement;
 mod types;
 mod variable;
+mod const_expressions;
 
 #[cfg(test)]
 mod tests;
@@ -98,6 +95,7 @@ pub struct Validator<'a> {
     diagnostics: Vec<Diagnostic>,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
+    const_expr_validator: ConstExpressionValidator<'a>
 }
 
 impl<'a> Validators for Validator<'a> {
@@ -116,6 +114,7 @@ impl<'a> Validator<'a> {
             diagnostics: Vec::new(),
             global_validator: GlobalValidator::new(),
             recursive_validator: RecursiveValidator::new(),
+            const_expr_validator: ConstExpressionValidator::new(context),
         }
     }
 
@@ -130,23 +129,7 @@ impl<'a> Validator<'a> {
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate(index);
         self.recursive_validator.validate(index);
-
-        // XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
-        //      function if another global check is introduced (including the overflow checks)?
-        // Find and report const-expressions that would overflow
-        for it in index.get_const_expressions().into_iter() {
-            let Some(expr) = index.get_const_expressions().find_const_expression(&it.0) else { continue };
-            let ConstExpression::Unresolvable {
-                reason: UnresolvableKind::Overflow(reason, location), ..
-            } = expr
-            else {
-                continue;
-            };
-
-            self.push_diagnostic(
-                Diagnostic::warning(reason).with_error_code("E038").with_location(location.to_owned()),
-            );
-        }
+        self.const_expr_validator.validate(index);
     }
 
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
