@@ -28,7 +28,7 @@ where
     where
         Q: Hash + Equivalent<K>,
     {
-        self.get_all(key).and_then(|it| it.get(0))
+        self.get_all(key).and_then(|it| it.first())
     }
 
     /// returns all elements associated with the given key or None if

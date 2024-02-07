@@ -1112,6 +1112,7 @@ impl Index {
             None => self.find_global_variable(segments[0]),
         };
 
+        #[allow(clippy::manual_try_fold)]
         segments
             .iter()
             .skip(1)

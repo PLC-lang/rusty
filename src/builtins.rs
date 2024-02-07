@@ -73,7 +73,7 @@ lazy_static! {
                     let Some(params) = parameters else { return; };
                     // Get the input and annotate it with a pointer type
                     let input = flatten_expression_list(params);
-                    let Some(input) = input.get(0)  else { return; };
+                    let Some(input) = input.first()  else { return; };
                     let input_type = annotator.annotation_map
                         .get_type_or_void(input, annotator.index)
                         .get_type_information()
@@ -136,13 +136,13 @@ lazy_static! {
                     let context = llvm.context;
                     let builder = &llvm.builder;
 
-                    let function_context = generator.get_function_context(params.get(0).expect("Param 0 exists"))?;
+                    let function_context = generator.get_function_context(params.first().expect("Param 0 exists"))?;
                     let insert_block = builder.get_insert_block().expect("Builder should have a block at this point");
 
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
                         //Create a temp var
-                        let result_type = params.get(0)
+                        let result_type = params.first()
                             .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location))
                             .and_then(|it| generator.get_type_hint_info_for(it))
                             .and_then(|it| generator.llvm_index.get_associated_type(it.get_name()))?;
@@ -642,7 +642,7 @@ fn annotate_comparison_function(
             )
         })
         .collect::<Vec<_>>();
-    let Some(new_statement) = comparisons.get(0) else {
+    let Some(new_statement) = comparisons.first() else {
         // no windows => less than 2 parameters, caught during validation
         return;
     };
@@ -688,7 +688,7 @@ fn annotate_arithmetic_function(
     let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
         let mut bigger = annotator
             .annotation_map
-            .get_type_or_void(params_flattened.get(0).expect("must have this parameter"), annotator.index);
+            .get_type_or_void(params_flattened.first().expect("must have this parameter"), annotator.index);
 
         for param in params_flattened.iter().skip(1) {
             let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
@@ -702,7 +702,7 @@ fn annotate_arithmetic_function(
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let left = (*params_flattened.get(0).expect("Must exist")).clone();
+    let left = (*params_flattened.first().expect("Must exist")).clone();
     let new_statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
@@ -722,7 +722,7 @@ fn annotate_variable_length_array_bound_function(
         return;
     };
     let params = ast::flatten_expression_list(parameters);
-    let Some(vla) = params.get(0) else {
+    let Some(vla) = params.first() else {
         // caught during validation
         return;
     };
@@ -762,7 +762,7 @@ fn validate_variable_length_array_bound_function(
         ));
     }
 
-    match (params.get(0), params.get(1)) {
+    match (params.first(), params.get(1)) {
         (Some(vla), Some(idx)) => {
             let idx_type = annotations.get_type_or_void(idx, index);
 

@@ -56,11 +56,11 @@ pub fn visit_variable<T: AnnotationMap>(
 /// - InOut within Function-Block
 fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBlock, variable: &Variable) {
     let Some(pou) = pou else {
-
         if matches!(block.variable_block_type, VariableBlockType::Global) {
-            validator.push_diagnostic(Diagnostic::error("VLAs can not be defined as global variables")
-                                      .with_error_code("E044")
-                                      .with_location( variable.location.clone())
+            validator.push_diagnostic(
+                Diagnostic::error("VLAs can not be defined as global variables")
+                    .with_error_code("E044")
+                    .with_location(variable.location.clone()),
             )
         }
 

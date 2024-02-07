@@ -343,9 +343,7 @@ impl CompileParameters {
     }
 
     pub fn get_config_options(&self) -> Option<(ConfigOption, ConfigFormat)> {
-        let Some(SubCommands::Config { format, option }) = &self.commands else {
-            return None
-        };
+        let Some(SubCommands::Config { format, option }) = &self.commands else { return None };
         Some((*option, *format))
     }
 }
