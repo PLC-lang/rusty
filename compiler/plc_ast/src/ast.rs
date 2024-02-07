@@ -777,6 +777,16 @@ impl AstNode {
         &self.stmt
     }
 
+    /// Similar to [`AstNode::get_stmt`] with the exception of peeling parenthesized expressions.
+    /// For example if called on `((1))` this function would return a [`AstStatement::Literal`] ignoring the 
+    /// parenthesized expressions altogether.
+    pub fn get_stmt_peeled(&self) -> &AstStatement {
+        match &self.stmt {
+            AstStatement::ParenExpression(expr) => expr.get_stmt_peeled(),
+            _ => &self.stmt
+        }
+    }
+
     /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
         match &self.stmt {

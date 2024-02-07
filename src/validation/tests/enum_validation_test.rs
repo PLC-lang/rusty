@@ -34,7 +34,7 @@ fn enum_variants_mismatch() {
                 color := State.Idle;    // State.Idle == 0 == Color.Red
                 localState := red;      // Color.Red  == 0 == State.Idle
 
-                color := validReferenceForEnum;
+                color := validReferenceForEnum; // We still want an error here, because no const-expr
                 localState := validReferenceForEnum;
 
                 localState := bar(); // Value of `bar` unknown, BUT return type is `State` which is Ok

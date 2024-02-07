@@ -2,40 +2,40 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-error: `red` is not a valid value for enum `(metallic := 1, matte := 2, neon := 3) := red`
+error: `red` is an invalid value for enum `(metallic := 1, matte := 2, neon := 3) := red`
   ┌─ <internal>:7:63
   │
 7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
-  │                                                               ^^^ `red` is not a valid value for enum `(metallic := 1, matte := 2, neon := 3) := red`
+  │                                                               ^^^ `red` is an invalid value for enum `(metallic := 1, matte := 2, neon := 3) := red`
 
-note: Consider using enums of the same kind, i.e. `var1 := x1`
+note: Consider replacing `yellow` with `x1`
    ┌─ <internal>:10:55
    │
 10 │                 var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // warning
-   │                                                       ^^^^^^ Consider using enums of the same kind, i.e. `var1 := x1`
+   │                        -------------------------------^^^^^^
+   │                        │                              │
+   │                        │                              Consider replacing `yellow` with `x1`
+   │                        see also
 
-error: `neon` is not a valid value for enum `(x5, x6, x7) := neon`
+error: `neon` is an invalid value for enum `(x5, x6, x7) := neon`
    ┌─ <internal>:11:40
    │
 11 │                 var2 : (x5, x6, x7) := neon;                    // error
-   │                                        ^^^^ `neon` is not a valid value for enum `(x5, x6, x7) := neon`
+   │                                        ^^^^ `neon` is an invalid value for enum `(x5, x6, x7) := neon`
 
-error: `7` is not a valid value for enum `(a, b, c) := 7`
+error: `7` is an invalid value for enum `(a, b, c) := 7`
    ┌─ <internal>:12:37
    │
 12 │                 var3 : (a, b, c) := 7;                          // error
-   │                                     ^ `7` is not a valid value for enum `(a, b, c) := 7`
+   │                                     ^ `7` is an invalid value for enum `(a, b, c) := 7`
 
-note: Consider using enums rather than literal integers
-   ┌─ <internal>:12:37
-   │
-12 │                 var3 : (a, b, c) := 7;                          // error
-   │                                     ^ Consider using enums rather than literal integers
-
-note: Consider using enums rather than literal integers, i.e. `x := green`
+note: Consider replacing `2` with `green`
   ┌─ <internal>:2:45
   │
 2 │                 x : (red, yellow, green) := 2; // error
-  │                                             ^ Consider using enums rather than literal integers, i.e. `x := green`
+  │                     ------------------------^
+  │                     │                       │
+  │                     │                       Consider replacing `2` with `green`
+  │                     see also
 
 

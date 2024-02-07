@@ -2,106 +2,133 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-note: Consider using enums rather than literal integers, i.e. `localState := Idle`
+note: Consider replacing `0` with `State.Idle`
    ┌─ <internal>:18:31
    │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
 18 │                 localState := 0;
-   │                               ^ Consider using enums rather than literal integers, i.e. `localState := Idle`
+   │                               ^ Consider replacing `0` with `State.Idle`
 
-note: Consider using enums rather than literal integers, i.e. `localState := Working`
+note: Consider replacing `100` with `State.Working`
    ┌─ <internal>:19:31
    │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
 19 │                 localState := 100;
-   │                               ^^^ Consider using enums rather than literal integers, i.e. `localState := Working`
+   │                               ^^^ Consider replacing `100` with `State.Working`
 
-note: Consider using enums rather than literal integers, i.e. `color := red`
+note: Consider replacing `0` with `red`
    ┌─ <internal>:24:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 24 │                 color := 0;
-   │                          ^ Consider using enums rather than literal integers, i.e. `color := red`
+   │                          ^ Consider replacing `0` with `red`
 
-note: Consider using enums rather than literal integers, i.e. `color := green`
+note: Consider replacing `1` with `green`
    ┌─ <internal>:25:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 25 │                 color := 1;
-   │                          ^ Consider using enums rather than literal integers, i.e. `color := green`
+   │                          ^ Consider replacing `1` with `green`
 
-note: Consider using enums rather than literal integers, i.e. `color := blue`
+note: Consider replacing `2` with `blue`
    ┌─ <internal>:26:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 26 │                 color := 2;
-   │                          ^ Consider using enums rather than literal integers, i.e. `color := blue`
+   │                          ^ Consider replacing `2` with `blue`
 
-note: Consider using enums of the same kind, i.e. `color := red`
+note: Consider replacing `State.Idle` with `red`
    ┌─ <internal>:28:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 28 │                 color := State.Idle;    // State.Idle == 0 == Color.Red
-   │                          ^^^^^^^^^^ Consider using enums of the same kind, i.e. `color := red`
+   │                          ^^^^^^^^^^ Consider replacing `State.Idle` with `red`
 
-note: Consider using enums of the same kind, i.e. `localState := Idle`
+note: Consider replacing `red` with `State.Idle`
    ┌─ <internal>:29:31
    │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
 29 │                 localState := red;      // Color.Red  == 0 == State.Idle
-   │                               ^^^ Consider using enums of the same kind, i.e. `localState := Idle`
+   │                               ^^^ Consider replacing `red` with `State.Idle`
 
-error: `99` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
+note: Consider replacing `validReferenceForEnum` with `red`
+   ┌─ <internal>:31:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+31 │                 color := validReferenceForEnum;
+   │                          ^^^^^^^^^^^^^^^^^^^^^ Consider replacing `validReferenceForEnum` with `red`
+
+note: Consider replacing `validReferenceForEnum` with `State.Idle`
+   ┌─ <internal>:32:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+32 │                 localState := validReferenceForEnum;
+   │                               ^^^^^^^^^^^^^^^^^^^^^ Consider replacing `validReferenceForEnum` with `State.Idle`
+
+error: `99` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:38:26
    │
 38 │                 color := 99;
-   │                          ^^ `99` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
+   │                          ^^ `99` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
 
-note: Consider using enums rather than literal integers
-   ┌─ <internal>:38:26
-   │
-38 │                 color := 99;
-   │                          ^^ Consider using enums rather than literal integers
-
-error: `State.Working` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
+error: `State.Working` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:39:26
    │
 39 │                 color := State.Working;
-   │                          ^^^^^^^^^^^^^ `State.Working` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
+   │                          ^^^^^^^^^^^^^ `State.Working` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
 
-error: `invalidReferenceForEnum` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
+error: `invalidReferenceForEnum` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:40:26
    │
 40 │                 color := invalidReferenceForEnum;
-   │                          ^^^^^^^^^^^^^^^^^^^^^^^ `invalidReferenceForEnum` is not a valid value for enum `(red := 0, green := 1, blue := 2)`
+   │                          ^^^^^^^^^^^^^^^^^^^^^^^ `invalidReferenceForEnum` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
 
-note: Value of main.color is evaluated at run-time, can not verify if value is valid for enum `(red := 0, green := 1, blue := 2)`
+error: Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:41:26
    │
 41 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
-   │                          ^^^^^^ Value of main.color is evaluated at run-time, can not verify if value is valid for enum `(red := 0, green := 1, blue := 2)`
+   │                          ^^^^^^ Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
 
-error: `99` is not a valid value for enum `State`
+error: `99` is an invalid value for enum `State`
    ┌─ <internal>:43:31
    │
 43 │                 localState := 99;
-   │                               ^^ `99` is not a valid value for enum `State`
+   │                               ^^ `99` is an invalid value for enum `State`
 
-note: Consider using enums rather than literal integers
-   ┌─ <internal>:43:31
-   │
-43 │                 localState := 99;
-   │                               ^^ Consider using enums rather than literal integers
-
-error: `green` is not a valid value for enum `State`
+error: `green` is an invalid value for enum `State`
    ┌─ <internal>:44:31
    │
 44 │                 localState := green;
-   │                               ^^^^^ `green` is not a valid value for enum `State`
+   │                               ^^^^^ `green` is an invalid value for enum `State`
 
-error: `blue` is not a valid value for enum `State`
+error: `blue` is an invalid value for enum `State`
    ┌─ <internal>:45:31
    │
 45 │                 localState := blue;
-   │                               ^^^^ `blue` is not a valid value for enum `State`
+   │                               ^^^^ `blue` is an invalid value for enum `State`
 
-error: `invalidReferenceForEnum` is not a valid value for enum `State`
+error: `invalidReferenceForEnum` is an invalid value for enum `State`
    ┌─ <internal>:46:31
    │
 46 │                 localState := invalidReferenceForEnum;
-   │                               ^^^^^^^^^^^^^^^^^^^^^^^ `invalidReferenceForEnum` is not a valid value for enum `State`
+   │                               ^^^^^^^^^^^^^^^^^^^^^^^ `invalidReferenceForEnum` is an invalid value for enum `State`
 
 

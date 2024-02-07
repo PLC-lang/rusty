@@ -749,7 +749,6 @@ fn validate_assignment<T: AnnotationMap>(
                     qualified_name,
                     context.annotations.get_type_or_void(left, context.index),
                     right,
-                    &left.location,
                 );
             }
 
@@ -827,67 +826,64 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
     qualified_name: &str,
-    left: &DataType,
+    left_dt: &DataType,
     right: &AstNode,
-    left_loc: &SourceLocation,
 ) {
-    if !left.is_enum() {
+    if !left_dt.is_enum() {
         return;
     }
 
-    let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else {
+    let right_dt = context.annotations.get_type_or_void(right, context.index);
+
+    // For it to be a valid enum assignment, the right-hand side must yield a const-expr value
+    // (i.e. literal integer or some enum variant) and the left-hand side (which is an enum) must have that
+    // const-expr value as a variant (e.g. the const-expr must be 1 or 2 for `Status : (idle := 1, running := 2)`)
+    let Some(value_rhs) = get_literal_int_or_const_expr_value(right, context) else {
+        // ...however function calls for example are no const-expr hence only report if datatypes differ
+        if left_dt.get_name() != right_dt.get_name() {
+            validator.push_diagnostic(
+                Diagnostic::error(format!(
+                    "Value evaluated at run-time, use an enum variant from `{}`",
+                    get_datatype_name_or_slice(validator.context, left_dt)
+                ))
+                .with_location(right.get_location()),
+            );
+        }
+
         return;
     };
 
-    let variant_values = context.index.get_enum_variant_values(variable);
-    let right_datatype = context.annotations.get_type_or_void(right, context.index);
+    let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
+    let variants = context.index.get_enum_variants(variable);
 
-    if let Some(value_rhs) = get_literal_int_or_const_expr_value(right, context) {
-        let variant = variant_values.iter().find(|(_, value)| value == &value_rhs);
+    match variants.iter().find(|(_, _, value_lhs)| *value_lhs == value_rhs) {
+        Some((name, variant, _)) => {
+            if left_dt.get_name() != right_dt.get_name() {
+                // TODO(volsa) This sucks, locally defined enums have mangled names instead of normalized ones
+                let qualified_enum_name =
+                    if name.starts_with("__") { variant.to_string() } else { format!("{name}.{variant}") };
 
-        if variant.is_none() {
-            let message = format!(
-                "`{rhs}` is not a valid value for enum `{lhs}`",
-                rhs = validator.context.slice(&right.location),
-                lhs = get_datatype_name_or_slice(validator.context, left)
-            );
-
+                validator.push_diagnostic(
+                    Diagnostic::info(format!(
+                        "Consider replacing `{}` with `{qualified_enum_name}`",
+                        validator.context.slice(&right.location)
+                    ))
+                    .with_location(right.get_location())
+                    .with_secondary_location(left_dt.location.clone()),
+                );
+            }
+        }
+        None => {
             validator.push_diagnostic(
-                Diagnostic::error(message).with_location(right.get_location()).with_error_code("E040"),
-            )
+                Diagnostic::error(format!(
+                    "`{}` is an invalid value for enum `{}`",
+                    validator.context.slice(&right.location),
+                    get_datatype_name_or_slice(validator.context, &left_dt)
+                ))
+                .with_location(right.get_location()),
+            );
         }
-
-        // Before returning, we want to give some possible improvement suggestions
-        if variant.is_some() && right_datatype.is_enum() && left.get_name() != right_datatype.get_name() {
-            let mut message = "Consider using enums of the same kind".to_string();
-            if let Some(value) = variant {
-                message = format!("{message}, i.e. `{} := {}`", validator.context.slice(left_loc), value.0);
-            }
-
-            validator.push_diagnostic(Diagnostic::info(message).with_location(right.get_location()));
-        }
-
-        if right.is_literal_integer() {
-            let mut message = "Consider using enums rather than literal integers".to_string();
-            if let Some(value) = variant {
-                message = format!("{message}, i.e. `{} := {}`", validator.context.slice(left_loc), value.0);
-            }
-
-            validator.push_diagnostic(Diagnostic::info(message).with_location(right.get_location()));
-        }
-
-        return; // Avoid getting into fall-back
-    }
-
-    // Fallback, in case we haven't found a value
-    if left.get_name() != right_datatype.get_name() {
-        let message = format!(
-            "Value of {qualified_name} is evaluated at run-time, can not verify if value is valid for enum `{}`",
-            get_datatype_name_or_slice(validator.context, left)
-        );
-
-        validator.push_diagnostic(Diagnostic::info(message).with_location(right.get_location()));
-    }
+    };
 }
 
 fn validate_variable_length_array_assignment<T: AnnotationMap>(

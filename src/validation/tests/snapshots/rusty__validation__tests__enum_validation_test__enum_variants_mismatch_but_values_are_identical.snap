@@ -2,28 +2,40 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-note: Consider using enums of the same kind, i.e. `color := red`
+note: Consider replacing `Dog` with `red`
    ┌─ <internal>:11:22
    │
+ 6 │             color: (red, green, blue);
+   │                    ------------------ see also
+   ·
 11 │             color := Dog;       // warning
-   │                      ^^^ Consider using enums of the same kind, i.e. `color := red`
+   │                      ^^^ Consider replacing `Dog` with `red`
 
-note: Consider using enums of the same kind, i.e. `water := sparkling`
+note: Consider replacing `blue` with `sparkling`
    ┌─ <internal>:12:22
    │
+ 7 │             water: (still, medium, sparkling);
+   │                    -------------------------- see also
+   ·
 12 │             water := blue;      // warning
-   │                      ^^^^ Consider using enums of the same kind, i.e. `water := sparkling`
+   │                      ^^^^ Consider replacing `blue` with `sparkling`
 
-note: Consider using enums of the same kind, i.e. `color := blue`
+note: Consider replacing `sparkling` with `blue`
    ┌─ <internal>:13:22
    │
+ 6 │             color: (red, green, blue);
+   │                    ------------------ see also
+   ·
 13 │             color := sparkling; // warning
-   │                      ^^^^^^^^^ Consider using enums of the same kind, i.e. `color := blue`
+   │                      ^^^^^^^^^ Consider replacing `sparkling` with `blue`
 
-note: Consider using enums rather than literal integers, i.e. `color := blue`
+note: Consider replacing `2` with `blue`
    ┌─ <internal>:14:22
    │
+ 6 │             color: (red, green, blue);
+   │                    ------------------ see also
+   ·
 14 │             color := 2;         // warning
-   │                      ^ Consider using enums rather than literal integers, i.e. `color := blue`
+   │                      ^ Consider replacing `2` with `blue`
 
 

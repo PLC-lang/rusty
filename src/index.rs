@@ -1142,7 +1142,7 @@ impl Index {
     ///
     /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` would return `[(red, 0), (green, 1), (blue, 5)]`
     /// when calling this method.
-    pub fn get_enum_variant_values(&self, variable: &VariableIndexEntry) -> Vec<(&str, i128)> {
+    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<(&str, &str, i128)> {
         let mut values = Vec::new();
         let qualified_name = variable.data_type_name.to_lowercase();
 
@@ -1155,13 +1155,14 @@ impl Index {
             .collect::<Vec<_>>();
 
         for key in keys {
+            dbg!(&key);
             let value = self
                 .enum_qualified_variables
                 .get(key.as_str())
                 .expect("Must exist because of previous filter");
             if let Some(ref const_id) = value.initial_value {
                 if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
-                    values.push((value.name.as_str(), init));
+                    values.push((value.data_type_name.as_str(), value.name.as_str(), init));
                 }
             }
         }
