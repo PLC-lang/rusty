@@ -1155,7 +1155,6 @@ impl Index {
             .collect::<Vec<_>>();
 
         for key in keys {
-            dbg!(&key);
             let value = self
                 .enum_qualified_variables
                 .get(key.as_str())

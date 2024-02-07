@@ -878,7 +878,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                 Diagnostic::error(format!(
                     "`{}` is an invalid value for enum `{}`",
                     validator.context.slice(&right.location),
-                    get_datatype_name_or_slice(validator.context, &left_dt)
+                    get_datatype_name_or_slice(validator.context, left_dt)
                 ))
                 .with_location(right.get_location()),
             );

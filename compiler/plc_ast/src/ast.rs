@@ -778,12 +778,12 @@ impl AstNode {
     }
 
     /// Similar to [`AstNode::get_stmt`] with the exception of peeling parenthesized expressions.
-    /// For example if called on `((1))` this function would return a [`AstStatement::Literal`] ignoring the 
+    /// For example if called on `((1))` this function would return a [`AstStatement::Literal`] ignoring the
     /// parenthesized expressions altogether.
     pub fn get_stmt_peeled(&self) -> &AstStatement {
         match &self.stmt {
             AstStatement::ParenExpression(expr) => expr.get_stmt_peeled(),
-            _ => &self.stmt
+            _ => &self.stmt,
         }
     }
 
