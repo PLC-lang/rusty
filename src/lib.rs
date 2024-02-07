@@ -48,6 +48,8 @@ pub mod typesystem;
 pub mod validation;
 extern crate shell_words;
 
+pub const DEFAULT_DWARF_VERSION: usize = 5;
+
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub enum Target {
     System,
@@ -170,8 +172,8 @@ pub enum OptimizationLevel {
 pub enum DebugLevel {
     #[default]
     None,
-    VariablesOnly,
-    Full,
+    VariablesOnly(usize),
+    Full(usize),
 }
 
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {

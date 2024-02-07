@@ -36,19 +36,10 @@ enum DebugEncoding {
     DW_ATE_UTF = 0x10,
 }
 
-impl From<DWARFEmissionKind> for DebugLevel {
-    fn from(kind: DWARFEmissionKind) -> Self {
-        match kind {
-            DWARFEmissionKind::Full => DebugLevel::Full,
-            _ => DebugLevel::None,
-        }
-    }
-}
-
 impl From<DebugLevel> for DWARFEmissionKind {
     fn from(level: DebugLevel) -> Self {
         match level {
-            DebugLevel::Full | DebugLevel::VariablesOnly => DWARFEmissionKind::Full,
+            DebugLevel::Full(_) | DebugLevel::VariablesOnly(_) => DWARFEmissionKind::Full,
             _ => DWARFEmissionKind::None,
         }
     }
@@ -178,15 +169,29 @@ impl<'ink> DebugBuilderEnum<'ink> {
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> Self {
-        let dwarf_version: BasicMetadataValueEnum<'ink> = context.i32_type().const_int(5, false).into();
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
-            DebugLevel::VariablesOnly | DebugLevel::Full => {
+            DebugLevel::VariablesOnly(version) | DebugLevel::Full(version) => {
+                let dwarf_version: BasicMetadataValueEnum<'ink> =
+                    context.i32_type().const_int(version as u64, false).into();
                 module.add_metadata_flag(
                     "Dwarf Version",
                     inkwell::module::FlagBehavior::Warning,
                     context.metadata_node(&[dwarf_version]),
                 );
+                // `LLVMParseIRInContext` expects "Debug Info Version" metadata, with the specified version
+                // matching the LLVM version or otherwise it will emit a warning and strip DI from the IR.
+                // These metadata flags are not mutually exclusive.
+                let dwarf_version: BasicMetadataValueEnum<'ink> = context
+                    .i32_type()
+                    .const_int(inkwell::debug_info::debug_metadata_version() as u64, false)
+                    .into();
+                module.add_metadata_flag(
+                    "Debug Info Version",
+                    inkwell::module::FlagBehavior::Warning,
+                    context.metadata_node(&[dwarf_version]),
+                );
+
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
                 let root = root.unwrap_or_else(|| Path::new(""));
                 let filename = path.strip_prefix(root).unwrap_or(path).to_str().unwrap_or_default();
@@ -218,8 +223,8 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     files: Default::default(),
                 };
                 match debug_level {
-                    DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
-                    DebugLevel::Full => DebugBuilderEnum::Full(dbg_obj),
+                    DebugLevel::VariablesOnly(_) => DebugBuilderEnum::VariablesOnly(dbg_obj),
+                    DebugLevel::Full(_) => DebugBuilderEnum::Full(dbg_obj),
                     _ => unreachable!("Only variables or full debug can reach this"),
                 }
             }
@@ -612,6 +617,9 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     ) {
+        if matches!(pou.get_linkage(), LinkageType::External) {
+            return;
+        }
         let subprogram = self.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
         //Create function parameters
