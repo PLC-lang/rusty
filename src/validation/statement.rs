@@ -846,7 +846,8 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     "Value evaluated at run-time, use an enum variant from `{}`",
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
-                .with_location(right.get_location()),
+                .with_location(right.get_location())
+                .with_error_code("E091")
             );
         }
 
@@ -880,7 +881,8 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     validator.context.slice(&right.location),
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
-                .with_location(right.get_location()),
+                .with_location(right.get_location())
+                .with_error_code("E040"),
             );
         }
     };
