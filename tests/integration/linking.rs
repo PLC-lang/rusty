@@ -225,3 +225,11 @@ fn link_files_with_same_name() {
     //Delete it
     fs::remove_file(&out1).unwrap();
 }
+
+#[test]
+fn link_files_with_same_name_but_different_extension() {
+    let file1 = get_test_file("linking/consts.st");
+    let file2 = get_test_file("linking/consts.dt");
+
+    assert!(compile(&["plc", file1.as_str(), file2.as_str(), "--target", TARGET.unwrap()]).is_ok());
+}
