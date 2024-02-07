@@ -839,7 +839,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     // (i.e. literal integer or some enum variant) and the left-hand side (which is an enum) must have that
     // const-expr value as a variant (e.g. the const-expr must be 1 or 2 for `Status : (idle := 1, running := 2)`)
     let Some(value_rhs) = get_literal_int_or_const_expr_value(right, context) else {
-        // ...however function calls for example are no const-expr hence only report if datatypes differ
+        // ...however function calls for example are no const-expr hence only report if datatypes also differ
         if left_dt.get_name() != right_dt.get_name() {
             validator.push_diagnostic(
                 Diagnostic::error(format!(

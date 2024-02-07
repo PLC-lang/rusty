@@ -71,7 +71,7 @@ note: Consider replacing `validReferenceForEnum` with `red`
  8 │                     color       : (red := 0, green := 1, blue := 2);
    │                                   --------------------------------- see also
    ·
-31 │                 color := validReferenceForEnum;
+31 │                 color := validReferenceForEnum; // We still want an error here, because no const-expr
    │                          ^^^^^^^^^^^^^^^^^^^^^ Consider replacing `validReferenceForEnum` with `red`
 
 note: Consider replacing `validReferenceForEnum` with `State.Idle`
