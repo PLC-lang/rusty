@@ -1,7 +1,10 @@
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
 
-use crate::index::{const_expressions::{ConstExpression, UnresolvableKind}, Index};
+use crate::index::{
+    const_expressions::{ConstExpression, UnresolvableKind},
+    Index,
+};
 
 use super::Validators;
 
@@ -19,12 +22,9 @@ impl<'a> Validators for ConstExpressionValidator<'a> {
     }
 }
 
-impl<'ctx>  ConstExpressionValidator<'ctx>  {
+impl<'ctx> ConstExpressionValidator<'ctx> {
     pub fn new(context: &'ctx GlobalContext) -> Self {
-        Self {
-            context,
-            diagnostics: vec![],
-        }
+        Self { context, diagnostics: vec![] }
     }
 
     pub fn validate(&mut self, index: &Index) {
@@ -33,29 +33,33 @@ impl<'ctx>  ConstExpressionValidator<'ctx>  {
 
             match expr {
                 ConstExpression::Unresolvable {
-                    reason: UnresolvableKind::Overflow(reason, location), ..
+                    reason: UnresolvableKind::Overflow(reason, location),
+                    ..
                 } => self.push_diagnostic(
                     Diagnostic::warning(reason).with_error_code("E038").with_location(location.to_owned()),
                 ),
-                ConstExpression::Unresolvable { statement, reason } => {
-                    dbg!(statement, reason);
-                },
-                ConstExpression::Unresolved { statement, ..} => {
+                ConstExpression::Unresolvable {
+                    statement,
+                    reason: UnresolvableKind::NonConstant(reason),
+                } => self.push_diagnostic(
+                    Diagnostic::error(format!("Expression must be constant. {reason}",))
+                        .with_error_code("E033")
+                        .with_location(statement.get_location()),
+                ),
+                ConstExpression::Unresolved { statement, .. } => {
                     if let Some(name) = statement.get_flat_reference_name() {
-                            self.push_diagnostic(
-                                Diagnostic::error(format!(
-                                        "Unresolved constant reference: `{name}`",
-                                    ))
-                                    .with_error_code("E033")
-                                    .with_location(statement.get_location())
-                                    )
+                        self.push_diagnostic(
+                            Diagnostic::error(format!("Unresolved constant reference: `{name}`",))
+                                .with_error_code("E033")
+                                .with_location(statement.get_location()),
+                        )
                     } else {
                         let expr = self.context.slice(&statement.location);
-                        self.push_diagnostic(Diagnostic::error(format!(
-                            "Unresolved constant expression: `{}`", expr
-                        ))
-                        .with_error_code("E033")
-                        .with_location(statement.get_location()))
+                        self.push_diagnostic(
+                            Diagnostic::error(format!("Unresolved constant expression: `{}`", expr))
+                                .with_error_code("E033")
+                                .with_location(statement.get_location()),
+                        )
                     }
                 }
                 _ => continue,
@@ -63,4 +67,3 @@ impl<'ctx>  ConstExpressionValidator<'ctx>  {
         }
     }
 }
-

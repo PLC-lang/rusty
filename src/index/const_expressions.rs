@@ -80,12 +80,16 @@ pub enum UnresolvableKind {
 
     /// Indicates that the const expression was not resolvable because it would yield an overflow.
     Overflow(String, SourceLocation),
+
+    NonConstant(String),
 }
 
 impl UnresolvableKind {
     pub fn get_reason(&self) -> &str {
         match self {
-            UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) => val,
+            UnresolvableKind::Misc(val)
+            | UnresolvableKind::Overflow(val, ..)
+            | UnresolvableKind::NonConstant(val) => val,
         }
     }
 

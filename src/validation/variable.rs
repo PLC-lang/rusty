@@ -123,31 +123,31 @@ fn validate_variable<T: AnnotationMap>(
             .initial_value
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
         {
-            Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
-                validator.push_diagnostic(
-                    Diagnostic::error(format!(
-                        "Unresolved constant `{}` variable: {}",
-                        variable.name.as_str(),
-                        reason.get_reason()
-                    ))
-                    .with_error_code("E033")
-                    .with_location(statement.get_location()),
-                );
-            }
-            Some(ConstExpression::Unresolved { statement, .. }) => {
-                validator.push_diagnostic(
-                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
-                        .with_error_code("E033")
-                        .with_location(statement.get_location()),
-                );
-            }
-            None if v_entry.is_constant() => {
-                validator.push_diagnostic(
-                    Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
-                        .with_error_code("E033")
-                        .with_location(variable.location.clone()),
-                );
-            }
+            // Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
+            //     validator.push_diagnostic(
+            //         Diagnostic::error(format!(
+            //             "Unresolved constant `{}` variable: {}",
+            //             variable.name.as_str(),
+            //             reason.get_reason()
+            //         ))
+            //         .with_error_code("E033")
+            //         .with_location(statement.get_location()),
+            //     );
+            // }
+            // Some(ConstExpression::Unresolved { statement, .. }) => {
+            //     validator.push_diagnostic(
+            //         Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+            //             .with_error_code("E033")
+            //             .with_location(statement.get_location()),
+            //     );
+            // }
+            // None if v_entry.is_constant() => {
+            //     validator.push_diagnostic(
+            //         Diagnostic::error(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+            //             .with_error_code("E033")
+            //             .with_location(variable.location.clone()),
+            //     );
+            // }
             _ => {
                 if let Some(rhs) = variable.initializer.as_ref() {
                     validate_enum_variant_assignment(

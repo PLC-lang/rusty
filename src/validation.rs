@@ -4,25 +4,27 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
 
 use crate::{
-    index::{
-        const_expressions::{ConstExpression, UnresolvableKind},
-        Index, PouIndexEntry,
-    },
+    index::{Index, PouIndexEntry},
     resolver::AnnotationMap,
 };
 
 use self::{
-    const_expressions::ConstExpressionValidator, global::GlobalValidator, pou::{visit_implementation, visit_pou}, recursive::RecursiveValidator, types::visit_user_type_declaration, variable::visit_variable_block
+    const_expressions::ConstExpressionValidator,
+    global::GlobalValidator,
+    pou::{visit_implementation, visit_pou},
+    recursive::RecursiveValidator,
+    types::visit_user_type_declaration,
+    variable::visit_variable_block,
 };
 
 mod array;
+mod const_expressions;
 mod global;
 mod pou;
 mod recursive;
 mod statement;
 mod types;
 mod variable;
-mod const_expressions;
 
 #[cfg(test)]
 mod tests;
@@ -95,7 +97,7 @@ pub struct Validator<'a> {
     diagnostics: Vec<Diagnostic>,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
-    const_expr_validator: ConstExpressionValidator<'a>
+    const_expr_validator: ConstExpressionValidator<'a>,
 }
 
 impl<'a> Validators for Validator<'a> {
@@ -123,6 +125,7 @@ impl<'a> Validator<'a> {
         all_diagnostics.append(&mut self.take_diagnostics());
         all_diagnostics.append(&mut self.global_validator.take_diagnostics());
         all_diagnostics.append(&mut self.recursive_validator.take_diagnostics());
+        all_diagnostics.append(&mut self.const_expr_validator.take_diagnostics());
         all_diagnostics
     }
 

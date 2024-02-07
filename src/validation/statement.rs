@@ -555,7 +555,8 @@ fn validate_array_access<T: AnnotationMap>(
             // XXX: myArray[FOO()], FOO being a function/action/... with no return type (i.e. VOID) should not be reported
             // as unresolvable, but rather with the attempted VOID access.
             Some(context.annotations.get_type_or_void(access, context.index))
-        }.map(|it| it.get_type_information());
+        }
+        .map(|it| it.get_type_information());
 
         let Some(type_info) = type_info else {
             let loc = access.get_location();

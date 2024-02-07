@@ -49,16 +49,18 @@ fn array_access_validation() {
 }
 
 #[test]
-fn array_access_with_unresolved_reference() {
+fn array_access_with_unresolved_and_non_const_reference() {
     let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main : DINT
         VAR
             myArray : ARRAY[0..2] OF DINT;
+            myNonConstVar : DINT := 3;
         END_VAR
-            main := myArray[unresolvedRef];
+            myArray[unresolvedRef];
+            myArray[myNonConstVar];
         END_FUNCTION
-        "
+        ",
     );
 
     assert_snapshot!(&diagnostics);
@@ -70,17 +72,18 @@ fn array_declaration_with_unresolved_reference() {
         "
         FUNCTION main : DINT
         VAR
+            myNonConstVar : DINT := 9;
             myArray : ARRAY[0..UNRESOLVED_CONSTANT] OF DINT;
             myString: STRING[UNRESOLVED_CONSTANT];
             myOtherArray : ARRAY[UNRESOLVED_CONSTANT + 2 .. 1000 * UNRESOLVED_CONSTANT] OF DINT;
+            myThirdArray: ARRAY[myNonConstVar + 8 + myNonConstVar * 2] OF DINT;
         END_VAR
         END_FUNCTION
-        "
+        ",
     );
 
     assert_snapshot!(&diagnostics);
 }
-
 
 #[test]
 fn array_declaration_with_non_constant_variable() {
@@ -95,7 +98,7 @@ fn array_declaration_with_non_constant_variable() {
             myArray : ARRAY[0..myNonConstVar] OF DINT;
         END_VAR
         END_FUNCTION
-        "
+        ",
     );
 
     assert_snapshot!(&diagnostics);
@@ -118,9 +121,9 @@ fn array_declaration_with_void_returning_call() {
             myArray : ARRAY[0..1] OF DINT;
             myFb : FOO;
         END_VAR
-            main := myArray[myFb.NOP()]
+            myArray[myFb.NOP()];
         END_FUNCTION
-        "
+        ",
     );
 
     assert_snapshot!(&diagnostics);
