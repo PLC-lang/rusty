@@ -940,6 +940,14 @@
 <a href="#940" id="940">940</a>
 <a href="#941" id="941">941</a>
 <a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
@@ -978,19 +986,10 @@
     DW_ATE_UTF = <span class="number">0x10</span>,
 }
 
-<span class="kw">impl </span>From&lt;DWARFEmissionKind&gt; <span class="kw">for </span>DebugLevel {
-    <span class="kw">fn </span>from(kind: DWARFEmissionKind) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span>kind {
-            DWARFEmissionKind::Full =&gt; DebugLevel::Full,
-            <span class="kw">_ </span>=&gt; DebugLevel::None,
-        }
-    }
-}
-
 <span class="kw">impl </span>From&lt;DebugLevel&gt; <span class="kw">for </span>DWARFEmissionKind {
     <span class="kw">fn </span>from(level: DebugLevel) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>level {
-            DebugLevel::Full | DebugLevel::VariablesOnly =&gt; DWARFEmissionKind::Full,
+            DebugLevel::Full(<span class="kw">_</span>) | DebugLevel::VariablesOnly(<span class="kw">_</span>) =&gt; DWARFEmissionKind::Full,
             <span class="kw">_ </span>=&gt; DWARFEmissionKind::None,
         }
     }
@@ -1120,15 +1119,29 @@
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>dwarf_version: BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; = context.i32_type().const_int(<span class="number">5</span>, <span class="bool-val">false</span>).into();
         <span class="kw">match </span>debug_level {
             DebugLevel::None =&gt; DebugBuilderEnum::None,
-            DebugLevel::VariablesOnly | DebugLevel::Full =&gt; {
+            DebugLevel::VariablesOnly(version) | DebugLevel::Full(version) =&gt; {
+                <span class="kw">let </span>dwarf_version: BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; =
+                    context.i32_type().const_int(version <span class="kw">as </span>u64, <span class="bool-val">false</span>).into();
                 module.add_metadata_flag(
                     <span class="string">&quot;Dwarf Version&quot;</span>,
                     inkwell::module::FlagBehavior::Warning,
                     context.metadata_node(<span class="kw-2">&amp;</span>[dwarf_version]),
                 );
+                <span class="comment">// `LLVMParseIRInContext` expects &quot;Debug Info Version&quot; metadata, with the specified version
+                // matching the LLVM version or otherwise it will emit a warning and strip DI from the IR.
+                // These metadata flags are not mutually exclusive.
+                </span><span class="kw">let </span>dwarf_version: BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; = context
+                    .i32_type()
+                    .const_int(inkwell::debug_info::debug_metadata_version() <span class="kw">as </span>u64, <span class="bool-val">false</span>)
+                    .into();
+                module.add_metadata_flag(
+                    <span class="string">&quot;Debug Info Version&quot;</span>,
+                    inkwell::module::FlagBehavior::Warning,
+                    context.metadata_node(<span class="kw-2">&amp;</span>[dwarf_version]),
+                );
+
                 <span class="kw">let </span>path = Path::new(module.get_source_file_name().to_str().unwrap_or(<span class="string">&quot;&quot;</span>));
                 <span class="kw">let </span>root = root.unwrap_or_else(|| Path::new(<span class="string">&quot;&quot;</span>));
                 <span class="kw">let </span>filename = path.strip_prefix(root).unwrap_or(path).to_str().unwrap_or_default();
@@ -1160,8 +1173,8 @@
                     files: Default::default(),
                 };
                 <span class="kw">match </span>debug_level {
-                    DebugLevel::VariablesOnly =&gt; DebugBuilderEnum::VariablesOnly(dbg_obj),
-                    DebugLevel::Full =&gt; DebugBuilderEnum::Full(dbg_obj),
+                    DebugLevel::VariablesOnly(<span class="kw">_</span>) =&gt; DebugBuilderEnum::VariablesOnly(dbg_obj),
+                    DebugLevel::Full(<span class="kw">_</span>) =&gt; DebugBuilderEnum::Full(dbg_obj),
                     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Only variables or full debug can reach this&quot;</span>),
                 }
             }
@@ -1554,6 +1567,9 @@
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType],
         implementation_start: usize,
     ) {
+        <span class="kw">if </span><span class="macro">matches!</span>(pou.get_linkage(), LinkageType::External) {
+            <span class="kw">return</span>;
+        }
         <span class="kw">let </span>subprogram = <span class="self">self</span>.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
         <span class="comment">//Create function parameters

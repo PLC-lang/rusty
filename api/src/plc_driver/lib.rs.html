@@ -656,7 +656,7 @@
     </span><span class="kw">let </span>context = CodegenContext::create();
     <span class="kw">let </span><span class="kw-2">mut </span>options = CompileOptions::default();
     <span class="kw">if </span>debug {
-        options.debug_level = DebugLevel::Full;
+        options.debug_level = DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
     }
     <span class="kw">let </span>module = project.generate_single_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>options)<span class="question-mark">?</span>;
 
