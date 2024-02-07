@@ -15,6 +15,7 @@ pub type ParameterError = clap::Error;
 )]
 #[clap(propagate_version = true)]
 #[clap(subcommand_negates_reqs = true)]
+#[clap(subcommand_precedence_over_arg = true)]
 pub struct CompileParameters {
     #[clap(short, long, global = true, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
@@ -139,6 +140,32 @@ pub struct CompileParameters {
         group = "dbg"
     )]
     pub generate_varinfo: bool,
+
+    #[clap(
+        name = "gdwarf",
+        long,
+        help = "Generate source-level debug information with the specified dwarf version",
+        value_name = "dwarf version",
+        global = true,
+        group = "dbg",
+        conflicts_with = "debug",
+        max_values = 1,
+        possible_values = &["2", "3", "4", "5"],
+    )]
+    pub gdwarf_version: Option<usize>,
+
+    #[clap(
+        name = "gdwarf-variables",
+        long,
+        help = "Generate debug information for global variables with the specified dwarf version",
+        value_name = "dwarf version",
+        global = true,
+        group = "dbg",
+        conflicts_with = "debug-variables",
+        max_values = 1,
+        possible_values = &["2", "3", "4", "5"],
+    )]
+    pub gdwarf_varinfo_version: Option<usize>,
 
     #[clap(
         name = "threads",
@@ -274,12 +301,19 @@ impl CompileParameters {
 
     pub fn debug_level(&self) -> DebugLevel {
         if self.generate_debug {
-            DebugLevel::Full
-        } else if self.generate_varinfo {
-            DebugLevel::VariablesOnly
-        } else {
-            DebugLevel::None
+            return DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
         }
+        if self.generate_varinfo {
+            return DebugLevel::VariablesOnly(plc::DEFAULT_DWARF_VERSION);
+        }
+        if let Some(version) = self.gdwarf_version {
+            return DebugLevel::Full(version);
+        }
+        if let Some(version) = self.gdwarf_varinfo_version {
+            return DebugLevel::VariablesOnly(version);
+        }
+
+        DebugLevel::None
     }
 
     // convert the scattered bools from structopt into an enum
@@ -761,5 +795,59 @@ mod cli_tests {
                 )
                 .to_string()
         )
+    }
+
+    #[test]
+    fn test_gdwarf_and_debug_mutually_exclusive() {
+        assert!(CompileParameters::parse(vec_of_strings!("input.st", "--debug", "--gdwarf", "2")).is_err());
+        assert!(CompileParameters::parse(vec_of_strings!("input.st", "-g", "--gdwarf", "4")).is_err());
+        assert!(CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--debug-variables",
+            "--gdwarf-variables",
+            "3"
+        ))
+        .is_err());
+    }
+
+    #[test]
+    fn test_dwarf_version_override() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf", "2")).unwrap();
+        assert_eq!(parameters.gdwarf_version, Some(2));
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf", "3")).unwrap();
+        assert_eq!(parameters.gdwarf_version, Some(3));
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables", "4")).unwrap();
+        assert_eq!(parameters.gdwarf_varinfo_version, Some(4));
+    }
+
+    #[test]
+    fn invalid_dwarf_version() {
+        let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf", "1")).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::InvalidValue);
+        let inner = &error.info;
+        assert_eq!(inner[1], "1");
+
+        let error =
+            CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables", "99")).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::InvalidValue);
+        let inner = &error.info;
+        assert_eq!(inner[1], "99");
+
+        let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf", "abc")).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::InvalidValue);
+        let inner = &error.info;
+        assert_eq!(inner[1], "abc");
+    }
+
+    #[test]
+    fn dwarf_version_override_arg_requries_value() {
+        let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf")).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::EmptyValue);
+
+        let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables")).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::EmptyValue);
     }
 }
