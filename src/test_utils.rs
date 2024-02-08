@@ -182,7 +182,11 @@ pub mod tests {
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
-        codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
+        codegen_debug_without_unwrap(src, DebugLevel::Full(crate::DEFAULT_DWARF_VERSION)).unwrap()
+    }
+
+    pub fn codegen_with_debug_version(src: &str, dwarf_version: usize) -> String {
+        codegen_debug_without_unwrap(src, DebugLevel::Full(dwarf_version)).unwrap()
     }
 
     pub fn codegen(src: &str) -> String {

@@ -330,7 +330,7 @@ impl Diagnostic {
 
 impl PartialOrd for Diagnostic {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.severity.partial_cmp(&other.severity)
+        Some(self.cmp(other))
     }
 }
 

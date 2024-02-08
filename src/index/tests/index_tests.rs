@@ -1530,7 +1530,7 @@ fn pou_duplicates_are_indexed() {
     //THEN I expect both PouIndexEntries
     let pous = index.get_pous().values().filter(|it| it.get_name().eq("foo")).collect::<Vec<_>>();
 
-    let foo1 = pous.get(0).unwrap();
+    let foo1 = pous.first().unwrap();
     assert_eq!(foo1.get_name(), "foo");
 
     let foo2 = pous.get(1).unwrap();
@@ -1566,7 +1566,7 @@ fn type_duplicates_are_indexed() {
     //THEN I expect all 3 DataTypes
     let types = index.get_types().values().filter(|it| it.get_name().eq("MyStruct")).collect::<Vec<_>>();
 
-    let mystruct1 = types.get(0).unwrap();
+    let mystruct1 = types.first().unwrap();
     assert_eq!(mystruct1.get_name(), "MyStruct");
 
     let mystruct2 = types.get(1).unwrap();
@@ -1595,7 +1595,7 @@ fn global_variables_duplicates_are_indexed() {
     //THEN I expect both globals
     let globals = index.get_globals().values().filter(|it| it.get_name().eq("x")).collect::<Vec<_>>();
 
-    let x1 = globals.get(0).unwrap();
+    let x1 = globals.first().unwrap();
     assert_eq!(x1.get_name(), "x");
     assert_eq!(x1.get_type_name(), "INT");
 
