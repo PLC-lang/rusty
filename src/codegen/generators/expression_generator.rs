@@ -274,7 +274,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // We'll _probably_ land here because we're dealing with aggregate types, see also
                 // https://github.com/PLC-lang/rusty/issues/288
                 let message = format!("Cannot propagate constant value for '{qualified_name:}'");
-                Diagnostic::codegen_error(&message, expression.get_location())
+                Diagnostic::codegen_error(message, expression.get_location())
             })?;
 
         //  generate the resulting constant-expression (which should be a Value, no ptr-reference)
