@@ -3,6 +3,7 @@ use insta::assert_snapshot;
 mod expression_debugging;
 
 use crate::test_utils::tests::codegen_with_debug as codegen;
+use crate::test_utils::tests::codegen_with_debug_version;
 #[test]
 fn test_global_var_int_added_to_debug_info() {
     let codegen = codegen(
@@ -165,6 +166,22 @@ fn test_global_alias_type() {
         gInt : myInt;
     END_VAR
     "#,
+    );
+
+    assert_snapshot!(codegen)
+}
+
+#[test]
+fn test_dwarf_version_override() {
+    let codegen = codegen_with_debug_version(
+        r#"
+    TYPE myInt : DINT; END_TYPE
+
+    VAR_GLOBAL
+        gInt : myInt;
+    END_VAR
+    "#,
+        4,
     );
 
     assert_snapshot!(codegen)
