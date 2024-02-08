@@ -6,7 +6,10 @@ error: `red` is an invalid value for enum `(metallic := 1, matte := 2, neon := 3
   ┌─ <internal>:7:63
   │
 7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
-  │                                                               ^^^ `red` is an invalid value for enum `(metallic := 1, matte := 2, neon := 3) := red`
+  │                     ------------------------------------------^^^
+  │                     │                                         │
+  │                     │                                         `red` is an invalid value for enum `(metallic := 1, matte := 2, neon := 3) := red`
+  │                     see also
 
 note: Consider replacing `yellow` with `x1`
    ┌─ <internal>:10:55
@@ -21,13 +24,19 @@ error: `neon` is an invalid value for enum `(x5, x6, x7) := neon`
    ┌─ <internal>:11:40
    │
 11 │                 var2 : (x5, x6, x7) := neon;                    // error
-   │                                        ^^^^ `neon` is an invalid value for enum `(x5, x6, x7) := neon`
+   │                        ----------------^^^^
+   │                        │               │
+   │                        │               `neon` is an invalid value for enum `(x5, x6, x7) := neon`
+   │                        see also
 
 error: `7` is an invalid value for enum `(a, b, c) := 7`
    ┌─ <internal>:12:37
    │
 12 │                 var3 : (a, b, c) := 7;                          // error
-   │                                     ^ `7` is an invalid value for enum `(a, b, c) := 7`
+   │                        -------------^
+   │                        │            │
+   │                        │            `7` is an invalid value for enum `(a, b, c) := 7`
+   │                        see also
 
 note: Consider replacing `2` with `green`
   ┌─ <internal>:2:45

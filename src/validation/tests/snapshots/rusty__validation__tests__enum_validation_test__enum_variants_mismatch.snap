@@ -86,48 +86,72 @@ note: Consider replacing `validReferenceForEnum` with `State.Idle`
 error: `99` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:38:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 38 │                 color := 99;
    │                          ^^ `99` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
 
 error: `State.Working` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:39:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 39 │                 color := State.Working;
    │                          ^^^^^^^^^^^^^ `State.Working` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
 
 error: `invalidReferenceForEnum` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:40:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 40 │                 color := invalidReferenceForEnum;
    │                          ^^^^^^^^^^^^^^^^^^^^^^^ `invalidReferenceForEnum` is an invalid value for enum `(red := 0, green := 1, blue := 2)`
 
 error: Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:41:26
    │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
 41 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
    │                          ^^^^^^ Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
 
 error: `99` is an invalid value for enum `State`
    ┌─ <internal>:43:31
    │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
 43 │                 localState := 99;
    │                               ^^ `99` is an invalid value for enum `State`
 
 error: `green` is an invalid value for enum `State`
    ┌─ <internal>:44:31
    │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
 44 │                 localState := green;
    │                               ^^^^^ `green` is an invalid value for enum `State`
 
 error: `blue` is an invalid value for enum `State`
    ┌─ <internal>:45:31
    │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
 45 │                 localState := blue;
    │                               ^^^^ `blue` is an invalid value for enum `State`
 
 error: `invalidReferenceForEnum` is an invalid value for enum `State`
    ┌─ <internal>:46:31
    │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
 46 │                 localState := invalidReferenceForEnum;
    │                               ^^^^^^^^^^^^^^^^^^^^^^^ `invalidReferenceForEnum` is an invalid value for enum `State`
 

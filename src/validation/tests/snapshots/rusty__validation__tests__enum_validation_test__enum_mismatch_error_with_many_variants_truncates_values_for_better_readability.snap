@@ -5,6 +5,9 @@ expression: diagnostics
 error: `1000` is an invalid value for enum `Color`
   ┌─ <internal>:7:24
   │
+2 │         TYPE Color : (red, green, blue, yellow, cyan, orange, purple, violet); END_TYPE
+  │              ----- see also
+  ·
 7 │             myColor := 1000;
   │                        ^^^^ `1000` is an invalid value for enum `Color`
 
