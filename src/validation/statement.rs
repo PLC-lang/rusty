@@ -847,7 +847,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
                 .with_location(right.get_location())
-                .with_error_code("E091")
+                .with_error_code("E091"),
             );
         }
 
@@ -1350,7 +1350,9 @@ mod helper {
         }
 
         let path = right.get_flat_reference_name().unwrap_or_default();
-        let Some(element) = context.index.find_variable(context.qualifier, &[path]) else { return None; };
+        let Some(element) = context.index.find_variable(context.qualifier, &[path]) else {
+            return None;
+        };
 
         context
             .index
