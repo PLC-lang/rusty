@@ -239,7 +239,7 @@ pub extern "C" fn SPLIT_DATE__UDINT(in1: i64, out1: &mut u32, out2: &mut u32, ou
 pub extern "C" fn SPLIT_DATE__LINT(in1: i64, out1: &mut i64, out2: &mut i64, out3: &mut i64) -> i16 {
     let date = chrono::Utc.timestamp_nanos(in1).date_naive();
     // if year does not fit in target data type -> panic
-    *out1 = date.year().try_into().unwrap();
+    *out1 = date.year().into();
     *out2 = date.month() as i64;
     *out3 = date.day() as i64;
 
@@ -516,7 +516,7 @@ pub extern "C" fn SPLIT_DT__LINT(
 ) -> i16 {
     let dt = chrono::Utc.timestamp_nanos(in1);
     // if year does not fit in target data type -> panic
-    *out1 = dt.year().try_into().unwrap();
+    *out1 = dt.year().into();
     *out2 = dt.month() as i64;
     *out3 = dt.day() as i64;
     *out4 = dt.hour() as i64;

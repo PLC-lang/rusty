@@ -1685,7 +1685,7 @@ impl<'i> TypeAnnotator<'i> {
         if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
             .index
             .get_effective_type_or_void_by_name(
-                members.get(0).expect("internal VLA struct ALWAYS has this member").get_type_name(),
+                members.first().expect("internal VLA struct ALWAYS has this member").get_type_name(),
             )
             .get_type_information()
         {

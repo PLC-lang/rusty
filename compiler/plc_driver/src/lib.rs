@@ -263,7 +263,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     let context = CodegenContext::create();
     let mut options = CompileOptions::default();
     if debug {
-        options.debug_level = DebugLevel::Full;
+        options.debug_level = DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
     }
     let module = project.generate_single_module(&context, &options)?;
 
@@ -364,7 +364,7 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
         //Build with parameters
         let name = compile_parameters
             .input
-            .get(0)
+            .first()
             .and_then(|it| it.get_location())
             .and_then(|it| it.file_name())
             .and_then(|it| it.to_str())
