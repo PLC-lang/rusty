@@ -200,11 +200,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }) = self.annotations.get(expression)
         {
             if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
-                // Constant Propagation
-                if let Ok(expr) = self.generate_constant_expression(qualified_name, expression) {
-                    // We return here if constant propagation worked, and if not fall-back to generating the expression
-                    // further down which may or may not work but loads the values if it does
-                    return Ok(expr);
+                match self.generate_constant_expression(qualified_name, expression) {
+                    // We return here if constant propagation worked
+                    Ok(expr) => return Ok(expr),
+                    // ...and fall-back to generating the expression further down if it didn't
+                    Err(why) => log::info!("{why}"),
                 }
             }
         }
@@ -274,7 +274,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // We'll _probably_ land here because we're dealing with aggregate types, see also
                 // https://github.com/PLC-lang/rusty/issues/288
                 let message = format!("Cannot propagate constant value for '{qualified_name:}'");
-                log::warn!("{message}");
                 Diagnostic::codegen_error(&message, expression.get_location())
             })?;
 
@@ -2587,7 +2586,7 @@ pub fn get_implicit_call_parameter<'a>(
                     //TODO: use global context to get an expression slice
                     Diagnostic::error("Expression is not assignable")
                         .with_error_code("E050")
-                        .with_location(param_statement.get_location())
+                        .with_location(param_statement.get_location()),
                 );
             };
             let loc = declared_parameters
