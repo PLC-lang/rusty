@@ -847,6 +847,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
                 .with_location(right.get_location())
+                .with_secondary_location(left_dt.location.clone())
                 .with_error_code("E091"),
             );
         }
@@ -882,6 +883,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
                 .with_location(right.get_location())
+                .with_secondary_location(left_dt.location.clone())
                 .with_error_code("E040"),
             );
         }
