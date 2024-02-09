@@ -2393,13 +2393,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // relatively straightforward for single-dimensional arrays, but is quite costly (O(n²)) for multi-dimensional arrays
         let access_statements = access.get_as_list();
         let accessor = if access_statements.len() == 1 {
-            let Some(stmt) = access_statements.get(0) else {
+            let Some(stmt) = access_statements.first() else {
                 unreachable!("Must have exactly 1 access statement")
             };
             let access_value = self.generate_expression(stmt).map_err(|_| ())?;
 
             // if start offset is not 0, adjust the access value accordingly
-            let Some(start_offset) = index_offsets.get(0).map(|(start, _)| *start) else {
+            let Some(start_offset) = index_offsets.first().map(|(start, _)| *start) else {
                 unreachable!("VLA must have information about dimension offsets")
             };
             self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())
@@ -2581,7 +2581,7 @@ pub fn get_implicit_call_parameter<'a>(
                     //TODO: use global context to get an expression slice
                     Diagnostic::error("Expression is not assignable")
                         .with_error_code("E050")
-                        .with_location(param_statement.get_location())
+                        .with_location(param_statement.get_location()),
                 );
             };
             let loc = declared_parameters

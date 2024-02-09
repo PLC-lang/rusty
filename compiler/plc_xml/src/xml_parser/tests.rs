@@ -319,7 +319,7 @@ fn ast_generates_locations() {
         &SInVariable::id(5).with_expression("1"),
     ]);
 
-    let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc");
+    let source_code = SourceCode::new(content.serialize(), "<internal>.cfc");
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     //Deconstruct assignment and get locations
@@ -366,7 +366,7 @@ fn ast_diagnostic_locations() {
         &SOutVariable::id(2).with_execution_id(0).with_expression("a").connect(1), // "a" isn't declared anywhere, hence the error
     ]);
 
-    let source_code = SourceCode::new(&content.serialize(), "<internal>.cfc");
+    let source_code = SourceCode::new(content.serialize(), "<internal>.cfc");
     let (units, diagnostics) = xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default());
     let impl1 = &units.implementations[0];
     assert_debug_snapshot!(impl1);

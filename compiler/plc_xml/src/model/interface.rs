@@ -25,7 +25,7 @@ impl Interface {
     }
 
     pub fn get_data_content(&self) -> Option<&str> {
-        let Some(ref data) = self.add_data else { return None };
+        let data = self.add_data.as_ref()?;
 
         Some(&data.content)
     }

@@ -26,14 +26,19 @@ fn get_connection(
     let Some(ref_local_id) = control.ref_local_id else {
         let location =
             session.range_factory.create_block_location(control.local_id, control.execution_order_id);
-        return Err(Diagnostic::error("Control statement has no connection").with_error_code("E081").with_location(location));
+        return Err(Diagnostic::error("Control statement has no connection")
+            .with_error_code("E081")
+            .with_location(location));
     };
 
     let Some(node) = index.get(&ref_local_id) else {
         let location = session.range_factory.create_block_location(ref_local_id, None);
-        return Err(Diagnostic::error(format!("Node {} is referencing a non-existing element with ID {ref_local_id}",control.local_id))
-                   .with_error_code("E082")
-                   .with_location(location));
+        return Err(Diagnostic::error(format!(
+            "Node {} is referencing a non-existing element with ID {ref_local_id}",
+            control.local_id
+        ))
+        .with_error_code("E082")
+        .with_location(location));
     };
 
     match node {
