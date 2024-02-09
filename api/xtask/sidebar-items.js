@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Action","Command"],"fn":["main","prepare","run_metrics"],"mod":["reporter","task"],"static":["DEFAULT_VALUE"],"struct":["Parameters"]};
+window.SIDEBAR_ITEMS = {"enum":["Action","Command"],"fn":["main","prepare","run_metrics"],"mod":["reporter","task"],"struct":["Parameters"]};

@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -10,7 +10,7 @@
         
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -31,7 +31,7 @@
         <!-- Custom theme stylesheets -->
 
     </head>
-    <body>
+    <body class="sidebar-visible no-js">
     <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
@@ -61,42 +61,71 @@
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
-            html.classList.remove('no-js')
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
+            var body = document.querySelector('body');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
-            html.classList.remove('sidebar-visible');
-            html.classList.add("sidebar-" + sidebar);
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
                 <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../using_rusty/build_configuration.html" class="active"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="../cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
         </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -160,29 +189,29 @@ All the keys used in the build description file are described in the following s
 <h3 id="files"><a class="header" href="#files">files</a></h3>
 <p>The keyword <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>ST</code> files that need to be compiled.</p>
 <p>The value of <code>files</code> is an array of strings, definied as follows:</p>
-<pre><code class="language-json">&quot;files&quot; : [
-    &quot;examples/hello_world.st&quot;,
-    &quot;examples/hw.st&quot;
-    &quot;examples/*.gvl&quot;
+<pre><code class="language-json">"files" : [
+    "examples/hello_world.st",
+    "examples/hw.st"
+    "examples/*.gvl"
 ]
 </code></pre>
 <h3 id="libraries"><a class="header" href="#libraries">libraries</a></h3>
 <p>To link several objects into one executable <code>plc</code> has the option to add libraries and automatically build and link them together.</br>
 The <code>libraries</code> keyword is optional.</p>
-<pre><code class="language-json">&quot;libraries&quot; : [
+<pre><code class="language-json">"libraries" : [
     {
-        &quot;name&quot; : &quot;iec61131std&quot;,
-        &quot;path&quot; : &quot;path/to/lib/&quot;,
-        &quot;package&quot; : &quot;Copy&quot;,
-        &quot;include_path&quot; : [
-            &quot;examples/hw.st&quot;,
-            &quot;examples/hello_world.st&quot;
+        "name" : "iec61131std",
+        "path" : "path/to/lib/",
+        "package" : "Copy",
+        "include_path" : [
+            "examples/hw.st",
+            "examples/hello_world.st"
         ]
     }
 ]
 </code></pre>
 <h3 id="output"><a class="header" href="#output">output</a></h3>
-<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is the current build directory. (see <a href="#build-location">Build Location</a>).</p>
+<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>"output" : "output.so"</code> to define the output file. The default location is the current build directory. (see <a href="#build-location">Build Location</a>).</p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
 <p>The following options can be used for the <code>compile_type</code> :</p>
 <ul>
@@ -193,7 +222,7 @@ The <code>libraries</code> keyword is optional.</p>
 <li><code>Bitcode</code> adds bitcode alongside machine code in executable file.</li>
 <li><code>IR</code> intermediate <code>llvm</code> representation.</li>
 </ul>
-<p>The compile format is specified in the build description file as follows:  <code>&quot;compile_type&quot; : &quot;Shared&quot;</code>.
+<p>The compile format is specified in the build description file as follows:  <code>"compile_type" : "Shared"</code>.
 The <code>compile_type</code> keyword is optional.</p>
 <h3 id="package_commands"><a class="header" href="#package_commands">package_commands</a></h3>
 <p>The <code>package_commands</code> keyword is optional.</p>
@@ -202,29 +231,29 @@ The <code>compile_type</code> keyword is optional.</p>
 </blockquote>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-json">{
-    &quot;files&quot; : [
-        &quot;examples/hw.st&quot;,
-        &quot;examples/hello_world.st&quot;,
-        &quot;examples/ExternalFunctions.st&quot;,
-        &quot;examples/*.dt&quot;
+    "files" : [
+        "examples/hw.st",
+        "examples/hello_world.st",
+        "examples/ExternalFunctions.st",
+        "examples/*.dt"
     ],
-    &quot;compile_type&quot; : &quot;Shared&quot;,
-    &quot;output&quot; : &quot;proj.so&quot;,
-    &quot;libraries&quot; : [
+    "compile_type" : "Shared",
+    "output" : "proj.so",
+    "libraries" : [
         {
-            &quot;name&quot; : &quot;iec61131std&quot;,
-            &quot;path&quot; : &quot;path/to/lib&quot;,
-            &quot;package&quot; : &quot;Copy&quot;,
-            &quot;include_path&quot; : [
-                &quot;examples/lib.st&quot;
+            "name" : "iec61131std",
+            "path" : "path/to/lib",
+            "package" : "Copy",
+            "include_path" : [
+                "examples/lib.st"
             ]
         },
         {
-            &quot;name&quot; : &quot;other_lib&quot;,
-            &quot;path&quot; : &quot;path/to/lib&quot;,
-            &quot;package&quot; : &quot;System&quot;,
-            &quot;include_path&quot; : [
-                &quot;examples/hello_world.st&quot;
+            "name" : "other_lib",
+            "path" : "path/to/lib",
+            "package" : "System",
+            "include_path" : [
+                "examples/hello_world.st"
             ]
         }
     ]
@@ -260,11 +289,11 @@ This is the value of either the <a href="#lib-location"><code>--lib-location</co
 <p>To reference an environment variable in the description file, reference the variables with a preceding <code>$</code>.</p>
 <p><strong>Example:</strong></p>
 <pre><code class="language-json">{
- &quot;name&quot; : &quot;mylib&quot;,
- &quot;path&quot; : &quot;$ARCH/lib&quot;,
- &quot;package&quot; : &quot;System&quot;,
- &quot;include_path&quot; : [
-  &quot;examples/hello_world.st&quot;
+ "name" : "mylib",
+ "path" : "$ARCH/lib",
+ "package" : "System",
+ "include_path" : [
+  "examples/hello_world.st"
  ]
 }
 </code></pre>
@@ -281,7 +310,7 @@ If the schema is not found, the schema based validation will be skipped.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -295,7 +324,7 @@ If the schema is not found, the schema based validation will be skipped.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

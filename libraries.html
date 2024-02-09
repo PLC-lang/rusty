@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -10,7 +10,7 @@
         
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="favicon.svg">
         <link rel="shortcut icon" href="favicon.png">
@@ -31,7 +31,7 @@
         <!-- Custom theme stylesheets -->
 
     </head>
-    <body>
+    <body class="sidebar-visible no-js">
     <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
@@ -61,42 +61,71 @@
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
-            html.classList.remove('no-js')
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
+            var body = document.querySelector('body');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
-            html.classList.remove('sidebar-visible');
-            html.classList.add("sidebar-" + sidebar);
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
                 <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html" class="active"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
         </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -197,7 +226,7 @@ If the application is being compiled with the <code>--static</code> flag (or no 
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
 <p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. </br>
-To add a library to the project, the <code>&quot;libraries&quot;</code> section can be used.
+To add a library to the project, the <code>"libraries"</code> section can be used.
 A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).</p>
 <h3 id="name"><a class="header" href="#name"><code>name</code></a></h3>
 <p>The name of the library to be linked. This will be used by the linker to find the library. </br>
@@ -209,8 +238,8 @@ A library with the name <code>mylib</code> must have an equivalant compiled file
 <p>The location of the library to be linked. The path can be either absolute or relative to the project. </br></p>
 <h3 id="package"><a class="header" href="#package"><code>package</code></a></h3>
 <p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.</br>
-The value <a name="copy"><code>&quot;Copy&quot;</code></a> indicates that the given library should be copied to the <a href="#library-location">Library Location</a>. </br>
-The value <a name="system"><code>&quot;System&quot;</code></a> indicates that the given library exists on the system and does not need to be copied.</p>
+The value <a name="copy"><code>"Copy"</code></a> indicates that the given library should be copied to the <a href="#library-location">Library Location</a>. </br>
+The value <a name="system"><code>"System"</code></a> indicates that the given library exists on the system and does not need to be copied.</p>
 <h3 id="include_path"><a class="header" href="#include_path"><code>include_path</code></a></h3>
 <p>A list of files (can include globs) that should be included with the project.</br>
 Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
@@ -227,21 +256,21 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
 </blockquote>
 <h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
 <p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em>:</p>
-<pre><code class="language-json">&quot;libraries&quot; : [
+<pre><code class="language-json">"libraries" : [
     {
-        &quot;name&quot; : &quot;mylib&quot;,
-        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
-        &quot;package&quot; : &quot;Copy&quot;,
-        &quot;include_path&quot; : [
-            &quot;simple_program.st&quot;
+        "name" : "mylib",
+        "path" : "libs/$ARCH/",
+        "package" : "Copy",
+        "include_path" : [
+            "simple_program.st"
         ]
     },
     {
-        &quot;name&quot; : &quot;std&quot;,
-        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
-        &quot;package&quot; : &quot;System&quot;,
-        &quot;include_path&quot; : [
-            &quot;include/*.st&quot;
+        "name" : "std",
+        "path" : "libs/$ARCH/",
+        "package" : "System",
+        "include_path" : [
+            "include/*.st"
         ]
     }
 ]
@@ -255,7 +284,7 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="libraries/external_functions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="libraries/external_functions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -269,7 +298,7 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="libraries/external_functions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="libraries/external_functions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

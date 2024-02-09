@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/builtins.rs`."><title>builtins.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../rusty/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/builtins.rs`."><title>builtins.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1023,7 +1023,7 @@
                     </span><span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{ <span class="kw">return</span>; };
                     <span class="comment">// Get the input and annotate it with a pointer type
                     </span><span class="kw">let </span>input = flatten_expression_list(params);
-                    <span class="kw">let </span><span class="prelude-val">Some</span>(input) = input.get(<span class="number">0</span>)  <span class="kw">else </span>{ <span class="kw">return</span>; };
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(input) = input.first()  <span class="kw">else </span>{ <span class="kw">return</span>; };
                     <span class="kw">let </span>input_type = annotator.annotation_map
                         .get_type_or_void(input, annotator.index)
                         .get_type_information()
@@ -1086,13 +1086,13 @@
                     <span class="kw">let </span>context = llvm.context;
                     <span class="kw">let </span>builder = <span class="kw-2">&amp;</span>llvm.builder;
 
-                    <span class="kw">let </span>function_context = generator.get_function_context(params.get(<span class="number">0</span>).expect(<span class="string">&quot;Param 0 exists&quot;</span>))<span class="question-mark">?</span>;
+                    <span class="kw">let </span>function_context = generator.get_function_context(params.first().expect(<span class="string">&quot;Param 0 exists&quot;</span>))<span class="question-mark">?</span>;
                     <span class="kw">let </span>insert_block = builder.get_insert_block().expect(<span class="string">&quot;Builder should have a block at this point&quot;</span>);
 
                     <span class="comment">//Generate an access from the first param
                     </span><span class="kw">if let </span>(<span class="kw-2">&amp;</span>[k], params) = params.split_at(<span class="number">1</span>) {
                         <span class="comment">//Create a temp var
-                        </span><span class="kw">let </span>result_type = params.get(<span class="number">0</span>)
+                        </span><span class="kw">let </span>result_type = params.first()
                             .ok_or_else(|| Diagnostic::codegen_error(<span class="string">&quot;Invalid signature for MUX&quot;</span>, location))
                             .and_then(|it| generator.get_type_hint_info_for(it))
                             .and_then(|it| generator.llvm_index.get_associated_type(it.get_name()))<span class="question-mark">?</span>;
@@ -1592,7 +1592,7 @@
             )
         })
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-    <span class="kw">let </span><span class="prelude-val">Some</span>(new_statement) = comparisons.get(<span class="number">0</span>) <span class="kw">else </span>{
+    <span class="kw">let </span><span class="prelude-val">Some</span>(new_statement) = comparisons.first() <span class="kw">else </span>{
         <span class="comment">// no windows =&gt; less than 2 parameters, caught during validation
         </span><span class="kw">return</span>;
     };
@@ -1638,7 +1638,7 @@
     </span><span class="kw">let </span>find_biggest_param_type_name = |annotator: <span class="kw-2">&amp;</span>TypeAnnotator| {
         <span class="kw">let </span><span class="kw-2">mut </span>bigger = annotator
             .annotation_map
-            .get_type_or_void(params_flattened.get(<span class="number">0</span>).expect(<span class="string">&quot;must have this parameter&quot;</span>), annotator.index);
+            .get_type_or_void(params_flattened.first().expect(<span class="string">&quot;must have this parameter&quot;</span>), annotator.index);
 
         <span class="kw">for </span>param <span class="kw">in </span>params_flattened.iter().skip(<span class="number">1</span>) {
             <span class="kw">let </span>right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
@@ -1652,7 +1652,7 @@
 
     <span class="comment">// create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    </span><span class="kw">let </span>left = (<span class="kw-2">*</span>params_flattened.get(<span class="number">0</span>).expect(<span class="string">&quot;Must exist&quot;</span>)).clone();
+    </span><span class="kw">let </span>left = (<span class="kw-2">*</span>params_flattened.first().expect(<span class="string">&quot;Must exist&quot;</span>)).clone();
     <span class="kw">let </span>new_statement = params_flattened.into_iter().skip(<span class="number">1</span>).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
@@ -1672,7 +1672,7 @@
         </span><span class="kw">return</span>;
     };
     <span class="kw">let </span>params = ast::flatten_expression_list(parameters);
-    <span class="kw">let </span><span class="prelude-val">Some</span>(vla) = params.get(<span class="number">0</span>) <span class="kw">else </span>{
+    <span class="kw">let </span><span class="prelude-val">Some</span>(vla) = params.first() <span class="kw">else </span>{
         <span class="comment">// caught during validation
         </span><span class="kw">return</span>;
     };
@@ -1712,7 +1712,7 @@
         ));
     }
 
-    <span class="kw">match </span>(params.get(<span class="number">0</span>), params.get(<span class="number">1</span>)) {
+    <span class="kw">match </span>(params.first(), params.get(<span class="number">1</span>)) {
         (<span class="prelude-val">Some</span>(vla), <span class="prelude-val">Some</span>(idx)) =&gt; {
             <span class="kw">let </span>idx_type = annotations.get_type_or_void(idx, index);
 

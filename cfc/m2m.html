@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -10,7 +10,7 @@
         
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -31,7 +31,7 @@
         <!-- Custom theme stylesheets -->
 
     </head>
-    <body>
+    <body class="sidebar-visible no-js">
     <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
@@ -61,42 +61,71 @@
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
-            html.classList.remove('no-js')
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
+            var body = document.querySelector('body');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
-            html.classList.remove('sidebar-visible');
-            html.classList.add("sidebar-" + sidebar);
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
                 <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="../cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cfc/m2m.html" class="active"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
         </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -168,10 +197,10 @@
 </code></pre>
 <p>The initial phase of the transformation process involves streaming the entire input file.
 During the streaming process, whenever important keywords such as <code>block</code> are encountered, they are directly mapped into a corresponding model structure.
-For example, when reaching the line <code>&lt;block localId=&quot;3&quot; ...&gt;</code> within the XML file, we generate a model that can be represented as follows:</p>
+For example, when reaching the line <code>&lt;block localId="3" ...&gt;</code> within the XML file, we generate a model that can be represented as follows:</p>
 <pre><code class="language-rust ignore">struct Block {
     localId: 2,
-    type_name: &quot;MyAdd&quot;,
+    type_name: "MyAdd",
     instance_name: None,
     execution_order_id: 0,
     variables: [
@@ -214,7 +243,7 @@ We then check and transform each parameter, input <code>a</code> and <code>b</co
 END_FUNCTION
 </code></pre>
 <h3 id="myprogramcfc"><a class="header" href="#myprogramcfc">MyProgram.cfc</a></h3>
-<pre><code class="language-xml ignore">&lt;pou xmlns=&quot;http://www.plcopen.org/xml/tc6_0201&quot; name=&quot;myProgram&quot; pouType=&quot;program&quot;&gt;
+<pre><code class="language-xml ignore">&lt;pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myProgram" pouType="program"&gt;
     &lt;content&gt;
         PROGRAM myProgram
             VAR
@@ -223,33 +252,33 @@ END_FUNCTION
     &lt;/content&gt;
     &lt;body&gt;
         &lt;FBD&gt;
-            &lt;inVariable localId=&quot;1&quot; height=&quot;20&quot; width=&quot;80&quot; negated=&quot;false&quot;&gt;
+            &lt;inVariable localId="1" height="20" width="80" negated="false"&gt;
                 &lt;expression&gt;x&lt;/expression&gt;
             &lt;/inVariable&gt;
-            &lt;inVariable localId=&quot;2&quot; height=&quot;20&quot; width=&quot;80&quot; negated=&quot;false&quot;&gt;
+            &lt;inVariable localId="2" height="20" width="80" negated="false"&gt;
                 &lt;expression&gt;y&lt;/expression&gt;
             &lt;/inVariable&gt;
-            &lt;block localId=&quot;3&quot; width=&quot;74&quot; height=&quot;60&quot; typeName=&quot;MyAdd&quot; executionOrderId=&quot;0&quot;&gt;
+            &lt;block localId="3" width="74" height="60" typeName="MyAdd" executionOrderId="0"&gt;
                 &lt;inputVariables&gt;
-                    &lt;variable formalParameter=&quot;x&quot; negated=&quot;false&quot;&gt;
+                    &lt;variable formalParameter="x" negated="false"&gt;
                         &lt;connectionPointIn&gt;
-                            &lt;connection refLocalId=&quot;1&quot;/&gt;
+                            &lt;connection refLocalId="1"/&gt;
                         &lt;/connectionPointIn&gt;
                     &lt;/variable&gt;
-                    &lt;variable formalParameter=&quot;y&quot; negated=&quot;false&quot;&gt;
+                    &lt;variable formalParameter="y" negated="false"&gt;
                         &lt;connectionPointIn&gt;
-                            &lt;connection refLocalId=&quot;2&quot;/&gt;
+                            &lt;connection refLocalId="2"/&gt;
                         &lt;/connectionPointIn&gt;
                     &lt;/variable&gt;
                 &lt;/inputVariables&gt;
                 &lt;outputVariables&gt;
-                    &lt;/variable formalParameter=&quot;MyAdd&quot; negated=&quot;false&quot;&gt;
+                    &lt;/variable formalParameter="MyAdd" negated="false"&gt;
                 &lt;/outputVariables&gt;
             &lt;/block&gt;
-            &lt;outVariable localId=&quot;4&quot; height=&quot;20&quot; width=&quot;80&quot; executionOrderId=&quot;1&quot; negated=&quot;false&quot; storage=&quot;none&quot;&gt;
-                &lt;position x=&quot;680&quot; y=&quot;160&quot;/&gt;
+            &lt;outVariable localId="4" height="20" width="80" executionOrderId="1" negated="false" storage="none"&gt;
+                &lt;position x="680" y="160"/&gt;
                 &lt;connectionPointIn&gt;
-                    &lt;connection refLocalId=&quot;3&quot; formalParameter=&quot;MyAdd&quot;/&gt;
+                    &lt;connection refLocalId="3" formalParameter="MyAdd"/&gt;
                 &lt;/connectionPointIn&gt;
                 &lt;expression&gt;z&lt;/expression&gt;
             &lt;/outVariable&gt;

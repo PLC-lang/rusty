@@ -1,17 +1,17 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>RuSTy User Documentation</title>
-        <meta name="robots" content="noindex" />
+        <meta name="robots" content="noindex">
 
 
         <!-- Custom HTML head -->
         
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="favicon.svg">
         <link rel="shortcut icon" href="favicon.png">
@@ -32,7 +32,7 @@
         <!-- Custom theme stylesheets -->
 
     </head>
-    <body>
+    <body class="sidebar-visible no-js">
     <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
@@ -62,42 +62,71 @@
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
-            html.classList.remove('no-js')
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
+            var body = document.querySelector('body');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
-            html.classList.remove('sidebar-visible');
-            html.classList.add("sidebar-" + sidebar);
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
                 <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li><li class="chapter-item expanded "><a href="cfc/cfc.html"><strong aria-hidden="true">10.</strong> CFC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="cfc/m2m.html"><strong aria-hidden="true">10.1.</strong> Model-to-Model Conversion</a></li></ol></li></ol>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
         </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -239,7 +268,7 @@ To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.<
 <pre><code class="language-bash">brew install llvm@14
 </code></pre>
 <p>After the installation you have to add <code>/opt/homebrew/opt/llvm@14/bin</code> to your <code>$PATH</code> environment variable, e.g. with the following command:</p>
-<pre><code class="language-bash">echo 'export PATH=&quot;/opt/homebrew/opt/llvm@14/bin:$PATH&quot;' &gt;&gt; ~/.zshrc
+<pre><code class="language-bash">echo 'export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"' &gt;&gt; ~/.zshrc
 </code></pre>
 <h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
 <p>Compiling RuSTy on Windows requires three dependencies:</p>
@@ -285,7 +314,7 @@ file extension depending on the output file format.</p>
 <li><code>plc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
 <li><code>plc --ir file1.cfc file2.st</code> will compile file1.cfc and file2.st.</li>
 <li><code>plc --ir src/*.st</code> will compile all ST files in the src-folder.</li>
-<li><code>plc --ir &quot;**/*.st&quot;</code> will compile all ST-files in the current folder and its subfolders recursively.</li>
+<li><code>plc --ir "**/*.st"</code> will compile all ST-files in the current folder and its subfolders recursively.</li>
 </ul>
 <h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
 <h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
@@ -316,10 +345,10 @@ END_FUNCTION
 <p><code>plc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>aggressive</code>, respectively <code>-O0</code> to <code>-O3</code>).</p>
 <p>To use an optimization, the flag <code>-O</code> or <code>--optimization</code> is required:</p>
 <ul>
-<li><code>plc -c &quot;**/*.st&quot; -O none</code></li>
-<li><code>plc -c &quot;**/*.st&quot; -O less</code></li>
-<li><code>plc -c &quot;**/*.st&quot; -O default</code></li>
-<li><code>plc -c &quot;**/*.st&quot; -O aggressive</code></li>
+<li><code>plc -c "**/*.st" -O none</code></li>
+<li><code>plc -c "**/*.st" -O less</code></li>
+<li><code>plc -c "**/*.st" -O default</code></li>
+<li><code>plc -c "**/*.st" -O aggressive</code></li>
 </ul>
 <p>By default <code>plc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
 <h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
@@ -378,29 +407,29 @@ All the keys used in the build description file are described in the following s
 <h3 id="files"><a class="header" href="#files">files</a></h3>
 <p>The keyword <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>ST</code> files that need to be compiled.</p>
 <p>The value of <code>files</code> is an array of strings, definied as follows:</p>
-<pre><code class="language-json">&quot;files&quot; : [
-    &quot;examples/hello_world.st&quot;,
-    &quot;examples/hw.st&quot;
-    &quot;examples/*.gvl&quot;
+<pre><code class="language-json">"files" : [
+    "examples/hello_world.st",
+    "examples/hw.st"
+    "examples/*.gvl"
 ]
 </code></pre>
 <h3 id="libraries"><a class="header" href="#libraries">libraries</a></h3>
 <p>To link several objects into one executable <code>plc</code> has the option to add libraries and automatically build and link them together.</br>
 The <code>libraries</code> keyword is optional.</p>
-<pre><code class="language-json">&quot;libraries&quot; : [
+<pre><code class="language-json">"libraries" : [
     {
-        &quot;name&quot; : &quot;iec61131std&quot;,
-        &quot;path&quot; : &quot;path/to/lib/&quot;,
-        &quot;package&quot; : &quot;Copy&quot;,
-        &quot;include_path&quot; : [
-            &quot;examples/hw.st&quot;,
-            &quot;examples/hello_world.st&quot;
+        "name" : "iec61131std",
+        "path" : "path/to/lib/",
+        "package" : "Copy",
+        "include_path" : [
+            "examples/hw.st",
+            "examples/hello_world.st"
         ]
     }
 ]
 </code></pre>
 <h3 id="output"><a class="header" href="#output">output</a></h3>
-<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is the current build directory. (see <a href="using_rusty/build_configuration.html#build-location">Build Location</a>).</p>
+<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>"output" : "output.so"</code> to define the output file. The default location is the current build directory. (see <a href="using_rusty/build_configuration.html#build-location">Build Location</a>).</p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
 <p>The following options can be used for the <code>compile_type</code> :</p>
 <ul>
@@ -411,7 +440,7 @@ The <code>libraries</code> keyword is optional.</p>
 <li><code>Bitcode</code> adds bitcode alongside machine code in executable file.</li>
 <li><code>IR</code> intermediate <code>llvm</code> representation.</li>
 </ul>
-<p>The compile format is specified in the build description file as follows:  <code>&quot;compile_type&quot; : &quot;Shared&quot;</code>.
+<p>The compile format is specified in the build description file as follows:  <code>"compile_type" : "Shared"</code>.
 The <code>compile_type</code> keyword is optional.</p>
 <h3 id="package_commands"><a class="header" href="#package_commands">package_commands</a></h3>
 <p>The <code>package_commands</code> keyword is optional.</p>
@@ -420,29 +449,29 @@ The <code>compile_type</code> keyword is optional.</p>
 </blockquote>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-json">{
-    &quot;files&quot; : [
-        &quot;examples/hw.st&quot;,
-        &quot;examples/hello_world.st&quot;,
-        &quot;examples/ExternalFunctions.st&quot;,
-        &quot;examples/*.dt&quot;
+    "files" : [
+        "examples/hw.st",
+        "examples/hello_world.st",
+        "examples/ExternalFunctions.st",
+        "examples/*.dt"
     ],
-    &quot;compile_type&quot; : &quot;Shared&quot;,
-    &quot;output&quot; : &quot;proj.so&quot;,
-    &quot;libraries&quot; : [
+    "compile_type" : "Shared",
+    "output" : "proj.so",
+    "libraries" : [
         {
-            &quot;name&quot; : &quot;iec61131std&quot;,
-            &quot;path&quot; : &quot;path/to/lib&quot;,
-            &quot;package&quot; : &quot;Copy&quot;,
-            &quot;include_path&quot; : [
-                &quot;examples/lib.st&quot;
+            "name" : "iec61131std",
+            "path" : "path/to/lib",
+            "package" : "Copy",
+            "include_path" : [
+                "examples/lib.st"
             ]
         },
         {
-            &quot;name&quot; : &quot;other_lib&quot;,
-            &quot;path&quot; : &quot;path/to/lib&quot;,
-            &quot;package&quot; : &quot;System&quot;,
-            &quot;include_path&quot; : [
-                &quot;examples/hello_world.st&quot;
+            "name" : "other_lib",
+            "path" : "path/to/lib",
+            "package" : "System",
+            "include_path" : [
+                "examples/hello_world.st"
             ]
         }
     ]
@@ -478,11 +507,11 @@ This is the value of either the <a href="using_rusty/build_configuration.html#li
 <p>To reference an environment variable in the description file, reference the variables with a preceding <code>$</code>.</p>
 <p><strong>Example:</strong></p>
 <pre><code class="language-json">{
- &quot;name&quot; : &quot;mylib&quot;,
- &quot;path&quot; : &quot;$ARCH/lib&quot;,
- &quot;package&quot; : &quot;System&quot;,
- &quot;include_path&quot; : [
-  &quot;examples/hello_world.st&quot;
+ "name" : "mylib",
+ "path" : "$ARCH/lib",
+ "package" : "System",
+ "include_path" : [
+  "examples/hello_world.st"
  ]
 }
 </code></pre>
@@ -543,7 +572,7 @@ If the application is being compiled with the <code>--static</code> flag (or no 
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
 <p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. </br>
-To add a library to the project, the <code>&quot;libraries&quot;</code> section can be used.
+To add a library to the project, the <code>"libraries"</code> section can be used.
 A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).</p>
 <h3 id="name"><a class="header" href="#name"><code>name</code></a></h3>
 <p>The name of the library to be linked. This will be used by the linker to find the library. </br>
@@ -555,8 +584,8 @@ A library with the name <code>mylib</code> must have an equivalant compiled file
 <p>The location of the library to be linked. The path can be either absolute or relative to the project. </br></p>
 <h3 id="package"><a class="header" href="#package"><code>package</code></a></h3>
 <p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.</br>
-The value <a name="copy"><code>&quot;Copy&quot;</code></a> indicates that the given library should be copied to the <a href="libraries.html#library-location">Library Location</a>. </br>
-The value <a name="system"><code>&quot;System&quot;</code></a> indicates that the given library exists on the system and does not need to be copied.</p>
+The value <a name="copy"><code>"Copy"</code></a> indicates that the given library should be copied to the <a href="libraries.html#library-location">Library Location</a>. </br>
+The value <a name="system"><code>"System"</code></a> indicates that the given library exists on the system and does not need to be copied.</p>
 <h3 id="include_path"><a class="header" href="#include_path"><code>include_path</code></a></h3>
 <p>A list of files (can include globs) that should be included with the project.</br>
 Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
@@ -573,21 +602,21 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
 </blockquote>
 <h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
 <p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em>:</p>
-<pre><code class="language-json">&quot;libraries&quot; : [
+<pre><code class="language-json">"libraries" : [
     {
-        &quot;name&quot; : &quot;mylib&quot;,
-        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
-        &quot;package&quot; : &quot;Copy&quot;,
-        &quot;include_path&quot; : [
-            &quot;simple_program.st&quot;
+        "name" : "mylib",
+        "path" : "libs/$ARCH/",
+        "package" : "Copy",
+        "include_path" : [
+            "simple_program.st"
         ]
     },
     {
-        &quot;name&quot; : &quot;std&quot;,
-        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
-        &quot;package&quot; : &quot;System&quot;,
-        &quot;include_path&quot; : [
-            &quot;include/*.st&quot;
+        "name" : "std",
+        "path" : "libs/$ARCH/",
+        "package" : "System",
+        "include_path" : [
+            "include/*.st"
         ]
     }
 ]
@@ -611,7 +640,7 @@ END_FUNCTION
 </blockquote>
 <h2 id="calling-c-functions"><a class="header" href="#calling-c-functions">Calling C functions</a></h2>
 <p><code>ST</code> code can call into foreign functions natively.
-To achieve this, the called function must be defined in a <code>C</code> compatible API, e.g. <code>extern &quot;C&quot;</code> blocks.</p>
+To achieve this, the called function must be defined in a <code>C</code> compatible API, e.g. <code>extern "C"</code> blocks.</p>
 <p>The interface of the function has to:</p>
 <ul>
 <li>either be included with the <code>-i</code> flag</li>
@@ -927,7 +956,7 @@ They will then be treated with regard to the respective number system.</p>
 </tbody></table>
 </div>
 <p>When such a variable is declared without being initialized, it will
-be default-initialized with a value of '' or &quot;&quot; respectively (empty strings).</p>
+be default-initialized with a value of '' or "" respectively (empty strings).</p>
 <h3 id="string"><a class="header" href="#string">STRING</a></h3>
 <p>RuSTy treats <code>STRING</code>s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end.
 So a String of size n requres n+1 bytes to account for the Null-terminator.
@@ -946,7 +975,7 @@ When declaring a <code>STRING</code>, the length-attribute is optional. The defa
 <p>RuSTy treats <code>WSTRING</code>s as byte-arrays storing UTF-16 character bytes with two Null-terminator bytes at the end.
 The bytes are stored in Little Endian encoding.
 A Wide-String of size n requres 2 * (n+1) bytes to account for the 2 byes per utf16 character and the Null-terminators.
-A <code>WSTRING</code> literal is surrounded by doubly-ticks <code>&quot;</code>.</p>
+A <code>WSTRING</code> literal is surrounded by doubly-ticks <code>"</code>.</p>
 <p>A <code>WSTRING</code> has a well defined length which can be defined similar to the array-syntax.
 A <code>WSTRING</code>-variable <code>myVariable: WSTRING[20]</code> declares a byte array of length 42, to store 20 utf16 character bytes.
 When declaring a <code>WSTRING</code>, the length-attribute is optional. The default length is 80.</p>
@@ -954,8 +983,8 @@ When declaring a <code>WSTRING</code>, the length-attribute is optional. The def
 <ul>
 <li><code>ws1 : WSTRING;</code> - declares a Wide-String of length 80.</li>
 <li><code>ws2 : WSTRING[20];</code> - declares a Wide-String of length 20.</li>
-<li><code>ws3 : WSTRING := &quot;Hello World&quot;;</code> - declares and initializes a Wide-String of length 80, and initializes it with the utf16 characters and a utf16-null-terminator at the end.</li>
-<li><code>ws4 : WSTRING[55] := &quot;Foo Baz&quot;;</code> - declares and initializes a Wide-String of length 55 and initializes it with the utf8 characters and a utf16-null-terminator at the end.</li>
+<li><code>ws3 : WSTRING := "Hello World";</code> - declares and initializes a Wide-String of length 80, and initializes it with the utf16 characters and a utf16-null-terminator at the end.</li>
+<li><code>ws4 : WSTRING[55] := "Foo Baz";</code> - declares and initializes a Wide-String of length 55 and initializes it with the utf8 characters and a utf16-null-terminator at the end.</li>
 </ul>
 <h2 id="date-and-time"><a class="header" href="#date-and-time">Date and Time</a></h2>
 <h3 id="overview-2"><a class="header" href="#overview-2">Overview</a></h3>
@@ -1113,7 +1142,7 @@ END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="overview-3"><a class="header" href="#overview-3">Overview</a></h2>
-<p>RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC (&quot;FBD&quot;) are supported.
+<p>RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC ("FBD") are supported.
 It utilizes the LLVM compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> frontend that translates Structured Text into LLVM's language independent intermediate representation (IR).
 <a href="arch/../cfc/cfc.html">CFC</a> uses a M2M-transformation and reuses most of the ST frontend for compilation.
 The further optimization and native code generation is performed by the existing LLVM infrastructure, namely LLVM's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
@@ -1787,7 +1816,7 @@ END_PROGRAM
 <p>So for the given example, we see the code-generator creating a type for the FunctionBlock's state (<code>foo_interface</code>).
 The declared instance of foo, in <code>prg's</code> interface is seen in the program's generated interface struct-type (<code>prg_interface</code>).</p>
 <pre><code class="language-llvm">; ModuleID = 'main'
-source_filename = &quot;main&quot;
+source_filename = "main"
 
 %prg_interface = type { %foo_interface }
 %foo_interface = type { i16, i16 }
@@ -1934,10 +1963,10 @@ This involves converting the XML into a structured model, which is then converte
 </code></pre>
 <p>The initial phase of the transformation process involves streaming the entire input file.
 During the streaming process, whenever important keywords such as <code>block</code> are encountered, they are directly mapped into a corresponding model structure.
-For example, when reaching the line <code>&lt;block localId=&quot;3&quot; ...&gt;</code> within the XML file, we generate a model that can be represented as follows:</p>
+For example, when reaching the line <code>&lt;block localId="3" ...&gt;</code> within the XML file, we generate a model that can be represented as follows:</p>
 <pre><code class="language-rust ignore">struct Block {
     localId: 2,
-    type_name: &quot;MyAdd&quot;,
+    type_name: "MyAdd",
     instance_name: None,
     execution_order_id: 0,
     variables: [
@@ -1980,7 +2009,7 @@ We then check and transform each parameter, input <code>a</code> and <code>b</co
 END_FUNCTION
 </code></pre>
 <h3 id="myprogramcfc"><a class="header" href="#myprogramcfc">MyProgram.cfc</a></h3>
-<pre><code class="language-xml ignore">&lt;pou xmlns=&quot;http://www.plcopen.org/xml/tc6_0201&quot; name=&quot;myProgram&quot; pouType=&quot;program&quot;&gt;
+<pre><code class="language-xml ignore">&lt;pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="myProgram" pouType="program"&gt;
     &lt;content&gt;
         PROGRAM myProgram
             VAR
@@ -1989,33 +2018,33 @@ END_FUNCTION
     &lt;/content&gt;
     &lt;body&gt;
         &lt;FBD&gt;
-            &lt;inVariable localId=&quot;1&quot; height=&quot;20&quot; width=&quot;80&quot; negated=&quot;false&quot;&gt;
+            &lt;inVariable localId="1" height="20" width="80" negated="false"&gt;
                 &lt;expression&gt;x&lt;/expression&gt;
             &lt;/inVariable&gt;
-            &lt;inVariable localId=&quot;2&quot; height=&quot;20&quot; width=&quot;80&quot; negated=&quot;false&quot;&gt;
+            &lt;inVariable localId="2" height="20" width="80" negated="false"&gt;
                 &lt;expression&gt;y&lt;/expression&gt;
             &lt;/inVariable&gt;
-            &lt;block localId=&quot;3&quot; width=&quot;74&quot; height=&quot;60&quot; typeName=&quot;MyAdd&quot; executionOrderId=&quot;0&quot;&gt;
+            &lt;block localId="3" width="74" height="60" typeName="MyAdd" executionOrderId="0"&gt;
                 &lt;inputVariables&gt;
-                    &lt;variable formalParameter=&quot;x&quot; negated=&quot;false&quot;&gt;
+                    &lt;variable formalParameter="x" negated="false"&gt;
                         &lt;connectionPointIn&gt;
-                            &lt;connection refLocalId=&quot;1&quot;/&gt;
+                            &lt;connection refLocalId="1"/&gt;
                         &lt;/connectionPointIn&gt;
                     &lt;/variable&gt;
-                    &lt;variable formalParameter=&quot;y&quot; negated=&quot;false&quot;&gt;
+                    &lt;variable formalParameter="y" negated="false"&gt;
                         &lt;connectionPointIn&gt;
-                            &lt;connection refLocalId=&quot;2&quot;/&gt;
+                            &lt;connection refLocalId="2"/&gt;
                         &lt;/connectionPointIn&gt;
                     &lt;/variable&gt;
                 &lt;/inputVariables&gt;
                 &lt;outputVariables&gt;
-                    &lt;/variable formalParameter=&quot;MyAdd&quot; negated=&quot;false&quot;&gt;
+                    &lt;/variable formalParameter="MyAdd" negated="false"&gt;
                 &lt;/outputVariables&gt;
             &lt;/block&gt;
-            &lt;outVariable localId=&quot;4&quot; height=&quot;20&quot; width=&quot;80&quot; executionOrderId=&quot;1&quot; negated=&quot;false&quot; storage=&quot;none&quot;&gt;
-                &lt;position x=&quot;680&quot; y=&quot;160&quot;/&gt;
+            &lt;outVariable localId="4" height="20" width="80" executionOrderId="1" negated="false" storage="none"&gt;
+                &lt;position x="680" y="160"/&gt;
                 &lt;connectionPointIn&gt;
-                    &lt;connection refLocalId=&quot;3&quot; formalParameter=&quot;MyAdd&quot;/&gt;
+                    &lt;connection refLocalId="3" formalParameter="MyAdd"/&gt;
                 &lt;/connectionPointIn&gt;
                 &lt;expression&gt;z&lt;/expression&gt;
             &lt;/outVariable&gt;
