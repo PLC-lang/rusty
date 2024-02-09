@@ -312,7 +312,7 @@ impl AnnotatedProject {
                         let current_dir = env::current_dir()?;
                         let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
                         let unit_location = PathBuf::from(&unit.file_name);
-                        let unit_location = std::fs::canonicalize(unit_location)?;
+                        let unit_location = fs::canonicalize(unit_location)?;
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
                                 Diagnostic::error(format!(
@@ -329,9 +329,9 @@ impl AnnotatedProject {
                         };
 
                         let output_name = match compile_options.output_format {
-                            FormatOption::IR => output_name.with_extension("ll"),
-                            FormatOption::Bitcode => output_name.with_extension("bc"),
-                            _ => output_name.with_extension("o"),
+                            FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
+                            FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
+                            _ => format!("{}.o", output_name.to_string_lossy()),
                         };
 
                         let context = CodegenContext::create(); //Create a build location for the generated object files
@@ -340,7 +340,7 @@ impl AnnotatedProject {
                         module
                             .persist(
                                 Some(&compile_directory),
-                                &output_name.to_string_lossy(),
+                                &output_name,
                                 compile_options.output_format,
                                 target,
                                 compile_options.optimization,
