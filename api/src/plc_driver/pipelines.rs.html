@@ -810,7 +810,7 @@
                         <span class="kw">let </span>current_dir = env::current_dir()<span class="question-mark">?</span>;
                         <span class="kw">let </span>current_dir = compile_options.root.as_deref().unwrap_or(<span class="kw-2">&amp;</span>current_dir);
                         <span class="kw">let </span>unit_location = PathBuf::from(<span class="kw-2">&amp;</span>unit.file_name);
-                        <span class="kw">let </span>unit_location = std::fs::canonicalize(unit_location)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>unit_location = fs::canonicalize(unit_location)<span class="question-mark">?</span>;
                         <span class="kw">let </span>output_name = <span class="kw">if </span>unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
                                 Diagnostic::error(<span class="macro">format!</span>(
@@ -827,9 +827,9 @@
                         };
 
                         <span class="kw">let </span>output_name = <span class="kw">match </span>compile_options.output_format {
-                            FormatOption::IR =&gt; output_name.with_extension(<span class="string">&quot;ll&quot;</span>),
-                            FormatOption::Bitcode =&gt; output_name.with_extension(<span class="string">&quot;bc&quot;</span>),
-                            <span class="kw">_ </span>=&gt; output_name.with_extension(<span class="string">&quot;o&quot;</span>),
+                            FormatOption::IR =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}.ll&quot;</span>, output_name.to_string_lossy()),
+                            FormatOption::Bitcode =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}.bc&quot;</span>, output_name.to_string_lossy()),
+                            <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;{}.o&quot;</span>, output_name.to_string_lossy()),
                         };
 
                         <span class="kw">let </span>context = CodegenContext::create(); <span class="comment">//Create a build location for the generated object files
@@ -838,7 +838,7 @@
                         module
                             .persist(
                                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>compile_directory),
-                                <span class="kw-2">&amp;</span>output_name.to_string_lossy(),
+                                <span class="kw-2">&amp;</span>output_name,
                                 compile_options.output_format,
                                 target,
                                 compile_options.optimization,
