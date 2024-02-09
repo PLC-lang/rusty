@@ -1984,6 +1984,7 @@ dependencies = [
  "log",
  "plc_ast",
  "plc_source",
+ "serde",
  "serde_json",
  "toml",
 ]

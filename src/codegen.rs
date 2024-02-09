@@ -216,8 +216,8 @@ impl<'ink> CodeGen<'ink> {
         {
             self.module
                 .verify()
-                .map_err(|it| Diagnostic::GeneralError { message: it.to_string(), err_no: "E071" })
-                .map(|_| GeneratedModule { module: self.module, debug: self.debug })
+                .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))
+                .map(|_| GeneratedModule { module: self.module, engine: RefCell::new(None) })
         }
 
         #[cfg(not(feature = "verify"))]

@@ -103,6 +103,10 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 Severity::Error => codespan_reporting::diagnostic::Diagnostic::error(),
                 Severity::Warning => codespan_reporting::diagnostic::Diagnostic::warning(),
                 Severity::Info => codespan_reporting::diagnostic::Diagnostic::note(),
+                Severity::Ignore => {
+                    log::debug!("Ignoring diagnostic: {}", &d.message);
+                    continue;
+                }
             };
 
             let mut labels = vec![];

@@ -10,6 +10,7 @@ codespan-reporting = "0.11.1"
 plc_ast = { path = "../plc_ast" }
 plc_source = { path = "../plc_source" }
 serde_json.workspace = true
+serde.workspace = true
 toml.workspace = true
 anyhow.workspace = true
 lazy_static.workspace = true

@@ -5,14 +5,17 @@ use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode,
 };
+use serde::{Deserialize, Serialize};
 
 pub mod diagnostics_registry;
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
 /// a diagnostics severity
-#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Severity {
+    Ignore,
     #[default]
     Info,
     Warning,
@@ -112,18 +115,6 @@ impl Diagnostic {
         };
         let range = factory.create_range_to_end_of_line(line, column);
         Diagnostic::new(message).with_error_code("E088").with_location(range)
-    }
-}
-
-impl PartialOrd for Diagnostic {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Diagnostic {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.severity.cmp(&other.severity)
     }
 }
 

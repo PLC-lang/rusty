@@ -143,6 +143,7 @@ impl std::fmt::Display for Severity {
             Severity::Error => "error",
             Severity::Warning => "warning",
             Severity::Info => "info",
+            Severity::Ignore => "ignore",
         };
         write!(f, "{severity}")
     }

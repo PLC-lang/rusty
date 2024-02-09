@@ -196,7 +196,7 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     let CompilationContext { compile_parameters, project, mut diagnostician, compile_options, link_options } =
         compile_options;
     if let Some((options, format)) = compile_parameters.get_config_options() {
-        return print_config_options(options, format);
+        return print_config_options(&project, options, format);
     }
 
     //Set the global thread count
@@ -262,15 +262,16 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     compile_with_options(compile_context)
 }
 
-fn print_config_options(
+fn print_config_options<T: AsRef<Path> + Sync>(
+    project: &Project<T>,
     option: cli::ConfigOption,
     _format: plc::ConfigFormat,
 ) -> std::result::Result<(), anyhow::Error> {
     match option {
         cli::ConfigOption::Schema => {
-            let schema = include_str!("../../plc_project/schema/plc-json.schema");
-            println!("{schema}");
+            println!("{}", project.get_validation_schema().as_ref())
         }
+        cli::ConfigOption::Diagnostics => println!("{}", project.get_diagnostic_configuration().as_ref()),
     };
 
     Ok(())
@@ -366,41 +367,26 @@ fn generate(
 }
 
 fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf>> {
-    let current_dir = env::current_dir()?;
     //Create a project from either the subcommand or single params
-    let project = if let Some(command) = &compile_parameters.commands {
-        //Build with subcommand
-        let config = command
-            .get_build_configuration()
-            .map(PathBuf::from)
-            .map(|it| {
-                if it.is_relative() {
-                    //Make the build path absolute
-                    current_dir.join(it)
-                } else {
-                    it
-                }
-            })
-            .or_else(|| get_config(&current_dir))
-            .ok_or_else(|| Diagnostic::new("Could not find 'plc.json'").with_error_code("E003"))?;
-        Project::from_config(&config)
-    } else {
-        //Build with parameters
-        let name = compile_parameters
-            .input
-            .first()
-            .and_then(|it| it.get_location())
-            .and_then(|it| it.file_name())
-            .and_then(|it| it.to_str())
-            .unwrap_or(DEFAULT_OUTPUT_NAME);
-        let project = Project::new(name.to_string())
-            .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
-            .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
-            .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
-            .with_libraries(compile_parameters.libraries.clone());
-        Ok(project)
-    };
-
+    let project = compile_parameters
+        .get_build_configuration()?
+        .map(|it| Project::from_config(&it))
+        .unwrap_or_else(|| {
+            //Build with parameters
+            let name = compile_parameters
+                .input
+                .first()
+                .and_then(|it| it.get_location())
+                .and_then(|it| it.file_name())
+                .and_then(|it| it.to_str())
+                .unwrap_or(DEFAULT_OUTPUT_NAME);
+            let project = Project::new(name.to_string())
+                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
+                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+                .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
+                .with_libraries(compile_parameters.libraries.clone());
+            Ok(project)
+        });
     //Override default settings with compile options
     project
         .map(|proj| {
@@ -413,6 +399,6 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
         .map(|proj| proj.with_output_name(compile_parameters.output.clone()))
 }
 
-fn get_config(root: &Path) -> Option<PathBuf> {
-    Some(root.join("plc.json"))
+fn get_config(root: &Path) -> PathBuf {
+    root.join("plc.json")
 }

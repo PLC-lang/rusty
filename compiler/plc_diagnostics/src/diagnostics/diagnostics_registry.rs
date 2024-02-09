@@ -41,6 +41,17 @@ impl DiagnosticsRegistry {
     fn new(map: HashMap<&'static str, DiagnosticEntry>) -> Self {
         DiagnosticsRegistry(map)
     }
+
+    pub fn with_configuration(mut self, config: DiagnosticsConfiguration) -> Self {
+        for (severity, codes) in config.0 {
+            for code in &codes {
+                if let Some(entry) = self.0.get_mut(code.as_str()) {
+                    entry.severity = severity
+                }
+            }
+        }
+        self
+    }
 }
 
 impl DiagnosticAssessor for DiagnosticsRegistry {
@@ -54,7 +65,12 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
     }
 }
 
+#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct DiagnosticsConfiguration(HashMap<Severity, Vec<String>>);
+
 use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
 lazy_static! {
     static ref DIAGNOSTICS: HashMap<&'static str, DiagnosticEntry> = add_diagnostic!(
     E001,
@@ -328,4 +344,62 @@ lazy_static! {
     Warning,
     include_str!("./error_codes/E090.md"), //Incompatible reference Assignment
 );
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        diagnostician::DiagnosticAssessor,
+        diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic, Severity},
+    };
+
+    use super::DiagnosticsRegistry;
+
+    #[test]
+    fn deserialize_empty_json() {
+        let error_config = "{}";
+
+        let DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
+        assert!(configuration.is_empty());
+    }
+
+    #[test]
+    fn deserialize_json() {
+        let error_config = r#"{
+            "error": ["E001", "E002"],
+            "warning": ["E003", "E004"],
+            "info": ["E005"],
+            "ignore": ["E010"]
+        }"#;
+
+        let DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
+        assert_eq!(configuration.len(), 4);
+        assert_eq!(configuration.get(&Severity::Error).unwrap(), &["E001", "E002"]);
+        assert_eq!(configuration.get(&Severity::Warning).unwrap(), &["E003", "E004"]);
+        assert_eq!(configuration.get(&Severity::Info).unwrap(), &["E005"]);
+        assert_eq!(configuration.get(&Severity::Ignore).unwrap(), &["E010"]);
+    }
+
+    #[test]
+    fn overridden_errors_are_assessed_correctly() {
+        let error_config = r#"{
+            "error": ["E090"],
+            "warning": ["E001"],
+            "info": ["E002"],
+            "ignore": ["E003"]
+        }"#;
+
+        let configuration = serde_json::de::from_str(error_config).unwrap();
+        let diagnostics_registry = DiagnosticsRegistry::default().with_configuration(configuration);
+
+        let e090 = Diagnostic::new("Warning->Error").with_error_code("E090");
+        let e001 = Diagnostic::new("Error->Warning").with_error_code("E001");
+        let e002 = Diagnostic::new("Error->Info").with_error_code("E002");
+        let e003 = Diagnostic::new("Error->Ignore").with_error_code("E003");
+
+        assert_eq!(diagnostics_registry.assess(&e090), Severity::Error);
+        assert_eq!(diagnostics_registry.assess(&e001), Severity::Warning);
+        assert_eq!(diagnostics_registry.assess(&e002), Severity::Info);
+        assert_eq!(diagnostics_registry.assess(&e003), Severity::Ignore);
+    }
 }
