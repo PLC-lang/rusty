@@ -232,7 +232,14 @@ pub fn run_instrumentation_lowering_pass<'ctx>(module: &Module<'ctx>) {
         .unwrap();
 
     // Run pass (uses new pass manager)
-    let _ = module.run_passes("instrprof", &machine, PassBuilderOptions::create());
+    // When compiling as IR, run this:
+    let passes = "instrprof";
+    // When compiling as object, run this:
+    // let passes = "instrprof,asan-module,function(asan)";
+    match module.run_passes(passes, &machine, PassBuilderOptions::create()) {
+        Ok(_) => (),
+        Err(e) => panic!("Failed to run instrprof pass: {}", e),
+    }
 }
 
 /// Emits a increment counter call at the current builder position.

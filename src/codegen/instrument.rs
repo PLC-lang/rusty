@@ -1,4 +1,5 @@
 use super::LlvmTypedIndex;
+use inkwell::attributes::{Attribute, AttributeLoc};
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::intrinsics::Intrinsic;
@@ -33,7 +34,6 @@ pub struct CoverageInstrumentationBuilder<'ink> {
 /// Manages the creation of mapping regions for a given function
 #[derive(Debug)]
 struct MappingRegionGenerator {
-    // TODO - verify that counter ids are PER function
     pub mapping_regions: Vec<CounterMappingRegion>,
     pub expressions: Vec<CounterExpression>,
     next_counter_id: u32,
@@ -208,7 +208,6 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
     ) {
         let (func_record, func_pgo_var) = self.function_pgos.get(func_name).unwrap();
 
-        // TODO - see if expressions need different num_counters
         let pgo_pointer = func_pgo_var.as_pointer_value();
         let num_counters = func_record.mapping_regions.len();
 
@@ -504,5 +503,32 @@ impl<'ink> CoverageInstrumentationBuilder<'ink> {
         let increment_intrinsic_func = increment_intrinsic.get_declaration(module, &[]).unwrap();
 
         increment_intrinsic_func
+    }
+
+    pub fn sanitize_functions(
+        &mut self,
+        unit: &CompilationUnit,
+        llvm_index: &LlvmTypedIndex,
+        module: &Module<'ink>,
+    ) {
+        for implementation in &unit.implementations {
+            // Skip non-internal functions (external links + built-ins)
+            if implementation.linkage != LinkageType::Internal {
+                continue;
+            }
+            // Skip no-definition functions
+            // TODO - investigate which functions don't have definitions and why
+            if module.get_function(&implementation.name).is_none() {
+                println!("Skipping undefined function: {}", &implementation.name);
+                continue;
+            }
+
+            let func = llvm_index.find_associated_implementation(&implementation.name).unwrap();
+
+            let context = module.get_context();
+            let sanitizer_attribute_id = Attribute::get_named_enum_kind_id("sanitize_address");
+            let sanitizer_attribute = context.create_enum_attribute(sanitizer_attribute_id, 0);
+            func.add_attribute(AttributeLoc::Function, sanitizer_attribute);
+        }
     }
 }

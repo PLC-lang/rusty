@@ -484,6 +484,8 @@ if [[ $build -ne 0 ]]; then
 	echo "Running on example program:"
 	# ./target/debug/plc --ir ./examples/simple_program.st
 	# ./target/debug/plc --ir hello_world.st
+
+	# export ASAN_OPTIONS=detect_odr_violation=0
 	./target/debug/plc --ir ./examples/hello_world.st
 	# echo "-----------------------------------"
 	# cat ./hello_world.st.ll
@@ -497,7 +499,7 @@ if [[ $build -ne 0 ]]; then
 
 	# # Compile
 	echo "Compiling hello_world.st.ll to hello_world.st.out"
-	clang++-14 -fprofile-instr-generate -fcoverage-mapping -Wl,-u,__llvm_profile_runtime -O0 hello_world.st.ll  -o hello_world.st.out
+	clang++-14 -fprofile-instr-generate -fcoverage-mapping -fsanitize=address -Wl,-u,__llvm_profile_runtime -O0 hello_world.st.ll wrapper.cpp -o hello_world.st.out
 	echo "Done!"
 	echo "-----------------------------------"
 

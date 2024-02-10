@@ -223,6 +223,9 @@ impl<'ink> CodeGen<'ink> {
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
 
         if let Some(instr_builder) = &mut self.instrument {
+            // Mark functions as sanitize
+            instr_builder.sanitize_functions(unit, llvm_index, &self.module);
+
             // Generate mapping header
             instr_builder.initialize(&self.module);
 
