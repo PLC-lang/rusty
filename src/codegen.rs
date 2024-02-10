@@ -211,14 +211,13 @@ impl<'ink> CodeGen<'ink> {
             // Skip no-definition functions
             // TODO - investigate which functions don't have definitions and why
             // TODO - better way to log this than println
-            if module.get_function(&implementation.name).is_none() {
-                println!("Skipping undefined function: {}", &implementation.name);
-                continue;
-            }
-
-            let func = llvm_index
-                .find_associated_implementation(&implementation.name)
-                .expect("Unable to get function definition!");
+            let func = match llvm_index.find_associated_implementation(&implementation.name) {
+                Some(func) => func,
+                None => {
+                    println!("Skipping undefined function: {}", &implementation.name);
+                    continue;
+                }
+            };
             let sanitizer_attribute_id = Attribute::get_named_enum_kind_id("sanitize_address");
             let sanitizer_attribute = context.create_enum_attribute(sanitizer_attribute_id, 0);
             func.add_attribute(AttributeLoc::Function, sanitizer_attribute);
