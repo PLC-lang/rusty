@@ -208,6 +208,14 @@ impl<'ink> CodeGen<'ink> {
                 continue;
             }
 
+            // Skip no-definition functions
+            // TODO - investigate which functions don't have definitions and why
+            // TODO - better way to log this than println
+            if module.get_function(&implementation.name).is_none() {
+                println!("Skipping undefined function: {}", &implementation.name);
+                continue;
+            }
+
             let func = llvm_index
                 .find_associated_implementation(&implementation.name)
                 .expect("Unable to get function definition!");
