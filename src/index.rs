@@ -1139,7 +1139,7 @@ impl Index {
 
     // TODO: find better / more concise method name?
     pub fn get_enum_variant_in_container(&self, container: &str, name: &str) -> Option<&VariableIndexEntry> {
-        self.get_enum_variants_in_container(container).into_iter().filter(|it| &it.name == name).next()
+        self.get_enum_variants_in_container(container).into_iter().find(|it| it.name == name)
     }
 
     // TODO: find better / more concise method name?
