@@ -12,7 +12,7 @@ use plc_ast::ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use plc_util::convention::qualified_name;
+use plc_util::convention::{internal_type_name, qualified_name};
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
@@ -1054,13 +1054,14 @@ impl Index {
         container_name: &str,
         variable_name: &str,
     ) -> Option<&VariableIndexEntry> {
-        self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
-            //check qualifier
-            container_name
+        self.type_index
+            .find_type(container_name)
+            .and_then(|it| it.find_member(variable_name))
+            .or(self.get_enum_variant_in_container(container_name, variable_name))
+            .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
-                .and_then(|qualifier| self.find_member(qualifier, variable_name))
-        })
+                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -1133,6 +1134,21 @@ impl Index {
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_qualified_enum_element(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
+    }
+
+    // TODO: find better / more concise method name?
+    pub fn get_enum_variant_in_container(&self, container: &str, name: &str) -> Option<&VariableIndexEntry> {
+        self.get_enum_variants_in_container(container).into_iter().filter(|it| &it.name == name).next()
+    }
+
+    // TODO: find better / more concise method name?
+    // TODO: hmm, kinda ugly solution not gonna lie
+    pub fn get_enum_variants_in_container(&self, container: &str) -> Vec<&VariableIndexEntry> {
+        self.enum_qualified_variables
+            .keys()
+            .filter(|key| key.starts_with(&internal_type_name(container, "")))
+            .flat_map(|key| self.find_fully_qualified_variable(key))
+            .collect()
     }
 
     /// Returns all enum variant values and their names for the given enum.
