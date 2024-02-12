@@ -1101,6 +1101,7 @@ impl Index {
         self.find_variable(q.as_deref(), &segments[..])
     }
 
+    // TODO: Does it make more sense to transfer the enum search to this function (or both)?
     pub fn find_variable(&self, context: Option<&str>, segments: &[&str]) -> Option<&VariableIndexEntry> {
         if segments.is_empty() {
             return None;

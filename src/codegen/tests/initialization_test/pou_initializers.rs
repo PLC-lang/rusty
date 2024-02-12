@@ -327,3 +327,28 @@ fn function_return_value_without_initializers_is_initialized() {
     // memcpy from zeroinitializer global to foo_strct
     insta::assert_snapshot!(function)
 }
+
+#[test]
+fn two_identical_enums_in_different_functions_are_referenced_correctly() {
+    let function = codegen(
+        r"
+        FUNCTION foo : DINT
+            VAR
+                position : (x := 1, y := 2) := x;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+            VAR
+                position : (x := 3, y := 4) := x;
+            END_VAR
+        END_FUNCTION
+       ",
+    );
+
+    // We want to ensure that the `position` variable in bar has a value of 3 instead of 1.
+    // Previously this was not the case, because the index wouldn't find the locally defined `x`
+    // variant in `bar` and instead referenced the `x` in `foo`.
+    // See also https://github.com/PLC-lang/rusty/pull/1092
+    insta::assert_snapshot!(function)
+}
