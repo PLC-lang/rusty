@@ -1147,7 +1147,7 @@ impl Index {
     pub fn get_enum_variants_in_container(&self, container: &str) -> Vec<&VariableIndexEntry> {
         self.enum_qualified_variables
             .keys()
-            .filter(|key| key.starts_with(&internal_type_name(container, "")))
+            .filter(|key| key.starts_with(&internal_type_name(container, "").to_lowercase()))
             .flat_map(|key| self.find_fully_qualified_variable(key))
             .collect()
     }
