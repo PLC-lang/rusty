@@ -212,13 +212,10 @@ fn recursive_initial_constant_values() {
             b : INT := a;
         END_VAR
         "#,
-    );
+    )
+    .unwrap_err();
 
-    if let Err(msg) = result {
-        assert_snapshot!(msg)
-    } else {
-        panic!("expected code-gen error but got none")
-    }
+    assert_snapshot!(result)
 }
 
 #[test]
