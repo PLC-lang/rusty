@@ -77,6 +77,8 @@ pub struct Project<T: SourceContainer> {
     objects: Vec<Object>,
     /// Libraries included in the project configuration
     libraries: Vec<LibraryInformation<T>>,
+    /// Additional library pathes to consider
+    library_pathes: Vec<PathBuf>,
     /// Output format
     format: FormatOption,
     /// Output Name
@@ -169,6 +171,7 @@ impl Project<PathBuf> {
             output: project_config.output,
             includes: vec![],
             objects: vec![],
+            library_pathes: vec![],
         })
     }
 
@@ -192,6 +195,12 @@ impl Project<PathBuf> {
         proj
     }
 
+    pub fn with_library_pathes(self, pathes: Vec<PathBuf>) -> Self {
+        let mut proj = self;
+        proj.library_pathes.extend(resolve_file_paths(proj.get_location(), pathes).unwrap());
+        proj
+    }
+
     pub fn with_format(self, format: FormatOption) -> Self {
         let mut proj = self;
         proj.format = format;
@@ -202,6 +211,10 @@ impl Project<PathBuf> {
         let mut proj = self;
         proj.output = output.or(proj.output);
         proj
+    }
+
+    pub fn get_library_pathes(&self) -> &[PathBuf] {
+        &self.library_pathes
     }
 }
 
@@ -214,6 +227,7 @@ impl<S: SourceContainer> Project<S> {
             includes: vec![],
             objects: vec![],
             libraries: vec![],
+            library_pathes: vec![],
             format: FormatOption::default(),
             output: None,
         }
