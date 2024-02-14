@@ -858,17 +858,14 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
     let variants = context.index.get_enum_variants(variable);
 
-    match variants.iter().find(|(_, _, value_lhs)| *value_lhs == value_rhs) {
-        Some((name, variant, _)) => {
+    match variants.iter().find(|(_, value_lhs)| *value_lhs == value_rhs) {
+        Some((variant, _)) => {
             if left_dt.get_name() != right_dt.get_name() {
-                // TODO(volsa) This sucks, locally defined enums have mangled names instead of normalized ones
-                let qualified_enum_name =
-                    if name.starts_with("__") { variant.to_string() } else { format!("{name}.{variant}") };
-
                 validator.push_diagnostic(
                     Diagnostic::info(format!(
-                        "Consider replacing `{}` with `{qualified_enum_name}`",
-                        validator.context.slice(&right.location)
+                        "Replace `{}` with `{}`",
+                        validator.context.slice(&right.location),
+                        variant.get_name()
                     ))
                     .with_location(right.get_location())
                     .with_secondary_location(left_dt.location.clone()),
@@ -878,7 +875,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         None => {
             validator.push_diagnostic(
                 Diagnostic::error(format!(
-                    "`{}` is an invalid value for enum `{}`",
+                    "Invalid enum value `{}` for `{}`",
                     validator.context.slice(&right.location),
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
