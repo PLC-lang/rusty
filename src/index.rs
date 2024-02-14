@@ -1054,14 +1054,14 @@ impl Index {
         container_name: &str,
         variable_name: &str,
     ) -> Option<&VariableIndexEntry> {
-        self.type_index
+        self.get_enum_variant_in_container(container_name, variable_name).or(self
+            .type_index
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
-            .or(self.get_enum_variant_in_container(container_name, variable_name))
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
-                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
+                .and_then(|qualifier| self.find_member(qualifier, variable_name))))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -1139,7 +1139,10 @@ impl Index {
 
     // TODO: find better / more concise method name?
     pub fn get_enum_variant_in_container(&self, container: &str, name: &str) -> Option<&VariableIndexEntry> {
-        self.get_enum_variants_in_container(container).into_iter().find(|it| it.name == name)
+        self.get_enum_variants_in_container(container)
+            .into_iter()
+            .find(|it| it.name == name)
+            .or(self.find_qualified_enum_element(&format!("{container}.{name}")))
     }
 
     // TODO: find better / more concise method name?

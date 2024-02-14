@@ -352,3 +352,30 @@ fn two_identical_enums_in_different_functions_are_referenced_correctly() {
     // See also https://github.com/PLC-lang/rusty/pull/1092
     insta::assert_snapshot!(function)
 }
+
+#[test]
+fn enum_variants_have_precedence_over_global_variables_in_inline_assignment() {
+    let function = codegen(
+        r"
+        VAR_GLOBAL
+            x : DINT := 10;
+        END_VAR
+
+        FUNCTION foo : DINT
+            VAR
+                position : (x := 1, y := 2) := x;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+            VAR
+                position : (x := 3, y := 4) := x;
+            END_VAR
+        END_FUNCTION
+       ",
+    );
+
+    // We want to ensure that both the `position` assignment in `foo` nor `bar` references the
+    // the enum variant `x` rather than the global variable `x`
+    insta::assert_snapshot!(function)
+}

@@ -126,8 +126,8 @@ fn using_enums() {
     @closed = unnamed_addr constant i32 4
     @idle = unnamed_addr constant i32 5
     @running = unnamed_addr constant i32 6
-    @closed.1 = unnamed_addr constant i32 16
-    @open.2 = unnamed_addr constant i32 8
+    @open.1 = unnamed_addr constant i32 8
+    @closed.2 = unnamed_addr constant i32 16
 
     define void @prg(%prg* %0) {
     entry:
