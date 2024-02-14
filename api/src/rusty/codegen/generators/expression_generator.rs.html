@@ -2732,6 +2732,11 @@
 <a href="#2732" id="2732">2732</a>
 <a href="#2733" id="2733">2733</a>
 <a href="#2734" id="2734">2734</a>
+<a href="#2735" id="2735">2735</a>
+<a href="#2736" id="2736">2736</a>
+<a href="#2737" id="2737">2737</a>
+<a href="#2738" id="2738">2738</a>
+<a href="#2739" id="2739">2739</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -2934,10 +2939,15 @@
         }) = <span class="self">self</span>.annotations.get(expression)
         {
             <span class="kw">if </span>!<span class="self">self</span>.index.get_type_information_or_void(resulting_type).is_aggregate() {
-                <span class="comment">// constant propagation
-                </span><span class="kw">return </span><span class="self">self</span>.generate_constant_expression(qualified_name, expression);
+                <span class="kw">match </span><span class="self">self</span>.generate_constant_expression(qualified_name, expression) {
+                    <span class="comment">// We return here if constant propagation worked
+                    </span><span class="prelude-val">Ok</span>(expr) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(expr),
+                    <span class="comment">// ...and fall-back to generating the expression further down if it didn&#39;t
+                    </span><span class="prelude-val">Err</span>(why) =&gt; <span class="macro">log::info!</span>(<span class="string">&quot;{why}&quot;</span>),
+                }
             }
         }
+
         <span class="comment">// generate the expression
         </span><span class="kw">match </span>expression.get_stmt() {
             AstStatement::ReferenceExpr(data) =&gt; {
@@ -3000,10 +3010,10 @@
                 <span class="self">self</span>.index.get_const_expressions().get_resolved_constant_statement(<span class="kw-2">&amp;</span>constant_variable)
             })
             .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;Cannot propagate constant value for &#39;{qualified_name:}&#39;&quot;</span>).as_str(),
-                    expression.get_location(),
-                )
+                <span class="comment">// We&#39;ll _probably_ land here because we&#39;re dealing with aggregate types, see also
+                // https://github.com/PLC-lang/rusty/issues/288
+                </span><span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Cannot propagate constant value for &#39;{qualified_name:}&#39;&quot;</span>);
+                Diagnostic::codegen_error(message, expression.get_location())
             })<span class="question-mark">?</span>;
 
         <span class="comment">//  generate the resulting constant-expression (which should be a Value, no ptr-reference)
