@@ -1057,7 +1057,7 @@ impl Index {
         self.type_index
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
-            .or(self.get_enum_variant_in_container(container_name, variable_name))
+            .or(self.find_enum_variant_in_pou(container_name, variable_name))
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
@@ -1137,17 +1137,16 @@ impl Index {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
     }
 
-    // TODO: find better / more concise method name?
-    pub fn get_enum_variant_in_container(&self, container: &str, name: &str) -> Option<&VariableIndexEntry> {
-        self.get_enum_variants_in_container(container).into_iter().find(|it| it.name == name)
+    /// Tries to return an enum variant defined within a POU
+    pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
+        self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
     }
 
-    // TODO: find better / more concise method name?
-    // TODO: hmm, kinda ugly solution not gonna lie
-    pub fn get_enum_variants_in_container(&self, container: &str) -> Vec<&VariableIndexEntry> {
+    /// Returns all enum variants defined within a POU
+    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
         self.enum_qualified_variables
             .keys()
-            .filter(|key| key.starts_with(&internal_type_name(container, "").to_lowercase()))
+            .filter(|key| key.starts_with(&internal_type_name(pou, "").to_lowercase()))
             .flat_map(|key| self.find_fully_qualified_variable(key))
             .collect()
     }
