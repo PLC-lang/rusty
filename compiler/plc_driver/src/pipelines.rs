@@ -484,7 +484,7 @@ impl GeneratedProject {
                 for obj in objects {
                     linker.add_obj(&obj.get_path().to_string_lossy());
                 }
-                for lib_path in &link_options.library_pathes {
+                for lib_path in &link_options.library_paths {
                     linker.add_lib_path(&lib_path.to_string_lossy());
                 }
                 for lib in &link_options.libraries {

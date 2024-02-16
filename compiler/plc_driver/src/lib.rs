@@ -74,7 +74,7 @@ impl Default for CompileOptions {
 #[derive(Clone, Default, Debug)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
-    pub library_pathes: Vec<PathBuf>,
+    pub library_paths: Vec<PathBuf>,
     pub format: FormatOption,
     pub linker: LinkerType,
     pub lib_location: Option<PathBuf>,
@@ -172,18 +172,18 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
 
     let libraries =
         project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
-    let mut library_pathes: Vec<PathBuf> = project
+    let mut library_paths: Vec<PathBuf> = project
         .get_libraries()
         .iter()
         .filter_map(LibraryInformation::get_path)
         .map(Path::to_path_buf)
         .collect();
 
-    library_pathes.extend_from_slice(dbg!(project.get_library_pathes()));
+    library_paths.extend_from_slice(project.get_library_paths());
 
     let link_options = LinkOptions {
         libraries,
-        library_pathes,
+        library_paths,
         format: output_format,
         linker: compile_parameters.linker.as_deref().into(),
         lib_location,
@@ -394,9 +394,9 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
             .and_then(|it| it.to_str())
             .unwrap_or(DEFAULT_OUTPUT_NAME);
         let project = Project::new(name.to_string())
-            .with_file_pathes(compile_parameters.input.iter().map(PathBuf::from).collect())
-            .with_include_pathes(compile_parameters.includes.iter().map(PathBuf::from).collect())
-            .with_library_pathes(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
+            .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
+            .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+            .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
             .with_libraries(compile_parameters.libraries.clone());
         Ok(project)
     };

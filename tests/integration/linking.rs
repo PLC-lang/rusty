@@ -256,7 +256,6 @@ fn link_with_library_path() {
     let test_linker = MockLinker { args: vec.clone() };
     compile_context.link_options.linker = LinkerType::Test(test_linker);
     compile_with_options(compile_context).unwrap();
-    dbg!(&vec.lock().unwrap());
     assert!(vec.lock().unwrap().as_slice().contains(&"-L.".to_string()));
     assert!(vec.lock().unwrap().contains(&"-ltest".to_string()));
     assert!(vec.lock().unwrap().contains(&format!("-L{}", dir.to_string_lossy())));
