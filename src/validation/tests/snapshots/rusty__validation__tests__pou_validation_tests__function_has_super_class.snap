@@ -8,10 +8,4 @@ error: A function cannot use `EXTEND`
 5 │         FUNCTION func EXTENDS cls
   │                  ^^^^ A function cannot use `EXTEND`
 
-error: Function Return type missing
-  ┌─ <internal>:5:18
-  │
-5 │         FUNCTION func EXTENDS cls
-  │                  ^^^^ Function Return type missing
-
 

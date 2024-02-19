@@ -600,7 +600,7 @@ fn parse_full_data_type_definition(
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
     let end_keyword = if lexer.token == KeywordStruct { KeywordEndStruct } else { KeywordSemicolon };
-    parse_any_in_region(lexer, vec![end_keyword], |lexer| {
+    let res = parse_any_in_region(lexer, vec![end_keyword.clone()], |lexer| {
         let sized = lexer.try_consume(&PropertySized);
         if lexer.try_consume(&KeywordDotDotDot) {
             Some((
@@ -627,7 +627,13 @@ fn parse_full_data_type_definition(
                 }
             })
         }
-    })
+    });
+
+    if end_keyword == KeywordEndStruct {
+        lexer.try_consume(&KeywordSemicolon);
+    }
+
+    res
 }
 
 // TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
