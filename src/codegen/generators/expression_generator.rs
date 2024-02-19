@@ -200,10 +200,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }) = self.annotations.get(expression)
         {
             if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
-                // constant propagation
-                return self.generate_constant_expression(qualified_name, expression);
+                match self.generate_constant_expression(qualified_name, expression) {
+                    // We return here if constant propagation worked
+                    Ok(expr) => return Ok(expr),
+                    // ...and fall-back to generating the expression further down if it didn't
+                    Err(why) => log::info!("{why}"),
+                }
             }
         }
+
         // generate the expression
         match expression.get_stmt() {
             AstStatement::ReferenceExpr(data) => {
@@ -266,10 +271,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.index.get_const_expressions().get_resolved_constant_statement(&constant_variable)
             })
             .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    format!("Cannot propagate constant value for '{qualified_name:}'").as_str(),
-                    expression.get_location(),
-                )
+                // We'll _probably_ land here because we're dealing with aggregate types, see also
+                // https://github.com/PLC-lang/rusty/issues/288
+                let message = format!("Cannot propagate constant value for '{qualified_name:}'");
+                Diagnostic::codegen_error(message, expression.get_location())
             })?;
 
         //  generate the resulting constant-expression (which should be a Value, no ptr-reference)
