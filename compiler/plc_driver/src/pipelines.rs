@@ -35,14 +35,17 @@ use source_code::{source_location::SourceLocation, SourceContainer};
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
 ///been generated
-pub struct ParsedProject(Vec<CompilationUnit>);
+pub struct ParsedProject<T: SourceContainer + Sync> {
+    project: Project<T>,
+    units: Vec<CompilationUnit>,
+}
 
-impl ParsedProject {
+impl<T: SourceContainer + Sync> ParsedProject<T> {
     /// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
-    pub fn parse<T: SourceContainer>(
+    pub fn parse(
         ctxt: &GlobalContext,
-        project: &Project<T>,
+        project: Project<T>,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
         //TODO in parallel
@@ -88,13 +91,13 @@ impl ParsedProject {
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         units.extend(lib_includes);
 
-        Ok(ParsedProject(units))
+        Ok(ParsedProject { project, units })
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
-    pub fn index(self, id_provider: IdProvider) -> IndexedProject {
+    pub fn index(self, id_provider: IdProvider) -> IndexedProject<T> {
         let indexed_units = self
-            .0
+            .units
             .into_par_iter()
             .map(|mut unit| {
                 //Preprocess
@@ -121,20 +124,24 @@ impl ParsedProject {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
 
-        IndexedProject { units, index: global_index }
+        IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
+    }
+
+    pub fn get_project(&self) -> &Project<T> {
+        &self.project
     }
 }
 
 ///A project that has also been indexed
-/// Units inside an index project could be resolved and annotated
-pub struct IndexedProject {
-    units: Vec<CompilationUnit>,
+/// Units inside an index project are ready be resolved and annotated
+pub struct IndexedProject<T: SourceContainer + Sync> {
+    project: ParsedProject<T>,
     index: Index,
 }
 
-impl IndexedProject {
+impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
+    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
         //Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
         let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
@@ -143,6 +150,7 @@ impl IndexedProject {
         let mut all_annotations = AnnotationMapImpl::default();
 
         let result = self
+            .project
             .units
             .into_par_iter()
             .map(|unit| {
@@ -161,18 +169,35 @@ impl IndexedProject {
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject { units: annotated_units, index: full_index, annotations }
+        AnnotatedProject {
+            project: self.project.project,
+            units: annotated_units,
+            index: full_index,
+            annotations,
+        }
+    }
+
+    fn get_parsed_project(&self) -> &ParsedProject<T> {
+        &self.project
+    }
+
+    pub fn get_project(&self) -> &Project<T> {
+        self.get_parsed_project().get_project()
     }
 }
 
 /// A project that has been annotated with information about different types and used units
-pub struct AnnotatedProject {
+pub struct AnnotatedProject<T: SourceContainer + Sync> {
+    pub project: Project<T>,
     pub units: Vec<(CompilationUnit, IndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
     pub annotations: AstAnnotations,
 }
 
-impl AnnotatedProject {
+impl<T: SourceContainer + Sync> AnnotatedProject<T> {
+    pub fn get_project(&self) -> &Project<T> {
+        &self.project
+    }
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,
@@ -262,7 +287,7 @@ impl AnnotatedProject {
 
     pub fn codegen_single_module<'ctx>(
         &'ctx self,
-        compile_options: CompileOptions,
+        compile_options: &CompileOptions,
         targets: &'ctx [Target],
     ) -> Result<Vec<GeneratedProject>, Diagnostic> {
         let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
@@ -272,7 +297,7 @@ impl AnnotatedProject {
         ensure_compile_dirs(targets, &compile_directory)?;
         let context = CodegenContext::create(); //Create a build location for the generated object files
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
-        let module = self.generate_single_module(&context, &compile_options)?.unwrap();
+        let module = self.generate_single_module(&context, compile_options)?.unwrap();
         let mut result = vec![];
         for target in targets {
             let obj: Object = module
@@ -293,7 +318,7 @@ impl AnnotatedProject {
 
     pub fn codegen<'ctx>(
         &'ctx self,
-        compile_options: CompileOptions,
+        compile_options: &CompileOptions,
         targets: &'ctx [Target],
     ) -> Result<Vec<GeneratedProject>, Diagnostic> {
         let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
@@ -336,7 +361,7 @@ impl AnnotatedProject {
 
                         let context = CodegenContext::create(); //Create a build location for the generated object files
                         let module =
-                            self.generate_module(&context, &compile_options, unit, dependencies, literals)?;
+                            self.generate_module(&context, compile_options, unit, dependencies, literals)?;
                         module
                             .persist(
                                 Some(&compile_directory),
@@ -451,17 +476,15 @@ impl GeneratedProject {
             _ => {
                 // Only initialize a linker if we need to use it
                 let target_triple = self.target.get_target_triple();
-                let mut linker = plc::linker::Linker::new(
-                    &target_triple.as_str().to_string_lossy(),
-                    link_options.linker.as_deref(),
-                )?;
+                let mut linker =
+                    plc::linker::Linker::new(&target_triple.as_str().to_string_lossy(), link_options.linker)?;
                 for obj in &self.objects {
                     linker.add_obj(&obj.get_path().to_string_lossy());
                 }
                 for obj in objects {
                     linker.add_obj(&obj.get_path().to_string_lossy());
                 }
-                for lib_path in &link_options.library_pathes {
+                for lib_path in &link_options.library_paths {
                     linker.add_lib_path(&lib_path.to_string_lossy());
                 }
                 for lib in &link_options.libraries {
