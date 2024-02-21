@@ -391,6 +391,31 @@
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
 <a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -412,7 +437,8 @@
 <span class="kw">use </span>cli::{CompileParameters, ParameterError};
 <span class="kw">use </span>pipelines::AnnotatedProject;
 <span class="kw">use </span>plc::{
-    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
+    OptimizationLevel, Target, Threads,
 };
 
 <span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -445,6 +471,7 @@
     <span class="kw">pub </span>optimization: OptimizationLevel,
     <span class="kw">pub </span>error_format: ErrorFormat,
     <span class="kw">pub </span>debug_level: DebugLevel,
+    <span class="kw">pub </span>single_module: bool,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>CompileOptions {
@@ -457,6 +484,7 @@
             optimization: OptimizationLevel::None,
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
+            single_module: <span class="bool-val">false</span>,
         }
     }
 }
@@ -464,9 +492,10 @@
 <span class="attr">#[derive(Clone, Default, Debug)]
 </span><span class="kw">pub struct </span>LinkOptions {
     <span class="kw">pub </span>libraries: Vec&lt;String&gt;,
-    <span class="kw">pub </span>library_pathes: Vec&lt;PathBuf&gt;,
+    <span class="kw">pub </span>library_paths: Vec&lt;PathBuf&gt;,
     <span class="kw">pub </span>format: FormatOption,
-    <span class="kw">pub </span>linker: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>linker: LinkerType,
+    <span class="kw">pub </span>lib_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 }
 
 <span class="attr">#[derive(Debug)]
@@ -512,13 +541,20 @@
     }
 }
 
-<span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="comment">//Parse the arguments
-    </span><span class="kw">let </span>compile_parameters = CompileParameters::parse(args)<span class="question-mark">?</span>;
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((options, format)) = compile_parameters.get_config_options() {
-        <span class="kw">return </span>print_config_options(options, format);
-    }
-    <span class="kw">let </span>project = get_project(<span class="kw-2">&amp;</span>compile_parameters)<span class="question-mark">?</span>;
+<span class="kw">pub struct </span>CompilationContext {
+    <span class="kw">pub </span>compile_parameters: CompileParameters,
+    <span class="kw">pub </span>project: Project&lt;PathBuf&gt;,
+    <span class="kw">pub </span>diagnostician: Diagnostician,
+    <span class="kw">pub </span>compile_options: CompileOptions,
+    <span class="kw">pub </span>link_options: LinkOptions,
+}
+
+<span class="kw">pub fn </span>get_compilation_context&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(
+    args: <span class="kw-2">&amp;</span>[T],
+) -&gt; <span class="prelude-ty">Result</span>&lt;CompilationContext&gt; {
+    <span class="kw">let </span>compile_parameters = CompileParameters::parse(args)<span class="question-mark">?</span>;
+    <span class="comment">//Create the project that will be compiled
+    </span><span class="kw">let </span>project = get_project(<span class="kw-2">&amp;</span>compile_parameters)<span class="question-mark">?</span>;
     <span class="kw">let </span>output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     <span class="kw">let </span>location = project.get_location().map(|it| it.to_path_buf());
     <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>location {
@@ -535,11 +571,51 @@
         <span class="macro">log::debug!</span>(<span class="string">&quot;LIB_LOCATION={}&quot;</span>, location.to_string_lossy());
         env::set_var(<span class="string">&quot;LIB_LOCATION&quot;</span>, location);
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = <span class="kw">match </span>compile_parameters.error_format {
+    <span class="kw">let </span>diagnostician = <span class="kw">match </span>compile_parameters.error_format {
         ErrorFormat::Rich =&gt; Diagnostician::default(),
         ErrorFormat::Clang =&gt; Diagnostician::clang_format_diagnostician(),
         ErrorFormat::None =&gt; Diagnostician::null_diagnostician(),
     };
+
+    <span class="kw">let </span>compile_options = CompileOptions {
+        root: location,
+        build_location: compile_parameters.get_build_location(),
+        output: project.get_output_name(),
+        output_format,
+        optimization: compile_parameters.optimization,
+        error_format: compile_parameters.error_format,
+        debug_level: compile_parameters.debug_level(),
+        single_module: compile_parameters.single_module,
+    };
+
+    <span class="kw">let </span>libraries =
+        project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
+    <span class="kw">let </span><span class="kw-2">mut </span>library_paths: Vec&lt;PathBuf&gt; = project
+        .get_libraries()
+        .iter()
+        .filter_map(LibraryInformation::get_path)
+        .map(Path::to_path_buf)
+        .collect();
+
+    library_paths.extend_from_slice(project.get_library_paths());
+
+    <span class="kw">let </span>link_options = LinkOptions {
+        libraries,
+        library_paths,
+        format: output_format,
+        linker: compile_parameters.linker.as_deref().into(),
+        lib_location,
+    };
+
+    <span class="prelude-val">Ok</span>(CompilationContext { compile_parameters, project, diagnostician, compile_options, link_options })
+}
+
+<span class="kw">pub fn </span>compile_with_options(compile_options: CompilationContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>CompilationContext { compile_parameters, project, <span class="kw-2">mut </span>diagnostician, compile_options, link_options } =
+        compile_options;
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((options, format)) = compile_parameters.get_config_options() {
+        <span class="kw">return </span>print_config_options(options, format);
+    }
 
     <span class="comment">//Set the global thread count
     </span><span class="kw">let </span>thread_pool = rayon::ThreadPoolBuilder::new();
@@ -571,25 +647,23 @@
         )<span class="question-mark">?</span>;
 
     <span class="comment">// 1 : Parse, 2. Index and 3. Resolve / Annotate
-    </span><span class="kw">let </span>annotated_project = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?
+    </span><span class="kw">let </span>annotated_project = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?
         </span>.index(ctxt.provider())
         .annotate(ctxt.provider());
 
     <span class="comment">// 4 : Validate
     </span>annotated_project.validate(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
 
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((location, format)) =
+        compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
+    {
+        annotated_project.generate_hardware_information(format, location)<span class="question-mark">?</span>;
+    }
+
     <span class="comment">// 5 : Codegen
     </span><span class="kw">if </span>!compile_parameters.is_check() {
-        <span class="kw">let </span>res = generate(
-            location,
-            compile_parameters,
-            project,
-            output_format,
-            annotated_project,
-            build_location,
-            lib_location,
-        )
-        .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
+        <span class="kw">let </span>res = generate(<span class="kw-2">&amp;</span>compile_options, <span class="kw-2">&amp;</span>link_options, compile_parameters.target, annotated_project)
+            .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         <span class="kw">if let </span><span class="prelude-val">Err</span>(res) = res {
             diagnostician.handle(<span class="kw-2">&amp;</span>[res]);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to previous errors&quot;</span>)
@@ -597,8 +671,13 @@
                 .into());
         }
     }
-
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="comment">//Parse the arguments
+    </span><span class="kw">let </span>compile_context = get_compilation_context(args)<span class="question-mark">?</span>;
+    compile_with_options(compile_context)
 }
 
 <span class="kw">fn </span>print_config_options(
@@ -619,12 +698,12 @@
 </span><span class="kw">pub fn </span>parse_and_annotate&lt;T: SourceContainer&gt;(
     name: <span class="kw-2">&amp;</span>str,
     src: Vec&lt;T&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(GlobalContext, AnnotatedProject), Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(GlobalContext, AnnotatedProject&lt;T&gt;), Diagnostic&gt; {
     <span class="comment">// Parse the source to ast
     </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
     <span class="kw">let </span>ctxt = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::default();
-    <span class="kw">let </span>parsed = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
+    <span class="kw">let </span>parsed = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
 
     <span class="comment">// Create an index, add builtins then resolve
     </span><span class="kw">let </span>provider = ctxt.provider();
@@ -664,61 +743,31 @@
 }
 
 <span class="kw">fn </span>generate(
-    location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    compile_parameters: CompileParameters,
-    project: Project&lt;PathBuf&gt;,
-    output_format: FormatOption,
-    annotated_project: AnnotatedProject,
-    build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    lib_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+    compile_options: <span class="kw-2">&amp;</span>CompileOptions,
+    linker_options: <span class="kw-2">&amp;</span>LinkOptions,
+    targets: Vec&lt;Target&gt;,
+    annotated_project: AnnotatedProject&lt;PathBuf&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-    <span class="kw">let </span>compile_options = CompileOptions {
-        root: location,
-        build_location: compile_parameters.get_build_location(),
-        output: project.get_output_name(),
-        output_format,
-        optimization: compile_parameters.optimization,
-        error_format: compile_parameters.error_format,
-        debug_level: compile_parameters.debug_level(),
-    };
-    <span class="kw">let </span>res = <span class="kw">if </span>compile_parameters.single_module {
+    <span class="kw">let </span>res = <span class="kw">if </span>compile_options.single_module {
         <span class="macro">log::info!</span>(<span class="string">&quot;Using single module mode&quot;</span>);
-        annotated_project.codegen_single_module(compile_options, <span class="kw-2">&amp;</span>compile_parameters.target)<span class="question-mark">?
+        annotated_project.codegen_single_module(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
     </span>} <span class="kw">else </span>{
-        annotated_project.codegen(compile_options, <span class="kw-2">&amp;</span>compile_parameters.target)<span class="question-mark">?
+        annotated_project.codegen(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
     </span>};
-    <span class="kw">let </span>libraries =
-        project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
-    <span class="kw">let </span>library_pathes = project
-        .get_libraries()
-        .iter()
-        .filter_map(LibraryInformation::get_path)
-        .map(Path::to_path_buf)
-        .collect();
-    <span class="kw">let </span>linker_options = LinkOptions {
-        libraries,
-        library_pathes,
-        format: output_format,
-        linker: compile_parameters.linker.to_owned(),
-    };
+    <span class="kw">let </span>project = annotated_project.get_project();
     <span class="kw">let </span>output_name = project.get_output_name();
     res.into_par_iter()
         .map(|res| {
             res.link(
                 project.get_objects(),
-                build_location.as_deref(),
-                lib_location.as_deref(),
+                compile_options.build_location.as_deref(),
+                linker_options.lib_location.as_deref(),
                 <span class="kw-2">&amp;</span>output_name,
                 linker_options.clone(),
             )
         })
         .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((location, format)) =
-        compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
-    {
-        annotated_project.generate_hardware_information(format, location)<span class="question-mark">?</span>;
-    }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(lib_location) = lib_location {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(lib_location) = <span class="kw-2">&amp;</span>linker_options.lib_location {
         <span class="kw">for </span>library <span class="kw">in
             </span>project.get_libraries().iter().filter(|it| it.should_copy()).map(|it| it.get_compiled_lib())
         {
@@ -763,8 +812,9 @@
             .and_then(|it| it.to_str())
             .unwrap_or(DEFAULT_OUTPUT_NAME);
         <span class="kw">let </span>project = Project::new(name.to_string())
-            .with_file_pathes(compile_parameters.input.iter().map(PathBuf::from).collect())
-            .with_include_pathes(compile_parameters.includes.iter().map(PathBuf::from).collect())
+            .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
+            .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+            .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
             .with_libraries(compile_parameters.libraries.clone());
         <span class="prelude-val">Ok</span>(project)
     };

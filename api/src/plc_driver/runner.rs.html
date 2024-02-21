@@ -90,7 +90,7 @@
     <span class="kw">let </span>project = Project::new(<span class="string">&quot;TestProject&quot;</span>.to_string()).with_sources(source);
     <span class="kw">let </span>ctxt = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>).unwrap();
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::null_diagnostician();
-    <span class="kw">let </span>parsed_project = ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician).unwrap();
+    <span class="kw">let </span>parsed_project = ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, project, <span class="kw-2">&amp;mut </span>diagnostician).unwrap();
     <span class="kw">let </span>indexed_project = parsed_project.index(ctxt.provider());
     <span class="kw">let </span>annotated_project = indexed_project.annotate(ctxt.provider());
     <span class="kw">let </span>compile_options = CompileOptions {

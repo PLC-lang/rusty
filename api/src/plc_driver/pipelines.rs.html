@@ -496,6 +496,29 @@
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -533,14 +556,17 @@
 <span class="doccomment">///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
 ///been generated
-</span><span class="kw">pub struct </span>ParsedProject(Vec&lt;CompilationUnit&gt;);
+</span><span class="kw">pub struct </span>ParsedProject&lt;T: SourceContainer + Sync&gt; {
+    project: Project&lt;T&gt;,
+    units: Vec&lt;CompilationUnit&gt;,
+}
 
-<span class="kw">impl </span>ParsedProject {
+<span class="kw">impl</span>&lt;T: SourceContainer + Sync&gt; ParsedProject&lt;T&gt; {
     <span class="doccomment">/// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
-    </span><span class="kw">pub fn </span>parse&lt;T: SourceContainer&gt;(
+    </span><span class="kw">pub fn </span>parse(
         ctxt: <span class="kw-2">&amp;</span>GlobalContext,
-        project: <span class="kw-2">&amp;</span>Project&lt;T&gt;,
+        project: Project&lt;T&gt;,
         diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="comment">//TODO in parallel
@@ -586,14 +612,14 @@
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
         units.extend(lib_includes);
 
-        <span class="prelude-val">Ok</span>(ParsedProject(units))
+        <span class="prelude-val">Ok</span>(ParsedProject { project, units })
     }
 
     <span class="doccomment">/// Creates an index out of a pased project. The index could then be used to query datatypes
-    </span><span class="kw">pub fn </span>index(<span class="self">self</span>, id_provider: IdProvider) -&gt; IndexedProject {
+    </span><span class="kw">pub fn </span>index(<span class="self">self</span>, id_provider: IdProvider) -&gt; IndexedProject&lt;T&gt; {
         <span class="kw">let </span>indexed_units = <span class="self">self
-            </span>.<span class="number">0
-            </span>.into_par_iter()
+            </span>.units
+            .into_par_iter()
             .map(|<span class="kw-2">mut </span>unit| {
                 <span class="comment">//Preprocess
                 </span>pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider.clone());
@@ -619,20 +645,24 @@
         </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
 
-        IndexedProject { units, index: global_index }
+        IndexedProject { project: ParsedProject { project: <span class="self">self</span>.project, units }, index: global_index }
+    }
+
+    <span class="kw">pub fn </span>get_project(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Project&lt;T&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.project
     }
 }
 
 <span class="doccomment">///A project that has also been indexed
-/// Units inside an index project could be resolved and annotated
-</span><span class="kw">pub struct </span>IndexedProject {
-    units: Vec&lt;CompilationUnit&gt;,
+/// Units inside an index project are ready be resolved and annotated
+</span><span class="kw">pub struct </span>IndexedProject&lt;T: SourceContainer + Sync&gt; {
+    project: ParsedProject&lt;T&gt;,
     index: Index,
 }
 
-<span class="kw">impl </span>IndexedProject {
+<span class="kw">impl</span>&lt;T: SourceContainer + Sync&gt; IndexedProject&lt;T&gt; {
     <span class="doccomment">/// Creates annotations on the project in order to facilitate codegen and validation
-    </span><span class="kw">pub fn </span>annotate(<span class="self">self</span>, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; AnnotatedProject {
+    </span><span class="kw">pub fn </span>annotate(<span class="self">self</span>, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; AnnotatedProject&lt;T&gt; {
         <span class="comment">//Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
         </span><span class="kw">let </span>(<span class="kw-2">mut </span>full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
@@ -641,7 +671,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>all_annotations = AnnotationMapImpl::default();
 
         <span class="kw">let </span>result = <span class="self">self
-            </span>.units
+            </span>.project
+            .units
             .into_par_iter()
             .map(|unit| {
                 <span class="kw">let </span>(annotation, dependencies, literals) =
@@ -659,18 +690,35 @@
 
         <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject { units: annotated_units, index: full_index, annotations }
+        AnnotatedProject {
+            project: <span class="self">self</span>.project.project,
+            units: annotated_units,
+            index: full_index,
+            annotations,
+        }
+    }
+
+    <span class="kw">fn </span>get_parsed_project(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ParsedProject&lt;T&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.project
+    }
+
+    <span class="kw">pub fn </span>get_project(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Project&lt;T&gt; {
+        <span class="self">self</span>.get_parsed_project().get_project()
     }
 }
 
 <span class="doccomment">/// A project that has been annotated with information about different types and used units
-</span><span class="kw">pub struct </span>AnnotatedProject {
+</span><span class="kw">pub struct </span>AnnotatedProject&lt;T: SourceContainer + Sync&gt; {
+    <span class="kw">pub </span>project: Project&lt;T&gt;,
     <span class="kw">pub </span>units: Vec&lt;(CompilationUnit, IndexSet&lt;Dependency&gt;, StringLiterals)&gt;,
     <span class="kw">pub </span>index: Index,
     <span class="kw">pub </span>annotations: AstAnnotations,
 }
 
-<span class="kw">impl </span>AnnotatedProject {
+<span class="kw">impl</span>&lt;T: SourceContainer + Sync&gt; AnnotatedProject&lt;T&gt; {
+    <span class="kw">pub fn </span>get_project(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Project&lt;T&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.project
+    }
     <span class="doccomment">/// Validates the project, reports any new diagnostics on the fly
     </span><span class="kw">pub fn </span>validate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -760,7 +808,7 @@
 
     <span class="kw">pub fn </span>codegen_single_module&lt;<span class="lifetime">&#39;ctx</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="self">self</span>,
-        compile_options: CompileOptions,
+        compile_options: <span class="kw-2">&amp;</span>CompileOptions,
         targets: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>[Target],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;GeneratedProject&gt;, Diagnostic&gt; {
         <span class="kw">let </span>compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
@@ -770,7 +818,7 @@
         ensure_compile_dirs(targets, <span class="kw-2">&amp;</span>compile_directory)<span class="question-mark">?</span>;
         <span class="kw">let </span>context = CodegenContext::create(); <span class="comment">//Create a build location for the generated object files
         </span><span class="kw">let </span>targets = <span class="kw">if </span>targets.is_empty() { <span class="kw-2">&amp;</span>[Target::System] } <span class="kw">else </span>{ targets };
-        <span class="kw">let </span>module = <span class="self">self</span>.generate_single_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>compile_options)<span class="question-mark">?</span>.unwrap();
+        <span class="kw">let </span>module = <span class="self">self</span>.generate_single_module(<span class="kw-2">&amp;</span>context, compile_options)<span class="question-mark">?</span>.unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="macro">vec!</span>[];
         <span class="kw">for </span>target <span class="kw">in </span>targets {
             <span class="kw">let </span>obj: Object = module
@@ -791,7 +839,7 @@
 
     <span class="kw">pub fn </span>codegen&lt;<span class="lifetime">&#39;ctx</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="self">self</span>,
-        compile_options: CompileOptions,
+        compile_options: <span class="kw-2">&amp;</span>CompileOptions,
         targets: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>[Target],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;GeneratedProject&gt;, Diagnostic&gt; {
         <span class="kw">let </span>compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
@@ -834,7 +882,7 @@
 
                         <span class="kw">let </span>context = CodegenContext::create(); <span class="comment">//Create a build location for the generated object files
                         </span><span class="kw">let </span>module =
-                            <span class="self">self</span>.generate_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>compile_options, unit, dependencies, literals)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.generate_module(<span class="kw-2">&amp;</span>context, compile_options, unit, dependencies, literals)<span class="question-mark">?</span>;
                         module
                             .persist(
                                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>compile_directory),
@@ -949,17 +997,15 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">// Only initialize a linker if we need to use it
                 </span><span class="kw">let </span>target_triple = <span class="self">self</span>.target.get_target_triple();
-                <span class="kw">let </span><span class="kw-2">mut </span>linker = plc::linker::Linker::new(
-                    <span class="kw-2">&amp;</span>target_triple.as_str().to_string_lossy(),
-                    link_options.linker.as_deref(),
-                )<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>linker =
+                    plc::linker::Linker::new(<span class="kw-2">&amp;</span>target_triple.as_str().to_string_lossy(), link_options.linker)<span class="question-mark">?</span>;
                 <span class="kw">for </span>obj <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.objects {
                     linker.add_obj(<span class="kw-2">&amp;</span>obj.get_path().to_string_lossy());
                 }
                 <span class="kw">for </span>obj <span class="kw">in </span>objects {
                     linker.add_obj(<span class="kw-2">&amp;</span>obj.get_path().to_string_lossy());
                 }
-                <span class="kw">for </span>lib_path <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.library_pathes {
+                <span class="kw">for </span>lib_path <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.library_paths {
                     linker.add_lib_path(<span class="kw-2">&amp;</span>lib_path.to_string_lossy());
                 }
                 <span class="kw">for </span>lib <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.libraries {

@@ -307,6 +307,22 @@
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     path::{Path, PathBuf},
@@ -386,6 +402,8 @@
     </span>objects: Vec&lt;Object&gt;,
     <span class="doccomment">/// Libraries included in the project configuration
     </span>libraries: Vec&lt;LibraryInformation&lt;T&gt;&gt;,
+    <span class="doccomment">/// Additional library paths to consider
+    </span>library_paths: Vec&lt;PathBuf&gt;,
     <span class="doccomment">/// Output format
     </span>format: FormatOption,
     <span class="doccomment">/// Output Name
@@ -478,10 +496,11 @@
             output: project_config.output,
             includes: <span class="macro">vec!</span>[],
             objects: <span class="macro">vec!</span>[],
+            library_paths: <span class="macro">vec!</span>[],
         })
     }
 
-    <span class="kw">pub fn </span>with_file_pathes(<span class="self">self</span>, files: Vec&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>with_file_paths(<span class="self">self</span>, files: Vec&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>proj = <span class="self">self</span>;
         <span class="kw">let </span>files = resolve_file_paths(proj.get_location(), files).unwrap();
         <span class="kw">for </span>file <span class="kw">in </span>files {
@@ -495,9 +514,15 @@
         proj
     }
 
-    <span class="kw">pub fn </span>with_include_pathes(<span class="self">self</span>, files: Vec&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>with_include_paths(<span class="self">self</span>, files: Vec&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>proj = <span class="self">self</span>;
         proj.includes = resolve_file_paths(proj.get_location(), files).unwrap();
+        proj
+    }
+
+    <span class="kw">pub fn </span>with_library_paths(<span class="self">self</span>, paths: Vec&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>proj = <span class="self">self</span>;
+        proj.library_paths.extend(resolve_file_paths(proj.get_location(), paths).unwrap());
         proj
     }
 
@@ -512,6 +537,10 @@
         proj.output = output.or(proj.output);
         proj
     }
+
+    <span class="kw">pub fn </span>get_library_paths(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[PathBuf] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.library_paths
+    }
 }
 
 <span class="kw">impl</span>&lt;S: SourceContainer&gt; Project&lt;S&gt; {
@@ -523,6 +552,7 @@
             includes: <span class="macro">vec!</span>[],
             objects: <span class="macro">vec!</span>[],
             libraries: <span class="macro">vec!</span>[],
+            library_paths: <span class="macro">vec!</span>[],
             format: FormatOption::default(),
             output: <span class="prelude-val">None</span>,
         }
@@ -594,6 +624,8 @@
 
 <span class="kw">fn </span>resolve_file_paths(location: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;, inputs: Vec&lt;PathBuf&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;PathBuf&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>sources = Vec::new();
+    <span class="comment">//Ensure we are working with a directory
+    </span><span class="kw">let </span>location = location.and_then(|it| <span class="kw">if </span>it.is_file() { it.parent() } <span class="kw">else </span>{ <span class="prelude-val">Some</span>(it) });
     <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>inputs {
         <span class="kw">let </span>input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
         <span class="kw">let </span>path = <span class="kw-2">&amp;</span>input.to_string_lossy();
