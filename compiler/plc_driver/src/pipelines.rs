@@ -133,7 +133,7 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
 }
 
 ///A project that has also been indexed
-/// Units inside an index project could be resolved and annotated
+/// Units inside an index project are ready be resolved and annotated
 pub struct IndexedProject<T: SourceContainer + Sync> {
     project: ParsedProject<T>,
     index: Index,

@@ -83,7 +83,7 @@ plc hello_world.st -o hello_world --linker=cc
 Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn't specify something else (option `-c`).
 
 - The `--linker=cc` flag tells RuSTy that it should link with the system's compiler driver  instead of the built in linker. This provides support to create executables.
-- Additional libraries can be linked using the `-l` flag, additial library paths can be added with `-L`
+- Additional libraries can be linked using the `-l` flag, additional library paths can be added with `-L`
 - You add library search paths by providing additional `-L /path/...` options. By default, this will be the current directory.
 - The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
 
