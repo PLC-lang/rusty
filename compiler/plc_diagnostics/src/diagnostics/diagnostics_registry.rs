@@ -75,11 +75,27 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
             info.description
         )
     }
+
+    fn get_diagnostic_configuration(&self) -> String {
+        let config: DiagnosticsConfiguration = self.into();
+        serde_json::ser::to_string(&config).expect("Cannot fail")
+    }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(transparent)]
 pub struct DiagnosticsConfiguration(HashMap<Severity, Vec<String>>);
+
+impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
+    fn from(registry: &DiagnosticsRegistry) -> Self {
+        let mut res = DiagnosticsConfiguration::default();
+        for val in registry.0.values() {
+            let entry = res.0.entry(val.severity).or_default();
+            entry.push(val.code.into());
+        }
+        res
+    }
+}
 
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};

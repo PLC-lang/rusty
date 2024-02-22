@@ -203,8 +203,8 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
 pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     let CompilationContext { compile_parameters, project, mut diagnostician, compile_options, link_options } =
         compile_options;
-    if let Some((options, format)) = compile_parameters.get_config_options() {
-        return print_config_options(&project, options, format);
+    if let Some((options, _format)) = compile_parameters.get_config_options() {
+        return print_config_options(&project, &diagnostician, options);
     }
 
     if let Some(SubCommands::Explain { error }) = &compile_parameters.commands {
@@ -289,14 +289,16 @@ Hint: You can use `plc explain <ErrorCode>` for more information"
 
 fn print_config_options<T: AsRef<Path> + Sync>(
     project: &Project<T>,
+    diagnostician: &Diagnostician,
     option: cli::ConfigOption,
-    _format: plc::ConfigFormat,
 ) -> std::result::Result<(), anyhow::Error> {
     match option {
         cli::ConfigOption::Schema => {
             println!("{}", project.get_validation_schema().as_ref())
         }
-        cli::ConfigOption::Diagnostics => println!("{}", project.get_diagnostic_configuration().as_ref()),
+        cli::ConfigOption::Diagnostics => {
+            println!("{}", diagnostician.get_diagnostic_configuration())
+        }
     };
 
     Ok(())

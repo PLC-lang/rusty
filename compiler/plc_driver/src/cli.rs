@@ -256,16 +256,14 @@ pub enum SubCommands {
 
     /// Explains an error code
     Explain {
-        #[clap(
-            help = "Error code to explain, for example `E001`"
-        )]
+        #[clap(help = "Error code to explain, for example `E001`")]
         error: String,
     },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
 pub enum ConfigOption {
-    #[clap(help = "Prints the plc.json schema used for validation")]
+    #[clap(help = "Prints the plc.json's schema used for validation")]
     Schema,
     #[clap(help = "Prints the configuration for the project")]
     Diagnostics,
@@ -275,8 +273,9 @@ impl SubCommands {
     pub fn get_build_configuration(&self) -> Option<&str> {
         let (SubCommands::Build { build_config, .. }
         | SubCommands::Check { build_config }
-        | SubCommands::Config { build_config, .. }) = self else {
-            return None
+        | SubCommands::Config { build_config, .. }) = self
+        else {
+            return None;
         };
         build_config.as_deref()
     }
@@ -433,7 +432,7 @@ impl CompileParameters {
 
     fn has_config(&self) -> Result<bool, Diagnostic> {
         let res = match &self.commands {
-            None | Some(SubCommands::Explain {..}) => false,
+            None | Some(SubCommands::Explain { .. }) => false,
             Some(SubCommands::Build { .. }) | Some(SubCommands::Check { .. }) => true,
             Some(SubCommands::Config { build_config, .. }) => {
                 let current_dir = env::current_dir()?;

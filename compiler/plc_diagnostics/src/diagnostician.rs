@@ -108,6 +108,9 @@ impl Diagnostician {
     pub fn explain(&self, error: &str) -> String {
         self.assessor.explain(error)
     }
+    pub fn get_diagnostic_configuration(&self) -> String {
+        self.assessor.get_diagnostic_configuration()
+    }
 }
 
 impl DiagnosticReporter for Diagnostician {
@@ -151,8 +154,12 @@ impl Default for Diagnostician {
 pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
     fn assess(&self, d: &Diagnostic) -> Severity;
+    //TODO should these be results
     fn explain(&self, error: &str) -> String {
         format!("Unknown error {error}")
+    }
+    fn get_diagnostic_configuration(&self) -> String {
+        "This assessor cannot be configured".into()
     }
 }
 

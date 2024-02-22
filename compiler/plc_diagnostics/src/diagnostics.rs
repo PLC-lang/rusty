@@ -116,7 +116,6 @@ impl Diagnostic {
         let range = factory.create_range_to_end_of_line(line, column);
         Diagnostic::new(message).with_error_code("E088").with_location(range)
     }
-
 }
 
 impl PartialEq for Diagnostic {
@@ -294,8 +293,14 @@ mod tests {
     fn test_build_diagnostic_msg_no_location() {
         let reporter = ClangFormatDiagnosticReporter::default();
         let file = SimpleFile::new("test.st".to_string(), "source".to_string());
-        let res =
-            reporter.build_diagnostic_msg(Some(&file), None, None, "E001", &Severity::Error, "This is an error");
+        let res = reporter.build_diagnostic_msg(
+            Some(&file),
+            None,
+            None,
+            "E001",
+            &Severity::Error,
+            "This is an error",
+        );
 
         assert_eq!(res, "test.st: error[E001]: This is an error");
     }
@@ -320,7 +325,8 @@ mod tests {
     #[test]
     fn test_build_diagnostic_msg_no_file_no_location() {
         let reporter = ClangFormatDiagnosticReporter::default();
-        let res = reporter.build_diagnostic_msg(None, None, None, "E001", &Severity::Error, "This is an error");
+        let res =
+            reporter.build_diagnostic_msg(None, None, None, "E001", &Severity::Error, "This is an error");
 
         assert_eq!(res, "error[E001]: This is an error");
     }
