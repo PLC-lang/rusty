@@ -153,10 +153,19 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         log::debug!("LIB_LOCATION={}", location.to_string_lossy());
         env::set_var("LIB_LOCATION", location);
     }
+    //Create diagnostics registry
+    //Create a diagnostican with the specified registry
+    //Use diagnostican
     let diagnostician = match compile_parameters.error_format {
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
         ErrorFormat::None => Diagnostician::null_diagnostician(),
+    };
+    let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
+        //TODO: read config
+        diagnostician.with_configuration(configuration)
+    } else {
+        diagnostician
     };
 
     let compile_options = CompileOptions {

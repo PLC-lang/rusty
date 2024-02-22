@@ -1,7 +1,8 @@
+use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 use encoding_rs::Encoding;
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
 use plc::{output::FormatOption, ConfigFormat, DebugLevel, ErrorFormat, Target, Threads};
@@ -177,6 +178,14 @@ pub struct CompileParameters {
         parse(try_from_str = get_parallel_threads)
     )]
     pub threads: Option<Threads>,
+
+    #[clap(
+        name = "error-config",
+        long,
+        help = "An diagnostics configuration in JSON format", //TODO: or toml
+        global = true,
+    )]
+    pub error_config: Option<String>,
 
     #[clap(
         name = "single-module",
@@ -422,6 +431,20 @@ impl CompileParameters {
             }
         };
         Ok(res)
+    }
+
+    pub fn get_error_configuration(&self) -> Result<Option<DiagnosticsConfiguration>> {
+        let Some(config) = &self.error_config else {
+            return Ok(None);
+        };
+        let config_path: PathBuf = config.into();
+        if config_path.exists() {
+            let error_config = std::fs::read_to_string(config_path)?;
+            let configuration: DiagnosticsConfiguration = serde_json::de::from_str(&error_config)?;
+            Ok(Some(configuration))
+        } else {
+            bail!("{} does not exist", config_path.to_string_lossy())
+        }
     }
 }
 

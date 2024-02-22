@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use crate::{
-    diagnostics::{diagnostics_registry::DiagnosticsRegistry, Diagnostic, Severity},
+    diagnostics::{
+        diagnostics_registry::{DiagnosticsConfiguration, DiagnosticsRegistry},
+        Diagnostic, Severity,
+    },
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -91,6 +94,13 @@ impl Diagnostician {
             assessor: Box::<DiagnosticsRegistry>::default(),
             filename_fileid_mapping: HashMap::new(),
         }
+    }
+
+    pub fn with_configuration(self, configuration: DiagnosticsConfiguration) -> Self {
+        let mut res = self;
+        let registry = DiagnosticsRegistry::default().with_configuration(configuration);
+        res.assessor = Box::new(registry);
+        res
     }
 }
 
