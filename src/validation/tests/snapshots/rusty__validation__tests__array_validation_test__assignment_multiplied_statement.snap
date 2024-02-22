@@ -2,61 +2,61 @@
 source: src/validation/tests/array_validation_test.rs
 expression: diagnostics
 ---
-error: Array `arr_1d` has a size of 5, but 6 elements were provided
+error[E043]: Array `arr_1d` has a size of 5, but 6 elements were provided
   ┌─ <internal>:4:49
   │
 4 │                 arr_1d : ARRAY[1..5] OF DINT := [6(0)];
   │                                                 ^^^^^^ Array `arr_1d` has a size of 5, but 6 elements were provided
 
-error: Array `arr_2d` has a size of 10, but 11 elements were provided
+error[E043]: Array `arr_2d` has a size of 10, but 11 elements were provided
   ┌─ <internal>:6:55
   │
 6 │                 arr_2d : ARRAY[1..2, 1..5] OF DINT := [11(0)];
   │                                                       ^^^^^^^ Array `arr_2d` has a size of 10, but 11 elements were provided
 
-error: Array `arr_2d_nested` has a size of 10, but 11 elements were provided
+error[E043]: Array `arr_2d_nested` has a size of 10, but 11 elements were provided
   ┌─ <internal>:7:71
   │
 7 │                 arr_2d_nested : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [11(0)];
   │                                                                       ^^^^^^^ Array `arr_2d_nested` has a size of 10, but 11 elements were provided
 
-error: Array `arr_3d` has a size of 8, but 9 elements were provided
+error[E043]: Array `arr_3d` has a size of 8, but 9 elements were provided
   ┌─ <internal>:9:61
   │
 9 │                 arr_3d : ARRAY[1..2, 1..2, 1..2] OF DINT := [9(0)];
   │                                                             ^^^^^^ Array `arr_3d` has a size of 8, but 9 elements were provided
 
-error: Array `arr_3d_nested` has a size of 8, but 9 elements were provided
+error[E043]: Array `arr_3d_nested` has a size of 8, but 9 elements were provided
    ┌─ <internal>:10:86
    │
 10 │                 arr_3d_nested : ARRAY[1..2] OF ARRAY[1..2] OF ARRAY[1..2] OF DINT := [9(0)];
    │                                                                                      ^^^^^^ Array `arr_3d_nested` has a size of 8, but 9 elements were provided
 
-error: Array `arr_1d` has a size of 5, but 6 elements were provided
+error[E043]: Array `arr_1d` has a size of 5, but 6 elements were provided
    ┌─ <internal>:21:23
    │
 21 │             arr_1d := [6(0)];
    │                       ^^^^^^ Array `arr_1d` has a size of 5, but 6 elements were provided
 
-error: Array `arr_2d` has a size of 10, but 11 elements were provided
+error[E043]: Array `arr_2d` has a size of 10, but 11 elements were provided
    ┌─ <internal>:22:23
    │
 22 │             arr_2d := [11(0)];
    │                       ^^^^^^^ Array `arr_2d` has a size of 10, but 11 elements were provided
 
-error: Array `arr_2d_nested` has a size of 10, but 11 elements were provided
+error[E043]: Array `arr_2d_nested` has a size of 10, but 11 elements were provided
    ┌─ <internal>:23:30
    │
 23 │             arr_2d_nested := [11(0)];
    │                              ^^^^^^^ Array `arr_2d_nested` has a size of 10, but 11 elements were provided
 
-error: Array `arr_3d` has a size of 8, but 9 elements were provided
+error[E043]: Array `arr_3d` has a size of 8, but 9 elements were provided
    ┌─ <internal>:24:23
    │
 24 │             arr_3d := [9(0)];
    │                       ^^^^^^ Array `arr_3d` has a size of 8, but 9 elements were provided
 
-error: Array `arr_3d_nested` has a size of 8, but 9 elements were provided
+error[E043]: Array `arr_3d_nested` has a size of 8, but 9 elements were provided
    ┌─ <internal>:25:30
    │
 25 │             arr_3d_nested := [9(0)];

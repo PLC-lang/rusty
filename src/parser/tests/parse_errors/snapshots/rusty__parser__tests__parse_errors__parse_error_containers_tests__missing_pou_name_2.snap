@@ -2,13 +2,13 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected Literal but found :=
+error[E007]: Unexpected token: expected Literal but found :=
   ┌─ <internal>:3:15
   │
 3 │             a := 2;
   │               ^^ Unexpected token: expected Literal but found :=
 
-error: Unexpected token: expected KeywordSemicolon but found ':= 2'
+error[E007]: Unexpected token: expected KeywordSemicolon but found ':= 2'
   ┌─ <internal>:3:15
   │
 3 │             a := 2;

@@ -2,7 +2,7 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: A class cannot have a var in/out/inout blocks
+error[E019]: A class cannot have a var in/out/inout blocks
   ┌─ <internal>:2:15
   │
 2 │         CLASS cls

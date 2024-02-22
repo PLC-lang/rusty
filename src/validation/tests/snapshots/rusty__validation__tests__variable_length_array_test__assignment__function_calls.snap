@@ -2,13 +2,13 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'ARRAY[*] OF DINT' to 'ARRAY[0..10] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[*] OF DINT' to 'ARRAY[0..10] OF DINT'
    ┌─ <internal>:12:17
    │
 12 │                 a   := vla;
    │                 ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[*] OF DINT' to 'ARRAY[0..10] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF DINT' to 'ARRAY[*] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF DINT' to 'ARRAY[*] OF DINT'
    ┌─ <internal>:13:17
    │
 13 │                 vla := a;

@@ -2,7 +2,7 @@
 source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
-error: Operator 'MOD' unimplemented for pointers
+error[E071]: Operator 'MOD' unimplemented for pointers
   ┌─ <internal>:8:16
   │
 8 │         ptr := ptr MOD ptr;

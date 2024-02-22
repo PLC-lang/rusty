@@ -134,7 +134,7 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 }));
             }
 
-            let diag = diagnostic_factory.with_labels(labels).with_message(d.message.as_str());
+            let diag = diagnostic_factory.with_labels(labels).with_message(d.message.as_str()).with_code(&d.code);
 
             let result = self.emit(diag);
             if result.is_err() && d.main_location.is_internal() {

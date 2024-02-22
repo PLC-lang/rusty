@@ -2,151 +2,151 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'LREAL' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'LREAL' to 'CHAR'
    ┌─ <internal>:32:5
    │
 32 │     v_char := v_lreal; // INVALID
    │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'LREAL' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'REAL' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'REAL' to 'CHAR'
    ┌─ <internal>:33:5
    │
 33 │     v_char := REAL#2.0; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
    ┌─ <internal>:34:5
    │
 34 │     v_char := v_udint; // INVALID
    │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
    ┌─ <internal>:35:5
    │
 35 │     v_char := UDINT#10; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'CHAR'
    ┌─ <internal>:36:5
    │
 36 │     v_char := v_dint; // INVALID
    │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'CHAR'
    ┌─ <internal>:37:5
    │
 37 │     v_char := DINT#20; // INVALID
    │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'TIME' to 'CHAR'
    ┌─ <internal>:38:5
    │
 38 │     v_char := v_time; // INVALID
    │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'TIME' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'TIME' to 'CHAR'
    ┌─ <internal>:39:5
    │
 39 │     v_char := TIME#10h20m30s; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'WORD' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WORD' to 'CHAR'
    ┌─ <internal>:40:5
    │
 40 │     v_char := v_word; // INVALID
    │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WORD' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'WORD' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WORD' to 'CHAR'
    ┌─ <internal>:41:5
    │
 41 │     v_char := WORD#16#ffff; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WORD' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING[1]' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING[1]' to 'CHAR'
    ┌─ <internal>:42:5
    │
 42 │     v_char := v_string1; // INVALID -> should work
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING[1]' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:43:5
    │
 43 │     v_char := STRING#'a'; // INVALID -> should work
    │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
    ┌─ <internal>:45:5
    │
 45 │     v_char := "a"; // INVALID
    │     ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:46:5
    │
 46 │     v_char := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:47:5
    │
 47 │     v_char := STRING#'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Value: 'string' exceeds length for type: CHAR
+error[E065]: Value: 'string' exceeds length for type: CHAR
    ┌─ <internal>:48:5
    │
 48 │     v_char := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Value: 'string' exceeds length for type: CHAR
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:48:5
    │
 48 │     v_char := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
    ┌─ <internal>:51:5
    │
 51 │     v_char := v_wchar; // INVALID
    │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
    ┌─ <internal>:52:5
    │
 52 │     v_char := WCHAR#"c"; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
    ┌─ <internal>:53:5
    │
 53 │     v_char := v_tod; // INVALID
    │     ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
    ┌─ <internal>:54:5
    │
 54 │     v_char := TOD#15:36:30; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'INT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'CHAR'
    ┌─ <internal>:55:5
    │
 55 │     v_char := v_ptr_int^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:56:5
    │
 56 │     v_char := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'INT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'CHAR'
    ┌─ <internal>:57:5
    │
 57 │     v_char := v_arr_int_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:58:5
    │
 58 │     v_char := v_arr_string_3[0]; // INVALID

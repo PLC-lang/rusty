@@ -58,10 +58,22 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
     /// Assesses the diagnostic based on the current registered map. If no entry is found, the
     /// default diagnostic is returned
     fn assess(&self, d: &Diagnostic) -> Severity {
-        self.0.get(d.get_type()).map(|it| it.severity).unwrap_or_else(|| {
-            log::warn!("Unrecognized error code {}. Using default severity", d.get_type());
+        self.0.get(d.get_error_code()).map(|it| it.severity).unwrap_or_else(|| {
+            log::warn!("Unrecognized error code {}. Using default severity", d.get_error_code());
             Severity::default()
         })
+    }
+
+    fn explain(&self, error: &str) -> String {
+        let Some(info) = self.0.get(error) else {
+            return format!("Unknown error {error}");
+        };
+        format!(
+            r"Explanation for error {error}:
+{}
+",
+            info.description
+        )
     }
 }
 

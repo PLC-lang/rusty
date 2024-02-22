@@ -8,7 +8,7 @@
 //!  - Shared Objects
 //!  - Executables
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::{
     env,
     ffi::OsStr,
@@ -16,7 +16,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use cli::{CompileParameters, ParameterError};
+use cli::{CompileParameters, ParameterError, SubCommands};
 use pipelines::AnnotatedProject;
 use plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
@@ -162,7 +162,6 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         ErrorFormat::None => Diagnostician::null_diagnostician(),
     };
     let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
-        //TODO: read config
         diagnostician.with_configuration(configuration)
     } else {
         diagnostician
@@ -206,6 +205,12 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         compile_options;
     if let Some((options, format)) = compile_parameters.get_config_options() {
         return print_config_options(&project, options, format);
+    }
+
+    if let Some(SubCommands::Explain { error }) = &compile_parameters.commands {
+        //Explain the given error
+        println!("{}", diagnostician.explain(error));
+        return Ok(());
     }
 
     //Set the global thread count
@@ -268,7 +273,18 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
     let compile_context = get_compilation_context(args)?;
-    compile_with_options(compile_context)
+    let format = compile_context.compile_parameters.error_format;
+    compile_with_options(compile_context).map_err(|err| {
+        //Only report the hint if we are using rich error reporting
+        if matches!(format, ErrorFormat::Rich) {
+            anyhow!(
+                "{err}.
+Hint: You can use `plc explain <ErrorCode>` for more information"
+            )
+        } else {
+            err
+        }
+    })
 }
 
 fn print_config_options<T: AsRef<Path> + Sync>(

@@ -1,5 +1,6 @@
 /target
 /target-watch
+/output
 /.idea
 **/*.rs.bk
 **/*.un~

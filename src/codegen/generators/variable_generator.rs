@@ -78,7 +78,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             let linkage =
                 if !variable.is_in_unit(location) { LinkageType::External } else { variable.get_linkage() };
             let global_variable =
-                self.generate_global_variable(variable, linkage).map_err(|err| match err.get_type() {
+                self.generate_global_variable(variable, linkage).map_err(|err| match err.get_error_code() {
                     "E072" | "E048" => {
                         Diagnostic::new(format!("Cannot generate literal initializer for `{name}`."))
                             .with_error_code("E041")

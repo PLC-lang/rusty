@@ -43,6 +43,7 @@ impl Diagnostician {
                 res
             })
             .map(|d| ResolvedDiagnostics {
+                code: d.get_error_code().to_string(),
                 message: d.get_message().to_string(),
                 severity: self.assess(d),
                 main_location: ResolvedLocation {
@@ -102,6 +103,11 @@ impl Diagnostician {
         res.assessor = Box::new(registry);
         res
     }
+
+    /// Explain the error with the given code by consulting the diagnostics registry
+    pub fn explain(&self, error: &str) -> String {
+        self.assessor.explain(error)
+    }
 }
 
 impl DiagnosticReporter for Diagnostician {
@@ -145,6 +151,9 @@ impl Default for Diagnostician {
 pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
     fn assess(&self, d: &Diagnostic) -> Severity;
+    fn explain(&self, error: &str) -> String {
+        format!("Unknown error {error}")
+    }
 }
 
 impl std::fmt::Display for Severity {

@@ -1,4 +1,5 @@
 use codespan_reporting::files::{Files, Location, SimpleFile, SimpleFiles};
+use log::debug;
 
 use crate::diagnostics::Severity;
 
@@ -25,6 +26,10 @@ impl Default for ClangFormatDiagnosticReporter {
 impl DiagnosticReporter for ClangFormatDiagnosticReporter {
     fn report(&mut self, diagnostics: &[ResolvedDiagnostics]) {
         for diagnostic in diagnostics {
+            if diagnostic.severity == Severity::Ignore {
+                debug!("Ignoring diagnostic: {}", &diagnostic.message);
+                continue;
+            }
             let file_id = diagnostic.main_location.file_handle;
             let location = &diagnostic.main_location;
 
@@ -38,6 +43,7 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
                 file,
                 start.as_ref(),
                 end.as_ref(),
+                &diagnostic.code,
                 &diagnostic.severity,
                 &diagnostic.message,
             );
@@ -59,6 +65,7 @@ impl ClangFormatDiagnosticReporter {
         file: Option<&SimpleFile<String, String>>,
         start: Option<&Location>,
         end: Option<&Location>,
+        code: &str,
         severity: &Severity,
         msg: &str,
     ) -> String {
@@ -92,7 +99,7 @@ impl ClangFormatDiagnosticReporter {
             }
         }
         // severity
-        str.push_str(format!("{severity}: ").as_str());
+        str.push_str(format!("{severity}[{code}]: ").as_str());
         // msg
         str.push_str(msg);
 

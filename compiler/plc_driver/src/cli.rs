@@ -253,6 +253,14 @@ pub enum SubCommands {
         )]
         build_config: Option<String>,
     },
+
+    /// Explains an error code
+    Explain {
+        #[clap(
+            help = "Error code to explain, for example `E001`"
+        )]
+        error: String,
+    },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
@@ -267,7 +275,9 @@ impl SubCommands {
     pub fn get_build_configuration(&self) -> Option<&str> {
         let (SubCommands::Build { build_config, .. }
         | SubCommands::Check { build_config }
-        | SubCommands::Config { build_config, .. }) = self;
+        | SubCommands::Config { build_config, .. }) = self else {
+            return None
+        };
         build_config.as_deref()
     }
 }
@@ -423,7 +433,7 @@ impl CompileParameters {
 
     fn has_config(&self) -> Result<bool, Diagnostic> {
         let res = match &self.commands {
-            None => false,
+            None | Some(SubCommands::Explain {..}) => false,
             Some(SubCommands::Build { .. }) | Some(SubCommands::Check { .. }) => true,
             Some(SubCommands::Config { build_config, .. }) => {
                 let current_dir = env::current_dir()?;

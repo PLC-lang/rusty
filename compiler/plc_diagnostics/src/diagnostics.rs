@@ -116,6 +116,7 @@ impl Diagnostic {
         let range = factory.create_range_to_end_of_line(line, column);
         Diagnostic::new(message).with_error_code("E088").with_location(range)
     }
+
 }
 
 impl PartialEq for Diagnostic {
@@ -132,7 +133,7 @@ impl Eq for Diagnostic {}
 
 impl Display for Diagnostic {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}: {}", self.get_type(), self.get_message())?;
+        write!(f, "{}", self.get_message())?;
         let location = self.get_location();
         if !location.is_undefined() {
             write!(f, " at: {location}")
@@ -155,7 +156,7 @@ impl Diagnostic {
         self.secondary_locations.as_deref()
     }
 
-    pub fn get_type(&self) -> &'static str {
+    pub fn get_error_code(&self) -> &'static str {
         self.error_code
     }
 
@@ -263,11 +264,12 @@ mod tests {
             Some(&file),
             Some(&start),
             Some(&end),
+            "E001",
             &Severity::Error,
             "This is an error",
         );
 
-        assert_eq!(res, "test.st:4:1:{4:1-4:4}: error: This is an error");
+        assert_eq!(res, "test.st:4:1:{4:1-4:4}: error[E001]: This is an error");
     }
 
     #[test]
@@ -280,11 +282,12 @@ mod tests {
             Some(&file),
             Some(&start),
             Some(&end),
+            "E001",
             &Severity::Error,
             "This is an error",
         );
 
-        assert_eq!(res, "test.st:4:1: error: This is an error");
+        assert_eq!(res, "test.st:4:1: error[E001]: This is an error");
     }
 
     #[test]
@@ -292,9 +295,9 @@ mod tests {
         let reporter = ClangFormatDiagnosticReporter::default();
         let file = SimpleFile::new("test.st".to_string(), "source".to_string());
         let res =
-            reporter.build_diagnostic_msg(Some(&file), None, None, &Severity::Error, "This is an error");
+            reporter.build_diagnostic_msg(Some(&file), None, None, "E001", &Severity::Error, "This is an error");
 
-        assert_eq!(res, "test.st: error: This is an error");
+        assert_eq!(res, "test.st: error[E001]: This is an error");
     }
 
     #[test]
@@ -306,18 +309,19 @@ mod tests {
             None,
             Some(&start),
             Some(&end),
+            "E001",
             &Severity::Error,
             "This is an error",
         );
 
-        assert_eq!(res, "error: This is an error");
+        assert_eq!(res, "error[E001]: This is an error");
     }
 
     #[test]
     fn test_build_diagnostic_msg_no_file_no_location() {
         let reporter = ClangFormatDiagnosticReporter::default();
-        let res = reporter.build_diagnostic_msg(None, None, None, &Severity::Error, "This is an error");
+        let res = reporter.build_diagnostic_msg(None, None, None, "E001", &Severity::Error, "This is an error");
 
-        assert_eq!(res, "error: This is an error");
+        assert_eq!(res, "error[E001]: This is an error");
     }
 }
