@@ -311,7 +311,7 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
 }
 
 #[test]
-fn semicolon_on_end_struct_keyword_works() {
+fn semicolon_at_end_struct_keyword_doesnt_trigger_parsing_errors() {
     let (_, diagnostics) = parse(
         r#"
         TYPE Position : STRUCT
