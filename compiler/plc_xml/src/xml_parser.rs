@@ -80,7 +80,7 @@ pub fn parse_file(
     //Register the source file with the diagnostician
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     if diagnostician.handle(&errors) == Severity::Error {
-        Err(Diagnostic::new("Compilation aborted due to parse errors"))
+        Err(Diagnostic::error("Compilation aborted due to parse errors"))
     } else {
         Ok(unit)
     }
