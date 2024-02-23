@@ -5,7 +5,10 @@ use ast::{
     provider::IdProvider,
 };
 use plc::{lexer, parser::expressions_parser::parse_expression};
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
+};
 
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
@@ -72,12 +75,15 @@ pub fn parse_file(
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
-) -> CompilationUnit {
+) -> Result<CompilationUnit, Diagnostic> {
     let (unit, errors) = parse(source, linkage, id_provider);
     //Register the source file with the diagnostician
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    diagnostician.handle(&errors);
-    unit
+    if diagnostician.handle(&errors) == Severity::Error {
+        Err(Diagnostic::new("Compilation aborted due to parse errors"))
+    } else {
+        Ok(unit)
+    }
 }
 
 fn parse(
