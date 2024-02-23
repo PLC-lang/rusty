@@ -65,7 +65,8 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 };
                 parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Vec<_>>();
+
         units.extend(sources);
 
         //Parse the includes
@@ -76,7 +77,7 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
                 parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Vec<_>>();
         units.extend(includes);
 
         //For each lib, parse the includes
@@ -88,8 +89,10 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
                 parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Vec<_>>();
         units.extend(lib_includes);
+
+        let units = units.into_iter().collect::<Result<Vec<_>, Diagnostic>>()?;
 
         Ok(ParsedProject { project, units })
     }
