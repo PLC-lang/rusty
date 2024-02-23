@@ -1135,6 +1135,38 @@ impl Index {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
     }
 
+    /// Returns all enum variant values and their constant values for the given variable.
+    ///
+    /// For example calling this method on `TYPE Color : (red, green, blue := 5); END_TYPE` will
+    /// return the [`VariableIndexEntry`]s of `red`, `green`, `blue` as well as their values
+    /// `0`, `1` and `5` respectively.
+    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
+        let mut values = Vec::new();
+        let qualified_name = variable.data_type_name.to_lowercase();
+
+        // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
+        let keys = self
+            .enum_qualified_variables
+            .keys()
+            .filter(|key| key.split('.').next().is_some())
+            .filter(|prefix| prefix.starts_with(&qualified_name))
+            .collect::<Vec<_>>();
+
+        for key in keys {
+            let value = self
+                .enum_qualified_variables
+                .get(key.as_str())
+                .expect("Must exist because of previous filter");
+            if let Some(ref const_id) = value.initial_value {
+                if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
+                    values.push((value, init));
+                }
+            }
+        }
+
+        values
+    }
+
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
     pub fn get_container_members(&self, container_name: &str) -> &[VariableIndexEntry] {
         self.type_index.find_type(container_name).map(|it| it.get_members()).unwrap_or_else(|| &[])
