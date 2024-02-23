@@ -12,7 +12,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
-use crate::validation::statement::helper::get_datatype_name_or_slice;
+use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -744,11 +744,11 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 // ...enum variable where the RHS does not match its variants
                 validate_enum_variant_assignment(
+                    context,
                     validator,
-                    context.annotations.get_type_or_void(left, context.index).get_type_information(),
-                    context.annotations.get_type_or_void(right, context.index).get_type_information(),
                     qualified_name,
-                    right.get_location(),
+                    context.annotations.get_type_or_void(left, context.index),
+                    right,
                 );
             }
 
@@ -859,20 +859,69 @@ fn validate_assignment<T: AnnotationMap>(
     }
 }
 
-pub(crate) fn validate_enum_variant_assignment(
+pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
+    context: &ValidationContext<T>,
     validator: &mut Validator,
-    left: &DataTypeInformation,
-    right: &DataTypeInformation,
     qualified_name: &str,
-    location: SourceLocation,
+    left_dt: &DataType,
+    right: &AstNode,
 ) {
-    if left.is_enum() && left.get_name() != right.get_name() {
-        validator.push_diagnostic(
-            Diagnostic::error(format!("Assigned value is not a variant of {qualified_name}"))
-                .with_error_code("E039")
-                .with_location(location),
-        )
+    if !left_dt.is_enum() {
+        return;
     }
+
+    let right_dt = context.annotations.get_type_or_void(right, context.index);
+
+    // For it to be a valid enum assignment, the right-hand side must yield a const-expr value
+    // (i.e. literal integer or some enum variant) and the left-hand side (which is an enum) must have that
+    // const-expr value as a variant (e.g. the const-expr must be 1 or 2 for `Status : (idle := 1, running := 2)`)
+    let Some(value_rhs) = get_literal_int_or_const_expr_value(right, context) else {
+        // ...however function calls for example are no const-expr hence only report if datatypes also differ
+        if left_dt.get_name() != right_dt.get_name() {
+            validator.push_diagnostic(
+                Diagnostic::error(format!(
+                    "Value evaluated at run-time, use an enum variant from `{}`",
+                    get_datatype_name_or_slice(validator.context, left_dt)
+                ))
+                .with_location(right.get_location())
+                .with_secondary_location(left_dt.location.clone())
+                .with_error_code("E091"),
+            );
+        }
+
+        return;
+    };
+
+    let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
+    let variants = context.index.get_enum_variants(variable);
+
+    match variants.iter().find(|(_, value_lhs)| *value_lhs == value_rhs) {
+        Some((variant, _)) => {
+            if left_dt.get_name() != right_dt.get_name() {
+                validator.push_diagnostic(
+                    Diagnostic::info(format!(
+                        "Replace `{}` with `{}`",
+                        validator.context.slice(&right.location),
+                        variant.get_name()
+                    ))
+                    .with_location(right.get_location())
+                    .with_secondary_location(left_dt.location.clone()),
+                );
+            }
+        }
+        None => {
+            validator.push_diagnostic(
+                Diagnostic::error(format!(
+                    "Invalid enum value `{}` for `{}`",
+                    validator.context.slice(&right.location),
+                    get_datatype_name_or_slice(validator.context, left_dt)
+                ))
+                .with_location(right.get_location())
+                .with_secondary_location(left_dt.location.clone())
+                .with_error_code("E040"),
+            );
+        }
+    };
 }
 
 fn validate_variable_length_array_assignment<T: AnnotationMap>(
@@ -1285,10 +1334,12 @@ fn _validate_assignment_type_sizes<T: AnnotationMap>(
 mod helper {
     use std::ops::Range;
 
-    use plc_ast::ast::DirectAccessType;
+    use plc_ast::ast::{AstNode, DirectAccessType};
     use plc_index::GlobalContext;
 
+    use crate::resolver::AnnotationMap;
     use crate::typesystem::DataType;
+    use crate::validation::ValidationContext;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
     /// Returns true if the current index is in the range for the given type
@@ -1321,5 +1372,28 @@ mod helper {
         }
 
         context.slice(&dt.location)
+    }
+
+    pub fn get_literal_int_or_const_expr_value<T>(
+        right: &AstNode,
+        context: &ValidationContext<T>,
+    ) -> Option<i128>
+    where
+        T: AnnotationMap,
+    {
+        if let Some(value) = right.get_literal_integer_value() {
+            return Some(value);
+        }
+
+        let path = right.get_flat_reference_name().unwrap_or_default();
+        let Some(element) = context.index.find_variable(context.qualifier, &[path]) else {
+            return None;
+        };
+
+        context
+            .index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&element.initial_value)
+            .and_then(AstNode::get_literal_integer_value)
     }
 }
