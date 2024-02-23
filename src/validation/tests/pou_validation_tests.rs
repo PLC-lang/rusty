@@ -234,3 +234,21 @@ fn void_functions_are_supported() {
 
     "###);
 }
+
+#[test]
+fn temp2() {
+    // TODO: Should there be a warning? I.e. no warning as seen above because of global variable; is this clear?
+    let diagnostics = parse_and_validate_buffered(
+        "
+        VAR_GLOBAL
+            foo : DINT;
+        END_VAR
+
+        FUNCTION foo
+            foo := 1; // `foo` here references the global variable `foo`, not the function `foo`
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
