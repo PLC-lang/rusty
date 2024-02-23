@@ -215,30 +215,6 @@
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -392,14 +368,11 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(rhs) = variable.initializer.as_ref() {
                     validate_enum_variant_assignment(
+                        context,
                         validator,
-                        context
-                            .index
-                            .get_effective_type_or_void_by_name(v_entry.get_type_name())
-                            .get_type_information(),
-                        context.annotations.get_type_or_void(rhs, context.index).get_type_information(),
                         v_entry.get_qualified_name(),
-                        rhs.get_location(),
+                        context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
+                        rhs,
                     )
                 }
             }
@@ -455,27 +428,6 @@
             END_VAR
         END_PROGRAM
         &quot;</span>,
-        );
-        <span class="macro">assert_snapshot!</span>(diagnostics);
-    }
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>validate_enum_variant_initializer() {
-        <span class="kw">let </span>diagnostics = parse_and_validate_buffered(
-            <span class="string">&quot;VAR_GLOBAL
-                x : (red, yellow, green) := 2; // error
-            END_VAR
-
-            PROGRAM  main
-            VAR
-                y : (metallic := 1, matte := 2, neon := 3) := red; // error
-            END_VAR
-            VAR
-                var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow; // error
-                var2 : (x5, x6, x7) := neon; // error
-                var3 : (a, b, c) := 7; // error
-            END_VAR
-            END_PROGRAM&quot;</span>,
         );
         <span class="macro">assert_snapshot!</span>(diagnostics);
     }

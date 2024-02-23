@@ -127,6 +127,8 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>plc_ast::provider::IdProvider;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -206,7 +208,9 @@
         slice.split_whitespace().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot; &quot;</span>)
     }
 
-    <span class="doccomment">/// Returns a slice representing the specified location of the source code.
+    <span class="comment">// TODO(volsa): Transfer `get_datatype_name_or_slice(...)` here once crates / workspaces have been finalized
+
+    </span><span class="doccomment">/// Returns a slice representing the specified location of the source code.
     /// If the location, i.e. file path, does not exist an empty string will be returned.
     </span><span class="kw">pub fn </span>slice_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">let </span>path = location.get_file_name().unwrap_or(<span class="string">&quot;&lt;internal&gt;&quot;</span>);
