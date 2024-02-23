@@ -2,8 +2,8 @@
 name = "rusty"
 version = "0.2.0"
 authors = [
-	"Ghaith Hachem <ghaith.hachem@gmail.com>",
-	"Mathias Rieder <mathias.rieder@gmail.com>",
+    "Ghaith Hachem <ghaith.hachem@gmail.com>",
+    "Mathias Rieder <mathias.rieder@gmail.com>",
 ]
 edition = "2021"
 readme = "README.md"
@@ -21,6 +21,7 @@ plc_source = { path = "./compiler/plc_source" }
 plc_ast = { path = "./compiler/plc_ast" }
 plc_util = { path = "./compiler/plc_util" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics" }
+plc_index = { path = "./compiler/plc_index" }
 logos = "0.12.0"
 thiserror = "1.0"
 clap = { version = "3.0", features = ["derive"] }
@@ -30,7 +31,6 @@ regex = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 toml = "0.5"
-lazy_static = "1.4.0"
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
 lld_rs = "140.0.0"
@@ -39,18 +39,21 @@ log.workspace = true
 inkwell.workspace = true
 chrono.workspace = true
 itertools.workspace = true
+anyhow.workspace = true
+lazy_static.workspace = true
 
 [dev-dependencies]
 num = "0.4"
 insta = "1.31.0"
 pretty_assertions = "1.3.0"
 driver = { path = "./compiler/plc_driver/", package = "plc_driver" }
-project = { path = "./compiler/plc_project/", package = "plc_project" }
+project = { path = "./compiler/plc_project/", package = "plc_project", features = ["integration"]}
 plc_xml = { path = "./compiler/plc_xml" }
 serial_test = "*"
 tempfile = "3"
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
+
 
 [lib]
 name = "rusty"
@@ -58,16 +61,17 @@ path = "src/lib.rs"
 
 [workspace]
 members = [
-	"xtask",
-	"libs/stdlib",
-	"compiler/plc_driver",
-	"compiler/plc_ast",
-	"compiler/plc_diagnostics",
-	"compiler/plc_project",
-	"compiler/plc_source",
-	"compiler/plc_util",
-	"compiler/plc_xml",
-	"compiler/plc_derive",
+    "xtask",
+    "libs/stdlib",
+    "compiler/plc_driver",
+    "compiler/plc_ast",
+    "compiler/plc_diagnostics",
+    "compiler/plc_project",
+    "compiler/plc_source",
+    "compiler/plc_util",
+    "compiler/plc_xml",
+    "compiler/plc_derive",
+    "compiler/plc_index",
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
@@ -78,3 +82,5 @@ encoding_rs_io = "0.1"
 log = "0.4"
 chrono = { version = "0.4", default-features = false }
 itertools = "0.11"
+anyhow = "1.0"
+lazy_static = "1.4.0"

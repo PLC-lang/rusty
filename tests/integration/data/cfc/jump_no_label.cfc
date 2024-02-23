@@ -8,10 +8,10 @@
                     <content>
 FUNCTION main : DINT
 VAR
-	x: BOOL := FALSE;
-	a: DINT := 0;
+    x: BOOL := FALSE;
+    a: DINT := 0;
 END_VAR
-					</content>
+                    </content>
                 </textDeclaration>
             </data>
         </addData>

@@ -1,16 +1,71 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT1' to 'REAL'", range: [SourceLocation { span: Range(TextLocation { line: 45, column: 4, offset: 758 }..TextLocation { line: 45, column: 23, offset: 777 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 794 }..TextLocation { line: 46, column: 23, offset: 813 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 49, column: 4, offset: 870 }..TextLocation { line: 49, column: 26, offset: 892 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 52, column: 18, offset: 978 }..TextLocation { line: 52, column: 42, offset: 1002 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceLocation { span: Range(TextLocation { line: 55, column: 9, offset: 1077 }..TextLocation { line: 55, column: 39, offset: 1107 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__main_v_ref_to_struct1'", range: [SourceLocation { span: Range(TextLocation { line: 66, column: 4, offset: 1422 }..TextLocation { line: 66, column: 35, offset: 1453 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__main_v_ref_to_struct1'", range: [SourceLocation { span: Range(TextLocation { line: 67, column: 4, offset: 1470 }..TextLocation { line: 67, column: 37, offset: 1503 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_CHAR' to '__main_v_ref_to_struct1'", range: [SourceLocation { span: Range(TextLocation { line: 68, column: 4, offset: 1520 }..TextLocation { line: 68, column: 35, offset: 1551 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__main_v_ref_to_struct1'", range: [SourceLocation { span: Range(TextLocation { line: 70, column: 4, offset: 1573 }..TextLocation { line: 70, column: 33, offset: 1602 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__main_v_ref_to_struct1'", range: [SourceLocation { span: Range(TextLocation { line: 71, column: 4, offset: 1619 }..TextLocation { line: 71, column: 35, offset: 1650 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_CHAR' to '__main_v_ref_to_struct1'", range: [SourceLocation { span: Range(TextLocation { line: 72, column: 4, offset: 1667 }..TextLocation { line: 72, column: 33, offset: 1696 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'STRUCT1' to 'REAL'
+   ┌─ <internal>:46:5
+   │
+46 │     v_real := v_struct1; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT1' to 'REAL'
+
+error: Invalid assignment: cannot assign 'REAL' to 'STRUCT1'
+   ┌─ <internal>:47:5
+   │
+47 │     v_struct1 := v_real; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'STRUCT1'
+
+error: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+   ┌─ <internal>:50:5
+   │
+50 │     v_struct1 := v_struct2; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+
+error: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+   ┌─ <internal>:53:19
+   │
+53 │     v_struct3 := (var_struct1 := v_struct2); // INVALID
+   │                   ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+
+error: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+   ┌─ <internal>:56:10
+   │
+56 │     myFB(var_inout_struct1 := v_struct2); // INVALID
+   │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
+   ┌─ <internal>:67:5
+   │
+67 │     v_ref_to_struct1 := REF(v_real); // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
+
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
+   ┌─ <internal>:68:5
+   │
+68 │     v_ref_to_struct1 := REF(v_string); // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
+
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
+   ┌─ <internal>:69:5
+   │
+69 │     v_ref_to_struct1 := REF(v_char); // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
+
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
+   ┌─ <internal>:71:5
+   │
+71 │     v_ref_to_struct1 := &(v_real); // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
+
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
+   ┌─ <internal>:72:5
+   │
+72 │     v_ref_to_struct1 := &(v_string); // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
+
+warning: Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
+   ┌─ <internal>:73:5
+   │
+73 │     v_ref_to_struct1 := &(v_char); // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
+
 

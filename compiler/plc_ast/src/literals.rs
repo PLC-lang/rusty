@@ -38,14 +38,14 @@ pub enum AstLiteral {
     Array(Array),
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Date {
     year: i32,
     month: u32,
     day: u32,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DateAndTime {
     year: i32,
     month: u32,
@@ -56,7 +56,7 @@ pub struct DateAndTime {
     nano: u32,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TimeOfDay {
     hour: u32,
     min: u32,
@@ -64,7 +64,7 @@ pub struct TimeOfDay {
     nano: u32,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Time {
     pub day: f64,
     pub hour: f64,
@@ -76,13 +76,13 @@ pub struct Time {
     pub negative: bool,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StringValue {
     pub value: String,
     pub is_wide: bool,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Array {
     pub elements: Option<Box<AstNode>>, // expression-list
 }
@@ -100,8 +100,12 @@ fn calculate_date_time(
 ) -> Result<i64, String> {
     NaiveDate::from_ymd_opt(year, month, day)
         .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
-        .map(|date_time| date_time.timestamp_nanos())
         .ok_or_else(|| format!("Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
+        .and_then(|date_time| {
+            date_time
+                .timestamp_nanos_opt()
+                .ok_or_else(|| format!("Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
+        })
 }
 
 impl DateAndTime {

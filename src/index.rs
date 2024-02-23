@@ -1116,13 +1116,10 @@ impl Index {
         segments
             .iter()
             .skip(1)
-            .fold(Some((segments[0], init)), |accum, current| match accum {
-                Some((_, Some(context))) => {
-                    Some((*current, self.find_member(&context.data_type_name, current)))
-                }
+            .try_fold((segments[0], init), |accum, current| match accum {
+                (_, Some(context)) => Some((*current, self.find_member(&context.data_type_name, current))),
                 // The variable could be in a block that has no global variable (Function block)
-                Some((name, None)) => Some((*current, self.find_member(name, current))),
-                None => Some((*current, self.find_global_variable(current))),
+                (name, None) => Some((*current, self.find_member(name, current))),
             })
             .and_then(|(_, it)| it)
     }
@@ -1249,7 +1246,7 @@ impl Index {
         self.get_const_expressions().maybe_get_constant_statement(id)
     }
 
-    /// returns type aliased by Alias or SubRange    
+    /// returns type aliased by Alias or SubRange
     fn get_aliased_target_type(&self, dt: &DataTypeInformation) -> Option<&DataType> {
         match dt {
             DataTypeInformation::SubRange { referenced_type, .. }

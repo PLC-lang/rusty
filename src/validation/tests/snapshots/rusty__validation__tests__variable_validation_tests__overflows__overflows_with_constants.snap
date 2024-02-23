@@ -1,6 +1,13 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 23, offset: 52 }..TextLocation { line: 3, column: 28, offset: 93 }) }], err_no: var__overflow }
+warning: This will overflow for type INT
+  ┌─ <internal>:3:24
+  │  
+3 │               a : INT := 16384; // OK
+  │ ╭────────────────────────^
+4 │ │             b : INT := 16384; // OK
+  │ ╰────────────────────────────^ This will overflow for type INT
+
 

@@ -1,8 +1,8 @@
 use crate::{pipelines::ParsedProject, CompileOptions};
 
-use ast::provider::IdProvider;
 use plc::codegen::{CodegenContext, GeneratedModule};
 use plc_diagnostics::diagnostician::Diagnostician;
+use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::Compilable;
 
@@ -26,12 +26,11 @@ impl Default for MainType {
 pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedModule<'_> {
     let source = source.containers();
     let project = Project::new("TestProject".to_string()).with_sources(source);
+    let ctxt = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
     let mut diagnostician = Diagnostician::null_diagnostician();
-    let id_provider = IdProvider::default();
-    let parsed_project =
-        ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician).unwrap();
-    let indexed_project = parsed_project.index(id_provider.clone()).unwrap();
-    let annotated_project = indexed_project.annotate(id_provider, &diagnostician).unwrap();
+    let parsed_project = ParsedProject::parse(&ctxt, project, &mut diagnostician).unwrap();
+    let indexed_project = parsed_project.index(ctxt.provider());
+    let annotated_project = indexed_project.annotate(ctxt.provider());
     let compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,
@@ -49,4 +48,15 @@ pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let module = compile(&context, source);
     module.print_to_stderr();
     module.run::<T, U>("main", params)
+}
+
+///
+/// A Convenience method to compile and then run the given source
+/// without external parameters
+///
+pub fn compile_and_run_no_params<U, S: Compilable>(source: S) -> U {
+    let context: CodegenContext = CodegenContext::create();
+    let module = compile(&context, source);
+    module.print_to_stderr();
+    module.run_no_param::<U>("main")
 }

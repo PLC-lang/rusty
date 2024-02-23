@@ -1,5 +1,5 @@
 {
-		"name": "ProjectName",
+    "name": "ProjectName",
     "files" : [
         "examples/hw.st",
         "examples/hello_world.st",

@@ -9,8 +9,8 @@ use pretty_assertions::assert_eq;
 struct MainType {
     variable: u64,
     access_var: i16,
-    bit_target: bool,
-    bit_target2: bool,
+    bit_target: u8,  //bool
+    bit_target2: u8, //bool
     byte_target: u8,
     word_target: u16,
     dword_target: u32,
@@ -19,7 +19,7 @@ struct MainType {
 #[test]
 fn bitaccess_assignment() {
     let prog = "
-    PROGRAM main 
+    PROGRAM main
     VAR
         a : BYTE := 2#0000_0101;
         b : WORD := 0;
@@ -98,9 +98,9 @@ fn qualified_reference_assignment() {
 #[test]
 fn bitaccess_test() {
     let prog = "
-    PROGRAM main 
-    VAR 
-        variable    : LWORD; 
+    PROGRAM main
+    VAR
+        variable    : LWORD;
         access_var  : INT;
         bitTarget   : BOOL;
         bitTarget2  : BOOL;
@@ -125,11 +125,11 @@ fn bitaccess_test() {
         MainType {
             variable: 0xAB_CD_EF_12_34_56_78_90,
             access_var: 0,
-            bit_target: true,
+            bit_target: 1,
+            bit_target2: 85, //variable >> 32 >> 16 >> 8 >> 1 = 85
             byte_target: 0xAB,
             word_target: 0xAB_CD,
             dword_target: 0xAB_CD_EF_12,
-            bit_target2: true,
         }
     )
 }
@@ -138,8 +138,8 @@ fn bitaccess_test() {
 fn bitaccess_with_var_test() {
     let prog = "
     PROGRAM main
-    VAR 
-        variable    : LWORD; 
+    VAR
+        variable    : LWORD;
         access_var  : INT;
         bitTarget   : BOOL;
         bitTarget2  : BOOL;
@@ -168,11 +168,11 @@ fn bitaccess_with_var_test() {
         MainType {
             variable: 0xAB_CD_EF_12_34_56_78_90,
             access_var: 1,
-            bit_target: true,
+            bit_target: 1,
+            bit_target2: 85, //variable >> 32 >> 16 >> 8 >> 1 = 85
             byte_target: 0xAB,
             word_target: 0xAB_CD,
             dword_target: 0xAB_CD_EF_12,
-            bit_target2: true,
         }
     )
 }

@@ -7,7 +7,7 @@ use crate::test_utils::tests::{parse, parse_and_validate_buffered, parse_buffere
 #[test]
 fn illegal_literal_time_missing_segments_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             T#;
         END_PROGRAM
         ";
@@ -18,7 +18,7 @@ fn illegal_literal_time_missing_segments_test() {
 #[test]
 fn time_literal_problems_can_be_recovered_from_during_parsing() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             T#1d4d2h3m;
             x;
         END_PROGRAM
@@ -33,7 +33,7 @@ fn time_literal_problems_can_be_recovered_from_during_parsing() {
 #[test]
 fn illegal_literal_time_double_segments_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             T#1d4d2h3m;
         END_PROGRAM
         ";
@@ -45,7 +45,7 @@ fn illegal_literal_time_double_segments_test() {
 #[test]
 fn illegal_literal_time_out_of_order_segments_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             T#1s2h3d;
         END_PROGRAM
         ";

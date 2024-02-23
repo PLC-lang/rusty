@@ -23,7 +23,7 @@ fn missing_semicolon_after_call() {
      * parsed correctly
      */
     let src = r"
-                PROGRAM foo 
+                PROGRAM foo
                     buz()
                     foo();
                 END_PROGRAM
@@ -45,7 +45,7 @@ fn missing_comma_in_call_parameters() {
      * c will not be parsed as an expression
      */
     let src = r"
-                PROGRAM foo 
+                PROGRAM foo
                     buz(a,b c);
                 END_PROGRAM
     ";
@@ -79,7 +79,7 @@ fn illegal_semicolon_in_call_parameters() {
      * _ c will be its own reference with an illegal token ')'
      */
     let src = r"
-                PROGRAM foo 
+                PROGRAM foo
                     buz(a,b; c);
                 END_PROGRAM
     ";
@@ -113,7 +113,7 @@ fn illegal_semicolon_in_call_parameters() {
 #[test]
 fn incomplete_statement_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             1 + 2 +;
             x;
         END_PROGRAM
@@ -153,7 +153,7 @@ fn incomplete_statement_test() {
 #[test]
 fn incomplete_statement_in_parantheses_recovery_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             (1 + 2 - ) + 3;
             x;
         END_PROGRAM
@@ -168,7 +168,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 #[test]
 fn mismatched_parantheses_recovery_test() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
             (1 + 2;
             x;
         END_PROGRAM
@@ -185,7 +185,7 @@ fn mismatched_parantheses_recovery_test() {
 fn invalid_variable_name_error_recovery() {
     let src = "
         PROGRAM p
-            VAR 
+            VAR
                 c : INT;
                 4 : INT;
             END_VAR
@@ -225,7 +225,7 @@ fn invalid_variable_name_error_recovery() {
 fn invalid_variable_data_type_error_recovery() {
     let src = "
         PROGRAM p
-            VAR 
+            VAR
                 a DINT : ;
                 c : INT;
                 h , , : INT;
@@ -365,8 +365,8 @@ fn test_for_with_missing_semicolon_in_body() {
 fn test_nested_for_with_missing_end_for() {
     //regress, this used to end in an endless loop
     let src = "PROGRAM My_PRG
-            FOR x := 1 TO 2 DO 
-                FOR x := 1 TO 2 DO 
+            FOR x := 1 TO 2 DO
+                FOR x := 1 TO 2 DO
                     y := x;
             END_FOR
             x := y;
@@ -464,7 +464,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
             REPEAT
                 x := 3
             UNTIL x = y END_REPEAT
-            y := x;     
+            y := x;
            END_PROGRAM
     ";
     let (unit, diagnostics) = parse_buffered(src);
@@ -542,7 +542,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                 REPEAT
                     ;
                 UNTIL x = y END_REPEAT
-                y := x;     
+                y := x;
            END_PROGRAM
     ";
     let (unit, diagnostics) = parse_buffered(src);
@@ -771,7 +771,7 @@ fn test_while_with_missing_semicolon_in_body() {
             WHILE x = y DO
                 x := 3
             END_WHILE
-            y := x;     
+            y := x;
            END_PROGRAM
     ";
     let (unit, diagnostics) = parse_buffered(src);
@@ -1059,7 +1059,7 @@ fn test_case_body_with_missing_semicolon() {
 fn test_case_without_condition() {
     let src = "PROGRAM My_PRG
                 CASE x OF
-                    1: 
+                    1:
                     : x := 3;
                 END_CASE
             END_PROGRAM
@@ -1117,7 +1117,7 @@ fn pointer_type_without_to_test() {
     let src = r#"
         TYPE SamplePointer :
             POINTER INT;
-        END_TYPE 
+        END_TYPE
         "#;
     let (result, diagnostics) = parse_buffered(src);
     let pointer_type = &result.user_types[0];
@@ -1143,7 +1143,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
     let src = r#"
         TYPE SamplePointer :
             POINTER tu INT;
-        END_TYPE 
+        END_TYPE
         "#;
     let (result, diagnostics) = parse_buffered(src);
     let pointer_type = &result.user_types[0];
@@ -1165,7 +1165,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
 
 #[test]
 fn bitwise_access_error_validation() {
-    let src = "PROGRAM exp 
+    let src = "PROGRAM exp
     a.1e5;   // exponent illegal
     b.%f6;   // f is no valid direct access modifier
     END_PROGRAM";

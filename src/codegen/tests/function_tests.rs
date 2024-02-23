@@ -62,7 +62,7 @@ fn member_variables_in_body() {
             VAR_OUTPUT  o   : LINT;      END_VAR
             VAR         v   : INT := 1; END_VAR
             VAR_TEMP    vt  : INT := 2; END_VAR
-            
+
             func := i * io - o + v * vt;
         END_FUNCTION
         "#,
@@ -170,7 +170,7 @@ fn autocast_argument_literals_for_function_call() {
         PROGRAM main
             // Check if up- and downcasting works; the IR should not need additional instructions other
             // than a `alloca` and `store` instruction for their actual types, i.e. no casting needed
-            func(DINT#1, DINT#2, SINT#3, DINT#4, LREAL#5.0, REAL#6.0); 
+            func(DINT#1, DINT#2, SINT#3, DINT#4, LREAL#5.0, REAL#6.0);
         END_PROGRAM
         "#,
     );
@@ -198,7 +198,7 @@ fn bitcast_argument_references_for_function_call() {
                 in_out : LINT;
             END_VAR
         END_FUNCTION
-        
+
         FUNCTION fn_real : LINT
             VAR_INPUT {ref}
                 in_ref : REAL;
@@ -207,7 +207,7 @@ fn bitcast_argument_references_for_function_call() {
                 in_out : REAL;
             END_VAR
         END_FUNCTION
-        
+
         FUNCTION fn_lreal : LINT
             VAR_INPUT {ref}
                 in_ref : LREAL;
@@ -216,7 +216,7 @@ fn bitcast_argument_references_for_function_call() {
                 in_out : LREAL;
             END_VAR
         END_FUNCTION
-        
+
         PROGRAM main
             VAR
                 var1_sint, var2_sint : SINT := 1;
@@ -232,7 +232,7 @@ fn bitcast_argument_references_for_function_call() {
             fn_sint(var1_int,  var2_int);
             fn_sint(var1_dint, var2_dint);
             fn_sint(var1_lint, var2_lint);
-            
+
             fn_lint(var1_sint, var2_sint);
             fn_lint(var1_int,  var2_int);
             fn_lint(var1_dint, var2_dint);
@@ -284,7 +284,7 @@ fn function_with_varargs_called_in_program() {
         END_VAR
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
         x : DINT;
         END_VAR
@@ -307,7 +307,7 @@ fn function_with_sized_varargs_called_in_program() {
         END_VAR
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
         x : DINT;
         END_VAR
@@ -333,7 +333,7 @@ fn function_with_ref_sized_string_varargs_called_in_program() {
         END_VAR
         END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
         x : DINT;
         END_VAR
@@ -369,4 +369,37 @@ fn return_variable_in_nested_call() {
 
     // we want a call passing the return-variable as apointer (actually the adress as a LWORD)
     insta::assert_snapshot!(codegen(src));
+}
+
+#[test]
+fn argument_fed_by_ref_then_by_val() {
+    let result = codegen(
+        "
+        TYPE MyType : ARRAY[1..5] OF DWORD; END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                arr : MyType;
+            END_VAR
+
+            fn_by_ref(arr);
+        END_FUNCTION
+
+        FUNCTION fn_by_ref : DINT
+            VAR_IN_OUT
+                arg_by_ref : MyType;
+            END_VAR
+
+            fn_by_val(arg_by_ref);
+        END_FUNCTION
+
+        FUNCTION fn_by_val : DINT
+            VAR_INPUT
+                arg_by_val : MyType;
+            END_VAR
+        END_FUNCTION
+    ",
+    );
+
+    insta::assert_snapshot!(result)
 }

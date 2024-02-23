@@ -20,8 +20,3 @@ int LOG(LOG_interface* param) {
 int PRINTF(PRINT_interface* param) {
     return printf(param->text, param->value);
 }
-
-
-
-
-

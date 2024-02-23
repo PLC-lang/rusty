@@ -1,7 +1,7 @@
 # Build & Install
 
 RuSTys code can be found on [GitHub](https://github.com/PLC-lang/rusty).
-By default a `Dockerfile` and a `devcontainer.json` file are provided. If you wish to develop natively 
+By default a `Dockerfile` and a `devcontainer.json` file are provided. If you wish to develop natively
 however, you will need some additional dependencies namely:
 
 - [Rust](https://www.rust-lang.org/tools/install)
@@ -12,7 +12,7 @@ however, you will need some additional dependencies namely:
 
 The next sections cover how to install these dependencies on different platforms, if you already have them
 however, RuSTy can be build using the `cargo` command. For debug builds this can be accomplished by executing
-`cargo build` and for release builds (smaller & faster) you would execute `cargo build --release`. The 
+`cargo build` and for release builds (smaller & faster) you would execute `cargo build --release`. The
 resulting binaries can be found at `target/debug/plc` and `target/release/plc` respectively.
 
 ## Ubuntu
@@ -24,7 +24,7 @@ sudo apt install                \
     build-essential             \
     llvm-14-dev liblld-14-dev   \
     libz-dev                    \
-    libclang-common-14-dev 
+    libclang-common-14-dev
 ```
 Additionally you _might_ need `libffi7`, which can be installed with `sudo apt install libffi7`.
 

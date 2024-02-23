@@ -1,9 +1,29 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 15, offset: 323 }..TextLocation { line: 14, column: 22, offset: 330 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 24, offset: 332 }..TextLocation { line: 14, column: 40, offset: 348 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 15, offset: 386 }..TextLocation { line: 15, column: 16, offset: 387 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 18, offset: 389 }..TextLocation { line: 15, column: 24, offset: 395 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'STRING' to 'WSTRING'
+   ┌─ <internal>:15:16
+   │
+15 │             fb(ws := s, arr_32 := arr_64); // invalid explicit
+   │                ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'WSTRING'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:15:25
+   │
+15 │             fb(ws := s, arr_32 := arr_64); // invalid explicit
+   │                         ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'STRING' to 'WSTRING'
+   ┌─ <internal>:16:16
+   │
+16 │             fb(s, arr_64); // invalid implicit
+   │                ^ Invalid assignment: cannot assign 'STRING' to 'WSTRING'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:16:19
+   │
+16 │             fb(s, arr_64); // invalid implicit
+   │                   ^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
+
 

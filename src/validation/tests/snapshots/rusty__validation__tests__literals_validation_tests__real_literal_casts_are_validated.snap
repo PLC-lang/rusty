@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/literals_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Literal '3.14' is not compatible to REAL", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 12, offset: 180 }..TextLocation { line: 10, column: 23, offset: 191 }) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal \"3.14\" is not compatible to LREAL", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 12, offset: 252 }..TextLocation { line: 14, column: 24, offset: 264 }) }], err_no: type__incompatible_literal_cast }
+error: Literal '3.14' is not compatible to REAL
+   ┌─ <internal>:11:13
+   │
+11 │             REAL#'3.14';
+   │             ^^^^^^^^^^^ Literal '3.14' is not compatible to REAL
+
+error: Literal "3.14" is not compatible to LREAL
+   ┌─ <internal>:15:13
+   │
+15 │             LREAL#"3.14";
+   │             ^^^^^^^^^^^^ Literal "3.14" is not compatible to LREAL
+
 

@@ -129,8 +129,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::ReturnStatement(ReturnStatement { condition }) => match condition {
                 Some(condition) => {
-                    self.register_debug_location(statement);
-                    self.generate_conditional_return(condition)?;
+                    self.generate_conditional_return(statement, condition)?;
                 }
                 None => {
                     self.register_debug_location(statement);
@@ -276,7 +275,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     fn register_debug_location(&self, statement: &AstNode) {
-        let line = statement.get_location().get_line();
+        let line = statement.get_location().get_line_plus_one();
         let column = statement.get_location().get_column();
         self.debug.set_debug_location(self.llvm, &self.function_context.function, line, column);
     }
@@ -323,10 +322,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     left_type,
                 )
             } else {
-                Err(Diagnostic::syntax_error(
-                    &format!("{element:?} not a direct access"),
-                    element.get_location(),
-                ))
+                //TODO: using the global context we could get a slice here
+                Err(Diagnostic::error(format!("{element:?} not a direct access"))
+                    .with_error_code("E055")
+                    .with_location(element.get_location()))
             }?;
             for element in direct_access {
                 let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -337,10 +336,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         left_type,
                     )
                 } else {
-                    Err(Diagnostic::syntax_error(
-                        &format!("{element:?} not a direct access"),
-                        element.get_location(),
-                    ))
+                    //TODO: using the global context we could get a slice here
+                    Err(Diagnostic::error(&format!("{element:?} not a direct access"))
+                        .with_error_code("E055")
+                        .with_location(element.get_location()))
                 }?;
                 rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
             }
@@ -797,7 +796,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let value_ptr =
                     self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
-                            &format!("Cannot generate return variable for {call_name:}"),
+                            format!("Cannot generate return variable for {call_name:}"),
                             SourceLocation::undefined(),
                         )
                     })?;
@@ -812,8 +811,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
     /// does nothing otherwise.
-    pub fn generate_conditional_return(&'a self, condition: &AstNode) -> Result<(), Diagnostic> {
+    pub fn generate_conditional_return(
+        &'a self,
+        statement: &AstNode,
+        condition: &AstNode,
+    ) -> Result<(), Diagnostic> {
         let expression_generator = self.create_expr_generator();
+
+        self.register_debug_location(condition);
         let condition = expression_generator.generate_expression(condition)?;
 
         let then_block = self.llvm.context.append_basic_block(self.function_context.function, "then_block");
@@ -826,8 +831,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
 
         self.llvm.builder.position_at_end(then_block);
+        self.register_debug_location(statement);
         self.generate_return_statement()?;
-
         self.llvm.builder.position_at_end(else_block);
 
         Ok(())

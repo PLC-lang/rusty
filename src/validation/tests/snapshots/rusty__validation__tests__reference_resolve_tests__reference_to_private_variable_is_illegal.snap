@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Illegal access to private member prg.s", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 20, offset: 175 }..TextLocation { line: 8, column: 21, offset: 176 }) }], err_no: reference__illegal_access }
+error: Illegal access to private member prg.s
+  ┌─ <internal>:9:21
+  │
+9 │                 prg.s := 7;
+  │                     ^ Illegal access to private member prg.s
+
 

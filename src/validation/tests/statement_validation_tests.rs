@@ -1,80 +1,78 @@
 use insta::assert_snapshot;
-use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::assert_validation_snapshot;
-use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
+use crate::test_utils::tests::parse_and_validate_buffered;
 
 #[test]
 fn assign_pointer_to_too_small_type_result_in_an_error() {
     //GIVEN assignment statements to DWORD
     //WHEN it is validated
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM FOO
             VAR
                 ptr : REF_TO INT;
                 address : DWORD;
             END_VAR
-            
-            address := 16#DEAD_BEEF;              
+
+            address := 16#DEAD_BEEF;
             address := ptr;         //should throw error as address is too small to store full pointer
         END_PROGRAM
         ",
     );
 
     //THEN assignment with different type sizes are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn assign_too_small_type_to_pointer_result_in_an_error() {
     //GIVEN assignment statements to pointer
     //WHEN it is validated
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM FOO
             VAR
                 ptr : REF_TO INT;
                 address : DWORD;
             END_VAR
-            
-            address := 16#DEAD_BEEF;              
+
+            address := 16#DEAD_BEEF;
             ptr := address;         //should throw error as address is too small to store full pointer
         END_PROGRAM
         ",
     );
 
     //THEN assignment with different type sizes are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn assign_pointer_to_lword() {
     //GIVEN assignment statements to lword
     //WHEN it is validated
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM FOO
             VAR
                 ptr : REF_TO INT;
                 address : LWORD;
             END_VAR
-            
-            address := 16#DEAD_BEEF;              
+
+            address := 16#DEAD_BEEF;
             address := ptr;
         END_PROGRAM
         ",
     );
 
     //THEN every assignment is valid
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn assignment_to_constants_result_in_an_error() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         VAR_GLOBAL CONSTANT
             ci: INT := 1;
@@ -102,23 +100,23 @@ fn assignment_to_constants_result_in_an_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn assignment_to_enum_literals_results_in_error() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         TYPE Color: (red, yellow, green); END_TYPE
 
-        VAR_GLOBAL 
+        VAR_GLOBAL
             g_enum: (A, B, C);
         END_VAR
 
         PROGRAM prg
-            VAR 
+            VAR
                 state: (OPEN, CLOSED);
             END_VAR
 
@@ -130,60 +128,60 @@ fn assignment_to_enum_literals_results_in_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn invalid_char_assignments() {
     // GIVEN invalid assignments to CHAR/WCHAR
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		PROGRAM mainProg
-		VAR
-			c : CHAR;
-			c2 : CHAR;
-			wc : WCHAR;
-			wc2 : WCHAR;
-			i : INT;
-			s : STRING;
-		END_VAR
-			c := 'AJK%&/231'; // invalid
-			wc := "898JKAN"; // invalid
+        PROGRAM mainProg
+        VAR
+            c : CHAR;
+            c2 : CHAR;
+            wc : WCHAR;
+            wc2 : WCHAR;
+            i : INT;
+            s : STRING;
+        END_VAR
+            c := 'AJK%&/231'; // invalid
+            wc := "898JKAN"; // invalid
 
-			c := wc; // invalid
-			wc := c; // invalid
+            c := wc; // invalid
+            wc := c; // invalid
 
-			i := 54;
-			c := i; // invalid
-			c := 42; // invalid
+            i := 54;
+            c := i; // invalid
+            c := 42; // invalid
 
-			s := 'ABC';
-			c := s; // invalid
-			wc := s; // invalid
+            s := 'ABC';
+            c := s; // invalid
+            wc := s; // invalid
 
-			i := c; // invalid
-			s := c; // invalid
+            i := c; // invalid
+            s := c; // invalid
 
-			c := 'A';
-			c2 := 'B';
-			c := c2;
+            c := 'A';
+            c2 := 'B';
+            c := c2;
 
-			wc := "A";
-			wc2 := "B";
-			wc := wc2;
-		END_PROGRAM"#,
+            wc := "A";
+            wc2 := "B";
+            wc := wc2;
+        END_PROGRAM"#,
     );
 
     // THEN every assignment should be reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn missing_string_compare_function_causes_error() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM prg
             'a' =  'b'; // missing compare function :-(
@@ -197,14 +195,14 @@ fn missing_string_compare_function_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn string_compare_function_cause_no_error_if_functions_exist() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR END_FUNCTION
         FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR END_FUNCTION
@@ -222,14 +220,14 @@ fn string_compare_function_cause_no_error_if_functions_exist() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn string_compare_function_with_wrong_signature_causes_error() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION STRING_EQUAL : BOOL VAR_INPUT a : STRING; END_VAR END_FUNCTION
 
@@ -240,14 +238,14 @@ fn string_compare_function_with_wrong_signature_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn missing_wstring_compare_function_causes_error() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM prg
             "a" =  "b"; // missing compare function :-(
@@ -261,14 +259,14 @@ fn missing_wstring_compare_function_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn wstring_compare_function_cause_no_error_if_functions_exist() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION WSTRING_EQUAL : BOOL VAR_INPUT a,b : WSTRING; END_VAR END_FUNCTION
         FUNCTION WSTRING_GREATER : BOOL VAR_INPUT a,b : WSTRING; END_VAR END_FUNCTION
@@ -286,181 +284,181 @@ fn wstring_compare_function_cause_no_error_if_functions_exist() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn switch_case() {
     // GIVEN switch case statement
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		VAR_GLOBAL CONSTANT
-			BASE : DINT := 1;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            BASE : DINT := 1;
+        END_VAR
 
-		TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
+        TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
 
         PROGRAM prog
-		VAR
-			input, res : DINT;
-		END_VAR
+        VAR
+            input, res : DINT;
+        END_VAR
 
-			CASE input OF
-				BASE:
-					res := 1;
-				MYTYPE_A:
-					res := 2;
-				MYTYPE_A+1:
-					res := 3;
-				4:
-					res := 4;
-				2*2+1:
-					res := 5;
+            CASE input OF
+                BASE:
+                    res := 1;
+                MYTYPE_A:
+                    res := 2;
+                MYTYPE_A+1:
+                    res := 3;
+                4:
+                    res := 4;
+                2*2+1:
+                    res := 5;
         (BASE*5)..(BASE*10):
-					res := 6;
-			END_CASE
-		END_PROGRAM
+                    res := 6;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
     // THEN no errors should occure
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn switch_case_duplicate_integer_non_const_var_reference() {
     // GIVEN switch case with non constant variables
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		VAR_GLOBAL CONSTANT
-			CONST : DINT := 8;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            CONST : DINT := 8;
+        END_VAR
 
         PROGRAM prog
-		VAR
-			input, res, x, y : DINT;
-		END_VAR
-			x := 2;
-			y := x;
+        VAR
+            input, res, x, y : DINT;
+        END_VAR
+            x := 2;
+            y := x;
 
-			CASE input OF
-				x: // x is no constant => error
-					res := 1;
-				y: // y is no constant => error
-					res := 2;
-				2+x: // x is no constant => error
-					res := 3;
-				CONST:
-					res := 4;
-				CONST+x: // x is no constant => error
-					res := 5;
-			END_CASE
-		END_PROGRAM
+            CASE input OF
+                x: // x is no constant => error
+                    res := 1;
+                y: // y is no constant => error
+                    res := 2;
+                2+x: // x is no constant => error
+                    res := 3;
+                CONST:
+                    res := 4;
+                CONST+x: // x is no constant => error
+                    res := 5;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
     // THEN the non constant variables are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn switch_case_duplicate_integer() {
     // GIVEN switch case with duplicate constant conditions
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		VAR_GLOBAL CONSTANT
-			BASE : DINT := 2;
-			GLOB : DINT := 2;
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            BASE : DINT := 2;
+            GLOB : DINT := 2;
+        END_VAR
 
-		TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
+        TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
 
         PROGRAM prog
-		VAR
-			input, res : DINT;
-		END_VAR
-			CASE input OF
-				4:
-					res := 1;
-				BASE*2:
-					res := 2;
-				BASE+GLOB:
-					res := 3;
-				MYTYPE_A:
-					res := 4;
-				2+2:
-					res := 5;
-			END_CASE
-		END_PROGRAM
+        VAR
+            input, res : DINT;
+        END_VAR
+            CASE input OF
+                4:
+                    res := 1;
+                BASE*2:
+                    res := 2;
+                BASE+GLOB:
+                    res := 3;
+                MYTYPE_A:
+                    res := 4;
+                2+2:
+                    res := 5;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
     // THEN the non constant variables are reported
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn switch_case_invalid_case_conditions() {
     // GIVEN switch case statement
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		FUNCTION foo : DINT
-		END_FUNCTION
+        FUNCTION foo : DINT
+        END_FUNCTION
 
         PROGRAM main
-		VAR
-			input, res : DINT;
-		END_VAR
+        VAR
+            input, res : DINT;
+        END_VAR
 
-			CASE input OF
-				foo():
-					res := 1;
-				res := 2:
-					res := 2;
-			END_CASE
-		END_PROGRAM
+            CASE input OF
+                foo():
+                    res := 1;
+                res := 2:
+                    res := 2;
+            END_CASE
+        END_PROGRAM
       "#,
     );
 
     // THEN
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn case_condition_used_outside_case_statement() {
     // GIVEN switch case statement
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		PROGRAM main
-		VAR
-			var1 : TOD;
-		END_VAR
-			var1 := TOD#20:15:30:123;
-			23:
-			var1 := TOD#20:15:30;
-		END_PROGRAM
+        PROGRAM main
+        VAR
+            var1 : TOD;
+        END_VAR
+            var1 := TOD#20:15:30:123;
+            23:
+            var1 := TOD#20:15:30;
+        END_PROGRAM
       "#,
     );
 
     // THEN
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn subrange_compare_function_causes_no_error() {
     // GIVEN comparison of subranges
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
-        VAR 
+        VAR
             a, b, c, d, e, f : BOOL;
-        END_VAR      
+        END_VAR
         VAR_TEMP
             x,y : INT(0..500);
         END_VAR
@@ -475,20 +473,20 @@ fn subrange_compare_function_causes_no_error() {
     );
 
     // THEN the validator does not throw an error
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn aliased_subrange_compare_function_causes_no_error() {
     // GIVEN comparison of aliased subranges
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         TYPE MyInt: INT(0..500); END_TYPE
         PROGRAM main
-        VAR 
+        VAR
             a, b, c, d, e, f : BOOL;
-        END_VAR      
+        END_VAR
         VAR_TEMP
             x,y : MyInt;
         END_VAR
@@ -503,20 +501,20 @@ fn aliased_subrange_compare_function_causes_no_error() {
     );
 
     // THEN the validator does not throw an error
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn aliased_int_compare_function_causes_no_error() {
     // GIVEN comparison of aliased integers
     // WHEN it is validated
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         TYPE MyInt: INT; END_TYPE
         PROGRAM main
-        VAR 
+        VAR
             a, b, c, d, e, f : BOOL;
-        END_VAR      
+        END_VAR
         VAR_TEMP
             x,y : MyInt;
         END_VAR
@@ -531,126 +529,126 @@ fn aliased_int_compare_function_causes_no_error() {
     );
 
     // THEN the validator does not throw an error
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn program_missing_inout_assignment() {
     // GIVEN
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		END_PROGRAM
+        PROGRAM prog
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        END_PROGRAM
 
-		PROGRAM main
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			prog(input1 := var1, output1 => var2);
-			prog(var1, var2);
-			prog(var1);
-			prog();
-		END_PROGRAM
-		",
+        PROGRAM main
+        VAR
+            var1, var2, var3 : DINT;
+        END_VAR
+            prog(input1 := var1, output1 => var2);
+            prog(var1, var2);
+            prog(var1);
+            prog();
+        END_PROGRAM
+        ",
     );
     // THEN
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn function_call_parameter_validation() {
     // GIVEN
     // WHEN
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		FUNCTION foo : DINT
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		END_FUNCTION
+        FUNCTION foo : DINT
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        END_FUNCTION
 
-		PROGRAM main
-		VAR
-			var1 : DINT;
-			var2 : STRING;
-			var3 : REF_TO WSTRING;
-			var4 : REAL;
-		END_VAR
-			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
+        PROGRAM main
+        VAR
+            var1 : DINT;
+            var2 : STRING;
+            var3 : REF_TO WSTRING;
+            var4 : REAL;
+        END_VAR
+            foo(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+            foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
             //                                  ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
-			foo(var2, var3, var4); // invalid types assigned
+            foo(var2, var3, var4); // invalid types assigned
             //              ^^^^ REAL assignment to DINT is valid
-		END_PROGRAM
+        END_PROGRAM
         "#,
     );
 
     // THEN
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn program_call_parameter_validation() {
     // GIVEN
     // WHEN
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		END_PROGRAM
+        PROGRAM prog
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : DINT;
+        END_VAR
+        END_PROGRAM
 
-		PROGRAM main
-		VAR
-			var1 : DINT;
-			var2 : STRING;
-			var3 : REF_TO WSTRING;
-			var4 : REAL;
-		END_VAR
-			prog(input1 := var1, inout1 := var1, output1 => var1); // valid
+        PROGRAM main
+        VAR
+            var1 : DINT;
+            var2 : STRING;
+            var3 : REF_TO WSTRING;
+            var4 : REAL;
+        END_VAR
+            prog(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+            prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
             //                                   ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
-			prog(var2, var3, var4); // invalid types assigned
+            prog(var2, var3, var4); // invalid types assigned
             //               ^^^^ REAL assignment to DINT is valid
-		END_PROGRAM
+        END_PROGRAM
         "#,
     );
 
     // THEN
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn reference_to_reference_assignments_in_function_arguments() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     VAR_GLOBAL
         global1 : STRUCT_params;
@@ -701,7 +699,7 @@ fn reference_to_reference_assignments_in_function_arguments() {
             input2 := REF(global5),
             input3 := REF(global6),
         );
-        
+
         prog(
             // NONE of these should be valid because &(...) returns type information and we
             // explicitly check if pointer assignments are of the same type
@@ -713,25 +711,25 @@ fn reference_to_reference_assignments_in_function_arguments() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn ref_builtin_function_reports_invalid_param_count() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main : DINT
         VAR
             x: ARRAY[0..1] OF INT;
         END_VAR
             REF(x); // valid
-            REF(); 
+            REF();
             REF(x, 1, 2, 'abc');
         END_FUNCTION
     ",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -773,27 +771,27 @@ fn address_of_operations() {
 
 #[test]
 fn validate_call_by_ref() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION func : DINT
             VAR_INPUT
                 byValInput : INT;
             END_VAR
-        
+
             VAR_IN_OUT
                 byRefInOut : INT;
             END_VAR
-        
+
             VAR_OUTPUT
                 byRefOutput : INT;
             END_VAR
         END_FUNCTION
-    
+
         PROGRAM main
             VAR
                 x : INT := 1;
             END_VAR
-        
+
             // The second and third arguments are expected to be references, as such
             // any call to `func` where these two arguments are literals will fail
             func(1, 2, 3);
@@ -808,12 +806,12 @@ fn validate_call_by_ref() {
         ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn validate_call_by_ref_explicit() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION func : DINT
             VAR_INPUT
@@ -833,12 +831,12 @@ fn validate_call_by_ref_explicit() {
             VAR
                 x : INT := 1;
             END_VAR
-            
+
             // The second and third arguments are expected to be references, as such
             // any call to `func` where these two arguments are literals will fail
             func(byValInput := 1, byRefInOut := 2, byRefOutput =>  );
             func(byValInput := 1, byRefInOut := x, byRefOutput =>  ); // Valid (Output assignments are optional)
-            func(byValInput := 1, byRefInOut := 2, byRefOutput => 3); 
+            func(byValInput := 1, byRefInOut := 2, byRefOutput => 3);
             func(byValInput := 1, byRefInOut := 2, byRefOutput => x);
             func(byValInput := 1, byRefInOut := x, byRefOutput => 3);
             func(byValInput := 1, byRefInOut := x, byRefOutput => x); // Valid
@@ -846,12 +844,64 @@ fn validate_call_by_ref_explicit() {
         ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
+}
+
+#[test]
+fn exlicit_param_unknown_reference() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK func
+            VAR_INPUT
+                byValInput : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                fb: func;
+            END_VAR
+
+            fb(unknown := 2);
+            fb(byVALInput := 2); //different case but valid
+            fb(byValInput := 2); //valid
+
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn exlicit_param_different_casing() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK func
+            VAR_INPUT
+                IN : INT;
+                IN2 : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                fb: func;
+            END_VAR
+
+            fb(in := 2);
+            fb(in := 2, IN2 := 3);
+            fb(IN := 2, in2 := 3);
+            fb(in := 2, in2 := 3);
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics)
 }
 
 #[test]
 fn implicit_param_downcast_in_function_call() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         PROGRAM main
         VAR
@@ -893,12 +943,12 @@ fn implicit_param_downcast_in_function_call() {
         ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn function_block_implicit_downcast() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
         VAR
@@ -919,7 +969,7 @@ fn function_block_implicit_downcast() {
             );
         END_PROGRAM
 
-        FUNCTION_BLOCK fb_t        
+        FUNCTION_BLOCK fb_t
         VAR_INPUT {ref}
             in_ref_int      : INT;
             in_ref_dword    : DWORD;
@@ -939,12 +989,12 @@ fn function_block_implicit_downcast() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn program_implicit_downcast() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
         VAR
@@ -965,7 +1015,7 @@ fn program_implicit_downcast() {
             );
         END_PROGRAM
 
-        PROGRAM prog        
+        PROGRAM prog
         VAR_INPUT {ref}
             in_ref_int      : INT;
             in_ref_dword    : DWORD;
@@ -985,12 +1035,12 @@ fn program_implicit_downcast() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn action_implicit_downcast() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
         VAR
@@ -1009,7 +1059,7 @@ fn action_implicit_downcast() {
             in2 : STRING;
         END_VAR
         END_FUNCTION_BLOCK
-        
+
         ACTIONS fb_t
         ACTION foo
         END_ACTION
@@ -1029,12 +1079,12 @@ fn action_implicit_downcast() {
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn method_implicit_downcast() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     PROGRAM main
     VAR
@@ -1051,22 +1101,22 @@ fn method_implicit_downcast() {
     END_VAR
 
     METHOD testMethod
-    VAR_INPUT 
-        val : INT; 
+    VAR_INPUT
+        val : INT;
         arr : ARRAY[1..3] OF SINT;
         ref : REF_TO ARRAY[1..3] OF DINT;
     END_VAR
     END_METHOD
-    END_CLASS    
+    END_CLASS
     "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn validate_array_elements_passed_to_functions_by_ref() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION func : DINT
             VAR_IN_OUT
@@ -1084,18 +1134,18 @@ fn validate_array_elements_passed_to_functions_by_ref() {
             END_VAR
 
             func(x, x);                                    // Invalid because we pass a whole array
-            func(x[0], x[1]);                              // Valid because we pass a variable by array access 
-            func(byRefInOut := x[0], byRefOutput := x[1]); // Valid because we pass a variable by array access 
+            func(x[0], x[1]);                              // Valid because we pass a variable by array access
+            func(byRefInOut := x[0], byRefOutput := x[1]); // Valid because we pass a variable by array access
         END_PROGRAM
         ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn validate_arrays_passed_to_functions() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION func : DINT
             VAR_INPUT
@@ -1112,11 +1162,11 @@ fn validate_arrays_passed_to_functions() {
                 arr_real   : ARRAY[0..1] OF   REAL;
                 arr_lreal  : ARRAY[0..1] OF  LREAL;
 
-                arr_dint_1_2            : ARRAY[1..2]       OF DINT; 
+                arr_dint_1_2            : ARRAY[1..2]       OF DINT;
                 arr_dint_3_4            : ARRAY[3..4]       OF DINT;
                 arr_dint_1_10           : ARRAY[1..10]      OF DINT;
                 arr_dint_10_100         : ARRAY[10..100]    OF DINT;
-                
+
                 arr_dint_2d : ARRAY[0..1] OF ARRAY[0..1] OF DINT;
             END_VAR
 
@@ -1140,19 +1190,19 @@ fn validate_arrays_passed_to_functions() {
         ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn assigning_to_rvalue() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION func : DINT
         VAR_INPUT
             x : INT;
         END_VAR
         END_FUNCTION
-    
+
         PROGRAM main
         VAR
             i : INT;
@@ -1164,31 +1214,31 @@ fn assigning_to_rvalue() {
         "#,
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn assigning_to_qualified_references_allowed() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
-        PROGRAM prg 
+        PROGRAM prg
         VAR_INPUT
             x : INT;
         END_VAR
         END_PROGRAM
-    
+
         PROGRAM main
             prg.x := 1;
         END_PROGRAM
         "#,
     );
 
-    assert_eq!(diagnostics.len(), 0);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn assigning_to_rvalue_allowed_for_directaccess() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
         VAR
@@ -1201,12 +1251,12 @@ fn assigning_to_rvalue_allowed_for_directaccess() {
         "#,
     );
 
-    assert_eq!(diagnostics.len(), 0);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn allowed_assignable_types() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
         VAR
@@ -1225,7 +1275,7 @@ fn allowed_assignable_types() {
         "#,
     );
 
-    assert_eq!(diagnostics.len(), 0);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1250,7 +1300,7 @@ fn assignment_of_incompatible_types_is_reported() {
 
 #[test]
 fn passing_compatible_numeric_types_to_functions_is_allowed() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
     PROGRAM prog
     VAR
@@ -1271,12 +1321,12 @@ fn passing_compatible_numeric_types_to_functions_is_allowed() {
     "#,
     );
 
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn bit_access_with_incorrect_operator_causes_warning() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "PROGRAM mainProg
         VAR_INPUT
             Input : STRUCT1;
@@ -1290,20 +1340,20 @@ fn bit_access_with_incorrect_operator_causes_warning() {
             Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
             Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
         END_PROGRAM
-        
+
         TYPE STRUCT1 :
         STRUCT
             var1 : DWORD;
         END_STRUCT
         END_TYPE
-        
+
         TYPE ENUM1 :
         (
             n1 := 1,
             n2 := 2
         );
         END_TYPE
-        
+
         TYPE STRUCT2 :
         STRUCT
             var1 : BOOL;
@@ -1311,12 +1361,12 @@ fn bit_access_with_incorrect_operator_causes_warning() {
         END_TYPE",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
 fn invalid_cast_statement_causes_error() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "PROGRAM mainProg
             VAR_INPUT
                 s : STRUCT1;
@@ -1327,7 +1377,7 @@ fn invalid_cast_statement_causes_error() {
                 i := INT#i;      // ok
                 i := INT#4;      // ok
         END_PROGRAM
-        
+
         TYPE STRUCT1 :
         STRUCT
             var1 : DWORD;
@@ -1336,5 +1386,5 @@ fn invalid_cast_statement_causes_error() {
        ",
     );
 
-    assert_validation_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics);
 }

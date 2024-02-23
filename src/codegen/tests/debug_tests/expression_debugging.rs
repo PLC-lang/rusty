@@ -21,7 +21,7 @@ fn implementation_added_as_subroutine() {
 }
 
 #[test]
-fn external_impl_added_as_external_subroutine() {
+fn external_impl_is_not_added_as_external_subroutine() {
     //GIVEN 3 external POUs
     //When compiling for debug
     let result = codegen_with_debug(
@@ -34,7 +34,7 @@ fn external_impl_added_as_external_subroutine() {
         END_FUNCTION_BLOCK
         ",
     );
-    //The POUs has a subroutine entry in the debug info
+    //The POUs don't have a subroutine entry in the debug info
     assert_snapshot!(result);
 }
 
@@ -227,7 +227,7 @@ fn if_conditions_location_marked() {
                 myFunc := 1;
             ELSIF FALSE THEN
                 myFunc := 1;
-            ELSE 
+            ELSE
                 myFunc := 1;
             END_IF
             myFunc := 1;
@@ -249,7 +249,7 @@ fn case_conditions_location_marked() {
                 myFunc := 1;
             2:
                 myFunc := 1;
-            ELSE 
+            ELSE
                 myFunc := 1;
             END_CASE
             myFunc := 1;

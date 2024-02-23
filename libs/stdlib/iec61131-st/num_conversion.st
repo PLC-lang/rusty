@@ -5,9 +5,9 @@
 *********************)
 FUNCTION LREAL_TO_REAL : REAL
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_REAL := in;
+    LREAL_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -17,9 +17,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_LINT : LINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_LINT := ROUND(in);
+    LREAL_TO_LINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -29,9 +29,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_DINT : DINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_DINT := ROUND(in);
+    LREAL_TO_DINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -41,9 +41,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_INT : INT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_INT := ROUND(in);
+    LREAL_TO_INT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -53,9 +53,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_SINT : SINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_SINT := ROUND(in);
+    LREAL_TO_SINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -65,9 +65,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_ULINT : ULINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_ULINT := ROUND(in);
+    LREAL_TO_ULINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -77,9 +77,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_UDINT : UDINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_UDINT := ROUND(in);
+    LREAL_TO_UDINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -89,9 +89,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_UINT : UINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_UINT := ROUND(in);
+    LREAL_TO_UINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -101,9 +101,9 @@ END_FUNCTION
 *********************)
 FUNCTION LREAL_TO_USINT : USINT
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
-	LREAL_TO_USINT := ROUND(in);
+    LREAL_TO_USINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -113,9 +113,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_LREAL : LREAL
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_LREAL := in;
+    REAL_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -125,9 +125,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_LINT : LINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_LINT := ROUND(in);
+    REAL_TO_LINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -137,9 +137,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_DINT : DINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_DINT := ROUND(in);
+    REAL_TO_DINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -149,9 +149,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_INT : INT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_INT := ROUND(in);
+    REAL_TO_INT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -161,9 +161,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_SINT : SINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_SINT := ROUND(in);
+    REAL_TO_SINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -173,9 +173,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_ULINT : ULINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_ULINT := ROUND(in);
+    REAL_TO_ULINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -185,9 +185,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_UDINT : UDINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_UDINT := ROUND(in);
+    REAL_TO_UDINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -197,9 +197,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_UINT : UINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_UINT := ROUND(in);
+    REAL_TO_UINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -209,9 +209,9 @@ END_FUNCTION
 *********************)
 FUNCTION REAL_TO_USINT : USINT
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
-	REAL_TO_USINT := ROUND(in);
+    REAL_TO_USINT := ROUND(in);
 END_FUNCTION
 
 (********************
@@ -221,9 +221,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_LREAL := in;
+    LINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -233,9 +233,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_REAL : REAL
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_REAL := in;
+    LINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -245,9 +245,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_DINT : DINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_DINT := in;
+    LINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -257,9 +257,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_INT : INT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_INT := in;
+    LINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -269,9 +269,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_SINT : SINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_SINT := in;
+    LINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -281,9 +281,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_ULINT := in;
+    LINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -293,9 +293,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_UDINT := in;
+    LINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -305,9 +305,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_UINT : UINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_UINT := in;
+    LINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -317,9 +317,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_USINT : USINT
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_USINT := in;
+    LINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -329,9 +329,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_LREAL := in;
+    DINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -341,9 +341,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_REAL : REAL
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_REAL := in;
+    DINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -353,9 +353,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_LINT : LINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_LINT := in;
+    DINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -365,9 +365,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_INT : INT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_INT := in;
+    DINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -377,9 +377,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_SINT : SINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_SINT := in;
+    DINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -389,9 +389,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_ULINT := in;
+    DINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -401,9 +401,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_UDINT := in;
+    DINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -413,9 +413,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_UINT : UINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_UINT := in;
+    DINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -425,9 +425,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_USINT : USINT
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_USINT := in;
+    DINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -437,9 +437,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_LREAL : LREAL
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_LREAL := in;
+    INT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -449,9 +449,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_REAL : REAL
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_REAL := in;
+    INT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -461,9 +461,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_LINT : LINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_LINT := in;
+    INT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -473,9 +473,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_DINT : DINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_DINT := in;
+    INT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -485,9 +485,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_SINT : SINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_SINT := in;
+    INT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -497,9 +497,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_ULINT : ULINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_ULINT := in;
+    INT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -509,9 +509,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_UDINT : UDINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_UDINT := in;
+    INT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -521,9 +521,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_UINT : UINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_UINT := in;
+    INT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -533,9 +533,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_USINT : USINT
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_USINT := in;
+    INT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -545,9 +545,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_LREAL := in;
+    SINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -557,9 +557,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_REAL : REAL
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_REAL := in;
+    SINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -569,9 +569,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_LINT : LINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_LINT := in;
+    SINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -581,9 +581,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_DINT : DINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_DINT := in;
+    SINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -593,9 +593,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_INT : INT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_INT := in;
+    SINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -605,9 +605,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_ULINT := in;
+    SINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -617,9 +617,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_UDINT := in;
+    SINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -629,9 +629,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_UINT : UINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_UINT := in;
+    SINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -641,9 +641,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_USINT : USINT
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_USINT := in;
+    SINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -653,9 +653,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_LREAL := in;
+    ULINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -665,9 +665,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_REAL : REAL
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_REAL := in;
+    ULINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -677,9 +677,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_LINT : LINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_LINT := in;
+    ULINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -689,9 +689,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_DINT : DINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_DINT := in;
+    ULINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -701,9 +701,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_INT : INT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_INT := in;
+    ULINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -713,9 +713,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_SINT : SINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_SINT := in;
+    ULINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -725,9 +725,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_UDINT := in;
+    ULINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -737,9 +737,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_UINT : UINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_UINT := in;
+    ULINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -749,9 +749,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_USINT : USINT
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_USINT := in;
+    ULINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -761,9 +761,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_LREAL := in;
+    UDINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -773,9 +773,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_REAL : REAL
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_REAL := in;
+    UDINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -785,9 +785,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_LINT : LINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_LINT := in;
+    UDINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -797,9 +797,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_DINT : DINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_DINT := in;
+    UDINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -809,9 +809,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_INT : INT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_INT := in;
+    UDINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -821,9 +821,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_SINT : SINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_SINT := in;
+    UDINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -833,9 +833,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_ULINT := in;
+    UDINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -845,9 +845,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_UINT : UINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_UINT := in;
+    UDINT_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -857,9 +857,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_USINT : USINT
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_USINT := in;
+    UDINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -869,9 +869,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_LREAL := in;
+    UINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -881,9 +881,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_REAL : REAL
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_REAL := in;
+    UINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -893,9 +893,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_LINT : LINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_LINT := in;
+    UINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -905,9 +905,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_DINT : DINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_DINT := in;
+    UINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -917,9 +917,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_INT : INT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_INT := in;
+    UINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -929,9 +929,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_SINT : SINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_SINT := in;
+    UINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -941,9 +941,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_ULINT := in;
+    UINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -953,9 +953,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_UDINT := in;
+    UINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -965,9 +965,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_USINT : USINT
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_USINT := in;
+    UINT_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -977,9 +977,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_LREAL : LREAL
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_LREAL := in;
+    USINT_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -989,9 +989,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_REAL : REAL
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_REAL := in;
+    USINT_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -1001,9 +1001,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_LINT : LINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_LINT := in;
+    USINT_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -1013,9 +1013,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_DINT : DINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_DINT := in;
+    USINT_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -1025,9 +1025,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_INT : INT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_INT := in;
+    USINT_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -1037,9 +1037,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_SINT : SINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_SINT := in;
+    USINT_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -1049,9 +1049,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_ULINT : ULINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_ULINT := in;
+    USINT_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -1061,9 +1061,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_UDINT : UDINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_UDINT := in;
+    USINT_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -1073,7 +1073,7 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_UINT : UINT
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_UINT := in;
+    USINT_TO_UINT := in;
 END_FUNCTION

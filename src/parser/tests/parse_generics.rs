@@ -6,12 +6,12 @@ use crate::test_utils::tests::parse;
 #[test]
 fn generic_markers_on_pou_added() {
     let src = "FUNCTION test<
-        A: ANY, 
-        B : ANY_DERIVED, 
-        C : ANY_ELEMENTARY, 
-        D: ANY_MAGNITUDE, 
-        E: ANY_NUM, 
-        F : ANY_REAL, 
+        A: ANY,
+        B : ANY_DERIVED,
+        C : ANY_ELEMENTARY,
+        D: ANY_MAGNITUDE,
+        E: ANY_NUM,
+        F : ANY_REAL,
         G : ANY_INT,
         H : ANY_SIGNED,
         I : ANY_UNSIGNED,

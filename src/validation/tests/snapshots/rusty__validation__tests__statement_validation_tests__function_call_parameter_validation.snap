@@ -1,13 +1,53 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 24, offset: 360 }..TextLocation { line: 22, column: 28, offset: 364 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 30, offset: 366 }..TextLocation { line: 22, column: 34, offset: 370 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 7, offset: 425 }..TextLocation { line: 24, column: 21, offset: 439 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "The type DINT 32 is too small to hold a Pointer", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 23, offset: 441 }..TextLocation { line: 24, column: 37, offset: 455 }) }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_var3' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 23, offset: 441 }..TextLocation { line: 24, column: 37, offset: 455 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 7, offset: 605 }..TextLocation { line: 26, column: 11, offset: 609 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "The type DINT 32 is too small to hold a Pointer", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 13, offset: 611 }..TextLocation { line: 26, column: 17, offset: 615 }) }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_var3' to 'DINT'", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 13, offset: 611 }..TextLocation { line: 26, column: 17, offset: 615 }) }], err_no: var__invalid_assignment }
+error: Cannot mix implicit and explicit call parameters!
+   ┌─ <internal>:23:34
+   │
+23 │             foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+   │                                  ^^^^ Cannot mix implicit and explicit call parameters!
+
+error: Cannot mix implicit and explicit call parameters!
+   ┌─ <internal>:23:40
+   │
+23 │             foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+   │                                        ^^^^ Cannot mix implicit and explicit call parameters!
+
+error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+   ┌─ <internal>:25:17
+   │
+25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+   │                 ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+
+error: The type DINT 32 is too small to hold a Pointer
+   ┌─ <internal>:25:33
+   │
+25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+   │                                 ^^^^^^^^^^^^^^ The type DINT 32 is too small to hold a Pointer
+
+error: Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
+   ┌─ <internal>:25:33
+   │
+25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+   │                                 ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
+
+error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+   ┌─ <internal>:27:17
+   │
+27 │             foo(var2, var3, var4); // invalid types assigned
+   │                 ^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+
+error: The type DINT 32 is too small to hold a Pointer
+   ┌─ <internal>:27:23
+   │
+27 │             foo(var2, var3, var4); // invalid types assigned
+   │                       ^^^^ The type DINT 32 is too small to hold a Pointer
+
+error: Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
+   ┌─ <internal>:27:23
+   │
+27 │             foo(var2, var3, var4); // invalid types assigned
+   │                       ^^^^ Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
+
 

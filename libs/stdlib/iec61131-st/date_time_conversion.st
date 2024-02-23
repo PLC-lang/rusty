@@ -6,7 +6,7 @@
 {external}
 FUNCTION DATE_AND_TIME_TO_DATE : DATE
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 END_FUNCTION
 
@@ -18,7 +18,7 @@ END_FUNCTION
 {external}
 FUNCTION DATE_AND_TIME_TO_TIME_OF_DAY : TOD
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
 END_FUNCTION
 
@@ -29,9 +29,9 @@ END_FUNCTION
 *********************)
 FUNCTION LTIME_TO_TIME : TIME
 VAR_INPUT
-	in : LTIME;
+    in : LTIME;
 END_VAR
-	LTIME_TO_TIME := in;
+    LTIME_TO_TIME := in;
 END_FUNCTION
 
 (********************
@@ -41,9 +41,9 @@ END_FUNCTION
 *********************)
 FUNCTION TIME_TO_LTIME : LTIME
 VAR_INPUT
-	in : TIME;
+    in : TIME;
 END_VAR
-	TIME_TO_LTIME := in;
+    TIME_TO_LTIME := in;
 END_FUNCTION
 
 (********************
@@ -53,9 +53,9 @@ END_FUNCTION
 *********************)
 FUNCTION LDT_TO_DT : DT
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_DT := in;
+    LDT_TO_DT := in;
 END_FUNCTION
 
 (********************
@@ -65,9 +65,9 @@ END_FUNCTION
 *********************)
 FUNCTION LDT_TO_DATE : DATE
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
+    LDT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
 END_FUNCTION
 
 (********************
@@ -77,9 +77,9 @@ END_FUNCTION
 *********************)
 FUNCTION LDT_TO_LTOD : LTOD
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    LDT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -89,9 +89,9 @@ END_FUNCTION
 *********************)
 FUNCTION LDT_TO_TOD : TOD
 VAR_INPUT
-	in : LDT;
+    in : LDT;
 END_VAR
-	LDT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    LDT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -101,9 +101,9 @@ END_FUNCTION
 *********************)
 FUNCTION DT_TO_LDT : LDT
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_LDT := in;
+    DT_TO_LDT := in;
 END_FUNCTION
 
 (********************
@@ -113,9 +113,9 @@ END_FUNCTION
 *********************)
 FUNCTION DT_TO_DATE : DATE
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
+    DT_TO_DATE := DATE_AND_TIME_TO_DATE(in);
 END_FUNCTION
 
 (********************
@@ -125,9 +125,9 @@ END_FUNCTION
 *********************)
 FUNCTION DT_TO_LTOD : LTOD
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    DT_TO_LTOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -137,9 +137,9 @@ END_FUNCTION
 *********************)
 FUNCTION DT_TO_TOD : TOD
 VAR_INPUT
-	in : DT;
+    in : DT;
 END_VAR
-	DT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
+    DT_TO_TOD := DATE_AND_TIME_TO_TIME_OF_DAY(in);
 END_FUNCTION
 
 (********************
@@ -149,9 +149,9 @@ END_FUNCTION
 *********************)
 FUNCTION LTOD_TO_TOD : TOD
 VAR_INPUT
-	in : LTOD;
+    in : LTOD;
 END_VAR
-	LTOD_TO_TOD := in;
+    LTOD_TO_TOD := in;
 END_FUNCTION
 
 (********************
@@ -161,7 +161,7 @@ END_FUNCTION
 *********************)
 FUNCTION TOD_TO_LTOD : LTOD
 VAR_INPUT
-	in : TOD;
+    in : TOD;
 END_VAR
-	TOD_TO_LTOD := in;
+    TOD_TO_LTOD := in;
 END_FUNCTION

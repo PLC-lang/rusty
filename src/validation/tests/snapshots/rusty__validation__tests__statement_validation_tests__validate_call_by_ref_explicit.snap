@@ -1,10 +1,35 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 48, offset: 601 }..TextLocation { line: 22, column: 49, offset: 602 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 48, offset: 784 }..TextLocation { line: 24, column: 49, offset: 785 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 66, offset: 802 }..TextLocation { line: 24, column: 67, offset: 803 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 48, offset: 855 }..TextLocation { line: 25, column: 49, offset: 856 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 66, offset: 943 }..TextLocation { line: 26, column: 67, offset: 944 }) }], err_no: call__invalid_parameter_type }
+error: Expected a reference for parameter byRefInOut because their type is InOut
+   ┌─ <internal>:23:49
+   │
+23 │             func(byValInput := 1, byRefInOut := 2, byRefOutput =>  );
+   │                                                 ^ Expected a reference for parameter byRefInOut because their type is InOut
+
+error: Expected a reference for parameter byRefInOut because their type is InOut
+   ┌─ <internal>:25:49
+   │
+25 │             func(byValInput := 1, byRefInOut := 2, byRefOutput => 3);
+   │                                                 ^ Expected a reference for parameter byRefInOut because their type is InOut
+
+error: Expected a reference for parameter byRefOutput because their type is Output
+   ┌─ <internal>:25:67
+   │
+25 │             func(byValInput := 1, byRefInOut := 2, byRefOutput => 3);
+   │                                                                   ^ Expected a reference for parameter byRefOutput because their type is Output
+
+error: Expected a reference for parameter byRefInOut because their type is InOut
+   ┌─ <internal>:26:49
+   │
+26 │             func(byValInput := 1, byRefInOut := 2, byRefOutput => x);
+   │                                                 ^ Expected a reference for parameter byRefInOut because their type is InOut
+
+error: Expected a reference for parameter byRefOutput because their type is Output
+   ┌─ <internal>:27:67
+   │
+27 │             func(byValInput := 1, byRefInOut := x, byRefOutput => 3);
+   │                                                                   ^ Expected a reference for parameter byRefOutput because their type is Output
+
 

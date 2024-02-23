@@ -1,4 +1,5 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 static SOURCE: &str = "
     <POU_TYPE> fn : DINT
@@ -24,71 +25,71 @@ fn variable_length_array_defined_as_a_global_variable() {
         END_VAR
     ";
 
-    assert_validation_snapshot!(parse_and_validate(src));
+    assert_snapshot!(parse_and_validate_buffered(src));
 }
 
 mod functions {
-    use crate::{
-        assert_validation_snapshot, test_utils::tests::parse_and_validate,
-        validation::tests::variable_length_array_test::SOURCE,
-    };
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use crate::validation::tests::variable_length_array_test::SOURCE;
+    use insta::assert_snapshot;
 
     #[test]
     fn variable_length_array_function_with_input_output_and_inout() {
         let function = SOURCE.replace("<POU_TYPE>", "FUNCTION");
-        assert!(parse_and_validate(&function.replace("<VAR_TYPE>", "INPUT {ref}")).is_empty());
-        assert!(parse_and_validate(&function.replace("<VAR_TYPE>", "OUTPUT")).is_empty());
-        assert!(parse_and_validate(&function.replace("<VAR_TYPE>", "IN_OUT")).is_empty());
+        assert!(parse_and_validate_buffered(&function.replace("<VAR_TYPE>", "INPUT {ref}")).is_empty());
+        assert!(parse_and_validate_buffered(&function.replace("<VAR_TYPE>", "OUTPUT")).is_empty());
+        assert!(parse_and_validate_buffered(&function.replace("<VAR_TYPE>", "IN_OUT")).is_empty());
     }
 
     #[test]
     fn variable_length_array_function_input() {
         let function = SOURCE.replace("<POU_TYPE>", "FUNCTION");
-        assert_validation_snapshot!(parse_and_validate(&function.replace("<VAR_TYPE>", "INPUT")));
+        assert_snapshot!(parse_and_validate_buffered(&function.replace("<VAR_TYPE>", "INPUT")));
     }
 }
 
 mod program {
     use crate::{
-        assert_validation_snapshot, test_utils::tests::parse_and_validate,
-        validation::tests::variable_length_array_test::SOURCE,
+        test_utils::tests::parse_and_validate_buffered, validation::tests::variable_length_array_test::SOURCE,
     };
+    use insta::assert_snapshot;
 
     #[test]
     fn variable_length_array_program_input() {
         let program = SOURCE.replace("<POU_TYPE>", "PROGRAM");
-        let program_input = parse_and_validate(&program.replace("<VAR_TYPE>", "INPUT"));
-        assert_validation_snapshot!(program_input);
+        let program_input = parse_and_validate_buffered(&program.replace("<VAR_TYPE>", "INPUT"));
+        assert_snapshot!(program_input);
     }
 
     #[test]
     fn variable_length_array_program_input_ref() {
         let program = SOURCE.replace("<POU_TYPE>", "PROGRAM");
-        let program_input = parse_and_validate(&program.replace("<VAR_TYPE>", "INPUT {ref}"));
-        assert_validation_snapshot!(program_input);
+        let program_input = parse_and_validate_buffered(&program.replace("<VAR_TYPE>", "INPUT {ref}"));
+        assert_snapshot!(program_input);
     }
 
     #[test]
     fn variable_length_array_program_output() {
         let program = SOURCE.replace("<POU_TYPE>", "PROGRAM");
-        let program_output = parse_and_validate(&program.replace("<VAR_TYPE>", "OUTPUT"));
-        assert_validation_snapshot!(program_output);
+        let program_output = parse_and_validate_buffered(&program.replace("<VAR_TYPE>", "OUTPUT"));
+        assert_snapshot!(program_output);
     }
 
     #[test]
     fn variable_length_array_program_inout() {
         let program = SOURCE.replace("<POU_TYPE>", "PROGRAM");
-        let program_inout = parse_and_validate(&program.replace("<VAR_TYPE>", "IN_OUT"));
-        assert_validation_snapshot!(program_inout);
+        let program_inout = parse_and_validate_buffered(&program.replace("<VAR_TYPE>", "IN_OUT"));
+        assert_snapshot!(program_inout);
     }
 }
 
 mod access {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn variable_length_array_access() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION fn : DINT
                 VAR_INPUT {ref}
@@ -111,12 +112,12 @@ mod access {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn variable_length_array_incompatible_datatypes() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION fn : DINT
                 VAR_INPUT {ref}
@@ -138,16 +139,17 @@ mod access {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 }
 
 mod assignment {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn function_calls() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
             FUNCTION fn : DINT
                 VAR_TEMP
@@ -174,15 +176,17 @@ mod assignment {
             ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 }
 
 mod naming {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
+
     #[test]
     fn two_identical_vlas_in_same_pou_arent_duplicated_in_symbol_map() {
-        let diag = parse_and_validate(
+        let diag = parse_and_validate_buffered(
             r#"
         FUNCTION foo : INT
         VAR_INPUT{ref}
@@ -206,12 +210,12 @@ mod naming {
 
     #[test]
     fn global_vla_does_not_cause_name_conflict() {
-        let diag = parse_and_validate(
+        let diag = parse_and_validate_buffered(
             r#"
         VAR_GLOBAL
             vla : ARRAY[*, *] OF DINT;
         END_VAR
-        
+
         FUNCTION foo : DINT
         VAR_IN_OUT
             arr : ARRAY[*, *] OF DINT;
@@ -219,16 +223,17 @@ mod naming {
         END_FUNCTION
     "#,
         );
-        assert_validation_snapshot!(diag);
+        assert_snapshot!(diag);
     }
 }
 
 mod builtins {
-    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+    use crate::test_utils::tests::parse_and_validate_buffered;
+    use insta::assert_snapshot;
 
     #[test]
     fn builtins_called_with_invalid_type() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         FUNCTION main : DINT
         VAR CONSTANT
@@ -249,13 +254,13 @@ mod builtins {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn builtins_called_with_invalid_index() {
-        let diagnostics = parse_and_validate(
-            "        
+        let diagnostics = parse_and_validate_buffered(
+            "
         FUNCTION main : DINT
         VAR
             arr : ARRAY[0..1] OF DINT;
@@ -285,13 +290,13 @@ mod builtins {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn builtins_called_with_aliased_type() {
-        let diagnostics = parse_and_validate(
-            "        
+        let diagnostics = parse_and_validate_buffered(
+            "
         FUNCTION main : DINT
         VAR
             arr : ARRAY[0..1] OF DINT;
@@ -315,12 +320,12 @@ mod builtins {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 
     #[test]
     fn builtins_called_with_invalid_number_of_params() {
-        let diagnostics = parse_and_validate(
+        let diagnostics = parse_and_validate_buffered(
             "
         FUNCTION main : DINT
         VAR
@@ -346,6 +351,6 @@ mod builtins {
         ",
         );
 
-        assert_validation_snapshot!(diagnostics);
+        assert_snapshot!(diagnostics);
     }
 }

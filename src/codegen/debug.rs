@@ -36,19 +36,10 @@ enum DebugEncoding {
     DW_ATE_UTF = 0x10,
 }
 
-impl From<DWARFEmissionKind> for DebugLevel {
-    fn from(kind: DWARFEmissionKind) -> Self {
-        match kind {
-            DWARFEmissionKind::Full => DebugLevel::Full,
-            _ => DebugLevel::None,
-        }
-    }
-}
-
 impl From<DebugLevel> for DWARFEmissionKind {
     fn from(level: DebugLevel) -> Self {
         match level {
-            DebugLevel::Full | DebugLevel::VariablesOnly => DWARFEmissionKind::Full,
+            DebugLevel::Full(_) | DebugLevel::VariablesOnly(_) => DWARFEmissionKind::Full,
             _ => DWARFEmissionKind::None,
         }
     }
@@ -178,15 +169,29 @@ impl<'ink> DebugBuilderEnum<'ink> {
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> Self {
-        let dwarf_version: BasicMetadataValueEnum<'ink> = context.i32_type().const_int(5, false).into();
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
-            DebugLevel::VariablesOnly | DebugLevel::Full => {
+            DebugLevel::VariablesOnly(version) | DebugLevel::Full(version) => {
+                let dwarf_version: BasicMetadataValueEnum<'ink> =
+                    context.i32_type().const_int(version as u64, false).into();
                 module.add_metadata_flag(
                     "Dwarf Version",
                     inkwell::module::FlagBehavior::Warning,
                     context.metadata_node(&[dwarf_version]),
                 );
+                // `LLVMParseIRInContext` expects "Debug Info Version" metadata, with the specified version
+                // matching the LLVM version or otherwise it will emit a warning and strip DI from the IR.
+                // These metadata flags are not mutually exclusive.
+                let dwarf_version: BasicMetadataValueEnum<'ink> = context
+                    .i32_type()
+                    .const_int(inkwell::debug_info::debug_metadata_version() as u64, false)
+                    .into();
+                module.add_metadata_flag(
+                    "Debug Info Version",
+                    inkwell::module::FlagBehavior::Warning,
+                    context.metadata_node(&[dwarf_version]),
+                );
+
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
                 let root = root.unwrap_or_else(|| Path::new(""));
                 let filename = path.strip_prefix(root).unwrap_or(path).to_str().unwrap_or_default();
@@ -218,8 +223,8 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     files: Default::default(),
                 };
                 match debug_level {
-                    DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
-                    DebugLevel::Full => DebugBuilderEnum::Full(dbg_obj),
+                    DebugLevel::VariablesOnly(_) => DebugBuilderEnum::VariablesOnly(dbg_obj),
+                    DebugLevel::Full(_) => DebugBuilderEnum::Full(dbg_obj),
                     _ => unreachable!("Only variables or full debug can reach this"),
                 }
             }
@@ -283,7 +288,7 @@ impl<'ink> DebugBuilder<'ink> {
                         file.as_debug_info_scope(),
                         member_name,
                         file,
-                        location.get_line().wrapping_add(1) as u32,
+                        location.get_line_plus_one() as u32,
                         size.bits().into(),
                         alignment.bits(),
                         running_offset.bits().into(),
@@ -302,7 +307,7 @@ impl<'ink> DebugBuilder<'ink> {
             file.as_debug_info_scope(),
             name,
             file,
-            location.get_line().wrapping_add(1) as u32,
+            location.get_line_plus_one() as u32,
             running_offset.bits().into(),
             struct_dt.get_alignment(index).bits(),
             DIFlags::PUBLIC,
@@ -334,7 +339,7 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|it| it.get_range(index))
             //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
-            .map_err(|err| Diagnostic::codegen_error(&err, SourceLocation::undefined()))?;
+            .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
         let inner_type = self.get_or_create_debug_type(inner_type, index)?;
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
@@ -380,7 +385,8 @@ impl<'ink> DebugBuilder<'ink> {
         self.types
             .get(&dt_name)
             .ok_or_else(|| {
-                Diagnostic::debug_error(format!("Cannot find debug information for type {dt_name}"))
+                Diagnostic::error(format!("Cannot find debug information for type {dt_name}"))
+                    .with_error_code("E076")
             })
             .map(|it| it.to_owned())
     }
@@ -405,6 +411,7 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             size.bits().into(),
             alignment.bits(),
+            #[allow(clippy::single_range_in_vec_init)]
             &[(0..(length - 1))],
         );
         self.register_concrete_type(name, DebugType::Composite(array_type));
@@ -429,7 +436,7 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             name,
             file,
-            location.get_line().wrapping_add(1) as u32,
+            location.get_line_plus_one() as u32,
             file.as_debug_info_scope(),
             inner_dt.get_type_information().get_alignment(index).bits(),
         );
@@ -484,7 +491,7 @@ impl<'ink> DebugBuilder<'ink> {
             pou.get_name(),
             Some(pou.get_name()), // for generics e.g. NAME__TYPE
             file,
-            location.get_line().wrapping_add(1) as u32,
+            location.get_line_plus_one() as u32,
             // entry for the function
             ditype,
             false, // TODO: what is this
@@ -562,7 +569,7 @@ impl<'ink> DebugBuilder<'ink> {
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.get_line().wrapping_add(1) as u32;
+        let line = location.get_line_plus_one() as u32;
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -597,13 +604,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        let location = self.debug_info.create_debug_location(
-            self.context,
-            (line + 1) as u32,
-            column as u32,
-            scope,
-            None,
-        );
+        let location =
+            self.debug_info.create_debug_location(self.context, line as u32, column as u32, scope, None);
         llvm.builder.set_current_debug_location(location);
     }
 
@@ -616,6 +618,9 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     ) {
+        if matches!(pou.get_linkage(), LinkageType::External) {
+            return;
+        }
         let subprogram = self.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
         //Create function parameters
@@ -663,7 +668,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DataTypeInformation::String { size: string_size, encoding, .. } => {
                     let length = string_size
                         .as_int_value(index)
-                        .map_err(|err| Diagnostic::codegen_error(&err, SourceLocation::undefined()))?;
+                        .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
                     self.create_string_type(name, length, *encoding, size, alignment, index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
@@ -696,7 +701,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 name,
                 "",
                 file,
-                location.get_line().wrapping_add(1) as u32,
+                location.get_line_plus_one() as u32,
                 debug_type.into(),
                 false,
                 None,
@@ -722,7 +727,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.get_line().wrapping_add(1) as u32;
+        let line = location.get_line_plus_one() as u32;
 
         let scope = scope
             .get_subprogram()
@@ -756,7 +761,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
-        let line = location.get_line().wrapping_add(1) as u32;
+        let line = location.get_line_plus_one() as u32;
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -790,7 +795,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 .get_file_name()
                 .map(|it| self.get_or_create_debug_file(it))
                 .unwrap_or_else(|| self.compile_unit.get_file());
-            let line = pou.get_location().get_line().wrapping_add(1) as u32;
+            let line = pou.get_location().get_line_plus_one() as u32;
             let debug_variable = self.debug_info.create_parameter_variable(
                 scope,
                 pou.get_name(),

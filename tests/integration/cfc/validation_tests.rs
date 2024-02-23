@@ -14,8 +14,8 @@ fn duplicate_label_validation() {
 
     let mut diagnostician = Diagnostician::buffered();
     diagnostician.register_file("<internal>.cfc".to_string(), "".into());
-    let project = parse_and_annotate("plc", vec![cfc_file]).unwrap();
-    project.validate(&mut diagnostician).unwrap();
+    let (ctxt, project) = parse_and_annotate("plc", vec![cfc_file]).unwrap();
+    project.validate(&ctxt, &mut diagnostician).expect_err("Expecting a validation problem");
     assert_snapshot!(diagnostician.buffer().unwrap())
 }
 
@@ -28,8 +28,8 @@ fn multiple_labels_in_file_are_no_error() {
 
     let mut diagnostician = Diagnostician::buffered();
     diagnostician.register_file("<internal>.cfc".to_string(), "".into());
-    let project = parse_and_annotate("plc", vec![cfc_file]).unwrap();
-    project.validate(&mut diagnostician).unwrap();
+    let (ctxt, project) = parse_and_annotate("plc", vec![cfc_file]).unwrap();
+    project.validate(&ctxt, &mut diagnostician).unwrap();
     assert!(diagnostician.buffer().unwrap().trim().is_empty())
 }
 
@@ -42,7 +42,7 @@ fn jump_with_missing_label_validation() {
 
     let mut diagnostician = Diagnostician::buffered();
     diagnostician.register_file("<internal>.cfc".to_string(), "".into());
-    let project = parse_and_annotate("plc", vec![cfc_file]).unwrap();
-    project.validate(&mut diagnostician).unwrap_err();
+    let (ctxt, project) = parse_and_annotate("plc", vec![cfc_file]).unwrap();
+    project.validate(&ctxt, &mut diagnostician).unwrap_err();
     assert_snapshot!(diagnostician.buffer().unwrap())
 }

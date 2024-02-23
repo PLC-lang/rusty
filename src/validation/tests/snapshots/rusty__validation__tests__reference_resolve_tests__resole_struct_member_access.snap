@@ -1,11 +1,41 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Could not resolve reference to field10", range: [SourceLocation { span: Range(TextLocation { line: 27, column: 18, offset: 694 }..TextLocation { line: 27, column: 25, offset: 701 }) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to field20", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 18, offset: 721 }..TextLocation { line: 28, column: 25, offset: 728 }) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to field30", range: [SourceLocation { span: Range(TextLocation { line: 29, column: 18, offset: 748 }..TextLocation { line: 29, column: 25, offset: 755 }) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield10", range: [SourceLocation { span: Range(TextLocation { line: 37, column: 22, offset: 955 }..TextLocation { line: 37, column: 32, offset: 965 }) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield20", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 22, offset: 989 }..TextLocation { line: 38, column: 32, offset: 999 }) }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to subfield30", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 22, offset: 1023 }..TextLocation { line: 39, column: 32, offset: 1033 }) }], err_no: reference__unresolved }
+error: Could not resolve reference to field10
+   ┌─ <internal>:28:19
+   │
+28 │                 s.field10;
+   │                   ^^^^^^^ Could not resolve reference to field10
+
+error: Could not resolve reference to field20
+   ┌─ <internal>:29:19
+   │
+29 │                 s.field20;
+   │                   ^^^^^^^ Could not resolve reference to field20
+
+error: Could not resolve reference to field30
+   ┌─ <internal>:30:19
+   │
+30 │                 s.field30;
+   │                   ^^^^^^^ Could not resolve reference to field30
+
+error: Could not resolve reference to subfield10
+   ┌─ <internal>:38:23
+   │
+38 │                 s.sub.subfield10;
+   │                       ^^^^^^^^^^ Could not resolve reference to subfield10
+
+error: Could not resolve reference to subfield20
+   ┌─ <internal>:39:23
+   │
+39 │                 s.sub.subfield20;
+   │                       ^^^^^^^^^^ Could not resolve reference to subfield20
+
+error: Could not resolve reference to subfield30
+   ┌─ <internal>:40:23
+   │
+40 │                 s.sub.subfield30;
+   │                       ^^^^^^^^^^ Could not resolve reference to subfield30
+
 

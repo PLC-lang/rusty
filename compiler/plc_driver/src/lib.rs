@@ -8,6 +8,7 @@
 //!  - Shared Objects
 //!  - Executables
 
+use anyhow::Result;
 use std::{
     env,
     ffi::OsStr,
@@ -15,14 +16,15 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use ast::provider::IdProvider;
 use cli::{CompileParameters, ParameterError};
 use pipelines::AnnotatedProject;
 use plc::{
-    codegen::CodegenContext, output::FormatOption, DebugLevel, ErrorFormat, OptimizationLevel, Threads,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
+    OptimizationLevel, Target, Threads,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_index::GlobalContext;
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use source_code::SourceContainer;
@@ -51,6 +53,7 @@ pub struct CompileOptions {
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
+    pub single_module: bool,
 }
 
 impl Default for CompileOptions {
@@ -63,6 +66,7 @@ impl Default for CompileOptions {
             optimization: OptimizationLevel::None,
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
+            single_module: false,
         }
     }
 }
@@ -70,9 +74,10 @@ impl Default for CompileOptions {
 #[derive(Clone, Default, Debug)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
-    pub library_pathes: Vec<PathBuf>,
+    pub library_paths: Vec<PathBuf>,
     pub format: FormatOption,
-    pub linker: Option<String>,
+    pub linker: LinkerType,
+    pub lib_location: Option<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -118,9 +123,19 @@ impl Display for CompileError {
     }
 }
 
-pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), CompileError> {
-    //Parse the arguments
+pub struct CompilationContext {
+    pub compile_parameters: CompileParameters,
+    pub project: Project<PathBuf>,
+    pub diagnostician: Diagnostician,
+    pub compile_options: CompileOptions,
+    pub link_options: LinkOptions,
+}
+
+pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
+    args: &[T],
+) -> Result<CompilationContext> {
     let compile_parameters = CompileParameters::parse(args)?;
+    //Create the project that will be compiled
     let project = get_project(&compile_parameters)?;
     let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     let location = project.get_location().map(|it| it.to_path_buf());
@@ -138,12 +153,51 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::debug!("LIB_LOCATION={}", location.to_string_lossy());
         env::set_var("LIB_LOCATION", location);
     }
-    let id_provider = IdProvider::default();
-    let mut diagnostician = match compile_parameters.error_format {
+    let diagnostician = match compile_parameters.error_format {
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
         ErrorFormat::None => Diagnostician::null_diagnostician(),
     };
+
+    let compile_options = CompileOptions {
+        root: location,
+        build_location: compile_parameters.get_build_location(),
+        output: project.get_output_name(),
+        output_format,
+        optimization: compile_parameters.optimization,
+        error_format: compile_parameters.error_format,
+        debug_level: compile_parameters.debug_level(),
+        single_module: compile_parameters.single_module,
+    };
+
+    let libraries =
+        project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
+    let mut library_paths: Vec<PathBuf> = project
+        .get_libraries()
+        .iter()
+        .filter_map(LibraryInformation::get_path)
+        .map(Path::to_path_buf)
+        .collect();
+
+    library_paths.extend_from_slice(project.get_library_paths());
+
+    let link_options = LinkOptions {
+        libraries,
+        library_paths,
+        format: output_format,
+        linker: compile_parameters.linker.as_deref().into(),
+        lib_location,
+    };
+
+    Ok(CompilationContext { compile_parameters, project, diagnostician, compile_options, link_options })
+}
+
+pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
+    let CompilationContext { compile_parameters, project, mut diagnostician, compile_options, link_options } =
+        compile_options;
+    if let Some((options, format)) = compile_parameters.get_config_options() {
+        return print_config_options(options, format);
+    }
 
     //Set the global thread count
     let thread_pool = rayon::ThreadPoolBuilder::new();
@@ -159,40 +213,65 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
         log::info!("{err}")
     }
 
-    // 1 : Parse
-    let annotated_project = pipelines::ParsedProject::parse(
-        &project,
-        compile_parameters.encoding,
-        id_provider.clone(),
-        &mut diagnostician,
-    )?
-    // 2 : Index
-    .index(id_provider.clone())?
-    // 3 : Resolve
-    .annotate(id_provider, &diagnostician)?;
+    // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
+    //       commented `project` method in the GlobalContext implementation block
+    let ctxt = GlobalContext::new()
+        .with_source(project.get_sources(), compile_parameters.encoding)?
+        .with_source(project.get_includes(), compile_parameters.encoding)?
+        .with_source(
+            project
+                .get_libraries()
+                .iter()
+                .flat_map(LibraryInformation::get_includes)
+                .collect::<Vec<_>>()
+                .as_slice(),
+            None,
+        )?;
+
+    // 1 : Parse, 2. Index and 3. Resolve / Annotate
+    let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
+        .index(ctxt.provider())
+        .annotate(ctxt.provider());
+
     // 4 : Validate
-    annotated_project.validate(&mut diagnostician)?;
+    annotated_project.validate(&ctxt, &mut diagnostician)?;
+
+    if let Some((location, format)) =
+        compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
+    {
+        annotated_project.generate_hardware_information(format, location)?;
+    }
+
     // 5 : Codegen
     if !compile_parameters.is_check() {
-        let res = generate(
-            location,
-            compile_parameters,
-            project,
-            output_format,
-            annotated_project,
-            build_location,
-            lib_location,
-        )
-        .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
+        let res = generate(&compile_options, &link_options, compile_parameters.target, annotated_project)
+            .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         if let Err(res) = res {
             diagnostician.handle(&[res]);
-            return Err(Diagnostic::GeneralError {
-                message: "Compilation aborted due to previous errors".into(),
-                err_no: plc_diagnostics::errno::ErrNo::codegen__general,
-            }
-            .into());
+            return Err(Diagnostic::error("Compilation aborted due to previous errors")
+                .with_error_code("E071")
+                .into());
         }
     }
+    Ok(())
+}
+
+pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
+    //Parse the arguments
+    let compile_context = get_compilation_context(args)?;
+    compile_with_options(compile_context)
+}
+
+fn print_config_options(
+    option: cli::ConfigOption,
+    _format: plc::ConfigFormat,
+) -> std::result::Result<(), anyhow::Error> {
+    match option {
+        cli::ConfigOption::Schema => {
+            let schema = include_str!("../../plc_project/schema/plc-json.schema");
+            println!("{schema}");
+        }
+    };
 
     Ok(())
 }
@@ -201,90 +280,76 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<(), C
 pub fn parse_and_annotate<T: SourceContainer>(
     name: &str,
     src: Vec<T>,
-) -> Result<AnnotatedProject, Diagnostic> {
+) -> Result<(GlobalContext, AnnotatedProject<T>), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
-    let id_provider = IdProvider::default();
+    let ctxt = GlobalContext::new().with_source(project.get_sources(), None)?;
     let mut diagnostician = Diagnostician::default();
-    pipelines::ParsedProject::parse(&project, None, id_provider.clone(), &mut diagnostician)?
-        // Create an index, add builtins
-        .index(id_provider.clone())?
-        // Resolve
-        .annotate(id_provider, &diagnostician)
+    let parsed = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?;
+
+    // Create an index, add builtins then resolve
+    let provider = ctxt.provider();
+    Ok((ctxt, parsed.index(provider.clone()).annotate(provider)))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
-pub fn generate_to_string<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+pub fn generate_to_string<T: SourceContainer>(name: &'static str, src: Vec<T>) -> Result<String, Diagnostic> {
+    generate_to_string_internal(name, src, false)
+}
+
+/// Generates an IR string from a list of sources with debug information enabled. Useful for tests or api calls
+pub fn generate_to_string_debug<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
+    generate_to_string_internal(name, src, true)
+}
+
+fn generate_to_string_internal<T: SourceContainer>(
+    name: &str,
+    src: Vec<T>,
+    debug: bool,
+) -> Result<String, Diagnostic> {
     let mut diagnostician = Diagnostician::default();
-    let project = parse_and_annotate(name, src)?;
-    //Validate
-    project.validate(&mut diagnostician)?;
+    let (ctxt, project) = parse_and_annotate(name, src)?;
+
+    // Validate
+    project.validate(&ctxt, &mut diagnostician)?;
+
     // Generate
     let context = CodegenContext::create();
-    let module = project.generate_single_module(&context, &CompileOptions::default())?;
+    let mut options = CompileOptions::default();
+    if debug {
+        options.debug_level = DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
+    }
+    let module = project.generate_single_module(&context, &options)?;
 
-    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::GeneralError {
-        message: "Cannot generate module".to_string(),
-        err_no: plc_diagnostics::errno::ErrNo::general__err,
-    })
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::error("Cannot generate module"))
 }
 
 fn generate(
-    location: Option<PathBuf>,
-    compile_parameters: CompileParameters,
-    project: Project<PathBuf>,
-    output_format: FormatOption,
-    annotated_project: pipelines::AnnotatedProject,
-    build_location: Option<PathBuf>,
-    lib_location: Option<PathBuf>,
+    compile_options: &CompileOptions,
+    linker_options: &LinkOptions,
+    targets: Vec<Target>,
+    annotated_project: AnnotatedProject<PathBuf>,
 ) -> Result<(), Diagnostic> {
-    let compile_options = CompileOptions {
-        root: location,
-        build_location: compile_parameters.get_build_location(),
-        output: project.get_output_name(),
-        output_format,
-        optimization: compile_parameters.optimization,
-        error_format: compile_parameters.error_format,
-        debug_level: compile_parameters.debug_level(),
-    };
-    let res = if compile_parameters.single_module {
+    let res = if compile_options.single_module {
         log::info!("Using single module mode");
-        annotated_project.codegen_single_module(compile_options, &compile_parameters.target)?
+        annotated_project.codegen_single_module(compile_options, &targets)?
     } else {
-        annotated_project.codegen(compile_options, &compile_parameters.target)?
+        annotated_project.codegen(compile_options, &targets)?
     };
-    let libraries =
-        project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
-    let library_pathes = project
-        .get_libraries()
-        .iter()
-        .filter_map(LibraryInformation::get_path)
-        .map(Path::to_path_buf)
-        .collect();
-    let linker_options = LinkOptions {
-        libraries,
-        library_pathes,
-        format: output_format,
-        linker: compile_parameters.linker.to_owned(),
-    };
+    let project = annotated_project.get_project();
     let output_name = project.get_output_name();
     res.into_par_iter()
         .map(|res| {
             res.link(
                 project.get_objects(),
-                build_location.as_deref(),
-                lib_location.as_deref(),
+                compile_options.build_location.as_deref(),
+                linker_options.lib_location.as_deref(),
                 &output_name,
                 linker_options.clone(),
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
-    if let Some((location, format)) =
-        compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
-    {
-        annotated_project.generate_hardware_information(format, location)?;
-    }
-    if let Some(lib_location) = lib_location {
+    if let Some(lib_location) = &linker_options.lib_location {
         for library in
             project.get_libraries().iter().filter(|it| it.should_copy()).map(|it| it.get_compiled_lib())
         {
@@ -300,7 +365,7 @@ fn generate(
     Ok(())
 }
 
-fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf>, Diagnostic> {
+fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf>> {
     let current_dir = env::current_dir()?;
     //Create a project from either the subcommand or single params
     let project = if let Some(command) = &compile_parameters.commands {
@@ -317,20 +382,21 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
                 }
             })
             .or_else(|| get_config(&current_dir))
-            .ok_or_else(|| Diagnostic::param_error("Could not find 'plc.json'"))?;
+            .ok_or_else(|| Diagnostic::error("Could not find 'plc.json'").with_error_code("E003"))?;
         Project::from_config(&config)
     } else {
         //Build with parameters
         let name = compile_parameters
             .input
-            .get(0)
+            .first()
             .and_then(|it| it.get_location())
             .and_then(|it| it.file_name())
             .and_then(|it| it.to_str())
             .unwrap_or(DEFAULT_OUTPUT_NAME);
         let project = Project::new(name.to_string())
-            .with_file_pathes(compile_parameters.input.iter().map(PathBuf::from).collect())
-            .with_include_pathes(compile_parameters.includes.iter().map(PathBuf::from).collect())
+            .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
+            .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+            .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
             .with_libraries(compile_parameters.libraries.clone());
         Ok(project)
     };

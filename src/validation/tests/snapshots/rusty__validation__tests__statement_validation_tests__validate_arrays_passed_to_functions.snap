@@ -1,13 +1,53 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_sint' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 17, offset: 976 }..TextLocation { line: 25, column: 25, offset: 984 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_int' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 17, offset: 1004 }..TextLocation { line: 26, column: 24, offset: 1011 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lint' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 17, offset: 1059 }..TextLocation { line: 28, column: 25, offset: 1067 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_real' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 29, column: 17, offset: 1087 }..TextLocation { line: 29, column: 25, offset: 1095 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lreal' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 30, column: 17, offset: 1115 }..TextLocation { line: 30, column: 26, offset: 1124 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_1_10' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 35, column: 17, offset: 1317 }..TextLocation { line: 35, column: 30, offset: 1330 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_10_100' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 36, column: 17, offset: 1350 }..TextLocation { line: 36, column: 32, offset: 1365 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_2d' to '__func_arr_dint'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 17, offset: 1442 }..TextLocation { line: 39, column: 28, offset: 1453 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF SINT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:26:18
+   │
+26 │             func(arr_sint);
+   │                  ^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF SINT' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:27:18
+   │
+27 │             func(arr_int);
+   │                  ^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:29:18
+   │
+29 │             func(arr_lint);
+   │                  ^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF REAL' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:30:18
+   │
+30 │             func(arr_real);
+   │                  ^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF REAL' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF LREAL' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:31:18
+   │
+31 │             func(arr_lreal);
+   │                  ^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LREAL' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[1..10] OF DINT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:36:18
+   │
+36 │             func(arr_dint_1_10);
+   │                  ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..10] OF DINT' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[10..100] OF DINT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:37:18
+   │
+37 │             func(arr_dint_10_100);
+   │                  ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[10..100] OF DINT' to 'ARRAY[0..1] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..1] OF ARRAY[0..1] OF DINT' to 'ARRAY[0..1] OF DINT'
+   ┌─ <internal>:40:18
+   │
+40 │             func(arr_dint_2d);
+   │                  ^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF ARRAY[0..1] OF DINT' to 'ARRAY[0..1] OF DINT'
+
 

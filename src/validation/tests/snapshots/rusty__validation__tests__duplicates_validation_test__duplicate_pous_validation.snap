@@ -1,10 +1,59 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }, SourceLocation { span: Range(TextLocation { line: 3, column: 24, offset: 74 }..TextLocation { line: 3, column: 27, offset: 77 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 24, offset: 74 }..TextLocation { line: 3, column: 27, offset: 77 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "foo: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }, SourceLocation { span: Range(TextLocation { line: 3, column: 24, offset: 74 }..TextLocation { line: 3, column: 27, offset: 77 }) }, SourceLocation { span: Range(TextLocation { line: 5, column: 24, offset: 116 }..TextLocation { line: 5, column: 27, offset: 119 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "foo: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 24, offset: 74 }..TextLocation { line: 3, column: 27, offset: 77 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }, SourceLocation { span: Range(TextLocation { line: 5, column: 24, offset: 116 }..TextLocation { line: 5, column: 27, offset: 119 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "foo: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 24, offset: 116 }..TextLocation { line: 5, column: 27, offset: 119 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 24, offset: 25 }..TextLocation { line: 1, column: 27, offset: 28 }) }, SourceLocation { span: Range(TextLocation { line: 3, column: 24, offset: 74 }..TextLocation { line: 3, column: 27, offset: 77 }) }], err_no: duplicate_symbol }
+error: foo: Ambiguous callable symbol.
+  ┌─ <internal>:4:25
+  │
+2 │         FUNCTION        foo : INT  END_FUNCTION
+  │                         --- see also
+3 │ 
+4 │         PROGRAM         foo  END_PROGRAM
+  │                         ^^^ foo: Ambiguous callable symbol.
+
+error: foo: Ambiguous callable symbol.
+  ┌─ <internal>:2:25
+  │
+2 │         FUNCTION        foo : INT  END_FUNCTION
+  │                         ^^^ foo: Ambiguous callable symbol.
+3 │ 
+4 │         PROGRAM         foo  END_PROGRAM
+  │                         --- see also
+
+error: foo: Duplicate symbol.
+  ┌─ <internal>:2:25
+  │
+2 │         FUNCTION        foo : INT  END_FUNCTION
+  │                         ^^^ foo: Duplicate symbol.
+3 │ 
+4 │         PROGRAM         foo  END_PROGRAM
+  │                         --- see also
+5 │ 
+6 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
+  │                         --- see also
+
+error: foo: Duplicate symbol.
+  ┌─ <internal>:4:25
+  │
+2 │         FUNCTION        foo : INT  END_FUNCTION
+  │                         --- see also
+3 │ 
+4 │         PROGRAM         foo  END_PROGRAM
+  │                         ^^^ foo: Duplicate symbol.
+5 │ 
+6 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
+  │                         --- see also
+
+error: foo: Duplicate symbol.
+  ┌─ <internal>:6:25
+  │
+2 │         FUNCTION        foo : INT  END_FUNCTION
+  │                         --- see also
+3 │ 
+4 │         PROGRAM         foo  END_PROGRAM
+  │                         --- see also
+5 │ 
+6 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
+  │                         ^^^ foo: Duplicate symbol.
+
 

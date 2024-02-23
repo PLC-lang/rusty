@@ -80,10 +80,13 @@ pub struct VisitorContext<'s> {
     /// e.g. true for `a.b.c` if either a,b or c is declared in a constant block
     constant: bool,
 
-    /// true the visitor entered a body (so no declarations)
+    /// true if the visitor entered a body (so no declarations)
     in_body: bool,
 
-    id_provider: IdProvider,
+    /// true if the visitor entered a control statement
+    in_control: bool,
+
+    pub id_provider: IdProvider,
 
     // what's the current strategy for resolving
     resolve_strategy: Vec<ResolvingScope>,
@@ -95,90 +98,62 @@ pub struct VisitorContext<'s> {
 impl<'s> VisitorContext<'s> {
     /// returns a copy of the current context and changes the `current_qualifier` to the given qualifier
     fn with_qualifier(&self, qualifier: String) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: Some(qualifier),
-            lhs: self.lhs,
-            constant: false,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-            //Do not share the scope, the qualifier has a different scope here
-            scoped_index: None,
-        }
+        let mut ctx = self.clone();
+        ctx.qualifier = Some(qualifier);
+        ctx.constant = false;
+        //Do not share the scope, the qualifier has a different scope here
+        ctx.scoped_index = None;
+        ctx
     }
 
     /// returns a copy of the current context and changes the `current_pou` to the given pou
     fn with_pou(&self, pou: &'s str) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: Some(pou),
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: false,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-            scoped_index: self.scoped_index.clone(),
-        }
+        let mut ctx = self.clone();
+        ctx.pou = Some(pou);
+        ctx.constant = false;
+        ctx
     }
 
     /// returns a copy of the current context and changes the `lhs_pou` to the given pou
     fn with_lhs(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: Some(lhs_pou),
-            constant: false,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-            //On a left hand side, there is no need for new scopes
-            scoped_index: None,
-        }
+        let mut ctx = self.clone();
+        ctx.lhs = Some(lhs_pou);
+        ctx.constant = false;
+        //On a left hand side, there is no need for new scopes
+        ctx.scoped_index = None;
+        ctx
     }
 
     /// returns a copy of the current context and changes the `is_call` to true
     fn with_const(&self, const_state: bool) -> VisitorContext<'s> {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: const_state,
-            in_body: self.in_body,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-            //Constants cannot be temp variables, no need for new scopes
-            scoped_index: None,
-        }
+        let mut ctx = self.clone();
+        ctx.constant = const_state;
+        //Constants cannot be temp variables, no need for new scopes
+        ctx.scoped_index = None,
+        ctx
     }
 
     // returns a copy of the current context and sets the in_body field to true
     fn enter_body(&self) -> Self {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: self.constant,
-            in_body: true,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy: self.resolve_strategy.clone(),
-            //No new scopes needed at this stage, this is just a marker to indicate that we are in an impl
-            scoped_index: None,
-        }
+        let mut ctx = self.clone();
+        ctx.in_body = true;
+        //No new scopes needed at this stage, this is just a marker to indicate that we are in an impl
+        ctx.scoped_index = None;
+        ctx
+    }
+
+    fn enter_control(&self) -> Self {
+        let mut ctx = self.clone();
+        ctx.in_control = true;
+        ctx
     }
 
     // returns a copy of the current context and sets the resolve_strategy field to the given strategies
     fn with_resolving_strategy(&self, resolve_strategy: Vec<ResolvingScope>) -> Self {
-        VisitorContext {
-            pou: self.pou,
-            qualifier: self.qualifier.clone(),
-            lhs: self.lhs,
-            constant: self.constant,
-            in_body: true,
-            id_provider: self.id_provider.clone(),
-            resolve_strategy,
-            scoped_index: self.scoped_index.clone(),
-        }
+        let mut ctx = self.clone();
+        ctx.in_body = true;
+        ctx.resolve_strategy = resolve_strategy;
+        ctx
     }
 
     fn is_in_a_body(&self) -> bool {
@@ -319,6 +294,120 @@ impl TypeAnnotator<'_> {
                 ctx.id_provider.next_id(),
             ))
     }
+
+    pub fn annotate_call_statement(
+        &mut self,
+        operator: &AstNode,
+        parameters_stmt: Option<&AstNode>,
+        ctx: &VisitorContext,
+    ) {
+        let parameters = if let Some(parameters) = parameters_stmt {
+            self.visit_statement(ctx, parameters);
+            flatten_expression_list(parameters)
+        } else {
+            vec![]
+        };
+        let operator_qualifier = &self.get_call_name(operator);
+
+        let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
+        let mut params = vec![];
+        let mut parameters = parameters.into_iter();
+
+        // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
+        // to annotate them with the correct type hint.
+        let operator_qualifier = self
+            .index
+            .find_implementation_by_name(operator_qualifier)
+            .map(|it| it.get_type_name())
+            .unwrap_or(operator_qualifier);
+
+        for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
+            if let Some(p) = parameters.next() {
+                let type_name = m.get_type_name();
+                if let Some((key, candidate)) =
+                    TypeAnnotator::get_generic_candidate(self.index, &self.annotation_map, type_name, p)
+                {
+                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string())
+                } else {
+                    params.push((p, type_name.to_string()))
+                }
+            }
+        }
+
+        //We possibly did not consume all parameters, see if the variadic arguments are derivable
+        match self.index.find_pou(operator_qualifier) {
+            Some(pou) if pou.is_variadic() => {
+                //get variadic argument type, if it is generic, update the generic candidates
+                if let Some(type_name) =
+                    self.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
+                {
+                    for parameter in parameters {
+                        if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                            self.index,
+                            &self.annotation_map,
+                            type_name,
+                            parameter,
+                        ) {
+                            generics_candidates
+                                .entry(key.to_string())
+                                .or_default()
+                                .push(candidate.to_string())
+                        } else {
+                            // intrinsic type promotion for variadics in order to be compatible with the C standard.
+                            // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
+                            // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
+                            // for more about default argument promotion.
+
+                            // varargs without a type declaration will be annotated "VOID", so in order to check if a
+                            // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
+                            // types, we promote if the type is smaller than double/i32 (except for booleans).
+                            let type_name = if let Some(data_type) =
+                                self.annotation_map.get_type(parameter, self.index)
+                            {
+                                match &data_type.information {
+                                    DataTypeInformation::Float { .. } => get_bigger_type(
+                                        data_type,
+                                        self.index.get_type_or_panic(LREAL_TYPE),
+                                        self.index,
+                                    )
+                                    .get_name(),
+                                    DataTypeInformation::Integer { .. }
+                                        if !&data_type.information.is_bool() =>
+                                    {
+                                        get_bigger_type(
+                                            data_type,
+                                            self.index.get_type_or_panic(DINT_TYPE),
+                                            self.index,
+                                        )
+                                        .get_name()
+                                    }
+                                    _ => type_name,
+                                }
+                            } else {
+                                // default to original type in case no type could be found
+                                // and let the validator handle situations that might lead here
+                                type_name
+                            };
+
+                            params.push((parameter, type_name.to_string()));
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+        for (p, name) in params {
+            self.annotate_parameters(p, &name);
+        }
+        //Attempt to resolve the generic signature here
+        self.update_generic_call_statement(
+            generics_candidates,
+            operator_qualifier,
+            operator,
+            parameters_stmt,
+            ctx.to_owned(),
+        );
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -367,15 +456,9 @@ pub enum StatementAnnotation {
 }
 
 impl StatementAnnotation {
-    /// constructs a new StatementAnnotation::Value with the given type_name
-    /// this is a convinience method to take a &str and clones it itself
-    pub fn value(type_name: &str) -> Self {
-        StatementAnnotation::new_value(type_name.to_string())
-    }
-
-    /// constructs a new StatementAnnotation::Value with the given type_name
-    pub fn new_value(type_name: String) -> Self {
-        StatementAnnotation::Value { resulting_type: type_name }
+    /// Constructs a new [`StatementAnnotation::Value`] with the given type name
+    pub fn value(type_name: impl Into<String>) -> Self {
+        StatementAnnotation::Value { resulting_type: type_name.into() }
     }
 
     pub fn is_const(&self) -> bool {
@@ -692,6 +775,7 @@ impl<'i> TypeAnnotator<'i> {
             in_body: false,
             id_provider,
             resolve_strategy: ResolvingScope::default_scopes(),
+            in_control: false,
             scoped_index: None,
         };
 
@@ -836,7 +920,7 @@ impl<'i> TypeAnnotator<'i> {
 
     /// updates the expected types of statements on the right side of an assignment
     /// e.g. x : ARRAY [0..1] OF BYTE := [2,3];
-    fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstNode) {
+    pub fn update_expected_types(&mut self, expected_type: &typesystem::DataType, statement: &AstNode) {
         //see if we need to dive into it
         match statement.get_stmt() {
             AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) }), ..) => {
@@ -1018,8 +1102,8 @@ impl<'i> TypeAnnotator<'i> {
                     }
 
                     AstStatement::ExpressionList(expressions) => {
-                        let name = inner_data_type.get_name().to_string();
-                        let hint = StatementAnnotation::Value { resulting_type: name };
+                        let name = inner_data_type.get_name();
+                        let hint = StatementAnnotation::value(name);
 
                         for expression in expressions {
                             self.annotation_map.annotate_type_hint(expression, hint.clone());
@@ -1033,14 +1117,19 @@ impl<'i> TypeAnnotator<'i> {
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
-                        let AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt()
-                        else {
-                            return;
-                        };
-                        let Some(elements) = array.elements() else { return };
+                        if let AstStatement::Literal(AstLiteral::Array(array)) = right.as_ref().get_stmt() {
+                            let Some(elements) = array.elements() else { return };
 
-                        if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
-                            self.type_hint_for_array_of_structs(&datatype, elements, &ctx);
+                            if let Some(datatype) = self.annotation_map.get_type(left, self.index).cloned() {
+                                self.type_hint_for_array_of_structs(&datatype, elements, &ctx);
+                            }
+                        }
+
+                        // https://github.com/PLC-lang/rusty/issues/1019
+                        if inner_data_type.information.is_struct() {
+                            let name = inner_data_type.get_name();
+                            let hint = StatementAnnotation::value(name);
+                            self.annotation_map.annotate_type_hint(statement, hint);
                         }
                     }
 
@@ -1178,7 +1267,9 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, expr);
                 self.inherit_annotations(statement, expr);
             }
-            AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
+            //TODO: check where to open scopes
+            /*
+             AstStatement::ControlStatement(AstControlStatement::If(stmt), ..) => {
                 stmt.blocks.iter().for_each(|b| {
                     let ctx = self.visit_statement(
                         ctx.open_scope(b.condition.get_location(), self.suffix_provider.clone()),
@@ -1213,35 +1304,57 @@ impl<'i> TypeAnnotator<'i> {
                 //TODO: fix for context
                 self.visit_body(&stmt.body, &counter_scope);
                 counter_scope //.drop_statement
-            }
-            AstStatement::ControlStatement(AstControlStatement::WhileLoop(stmt))
-            | AstStatement::ControlStatement(AstControlStatement::RepeatLoop(stmt)) => {
-                let ctx = self.visit_statement(ctx, &stmt.condition);
-                self.visit_body(&stmt.body, &ctx);
-                ctx
-            }
-            AstStatement::ControlStatement(AstControlStatement::Case(stmt)) => {
-                let selector_ctx = self.visit_statement(
-                    ctx.open_scope(stmt.selector.get_location(), self.suffix_provider.clone()),
-                    &stmt.selector,
-                );
-                let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
-                stmt.case_blocks.iter().for_each(|b| {
-                    let ctx = self.visit_statement(
-                        selector_ctx.open_scope(b.condition.get_location(), self.suffix_provider.clone()),
-                        b.condition.as_ref(),
-                    );
-                    if let Some(selector_type) = &selector_type {
-                        self.update_expected_types(selector_type, b.condition.as_ref());
+            
+            */
+            AstStatement::ControlStatement(control) => {
+                match control {
+                    AstControlStatement::If(stmt) => {
+                        stmt.blocks.iter().for_each(|b| {
+                            self.visit_statement(&ctx.enter_control(), b.condition.as_ref());
+                            b.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                        });
+                        stmt.else_block.iter().for_each(|e| self.visit_statement(ctx, e));
                     }
-                    self.visit_body(&b.body, &ctx);
-                    //drop ctx scope
-                });
-                //drop selector scope
-                self.visit_body(&stmt.else_block, &ctx);
-                ctx
+                    AstControlStatement::ForLoop(stmt) => {
+                        visit_all_statements!(self, ctx, &stmt.counter, &stmt.start, &stmt.end);
+                        if let Some(by_step) = &stmt.by_step {
+                            self.visit_statement(ctx, by_step);
+                        }
+                        //Hint annotate start, end and step with the counter's real type
+                        if let Some(type_name) = self
+                            .annotation_map
+                            .get_type(&stmt.counter, self.index)
+                            .map(typesystem::DataType::get_name)
+                        {
+                            let annotation = StatementAnnotation::value(type_name);
+                            self.annotation_map.annotate_type_hint(&stmt.start, annotation.clone());
+                            self.annotation_map.annotate_type_hint(&stmt.end, annotation.clone());
+                            if let Some(by_step) = &stmt.by_step {
+                                self.annotation_map.annotate_type_hint(by_step, annotation);
+                            }
+                        }
+                        stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                    }
+                    AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
+                        self.visit_statement(&ctx.enter_control(), &stmt.condition);
+                        stmt.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                    }
+                    AstControlStatement::Case(stmt) => {
+                        self.visit_statement(ctx, &stmt.selector);
+                        let selector_type = self.annotation_map.get_type(&stmt.selector, self.index).cloned();
+                        stmt.case_blocks.iter().for_each(|b| {
+                            self.visit_statement(ctx, b.condition.as_ref());
+                            if let Some(selector_type) = &selector_type {
+                                self.update_expected_types(selector_type, b.condition.as_ref());
+                            }
+                            b.body.iter().for_each(|s| self.visit_statement(ctx, s));
+                        });
+                        stmt.else_block.iter().for_each(|s| self.visit_statement(ctx, s));
+                    }
+                }
             }
-            AstStatement::CaseCondition(condition) => self.visit_statement(ctx, condition),
+
+            AstStatement::CaseCondition(condition, ..) => self.visit_statement(ctx, condition),
             _ => self.visit_statement_expression(ctx, statement),
         }
     }
@@ -1257,12 +1370,12 @@ impl<'i> TypeAnnotator<'i> {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
                 let ctx = visit_all_statements!(self, ctx, &data.index);
                 let access_type = get_direct_access_type(&data.access);
-                self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
+                self.annotate(statement, StatementAnnotation::value(access_type));
                 ctx
             }
             AstStatement::HardwareAccess(data, ..) => {
                 let access_type = get_direct_access_type(&data.access);
-                self.annotate(statement, StatementAnnotation::Value { resulting_type: access_type.into() });
+                self.annotate(statement, StatementAnnotation::value(access_type));
                 ctx
             }
             AstStatement::BinaryExpression(data, ..) => {
@@ -1356,7 +1469,15 @@ impl<'i> TypeAnnotator<'i> {
                 };
 
                 if let Some(statement_type) = statement_type {
-                    self.annotate(statement, StatementAnnotation::new_value(statement_type));
+                    self.annotate(statement, StatementAnnotation::value(statement_type.clone()));
+
+                    // https://github.com/PLC-lang/rusty/issues/939: We rely on type-hints in order
+                    // to identify `=` operations that have no effect (e.g. `foo = bar;`) hence
+                    // type-hint the conditions of control statements to eliminate false-positives.
+                    if ctx.in_control {
+                        self.annotation_map
+                            .annotate_type_hint(statement, StatementAnnotation::value(statement_type))
+                    }
                 };
                 ctx
             }
@@ -1381,7 +1502,7 @@ impl<'i> TypeAnnotator<'i> {
                 };
 
                 if let Some(statement_type) = statement_type {
-                    self.annotate(statement, StatementAnnotation::new_value(statement_type));
+                    self.annotate(statement, StatementAnnotation::value(statement_type));
                 };
                 ctx
             }
@@ -1395,7 +1516,7 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::Assignment(data, ..) => {
                 //Right statement is visited without the left statement's context
-                let ctx = self.visit_statement(ctx, &data.right);
+                let ctx = self.visit_statement(&ctx.enter_control(), &data.right);
                 let ctx = if let Some(lhs) = &ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(ctx.with_pou(lhs).with_lhs(lhs), &data.left);
@@ -1476,7 +1597,7 @@ impl<'i> TypeAnnotator<'i> {
                         (self.visit_statement(ctx, target), vec![])
                     };
                 for (stmt, annotation) in statement_to_annotation {
-                    self.annotate(stmt, StatementAnnotation::new_value(annotation));
+                    self.annotate(stmt, StatementAnnotation::value(annotation));
                 }
                 ctx
             }
@@ -1603,7 +1724,7 @@ impl<'i> TypeAnnotator<'i> {
                     .map(|base| self.annotation_map.get_type_or_void(base, self.index).get_name().to_string())
                 {
                     let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, inner_type);
-                    self.annotate(stmt, StatementAnnotation::new_value(ptr_type))
+                    self.annotate(stmt, StatementAnnotation::value(ptr_type))
                 }
             }
             _ => {}
@@ -1673,7 +1794,7 @@ impl<'i> TypeAnnotator<'i> {
         if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
             .index
             .get_effective_type_or_void_by_name(
-                members.get(0).expect("internal VLA struct ALWAYS has this member").get_type_name(),
+                members.first().expect("internal VLA struct ALWAYS has this member").get_type_name(),
             )
             .get_type_information()
         {
@@ -1724,125 +1845,29 @@ impl<'i> TypeAnnotator<'i> {
         //Use the context without the is_call =true
         //TODO why do we start a lhs context here???
         let ctx = ctx.with_lhs(operator_qualifier.as_str());
-        let parameters = if let Some(parameters) = parameters_stmt {
+        if let Some(parameters) = parameters_stmt {
             self.visit_statement(ctx.clone(), parameters);
-            flatten_expression_list(parameters)
-        } else {
-            vec![]
         };
+
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            annotation(self, operator, parameters_stmt, ctx.to_owned())
+            annotation(self, statement, operator, parameters_stmt, ctx.to_owned());
         } else {
-            //If builtin, skip this
-            let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
-            let mut params = vec![];
-            let mut parameters = parameters.into_iter();
+            //This is skipped for builtins that provide their own annotation-logic
+            self.annotate_call_statement(operator, parameters_stmt, &ctx);
+        };
 
-            // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
-            // to annotate them with the correct type hint.
-            let operator_qualifier = self
-                .index
-                .find_implementation_by_name(&operator_qualifier)
-                .map(|it| it.get_type_name())
-                .unwrap_or(operator_qualifier.as_str());
-
-            for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
-                if let Some(p) = parameters.next() {
-                    let type_name = m.get_type_name();
-                    if let Some((key, candidate)) =
-                        TypeAnnotator::get_generic_candidate(self.index, &self.annotation_map, type_name, p)
-                    {
-                        generics_candidates
-                            .entry(key.to_string())
-                            .or_insert_with(std::vec::Vec::new)
-                            .push(candidate.to_string())
-                    } else {
-                        params.push((p, type_name.to_string()))
-                    }
-                }
-            }
-            //We possibly did not consume all parameters, see if the variadic arguments are derivable
-
-            match self.index.find_pou(operator_qualifier) {
-                Some(pou) if pou.is_variadic() => {
-                    //get variadic argument type, if it is generic, update the generic candidates
-                    if let Some(type_name) =
-                        self.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
-                    {
-                        for parameter in parameters {
-                            if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
-                                self.index,
-                                &self.annotation_map,
-                                type_name,
-                                parameter,
-                            ) {
-                                generics_candidates
-                                    .entry(key.to_string())
-                                    .or_insert_with(std::vec::Vec::new)
-                                    .push(candidate.to_string())
-                            } else {
-                                // intrinsic type promotion for variadics in order to be compatible with the C standard.
-                                // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
-                                // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
-                                // for more about default argument promotion.
-
-                                // varargs without a type declaration will be annotated "VOID", so in order to check if a
-                                // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
-                                // types, we promote if the type is smaller than double/i32 (except for booleans).
-                                let type_name = if let Some(data_type) =
-                                    self.annotation_map.get_type(parameter, self.index)
-                                {
-                                    match &data_type.information {
-                                        DataTypeInformation::Float { .. } => get_bigger_type(
-                                            data_type,
-                                            self.index.get_type_or_panic(LREAL_TYPE),
-                                            self.index,
-                                        )
-                                        .get_name(),
-                                        DataTypeInformation::Integer { .. }
-                                            if !&data_type.information.is_bool() =>
-                                        {
-                                            get_bigger_type(
-                                                data_type,
-                                                self.index.get_type_or_panic(DINT_TYPE),
-                                                self.index,
-                                            )
-                                            .get_name()
-                                        }
-                                        _ => type_name,
-                                    }
-                                } else {
-                                    // default to original type in case no type could be found
-                                    // and let the validator handle situations that might lead here
-                                    type_name
-                                };
-
-                                params.push((parameter, type_name.to_string()));
-                            }
-                        }
-                    }
-                }
-                _ => {}
-            }
-            for (p, name) in params {
-                self.annotate_parameters(p, &name);
-            }
-            //Attempt to resolve the generic signature here
-            self.update_generic_call_statement(
-                generics_candidates,
-                operator_qualifier,
-                operator,
-                parameters_stmt,
-                ctx.to_owned(),
-            );
-        }
         if let Some(StatementAnnotation::Function { return_type, .. }) = self.annotation_map.get(operator) {
             if let Some(return_type) = self
                 .index
                 .find_effective_type_by_name(return_type)
                 .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(return_type))
             {
+                if let Some(StatementAnnotation::ReplacementAst { .. }) = self.annotation_map.get(statement) {
+                    // if we have a replacement ast, we do not need to annotate the function return type as it would
+                    // overwrite the replacement ast
+                    return;
+                }
                 self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
             }
         }
@@ -1905,7 +1930,7 @@ impl<'i> TypeAnnotator<'i> {
                     AstLiteral::String(StringValue { is_wide, value, .. }) => {
                         let string_type_name =
                             register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
-                        self.annotate(statement, StatementAnnotation::new_value(string_type_name));
+                        self.annotate(statement, StatementAnnotation::value(string_type_name));
 
                         //collect literals so we can generate global constants later
                         if ctx.is_in_a_body() {
@@ -2091,7 +2116,7 @@ fn get_int_type_name_for(value: i128) -> &'static str {
 
 fn get_real_type_name_for(value: &str) -> &'static str {
     let parsed = value.parse::<f32>().unwrap_or(f32::INFINITY);
-    if parsed == f32::INFINITY || parsed == f32::NEG_INFINITY {
+    if parsed.is_infinite() {
         return LREAL_TYPE;
     }
 

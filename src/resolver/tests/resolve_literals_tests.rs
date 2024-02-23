@@ -1,3 +1,4 @@
+use plc_ast::literals::AstLiteral;
 use plc_ast::{
     ast::{AstStatement, ReferenceAccess, ReferenceExpr, TypeNature},
     provider::IdProvider,
@@ -113,12 +114,12 @@ fn date_literals_are_annotated() {
                 TIME#-12m;
                 TOD#00:00:12;
                 TIME_OF_DAY#04:16:22;
-				TIME_OF_DAY#04:16;
-                DATE_AND_TIME#1984-10-01-16:40:22; 
-                DT#2021-04-20-22:33:14; 
-				DATE_AND_TIME#2000-01-01-20:15;
-                DATE#1984-10-01; 
-                D#2021-04-20; 
+                TIME_OF_DAY#04:16;
+                DATE_AND_TIME#1984-10-01-16:40:22;
+                DT#2021-04-20-22:33:14;
+                DATE_AND_TIME#2000-01-01-20:15;
+                DATE#1984-10-01;
+                D#2021-04-20;
             END_PROGRAM",
         id_provider.clone(),
     );
@@ -148,9 +149,9 @@ fn long_date_literals_are_annotated() {
     let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 LTIME#12.4d;
-				LDATE#1984-10-01;
-				LDT#1984-10-01-16:40:22;
-				LTOD#00:00:12;
+                LDATE#1984-10-01;
+                LDT#1984-10-01-16:40:22;
+                LTOD#00:00:12;
             END_PROGRAM",
         id_provider.clone(),
     );
@@ -221,10 +222,10 @@ fn enum_literals_are_annotated() {
             TYPE Color: (Green, Yellow, Red); END_TYPE
             TYPE Animal: (Dog, Cat, Horse); END_TYPE
 
-            VAR_GLOBAL 
+            VAR_GLOBAL
                 Cat : BOOL;
             END_VAR
-        
+
             PROGRAM PRG
                 VAR Yellow: BYTE; END_VAR
 
@@ -461,11 +462,11 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
-			VAR_GLOBAL
-				a : ARRAY[0..2] OF INT := 1+1,2;
-				b : ARRAY[0..2] OF STRING[3] := 'ABC','D';
-			END_VAR
-		",
+            VAR_GLOBAL
+                a : ARRAY[0..2] OF INT := 1+1,2;
+                b : ARRAY[0..2] OF STRING[3] := 'ABC','D';
+            END_VAR
+        ",
         id_provider.clone(),
     );
 
@@ -506,4 +507,58 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     } else {
         unreachable!();
     }
+}
+
+#[test]
+fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        TYPE STRUCT1 : STRUCT
+            x    : DINT;
+            arr   : ARRAY[0..1] OF STRUCT2;
+        END_STRUCT END_TYPE
+
+        TYPE STRUCT2 : STRUCT
+            y  : INT;
+            z  : INT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+            VAR
+                var_init1 : ARRAY[0..1] OF STRUCT1 := [
+                    (x := 0, arr := [(y := 0), (z := 0)])
+                ];
+            END_VAR
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let var = unit.units[0].variable_blocks[0].variables[0].initializer.clone().unwrap();
+
+    // (x := 0, arr := [(y := 0), (z := 0)])
+    let AstStatement::Literal(AstLiteral::Array(arr)) = &var.stmt else { panic!() };
+    let AstStatement::ParenExpression(expr) = &arr.elements().unwrap().stmt else { panic!() };
+    let AstStatement::ExpressionList(elements) = &expr.stmt else { panic!() };
+
+    // x := 0
+    let x = &elements[0];
+    assert_eq!(&annotations.get_type_hint(x, &index).unwrap().name, "STRUCT1");
+
+    // arr := [(y := 0), (z := 0)]
+    let AstStatement::Assignment(assignment) = &elements[1].stmt else { panic!() };
+
+    // [(y := 0), (z := 0)]
+    let AstStatement::Literal(AstLiteral::Array(arr)) = &assignment.right.stmt else { panic!() };
+    let AstStatement::ExpressionList(elements) = &arr.elements.as_ref().unwrap().stmt else { panic!() };
+
+    // y := 0
+    let AstStatement::ParenExpression(y) = &elements[0].stmt else { panic!() };
+    assert_eq!(&annotations.get_type_hint(y, &index).unwrap().name, "STRUCT2");
+
+    // z := 0
+    let AstStatement::ParenExpression(z) = &elements[1].stmt else { panic!() };
+    assert_eq!(&annotations.get_type_hint(z, &index).unwrap().name, "STRUCT2");
 }

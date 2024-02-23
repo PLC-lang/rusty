@@ -1,4 +1,6 @@
 VAR_GLOBAL CONSTANT
-	myValue : BOOL := TRUE;
+    myValue : BOOL := TRUE;
 END_VAR
 
+FUNCTION main : DINT
+END_FUNCTION

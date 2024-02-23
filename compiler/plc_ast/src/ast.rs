@@ -157,6 +157,30 @@ impl TypeNature {
     }
 }
 
+impl Display for TypeNature {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let name = match self {
+            TypeNature::Any => "ANY",
+            TypeNature::Derived => "ANY_DERIVED",
+            TypeNature::Elementary => "ANY_ELEMENTARY",
+            TypeNature::Magnitude => "ANY_MAGNITUDE",
+            TypeNature::Num => "ANY_NUMBER",
+            TypeNature::Real => "ANY_REAL",
+            TypeNature::Int => "ANY_INT",
+            TypeNature::Signed => "ANY_SIGNED",
+            TypeNature::Unsigned => "ANY_UNSIGNED",
+            TypeNature::Duration => "ANY_DURATION",
+            TypeNature::Bit => "ANY_BIT",
+            TypeNature::Chars => "ANY_CHARS",
+            TypeNature::String => "ANY_STRING",
+            TypeNature::Char => "ANY_CHAR",
+            TypeNature::Date => "ANY_DATE",
+            TypeNature::__VLA => "__ANY_VLA",
+        };
+        write!(f, "{name}")
+    }
+}
+
 impl DirectAccessType {
     /// Returns the size of the bitaccess result
     pub fn get_bit_width(&self) -> u64 {
@@ -379,21 +403,6 @@ impl Variable {
     }
 }
 
-pub trait DiagnosticInfo {
-    fn get_description(&self) -> String;
-    fn get_location(&self) -> SourceLocation;
-}
-
-impl DiagnosticInfo for AstNode {
-    fn get_description(&self) -> String {
-        format!("{self:?}")
-    }
-
-    fn get_location(&self) -> SourceLocation {
-        self.get_location()
-    }
-}
-
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
     DataTypeReference { referenced_type: String, location: SourceLocation },
@@ -553,7 +562,7 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ReferenceAccess {
     /**
      * a, a.b
@@ -827,13 +836,7 @@ impl AstNode {
             AstStatement::ReferenceExpr(
                 ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
                 ..,
-            ) => {
-                if let AstStatement::Identifier(name, ..) = &reference.as_ref().stmt {
-                    Some(name)
-                } else {
-                    None
-                }
-            }
+            ) => reference.as_ref().get_flat_reference_name(),
             AstStatement::Identifier(name, ..) => Some(name),
             _ => None,
         }
@@ -852,6 +855,10 @@ impl AstNode {
 
     pub fn is_reference(&self) -> bool {
         matches!(self.stmt, AstStatement::ReferenceExpr(..))
+    }
+
+    pub fn is_call(&self) -> bool {
+        matches!(self.stmt, AstStatement::CallStatement(..))
     }
 
     pub fn is_hardware_access(&self) -> bool {

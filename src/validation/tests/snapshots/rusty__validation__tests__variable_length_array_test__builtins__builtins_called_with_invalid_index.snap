@@ -1,11 +1,41 @@
 ---
 source: src/validation/tests/variable_length_array_test.rs
-expression: res
+expression: diagnostics
 ---
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 29, offset: 369 }..TextLocation { line: 17, column: 35, offset: 375 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 29, offset: 418 }..TextLocation { line: 18, column: 36, offset: 425 }) }], err_no: type__invalid_nature }
-SemanticError { message: "Index out of bounds.", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 12, offset: 451 }..TextLocation { line: 19, column: 23, offset: 462 }) }], err_no: vla__dimension_idx_out_of_bounds }
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 29, offset: 525 }..TextLocation { line: 21, column: 35, offset: 531 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 29, offset: 574 }..TextLocation { line: 22, column: 36, offset: 581 }) }], err_no: type__invalid_nature }
-SemanticError { message: "Index out of bounds.", range: [SourceLocation { span: Range(TextLocation { line: 23, column: 12, offset: 607 }..TextLocation { line: 23, column: 23, offset: 618 }) }], err_no: vla__dimension_idx_out_of_bounds }
+error: Invalid type nature for generic argument. REAL is no ANY_INT
+   ┌─ <internal>:18:30
+   │
+18 │             LOWER_BOUND(vla, 3.1415); // invalid
+   │                              ^^^^^^ Invalid type nature for generic argument. REAL is no ANY_INT
+
+error: Invalid type nature for generic argument. TIME is no ANY_INT
+   ┌─ <internal>:19:30
+   │
+19 │             LOWER_BOUND(vla, TIME#3s); // invalid
+   │                              ^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_INT
+
+error: Index out of bound
+   ┌─ <internal>:20:13
+   │
+20 │             LOWER_BOUND(vla, 0); // index out of bounds
+   │             ^^^^^^^^^^^ Index out of bound
+
+error: Invalid type nature for generic argument. REAL is no ANY_INT
+   ┌─ <internal>:22:30
+   │
+22 │             UPPER_BOUND(vla, 3.1415); // invalid
+   │                              ^^^^^^ Invalid type nature for generic argument. REAL is no ANY_INT
+
+error: Invalid type nature for generic argument. TIME is no ANY_INT
+   ┌─ <internal>:23:30
+   │
+23 │             UPPER_BOUND(vla, TIME#3s); // invalid
+   │                              ^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_INT
+
+error: Index out of bound
+   ┌─ <internal>:24:13
+   │
+24 │             UPPER_BOUND(vla, 0); // index out of bounds
+   │             ^^^^^^^^^^^ Index out of bound
+
 

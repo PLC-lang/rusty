@@ -1,18 +1,83 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 13, offset: 431 }..TextLocation { line: 14, column: 21, offset: 439 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 13, offset: 431 }..TextLocation { line: 14, column: 21, offset: 439 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 23, offset: 441 }..TextLocation { line: 14, column: 35, offset: 453 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 23, offset: 441 }..TextLocation { line: 14, column: 35, offset: 453 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 37, offset: 455 }..TextLocation { line: 14, column: 47, offset: 465 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 37, offset: 455 }..TextLocation { line: 14, column: 47, offset: 465 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 49, offset: 467 }..TextLocation { line: 14, column: 57, offset: 475 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 49, offset: 467 }..TextLocation { line: 14, column: 57, offset: 475 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'BYTE' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 59, offset: 477 }..TextLocation { line: 14, column: 67, offset: 485 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 59, offset: 477 }..TextLocation { line: 14, column: 67, offset: 485 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 78, offset: 496 }..TextLocation { line: 14, column: 86, offset: 504 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DATE' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 88, offset: 506 }..TextLocation { line: 14, column: 96, offset: 514 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Chars.", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 88, offset: 506 }..TextLocation { line: 14, column: 96, offset: 514 }) }], err_no: type__invalid_nature }
+error: Invalid assignment: cannot assign 'REAL' to 'STRING'
+   ┌─ <internal>:15:14
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │              ^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'STRING'
+
+error: Invalid type nature for generic argument. REAL is no ANY_CHARS
+   ┌─ <internal>:15:14
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no ANY_CHARS
+
+error: Invalid assignment: cannot assign 'UDINT' to 'STRING'
+   ┌─ <internal>:15:24
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                        ^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'STRING'
+
+error: Invalid type nature for generic argument. UDINT is no ANY_CHARS
+   ┌─ <internal>:15:24
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no ANY_CHARS
+
+error: Invalid assignment: cannot assign 'DINT' to 'STRING'
+   ┌─ <internal>:15:38
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                      ^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+error: Invalid type nature for generic argument. DINT is no ANY_CHARS
+   ┌─ <internal>:15:38
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no ANY_CHARS
+
+error: Invalid assignment: cannot assign 'TIME' to 'STRING'
+   ┌─ <internal>:15:50
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                  ^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'STRING'
+
+error: Invalid type nature for generic argument. TIME is no ANY_CHARS
+   ┌─ <internal>:15:50
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_CHARS
+
+error: Invalid assignment: cannot assign 'BYTE' to 'STRING'
+   ┌─ <internal>:15:60
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                            ^^^^^^^^ Invalid assignment: cannot assign 'BYTE' to 'STRING'
+
+error: Invalid type nature for generic argument. BYTE is no ANY_CHARS
+   ┌─ <internal>:15:60
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no ANY_CHARS
+
+error: Invalid assignment: cannot assign 'CHAR' to 'STRING'
+   ┌─ <internal>:15:79
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'STRING'
+
+error: Invalid assignment: cannot assign 'DATE' to 'STRING'
+   ┌─ <internal>:15:89
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                                         ^^^^^^^^ Invalid assignment: cannot assign 'DATE' to 'STRING'
+
+error: Invalid type nature for generic argument. DATE is no ANY_CHARS
+   ┌─ <internal>:15:89
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                                                         ^^^^^^^^ Invalid type nature for generic argument. DATE is no ANY_CHARS
+
 

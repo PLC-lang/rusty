@@ -5,73 +5,73 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @myFunc() !dbg !3 {
+define i32 @myFunc() !dbg !4 {
 entry:
-  %myFunc = alloca i32, align 4, !dbg !7
-  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !8, metadata !DIExpression()), !dbg !10
-  store i32 0, i32* %myFunc, align 4, !dbg !7
-  store i32 1, i32* %myFunc, align 4, !dbg !11
-  br label %condition_check, !dbg !11
+  %myFunc = alloca i32, align 4, !dbg !8
+  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !9, metadata !DIExpression()), !dbg !11
+  store i32 0, i32* %myFunc, align 4, !dbg !8
+  store i32 1, i32* %myFunc, align 4, !dbg !12
+  br label %condition_check, !dbg !12
 
 condition_check:                                  ; preds = %increment, %entry
-  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !11
-  %load_myFunc1 = load i32, i32* %myFunc, align 4, !dbg !11
-  %tmpVar = icmp sle i32 %load_myFunc1, 20, !dbg !11
-  %0 = zext i1 %tmpVar to i8, !dbg !11
-  %1 = icmp ne i8 %0, 0, !dbg !11
-  br i1 %1, label %2, label %5, !dbg !11
+  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !12
+  %load_myFunc1 = load i32, i32* %myFunc, align 4, !dbg !12
+  %tmpVar = icmp sle i32 %load_myFunc1, 20, !dbg !12
+  %0 = zext i1 %tmpVar to i8, !dbg !12
+  %1 = icmp ne i8 %0, 0, !dbg !12
+  br i1 %1, label %2, label %5, !dbg !12
 
 for_body:                                         ; preds = %12
-  store i32 1, i32* %myFunc, align 4, !dbg !12
-  br label %increment, !dbg !12
+  store i32 1, i32* %myFunc, align 4, !dbg !13
+  br label %increment, !dbg !13
 
 increment:                                        ; preds = %for_body
-  %tmpVar8 = add i32 %load_myFunc, 2, !dbg !13
-  store i32 %tmpVar8, i32* %myFunc, align 4, !dbg !13
-  br label %condition_check, !dbg !13
+  %tmpVar8 = add i32 %load_myFunc, 2, !dbg !14
+  store i32 %tmpVar8, i32* %myFunc, align 4, !dbg !14
+  br label %condition_check, !dbg !14
 
 continue:                                         ; preds = %12
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !13
-  ret i32 %myFunc_ret, !dbg !13
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !14
+  ret i32 %myFunc_ret, !dbg !14
 
 2:                                                ; preds = %condition_check
-  %load_myFunc2 = load i32, i32* %myFunc, align 4, !dbg !11
-  %tmpVar3 = icmp sge i32 %load_myFunc2, 1, !dbg !11
-  %3 = zext i1 %tmpVar3 to i8, !dbg !11
-  %4 = icmp ne i8 %3, 0, !dbg !11
-  br label %5, !dbg !11
+  %load_myFunc2 = load i32, i32* %myFunc, align 4, !dbg !12
+  %tmpVar3 = icmp sge i32 %load_myFunc2, 1, !dbg !12
+  %3 = zext i1 %tmpVar3 to i8, !dbg !12
+  %4 = icmp ne i8 %3, 0, !dbg !12
+  br label %5, !dbg !12
 
 5:                                                ; preds = %2, %condition_check
-  %6 = phi i1 [ %1, %condition_check ], [ %4, %2 ], !dbg !11
-  %7 = zext i1 %6 to i8, !dbg !11
-  %8 = icmp ne i8 %7, 0, !dbg !11
-  br i1 %8, label %12, label %9, !dbg !11
+  %6 = phi i1 [ %1, %condition_check ], [ %4, %2 ], !dbg !12
+  %7 = zext i1 %6 to i8, !dbg !12
+  %8 = icmp ne i8 %7, 0, !dbg !12
+  br i1 %8, label %12, label %9, !dbg !12
 
 9:                                                ; preds = %5
-  %load_myFunc4 = load i32, i32* %myFunc, align 4, !dbg !11
-  %tmpVar5 = icmp sge i32 %load_myFunc4, 20, !dbg !11
-  %10 = zext i1 %tmpVar5 to i8, !dbg !11
-  %11 = icmp ne i8 %10, 0, !dbg !11
-  br i1 %11, label %16, label %19, !dbg !11
+  %load_myFunc4 = load i32, i32* %myFunc, align 4, !dbg !12
+  %tmpVar5 = icmp sge i32 %load_myFunc4, 20, !dbg !12
+  %10 = zext i1 %tmpVar5 to i8, !dbg !12
+  %11 = icmp ne i8 %10, 0, !dbg !12
+  br i1 %11, label %16, label %19, !dbg !12
 
 12:                                               ; preds = %19, %5
-  %13 = phi i1 [ %8, %5 ], [ %22, %19 ], !dbg !11
-  %14 = zext i1 %13 to i8, !dbg !11
-  %15 = icmp ne i8 %14, 0, !dbg !11
-  br i1 %15, label %for_body, label %continue, !dbg !11
+  %13 = phi i1 [ %8, %5 ], [ %22, %19 ], !dbg !12
+  %14 = zext i1 %13 to i8, !dbg !12
+  %15 = icmp ne i8 %14, 0, !dbg !12
+  br i1 %15, label %for_body, label %continue, !dbg !12
 
 16:                                               ; preds = %9
-  %load_myFunc6 = load i32, i32* %myFunc, align 4, !dbg !11
-  %tmpVar7 = icmp sle i32 %load_myFunc6, 1, !dbg !11
-  %17 = zext i1 %tmpVar7 to i8, !dbg !11
-  %18 = icmp ne i8 %17, 0, !dbg !11
-  br label %19, !dbg !11
+  %load_myFunc6 = load i32, i32* %myFunc, align 4, !dbg !12
+  %tmpVar7 = icmp sle i32 %load_myFunc6, 1, !dbg !12
+  %17 = zext i1 %tmpVar7 to i8, !dbg !12
+  %18 = icmp ne i8 %17, 0, !dbg !12
+  br label %19, !dbg !12
 
 19:                                               ; preds = %16, %9
-  %20 = phi i1 [ %11, %9 ], [ %18, %16 ], !dbg !11
-  %21 = zext i1 %20 to i8, !dbg !11
-  %22 = icmp ne i8 %21, 0, !dbg !11
-  br label %12, !dbg !11
+  %20 = phi i1 [ %11, %9 ], [ %18, %16 ], !dbg !12
+  %21 = zext i1 %20 to i8, !dbg !12
+  %22 = icmp ne i8 %21, 0, !dbg !12
+  br label %12, !dbg !12
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -79,21 +79,22 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-!llvm.module.flags = !{!0}
-!llvm.dbg.cu = !{!1}
+!llvm.module.flags = !{!0, !1}
+!llvm.dbg.cu = !{!2}
 
 !0 = !{i32 2, !"Dwarf Version", i32 5}
-!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!2 = !DIFile(filename: "main", directory: "src")
-!3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 2, type: !4, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !1, retainedNodes: !6)
-!4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
-!5 = !{null}
-!6 = !{}
-!7 = !DILocation(line: 3, column: 12, scope: !3)
-!8 = !DILocalVariable(name: "myFunc", scope: !3, file: !2, line: 2, type: !9, align: 32)
-!9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!10 = !DILocation(line: 2, column: 17, scope: !3)
-!11 = !DILocation(line: 3, column: 16, scope: !3)
-!12 = !DILocation(line: 4, column: 16, scope: !3)
-!13 = !DILocation(line: 3, column: 37, scope: !3)
+!1 = !{i32 2, !"Debug Info Version", i32 3}
+!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+!3 = !DIFile(filename: "main", directory: "src")
+!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+!5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+!6 = !{null}
+!7 = !{}
+!8 = !DILocation(line: 3, column: 12, scope: !4)
+!9 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !10, align: 32)
+!10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!11 = !DILocation(line: 2, column: 17, scope: !4)
+!12 = !DILocation(line: 3, column: 16, scope: !4)
+!13 = !DILocation(line: 4, column: 16, scope: !4)
+!14 = !DILocation(line: 3, column: 37, scope: !4)
 

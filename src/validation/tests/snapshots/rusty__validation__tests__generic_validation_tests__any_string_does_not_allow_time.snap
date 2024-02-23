@@ -1,9 +1,29 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 140 }..TextLocation { line: 2, column: 58, offset: 141 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no String.", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 57, offset: 140 }..TextLocation { line: 2, column: 58, offset: 141 }) }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'STRING'", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 209 }..TextLocation { line: 3, column: 53, offset: 210 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no String.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 52, offset: 209 }..TextLocation { line: 3, column: 53, offset: 210 }) }], err_no: type__invalid_nature }
+error: Invalid assignment: cannot assign 'TIME' to 'STRING'
+  ┌─ <internal>:3:58
+  │
+3 │         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid assignment: cannot assign 'TIME' to 'STRING'
+
+error: Invalid type nature for generic argument. TIME is no ANY_STRING
+  ┌─ <internal>:3:58
+  │
+3 │         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid type nature for generic argument. TIME is no ANY_STRING
+
+error: Invalid assignment: cannot assign 'TIME' to 'STRING'
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid assignment: cannot assign 'TIME' to 'STRING'
+
+error: Invalid type nature for generic argument. TIME is no ANY_STRING
+  ┌─ <internal>:4:59
+  │
+4 │         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
+  │                                                           ^ Invalid type nature for generic argument. TIME is no ANY_STRING
+
 

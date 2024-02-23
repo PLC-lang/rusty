@@ -10,6 +10,7 @@ pub mod tests {
     use plc_diagnostics::{
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
+    use plc_index::GlobalContext;
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
@@ -116,14 +117,18 @@ pub mod tests {
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
-        let id_provider = IdProvider::default();
-        let (unit, index, mut diagnostics) = do_index(src, id_provider.clone());
+        let src = SourceCode::from(src);
+
+        let mut ctxt = GlobalContext::new();
+        ctxt.insert(&src, None).unwrap();
+
+        let (unit, index, mut diagnostics) = do_index(src, ctxt.provider());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ctxt.provider());
         index.import(std::mem::take(&mut annotations.new_index));
 
-        let mut validator = Validator::new();
+        let mut validator = Validator::new(&ctxt);
         validator.perform_global_validation(&index);
         validator.visit_unit(&annotations, &index, &unit);
         diagnostics.extend(validator.diagnostics());
@@ -177,7 +182,11 @@ pub mod tests {
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
-        codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
+        codegen_debug_without_unwrap(src, DebugLevel::Full(crate::DEFAULT_DWARF_VERSION)).unwrap()
+    }
+
+    pub fn codegen_with_debug_version(src: &str, dwarf_version: usize) -> String {
+        codegen_debug_without_unwrap(src, DebugLevel::Full(dwarf_version)).unwrap()
     }
 
     pub fn codegen(src: &str) -> String {

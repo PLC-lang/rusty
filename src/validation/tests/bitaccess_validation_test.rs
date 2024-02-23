@@ -1,11 +1,12 @@
-use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+use crate::test_utils::tests::parse_and_validate_buffered;
+use insta::assert_snapshot;
 
 #[test]
 fn bitaccess_only_on_bit_types() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : BOOL;
             invalid2 : STRING;
             valid : BYTE;
@@ -23,15 +24,15 @@ fn bitaccess_only_on_bit_types() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn byteaccess_only_on_bigger_sizes() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : BYTE;
             invalid2 : SINT;
             invalid3 : USINT;
@@ -46,15 +47,15 @@ fn byteaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn wordaccess_only_on_bigger_sizes() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : WORD;
             invalid2 : INT;
             invalid3 : UINT;
@@ -69,15 +70,15 @@ fn wordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn dwordaccess_only_on_bigger_sizes() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
             invalid : DWORD;
             invalid2 : DINT;
             invalid3 : UDINT;
@@ -92,15 +93,15 @@ fn dwordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn bitaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 a : BYTE; b : WORD; c : DWORD; d : LWORD;
             END_VAR
                 a.8;
@@ -111,15 +112,15 @@ fn bitaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn byteaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 b : WORD; c : DWORD; d : LWORD;
             END_VAR
                 b.%B2;
@@ -129,15 +130,15 @@ fn byteaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn wordaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 c : DWORD; d : LWORD;
             END_VAR
                 c.%W2;
@@ -146,15 +147,15 @@ fn wordaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn dwordaccess_range_test() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 d : LWORD;
             END_VAR
                 d.%D2;
@@ -162,15 +163,15 @@ fn dwordaccess_range_test() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn reference_direct_access_only_with_ints() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-            VAR 
+            VAR
                 c : DWORD; d : INT; e : LREAL; f : REAL;
             END_VAR
                 c.%Xd;
@@ -180,5 +181,5 @@ fn reference_direct_access_only_with_ints() {
        ",
     );
 
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }

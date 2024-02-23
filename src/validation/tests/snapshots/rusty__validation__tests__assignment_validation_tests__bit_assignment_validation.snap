@@ -1,12 +1,47 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: res
+expression: diagnostics
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 38, column: 4, offset: 807 }..TextLocation { line: 38, column: 22, offset: 825 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 39, column: 4, offset: 842 }..TextLocation { line: 39, column: 29, offset: 867 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 40, column: 4, offset: 884 }..TextLocation { line: 40, column: 22, offset: 902 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 41, column: 4, offset: 919 }..TextLocation { line: 41, column: 20, offset: 935 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 42, column: 4, offset: 952 }..TextLocation { line: 42, column: 22, offset: 970 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 46, column: 4, offset: 1089 }..TextLocation { line: 46, column: 27, offset: 1112 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceLocation { span: Range(TextLocation { line: 48, column: 4, offset: 1168 }..TextLocation { line: 48, column: 31, offset: 1195 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+   ┌─ <internal>:39:5
+   │
+39 │     v_byte := v_string; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
+
+error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+   ┌─ <internal>:40:5
+   │
+40 │     v_byte := STRING#'string'; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
+
+error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+   ┌─ <internal>:41:5
+   │
+41 │     v_byte := 'string'; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
+
+error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+   ┌─ <internal>:42:5
+   │
+42 │     v_byte := v_char; // INVALID
+   │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+
+error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+   ┌─ <internal>:43:5
+   │
+43 │     v_byte := CHAR#'c'; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+
+error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+   ┌─ <internal>:47:5
+   │
+47 │     v_byte := v_ptr_string^; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
+
+error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+   ┌─ <internal>:49:5
+   │
+49 │     v_byte := v_arr_string_3[0]; // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
+
 

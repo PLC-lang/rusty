@@ -68,7 +68,7 @@
                   }
               }
             },
-            "additionalProperties": false,            
+            "additionalProperties": false,
             "required": [
               "name",
               "files",

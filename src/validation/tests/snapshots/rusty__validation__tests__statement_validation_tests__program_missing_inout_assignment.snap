@@ -1,9 +1,29 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Missing inout parameter: inout1", range: [SourceLocation { span: Range(TextLocation { line: 17, column: 3, offset: 216 }..TextLocation { line: 17, column: 7, offset: 220 }) }], err_no: pou__missing_action_container }
-SyntaxError { message: "Missing inout parameter: inout1", range: [SourceLocation { span: Range(TextLocation { line: 18, column: 3, offset: 258 }..TextLocation { line: 18, column: 7, offset: 262 }) }], err_no: pou__missing_action_container }
-SyntaxError { message: "Missing inout parameter: inout1", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 3, offset: 279 }..TextLocation { line: 19, column: 7, offset: 283 }) }], err_no: pou__missing_action_container }
-SyntaxError { message: "Missing inout parameter: inout1", range: [SourceLocation { span: Range(TextLocation { line: 20, column: 3, offset: 294 }..TextLocation { line: 20, column: 7, offset: 298 }) }], err_no: pou__missing_action_container }
+error: Missing inout parameter: inout1
+   ┌─ <internal>:18:13
+   │
+18 │             prog(input1 := var1, output1 => var2);
+   │             ^^^^ Missing inout parameter: inout1
+
+error: Missing inout parameter: inout1
+   ┌─ <internal>:19:13
+   │
+19 │             prog(var1, var2);
+   │             ^^^^ Missing inout parameter: inout1
+
+error: Missing inout parameter: inout1
+   ┌─ <internal>:20:13
+   │
+20 │             prog(var1);
+   │             ^^^^ Missing inout parameter: inout1
+
+error: Missing inout parameter: inout1
+   ┌─ <internal>:21:13
+   │
+21 │             prog();
+   │             ^^^^ Missing inout parameter: inout1
+
 

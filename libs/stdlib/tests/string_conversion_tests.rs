@@ -13,12 +13,12 @@ fn wstring_to_string_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : STRING;
-		ptr : REF_TO STRING;
-	END_VAR
-		res := WSTRING_TO_STRING(WSTRING#"hello");
+    PROGRAM main
+    VAR
+        res : STRING;
+        ptr : REF_TO STRING;
+    END_VAR
+        res := WSTRING_TO_STRING(WSTRING#"hello");
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -35,12 +35,12 @@ fn empty_wstring_to_string_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : STRING;
-		ptr : REF_TO STRING;
-	END_VAR
-		res := WSTRING_TO_STRING("");
+    PROGRAM main
+    VAR
+        res : STRING;
+        ptr : REF_TO STRING;
+    END_VAR
+        res := WSTRING_TO_STRING("");
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -57,12 +57,12 @@ fn wstring_to_string_extra_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : STRING;
-		ptr : REF_TO STRING;
-	END_VAR
-		res := WSTRING_TO_STRING(WSTRING#"hèßlo👽️");
+    PROGRAM main
+    VAR
+        res : STRING;
+        ptr : REF_TO STRING;
+    END_VAR
+        res := WSTRING_TO_STRING(WSTRING#"hèßlo👽️");
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -80,12 +80,12 @@ fn wstring_to_string_conversion_long() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : STRING;
-		ptr : REF_TO STRING;
-	END_VAR
-		res := WSTRING_TO_STRING("111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999");
+    PROGRAM main
+    VAR
+        res : STRING;
+        ptr : REF_TO STRING;
+    END_VAR
+        res := WSTRING_TO_STRING("111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999");
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -109,11 +109,11 @@ fn wstring_to_wchar_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : WCHAR;
-	END_VAR
-		res := WSTRING_TO_WCHAR(WSTRING#"ABC");
+    PROGRAM main
+    VAR
+        res : WCHAR;
+    END_VAR
+        res := WSTRING_TO_WCHAR(WSTRING#"ABC");
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -130,11 +130,11 @@ fn string_to_wstring_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : WSTRING;
-	END_VAR
-		res := STRING_TO_WSTRING(STRING#'Hello');
+    PROGRAM main
+    VAR
+        res : WSTRING;
+    END_VAR
+        res := STRING_TO_WSTRING(STRING#'Hello');
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -151,11 +151,11 @@ fn empty_string_to_wstring_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : WSTRING;
-	END_VAR
-		res := STRING_TO_WSTRING('');
+    PROGRAM main
+    VAR
+        res : WSTRING;
+    END_VAR
+        res := STRING_TO_WSTRING('');
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -170,11 +170,11 @@ fn string_to_wstring_extra_conversion() {
         res: [u16; 8],
     }
     let src = r#"
-	PROGRAM main
-	VAR
-		res : WSTRING;
-	END_VAR
-		res := STRING_TO_WSTRING('Hèßlo😀');
+    PROGRAM main
+    VAR
+        res : WSTRING;
+    END_VAR
+        res := STRING_TO_WSTRING('Hèßlo😀');
     END_PROGRAM
         "#;
 
@@ -195,11 +195,11 @@ fn string_to_wstring_long_conversion() {
         res: [u16; 81],
     }
     let src = r#"
-	PROGRAM main
-	VAR
-		res : WSTRING;
-	END_VAR
-		res := STRING_TO_WSTRING('111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999');
+    PROGRAM main
+    VAR
+        res : WSTRING;
+    END_VAR
+        res := STRING_TO_WSTRING('111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999');
     END_PROGRAM
         "#;
 
@@ -228,11 +228,11 @@ fn string_to_char_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : CHAR;
-	END_VAR
-		res := STRING_TO_CHAR(STRING#'BCD');
+    PROGRAM main
+    VAR
+        res : CHAR;
+    END_VAR
+        res := STRING_TO_CHAR(STRING#'BCD');
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -249,11 +249,11 @@ fn wchar_to_wstring_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : WSTRING[1];
-	END_VAR
-		res := WCHAR_TO_WSTRING(WCHAR#"A");
+    PROGRAM main
+    VAR
+        res : WSTRING[1];
+    END_VAR
+        res := WCHAR_TO_WSTRING(WCHAR#"A");
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -270,11 +270,11 @@ fn wchar_to_char_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : CHAR;
-	END_VAR
-		res := WCHAR_TO_CHAR(WCHAR#"A");
+    PROGRAM main
+    VAR
+        res : CHAR;
+    END_VAR
+        res := WCHAR_TO_CHAR(WCHAR#"A");
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -291,11 +291,11 @@ fn char_to_string_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : STRING[1];
-	END_VAR
-		res := CHAR_TO_STRING(CHAR#'B');
+    PROGRAM main
+    VAR
+        res : STRING[1];
+    END_VAR
+        res := CHAR_TO_STRING(CHAR#'B');
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");
@@ -312,11 +312,11 @@ fn char_to_wchar_conversion() {
     }
 
     let src = r#"
-	PROGRAM main
-	VAR
-		res : WCHAR;
-	END_VAR
-		res := CHAR_TO_WCHAR(CHAR#'B');
+    PROGRAM main
+    VAR
+        res : WCHAR;
+    END_VAR
+        res := CHAR_TO_WCHAR(CHAR#'B');
     END_PROGRAM
         "#;
     let sources = add_std!(src, "string_conversion.st", "string_functions.st");

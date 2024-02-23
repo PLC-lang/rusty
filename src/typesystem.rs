@@ -171,9 +171,17 @@ impl DataType {
         self.get_type_information().is_vla()
     }
 
+    pub fn is_pointer(&self) -> bool {
+        self.get_type_information().is_pointer()
+    }
+
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
+    }
+
+    pub fn is_string(&self) -> bool {
+        self.get_type_information().is_string()
     }
 
     pub fn get_nature(&self) -> TypeNature {
@@ -700,6 +708,10 @@ impl DataTypeInformation {
         let inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
         let inner_type_size = inner_type_info.get_size_in_bits(index);
         let arr_size = self.get_size_in_bits(index);
+
+        if inner_type_size == 0 {
+            return None;
+        }
 
         Some((arr_size / inner_type_size) as usize)
     }

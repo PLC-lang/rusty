@@ -1,9 +1,29 @@
 ---
 source: src/validation/tests/bitaccess_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Bit-Wise access for type BYTE must be in the range 0..7", range: [SourceLocation { span: Range(TextLocation { line: 5, column: 18, offset: 138 }..TextLocation { line: 5, column: 19, offset: 139 }) }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Bit-Wise access for type WORD must be in the range 0..15", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 18, offset: 159 }..TextLocation { line: 6, column: 20, offset: 161 }) }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Bit-Wise access for type DWORD must be in the range 0..31", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 18, offset: 181 }..TextLocation { line: 7, column: 20, offset: 183 }) }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Bit-Wise access for type LWORD must be in the range 0..63", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 18, offset: 203 }..TextLocation { line: 8, column: 20, offset: 205 }) }], err_no: type__incompatible_directaccess_range }
+error: Bit-Wise access for type BYTE must be in range 0..7
+  ┌─ <internal>:6:19
+  │
+6 │                 a.8;
+  │                   ^ Bit-Wise access for type BYTE must be in range 0..7
+
+error: Bit-Wise access for type WORD must be in range 0..15
+  ┌─ <internal>:7:19
+  │
+7 │                 b.16;
+  │                   ^^ Bit-Wise access for type WORD must be in range 0..15
+
+error: Bit-Wise access for type DWORD must be in range 0..31
+  ┌─ <internal>:8:19
+  │
+8 │                 c.32;
+  │                   ^^ Bit-Wise access for type DWORD must be in range 0..31
+
+error: Bit-Wise access for type LWORD must be in range 0..63
+  ┌─ <internal>:9:19
+  │
+9 │                 d.64;
+  │                   ^^ Bit-Wise access for type LWORD must be in range 0..63
+
 

@@ -40,7 +40,7 @@ fn sub_range_chooses_right_implementation() {
             VAR_INPUT v: ULINT; low: ULINT; up: ULINT; END_VAR
             CheckLRangeUnsigned := 77;
         END_FUNCTION
-        
+
         PROGRAM main
         VAR
             a   : BYTE(0 .. 100);

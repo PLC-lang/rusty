@@ -22,12 +22,12 @@ fn windows_and_linux_line_separators_ignored() {
 #[test]
 fn comments_are_ignored_by_the_lexer() {
     let mut lexer = lex(r"
-        PROGRAM (* Some Content *) END_PROGRAM 
+        PROGRAM (* Some Content *) END_PROGRAM
                                    /*
-                                    * FUNCTION */ 
+                                    * FUNCTION */
         (* Nested (*) Comment *) *)
         /* Nested /* Comment */ */
-        //END_FUNCTION FUNCTION_BLOCK 
+        //END_FUNCTION FUNCTION_BLOCK
         END_FUNCTION_BLOCK
         ");
     assert_eq!(lexer.token, KeywordProgram, "Token : {}", lexer.slice());
@@ -41,7 +41,7 @@ fn comments_are_ignored_by_the_lexer() {
 #[test]
 fn undefined_pragmas_are_ignored_by_the_lexer() {
     let mut lexer = lex(r"
-        PROGRAM { Some Content } END_PROGRAM 
+        PROGRAM { Some Content } END_PROGRAM
                                    {
                                     FUNCTION }
         {END_FUNCTION FUNCTION_BLOCK}
@@ -74,12 +74,12 @@ fn registered_pragmas_parsed() {
 #[test]
 fn comments_are_not_ignored_in_strings() {
     let mut lexer = lex(r#"
-        'PROGRAM (* Some Content *) END_PROGRAM 
+        'PROGRAM (* Some Content *) END_PROGRAM
                                    /*
-                                    * FUNCTION */ 
+                                    * FUNCTION */
         (* Nested (*) Comment *) *)
         /* Nested /* Comment */ */
-        //END_FUNCTION FUNCTION_BLOCK 
+        //END_FUNCTION FUNCTION_BLOCK
         END_FUNCTION_BLOCK'
         "#);
     assert_eq!(lexer.token, LiteralString, "Token : {}", lexer.slice());
@@ -107,12 +107,12 @@ fn string_delimiter_dont_leak_out_of_comments() {
 #[test]
 fn unicode_chars_in_comments() {
     let mut lexer = lex(r"
-        PROGRAM (* Some Content *) END_PROGRAM 
+        PROGRAM (* Some Content *) END_PROGRAM
                                    /*
-                                    * FUNCTION */ 
+                                    * FUNCTION */
         (* Nested //2 char utf-8 -> 💖ß (*) //2 char utf-16 --> 💣 Comment *) *)
         /* Nested /* Comment */ */
-        //END_FUNCTION FUNCTION_BLOCK 
+        //END_FUNCTION FUNCTION_BLOCK
         END_FUNCTION_BLOCK
         ");
     assert_eq!(lexer.token, KeywordProgram, "Token : {}", lexer.slice());
@@ -321,7 +321,7 @@ fn date_literals_test() {
 fn long_date_literals_test() {
     let mut lexer = lex(r#"
         LDATE#1984-10-01 LDATE#1-1-1
-		LD#1-1-1
+        LD#1-1-1
         INT#1
         "#);
     for _ in 1..=3 {
@@ -349,7 +349,7 @@ fn date_and_time_literals_test() {
 #[test]
 fn long_date_and_time_literals_test() {
     let mut lexer = lex("
-	LDT#1984-10-01-20:15:12 LDT#1-1-1-1:1:1 LDT#1984-10-01-20:15 LDT#1984-10-01-20:15:12.123");
+    LDT#1984-10-01-20:15:12 LDT#1-1-1-1:1:1 LDT#1984-10-01-20:15 LDT#1984-10-01-20:15:12.123");
     for _ in 1..=4 {
         assert_eq!(lexer.token, LiteralDateAndTime);
         lexer.advance();
@@ -397,8 +397,8 @@ fn time_literals_test() {
 fn ltime_literals_test() {
     let mut lexer = lex(r#"
     LTIME#12d
-	LTIME#10M4S
-	LT#10d
+    LTIME#10M4S
+    LT#10d
     DINT#10
     "#);
     for _ in 1..=3 {
@@ -623,9 +623,9 @@ fn type_cast_prefixes_parsing() {
 #[test]
 fn wide_string_parsing() {
     let mut lexer = lex(r#"
-    WSTRING 
-    "AB C" 
-    "AB$$" 
+    WSTRING
+    "AB C"
+    "AB$$"
     "AB$""
     "#);
 
@@ -646,7 +646,7 @@ fn wide_string_parsing() {
 #[test]
 fn pointers_and_references_keyword() {
     let mut lexer = lex(r#"
-    POINTER TO x 
+    POINTER TO x
     REF_TO x
     REFTO x
     &x
@@ -796,10 +796,10 @@ fn multi_named_keywords_without_underscore_test() {
     let d1 = lexer.diagnostics.first().unwrap();
     let d2 = lexer.diagnostics.last().unwrap();
 
-    assert_eq!(d1.get_message(), "the words in VARINPUT should be separated by a '_'");
+    assert_eq!(d1.get_message(), "the words in VARINPUT should be separated by a `_`");
     assert_eq!(d1.get_location().to_range().unwrap(), (0..8));
 
-    assert_eq!(d2.get_message(), "the words in ENDREPEAT should be separated by a '_'");
+    assert_eq!(d2.get_message(), "the words in ENDREPEAT should be separated by a `_`");
     assert_eq!(d2.get_location().to_range().unwrap(), (191..200));
 }
 
@@ -807,18 +807,18 @@ fn multi_named_keywords_without_underscore_test() {
 fn lowercase_keywords_accepted() {
     let mut result = lex(r###"
         program class end_class endclass var_input varinput var_output
-        varoutput var abstract final method constant retain non_retain 
+        varoutput var abstract final method constant retain non_retain
         nonretain var_temp vartemp end_method endmethod
         public private internal protected override
         var_global varglobal var_in_out varinout end_var endvar
         end_program endprogram end_function endfunction end_function_block endfunctionblock
-        type struct end_type endtype end_struct endstruct 
-        actions action end_action endaction end_actions endactions 
+        type struct end_type endtype end_struct endstruct
+        actions action end_action endaction end_actions endactions
         if then elsif else endif end_if
         for to by do end_for endfor
         while end_while endwhile repeat until endrepeat end_repeat
-        case return exit continue array string wstring 
-        of endcase end_case mod and or xor not true false 
+        case return exit continue array string wstring
+        of endcase end_case mod and or xor not true false
         d#1-2-3 date#1-2-3 dt#1-2-3-1:2:3 date_and_time#1-2-3-1:2:3 tod#1:2:3 time_of_day#1:2:3 time#1s t#1s null refto pointer ref_to
         "###);
 
