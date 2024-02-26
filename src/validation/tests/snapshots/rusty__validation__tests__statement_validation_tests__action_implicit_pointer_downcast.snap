@@ -2,6 +2,12 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
+note: Incompatible poiner types: passing by-ref argument of type LINT to parameter expecting DINT
+  ┌─ <internal>:9:20
+  │
+9 │             fb.foo(var_lint, var_wstr); // downcast, invalid
+  │                    ^^^^^^^^ Incompatible poiner types: passing by-ref argument of type LINT to parameter expecting DINT
+
 error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
   ┌─ <internal>:9:30
   │

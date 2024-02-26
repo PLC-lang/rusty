@@ -3,27 +3,27 @@ source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
 note: Incompatible poiner types: passing by-ref argument of type LINT to parameter expecting INT
-   ┌─ <internal>:12:17
+   ┌─ <internal>:11:17
    │
-12 │                 var1_lint, // downcast
+11 │                 var1_lint, // downcast
    │                 ^^^^^^^^^ Incompatible poiner types: passing by-ref argument of type LINT to parameter expecting INT
 
 note: Incompatible poiner types: passing by-ref argument of type LWORD to parameter expecting DWORD
-   ┌─ <internal>:13:17
+   ┌─ <internal>:12:17
    │
-13 │                 var_lword, // downcast
+12 │                 var_lword, // downcast
    │                 ^^^^^^^^^ Incompatible poiner types: passing by-ref argument of type LWORD to parameter expecting DWORD
 
 note: Incompatible poiner types: passing by-ref argument of type LINT to parameter expecting INT
-   ┌─ <internal>:16:17
+   ┌─ <internal>:15:17
    │
-16 │                 var2_lint, // downcast
+15 │                 var2_lint,
    │                 ^^^^^^^^^ Incompatible poiner types: passing by-ref argument of type LINT to parameter expecting INT
 
 error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
-   ┌─ <internal>:17:17
+   ┌─ <internal>:16:17
    │
-17 │                 var_in_out_wstr, // invalid
-   │                 ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+16 │                 var_wstr, // invalid
+   │                 ^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
 

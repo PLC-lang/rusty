@@ -695,7 +695,7 @@ fn compare_function_exists<T: AnnotationMap>(
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
 fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, arg: &AstNode) {
-    let ty = param.argument_type.get_inner();
+    let ty = param.get_variable_type();
     if !matches!(ty, VariableType::Output | VariableType::InOut) {
         return;
     }
@@ -815,9 +815,6 @@ fn validate_assignment<T: AnnotationMap>(
                     location.clone(),
                 ));
             }
-        } else if right.is_literal() {
-            // TODO: See https://github.com/PLC-lang/rusty/issues/857
-            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
 }
@@ -1064,21 +1061,23 @@ fn validate_call<T: AnnotationMap>(
         let mut variable_location_in_parent = vec![];
 
         // validate parameters
-        for (i, param) in passed_parameters.iter().enumerate() {
-            match get_implicit_call_parameter(param, &declared_parameters, i) {
+        for (i, argument) in passed_parameters.iter().enumerate() {
+            match get_implicit_call_parameter(argument, &declared_parameters, i) {
                 Ok((parameter_location_in_parent, right, is_implicit)) => {
                     let left = declared_parameters.get(parameter_location_in_parent);
-                    if let Some(left) = left {
-                        validate_call_by_ref(validator, left, param);
+                    if let Some(parameter) = left {
+                        validate_call_by_ref(validator, parameter, argument);
+                        // check pointer compatibility for auto-deref params
+                        validate_auto_deref_type_sizes(validator, parameter, argument, context);
                         // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                         // save actual location in parent for InOut validation
-                        variable_location_in_parent.push(left.get_location_in_parent());
+                        variable_location_in_parent.push(parameter.get_location_in_parent());
                     }
 
                     // explicit call parameter assignments will be handled by
                     // `visit_statement()` via `Assignment` and `OutputAssignment`
                     if is_implicit {
-                        validate_assignment(validator, right, None, &param.get_location(), context);
+                        validate_assignment(validator, right, None, &argument.get_location(), context);
                     }
 
                     // mixing implicit and explicit parameters is not allowed
@@ -1089,7 +1088,7 @@ fn validate_call<T: AnnotationMap>(
                         validator.push_diagnostic(
                             Diagnostic::error("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
-                                .with_location(param.get_location()),
+                                .with_location(argument.get_location()),
                         );
                     }
                 }
@@ -1097,14 +1096,14 @@ fn validate_call<T: AnnotationMap>(
                     validator.push_diagnostic(
                         Diagnostic::error("Invalid call parameters")
                             .with_error_code("E089")
-                            .with_location(param.get_location())
+                            .with_location(argument.get_location())
                             .with_sub_diagnostic(err),
                     );
                     break;
                 }
             }
 
-            visit_statement(validator, param, context);
+            visit_statement(validator, argument, context);
         }
 
         // for PROGRAM/FB we need special inout validation
@@ -1272,24 +1271,43 @@ fn validate_type_nature<T: AnnotationMap>(
     }
 }
 
-fn _validate_assignment_type_sizes<T: AnnotationMap>(
+fn validate_auto_deref_type_sizes<T: AnnotationMap>(
     validator: &mut Validator,
-    left: &DataType,
-    right: &DataType,
-    location: &SourceLocation,
+    param: &VariableIndexEntry,
+    arg: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    if left.get_type_information().get_size(context.index)
-        < right.get_type_information().get_size(context.index)
-    {
+    let ArgumentType::ByRef(ty) = param.argument_type else { return };
+
+    if arg.is_literal() || !matches!(ty, VariableType::Input | VariableType::InOut) {
+        return;
+    }
+
+    let Some(left_type) = context.annotations.get_type_hint(arg, context.index) else {
+        return;
+    };
+
+    let left_type_info = context.index.find_elementary_pointer_type(left_type.get_type_information());
+    let Some(right_type_info) =
+        context.annotations.get_type(arg, context.index).map(|dt| dt.get_type_information())
+    else {
+        return;
+    };
+
+    if left_type_info.is_aggregate() || right_type_info.is_aggregate() || right_type_info.is_pointer() {
+        // pointer, string and array assignments are validated elsewhere
+        return;
+    }
+
+    if left_type_info.get_size(context.index) < right_type_info.get_size(context.index) {
         validator.push_diagnostic(
             Diagnostic::info(format!(
-                "Potential loss of information due to assigning '{}' to variable of type '{}'.",
-                left.get_name(),
-                right.get_name()
+                "Incompatible poiner types: passing by-ref argument of type {} to parameter expecting {}",
+                right_type_info.get_name(),
+                left_type_info.get_name()
             ))
             .with_error_code("E067")
-            .with_location(location.clone()),
+            .with_location(arg.get_location()),
         )
     }
 }

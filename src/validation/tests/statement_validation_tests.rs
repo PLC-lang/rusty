@@ -947,7 +947,7 @@ fn implicit_param_downcast_in_function_call() {
 }
 
 #[test]
-fn function_block_implicit_downcast() {
+fn function_block_implicit_pointer_downcast() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
@@ -961,11 +961,11 @@ fn function_block_implicit_downcast() {
             fb(
                 var1_lint, // downcast
                 var_lword, // downcast
-                var_real, // ok
-                INT#var1_lint, // downcast
+                var_real,
+                INT#var1_lint,
                 var2_lint, // downcast
                 var_wstr, // invalid
-                var1_lint // downcast
+                var1_lint
             );
         END_PROGRAM
 
@@ -993,7 +993,7 @@ fn function_block_implicit_downcast() {
 }
 
 #[test]
-fn program_implicit_downcast() {
+fn program_implicit_pointer_downcast() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
@@ -1007,9 +1007,9 @@ fn program_implicit_downcast() {
             prog(
                 var1_lint, // downcast
                 var_lword, // downcast
-                var_real, // ok
-                INT#var1_lint, // downcast
-                var2_lint, // downcast
+                var_real,
+                INT#var1_lint,
+                var2_lint,
                 var_wstr, // invalid
                 var1_lint // downcast
             );
@@ -1039,7 +1039,7 @@ fn program_implicit_downcast() {
 }
 
 #[test]
-fn action_implicit_downcast() {
+fn action_implicit_pointer_downcast() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM main
@@ -1054,7 +1054,7 @@ fn action_implicit_downcast() {
         END_PROGRAM
 
         FUNCTION_BLOCK fb_t
-        VAR_INPUT
+        VAR_INPUT {ref}
             in1 : DINT;
             in2 : STRING;
         END_VAR
@@ -1076,38 +1076,6 @@ fn action_implicit_downcast() {
         ACTION bar
         END_ACTION
         END_ACTIONS
-    "#,
-    );
-
-    assert_snapshot!(&diagnostics);
-}
-
-#[test]
-fn method_implicit_downcast() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-    PROGRAM main
-    VAR
-        cl : MyClass;
-        var_lint : LINT;
-        var_arr : ARRAY[1..3] OF DINT;
-    END_VAR
-        cl.testMethod(var_lint, var_arr, ADR(var_arr)); // downcast, invalid, ok
-    END_PROGRAM
-
-    CLASS MyClass
-    VAR
-        x, y : DINT;
-    END_VAR
-
-    METHOD testMethod
-    VAR_INPUT
-        val : INT;
-        arr : ARRAY[1..3] OF SINT;
-        ref : REF_TO ARRAY[1..3] OF DINT;
-    END_VAR
-    END_METHOD
-    END_CLASS
     "#,
     );
 
