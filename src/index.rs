@@ -1137,25 +1137,12 @@ impl Index {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
     }
 
-    /// Tries to return an enum variant defined within a POU
-    pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
-        self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
-    }
-
-    /// Returns all enum variants defined within a POU
-    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
-        self.enum_qualified_variables
-            .keys()
-            .filter(|key| key.starts_with(&internal_type_name(pou, "").to_lowercase()))
-            .flat_map(|key| self.find_fully_qualified_variable(key))
-            .collect()
-    }
-
-    /// Returns all enum variant values and their names for the given enum.
+    /// Returns all enum variant values and their constant values for the given variable.
     ///
-    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` would return `[(red, 0), (green, 1), (blue, 5)]`
-    /// when calling this method.
-    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<(&str, &str, i128)> {
+    /// For example calling this method on `TYPE Color : (red, green, blue := 5); END_TYPE` will
+    /// return the [`VariableIndexEntry`]s of `red`, `green`, `blue` as well as their values
+    /// `0`, `1` and `5` respectively.
+    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
         let mut values = Vec::new();
         let qualified_name = variable.data_type_name.to_lowercase();
 
@@ -1174,12 +1161,26 @@ impl Index {
                 .expect("Must exist because of previous filter");
             if let Some(ref const_id) = value.initial_value {
                 if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
-                    values.push((value.data_type_name.as_str(), value.name.as_str(), init));
+                    values.push((value, init));
                 }
             }
         }
 
         values
+    }
+
+    /// Tries to return an enum variant defined within a POU
+    pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
+        self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
+    }
+
+    /// Returns all enum variants defined within a POU
+    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+        self.enum_qualified_variables
+            .keys()
+            .filter(|key| key.starts_with(&internal_type_name(pou, "").to_lowercase()))
+            .flat_map(|key| self.find_fully_qualified_variable(key))
+            .collect()
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)

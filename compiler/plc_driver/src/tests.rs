@@ -48,7 +48,7 @@ where
         optimization: plc::OptimizationLevel::None,
         ..Default::default()
     };
-    pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
+    pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         //Index
         .index(ctxt.provider())
         //Resolve
