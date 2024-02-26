@@ -226,11 +226,11 @@ fn void_functions_are_supported() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    warning: Function declared as VOID type, but trying to assign a return value
+    warning: Function declared as VOID, but trying to assign a return value
       ┌─ <internal>:3:9
       │
     3 │         foo := 1;
-      │         ^^^^^^^^ Function declared as VOID type, but trying to assign a return value
+      │         ^^^^^^^^ Function declared as VOID, but trying to assign a return value
 
     "###);
 }

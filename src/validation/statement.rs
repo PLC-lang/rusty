@@ -772,42 +772,12 @@ fn validate_assignment<T: AnnotationMap>(
             );
         }
 
-        left.get_flat_reference_name().zip(context.qualifier).map(|(name, qual)| name == qual);
-        if left.get_flat_reference_name().zip(context.qualifier).is_some_and(|(name, qual)| name == qual) {}
-
-        if let Some((var_name, qualifier)) = left.get_flat_reference_name().zip(context.qualifier) {
-            if context.index.find_variable(context.qualifier, &vec![var_name]).is_none() {
-                if context.index.find_pou(qualifier).is_some_and(|it| it.is_function_void()) {
-                    if var_name == qualifier {
-                        validator.push_diagnostic(
-                            Diagnostic::warning(
-                                "Function declared as VOID type, but trying to assign a return value",
-                            )
-                            .with_location(location.clone()),
-                        )
-                    }
-                }
-            }
+        if has_void_function_return_assignment(context, left) {
+            validator.push_diagnostic(
+                Diagnostic::warning("Function declared as VOID, but trying to assign a return value")
+                    .with_location(location.to_owned()),
+            )
         }
-
-        // if let Some(fr) = left.get_flat_reference_name() {
-        //     if context.index.find_variable(context.qualifier, &vec![fr]).is_none() {
-        //         if let Some(qual) = context.qualifier {
-        //             if qual == fr {
-        //                 if let Some(vv) = context.index.find_pou(qual) {
-        //                     if vv.is_function_void() {
-        //                         validator.push_diagnostic(
-        //                             Diagnostic::warning(
-        //                                 "Function declared as VOID type, but trying to assign a return value",
-        //                             )
-        //                             .with_location(location.clone()),
-        //                         )
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
     }
 
     let right_type = context.annotations.get_type(right, context.index);
@@ -857,6 +827,28 @@ fn validate_assignment<T: AnnotationMap>(
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
+}
+
+/// Returns true if an assignment statement exists such that a return value is assigned to a void
+/// function. For example the following will return true
+/// ```norun
+/// FUNCTION foo
+/// foo := 1; // Doesn't make sense, foo is of type VOID
+/// END_FUNCTION
+/// ```
+fn has_void_function_return_assignment<T>(context: &ValidationContext<T>, left: &AstNode) -> bool
+where
+    T: AnnotationMap,
+{
+    if let Some((var_name, qualifier)) = left.get_flat_reference_name().zip(context.qualifier) {
+        if context.index.find_variable(context.qualifier, &vec![var_name]).is_none() {
+            if context.index.find_pou(qualifier).is_some_and(|it| it.is_void_function()) {
+                return var_name == qualifier;
+            }
+        }
+    }
+
+    false
 }
 
 pub(crate) fn validate_enum_variant_assignment(

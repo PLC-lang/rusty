@@ -703,7 +703,7 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Function { .. })
     }
 
-    pub fn is_function_void(&self) -> bool {
+    pub fn is_void_function(&self) -> bool {
         match self {
             PouIndexEntry::Function { return_type, .. } => return_type.as_str() == VOID_TYPE,
             _ => false,
