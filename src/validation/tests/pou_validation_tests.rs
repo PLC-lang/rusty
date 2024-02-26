@@ -216,7 +216,7 @@ fn in_out_variable_out_of_order() {
 }
 
 #[test]
-fn void_functions_are_supported() {
+fn assigning_return_value_to_void_functions_returns_error() {
     let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION foo
@@ -233,22 +233,4 @@ fn void_functions_are_supported() {
       │         ^^^^^^^^ Function declared as VOID, but trying to assign a return value
 
     "###);
-}
-
-#[test]
-fn temp2() {
-    // TODO: Should there be a warning? I.e. no warning as seen above because of global variable; is this clear?
-    let diagnostics = parse_and_validate_buffered(
-        "
-        VAR_GLOBAL
-            foo : DINT;
-        END_VAR
-
-        FUNCTION foo
-            foo := 1; // `foo` here references the global variable `foo`, not the function `foo`
-        END_FUNCTION
-        ",
-    );
-
-    assert_snapshot!(diagnostics, @"");
 }

@@ -772,7 +772,7 @@ fn validate_assignment<T: AnnotationMap>(
             );
         }
 
-        if has_void_function_return_assignment(context, left) {
+        if has_return_assignment_in_void_function(context, left) {
             validator.push_diagnostic(
                 Diagnostic::warning("Function declared as VOID, but trying to assign a return value")
                     .with_location(location.to_owned()),
@@ -836,15 +836,16 @@ fn validate_assignment<T: AnnotationMap>(
 /// foo := 1; // Doesn't make sense, foo is of type VOID
 /// END_FUNCTION
 /// ```
-fn has_void_function_return_assignment<T>(context: &ValidationContext<T>, left: &AstNode) -> bool
+fn has_return_assignment_in_void_function<T>(context: &ValidationContext<T>, left: &AstNode) -> bool
 where
     T: AnnotationMap,
 {
     if let Some((var_name, qualifier)) = left.get_flat_reference_name().zip(context.qualifier) {
-        if context.index.find_variable(context.qualifier, &vec![var_name]).is_none() {
-            if context.index.find_pou(qualifier).is_some_and(|it| it.is_void_function()) {
-                return var_name == qualifier;
-            }
+        let variable = context.index.find_variable(context.qualifier, &[var_name]);
+        let pou = context.index.find_pou(qualifier);
+
+        if variable.is_none() && pou.is_some_and(|fun| fun.is_void_function()) {
+            return var_name == qualifier;
         }
     }
 
