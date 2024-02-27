@@ -1761,8 +1761,8 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
             } else {
-                let void = self.index.find_effective_type_by_name("__void").expect("Internal, must exists");
-                self.annotate(statement, StatementAnnotation::value(void.get_name()));
+                // Assuming this is a VOID function if no annotation is present
+                self.annotate(statement, StatementAnnotation::value("__VOID"));
             }
         }
     }
