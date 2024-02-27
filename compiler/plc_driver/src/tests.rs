@@ -48,7 +48,8 @@ where
         optimization: plc::OptimizationLevel::None,
         ..Default::default()
     };
-    pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
+    let (parsed, _) = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?;
+    parsed
         //Index
         .index(ctxt.provider())
         //Resolve

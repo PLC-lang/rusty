@@ -9,6 +9,7 @@
 //!  - Executables
 
 use anyhow::Result;
+use std::collections::HashMap;
 use std::{
     env,
     ffi::OsStr,
@@ -23,6 +24,8 @@ use plc::{
     OptimizationLevel, Target, Threads,
 };
 
+use ast::ast::AstNode;
+use plc::resolver::{AnnotationMap, StatementAnnotation};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
 use project::project::{LibraryInformation, Project};
@@ -229,12 +232,41 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         )?;
 
     // 1 : Parse, 2. Index and 3. Resolve / Annotate
-    let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
-        .index(ctxt.provider())
-        .annotate(ctxt.provider());
+    let (annotated_project, nodes) = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?;
+    let annotated_project = annotated_project.index(ctxt.provider()).annotate(ctxt.provider());
 
     // 4 : Validate
     annotated_project.validate(&ctxt, &mut diagnostician)?;
+
+    let mut temp: HashMap<String, Vec<(AstNode, StatementAnnotation)>> = HashMap::new();
+    for node in nodes {
+        let slice = ctxt.slice(&node.location);
+        if let Some(annotation) = annotated_project.annotations.get(&node) {
+            match temp.get_mut(&slice) {
+                None => {
+                    temp.insert(slice, vec![(node.clone(), annotation.clone())]);
+                }
+                Some(hm) => {
+                    hm.push((node, annotation.clone()));
+                }
+            }
+        }
+    }
+
+    /*
+    FUNCTION main : DINT
+        VAR
+            x : INT;
+            y : DINT;
+            z : DINT;
+        END_VAR
+
+        x < y;
+        ((x < y) > z);
+    END_FUNCTION
+     */
+    dbg!(&temp.get("x < y"));
+    dbg!(&temp.get("x"));
 
     if let Some((location, format)) =
         compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
@@ -285,7 +317,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let ctxt = GlobalContext::new().with_source(project.get_sources(), None)?;
     let mut diagnostician = Diagnostician::default();
-    let parsed = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?;
+    let (parsed, _) = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?;
 
     // Create an index, add builtins then resolve
     let provider = ctxt.provider();

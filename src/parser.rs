@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use std::collections::HashSet;
 use std::ops::Range;
 
 use plc_ast::{
@@ -41,9 +42,9 @@ pub fn parse_file(
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
-) -> CompilationUnit {
+) -> (CompilationUnit, HashSet<AstNode>) {
     let location_factory = SourceLocationFactory::for_source(source);
-    let (unit, errors) = parse(
+    let (unit, errors, nodes) = parse2(
         lexer::lex_with_ids(&source.source, id_provider, location_factory),
         linkage,
         source.get_location_str(),
@@ -52,7 +53,7 @@ pub fn parse_file(
     //TODO: We should reduce the clone here
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     diagnostician.handle(&errors);
-    unit
+    (unit, nodes)
 }
 
 pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> ParsedAst {
@@ -98,6 +99,67 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
                 }
             }
             KeywordEndActions | End => return (unit, lexer.diagnostics),
+            _ => {
+                lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                    "StartKeyword",
+                    lexer.slice(),
+                    lexer.location(),
+                ));
+                lexer.advance();
+            }
+        };
+        linkage = lnk;
+    }
+    //the match in the loop will always return
+}
+
+pub fn parse2(
+    mut lexer: ParseSession,
+    lnk: LinkageType,
+    file_name: &str,
+) -> (CompilationUnit, Vec<Diagnostic>, HashSet<AstNode>) {
+    let mut unit = CompilationUnit::new(file_name);
+
+    let mut linkage = lnk;
+    loop {
+        match lexer.token {
+            PropertyExternal => {
+                linkage = LinkageType::External;
+                lexer.advance();
+                //Don't reset linkage
+                continue;
+            }
+            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
+            KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
+                let params = match lexer.token {
+                    KeywordProgram => (PouType::Program, KeywordEndProgram),
+                    KeywordClass => (PouType::Class, KeywordEndClass),
+                    KeywordFunction => (PouType::Function, KeywordEndFunction),
+                    _ => (PouType::FunctionBlock, KeywordEndFunctionBlock),
+                };
+
+                let (mut pou, mut implementation) = parse_pou(&mut lexer, params.0, linkage, params.1);
+
+                unit.units.append(&mut pou);
+                unit.implementations.append(&mut implementation);
+            }
+            KeywordAction => {
+                if let Some(implementation) = parse_action(&mut lexer, linkage, None) {
+                    unit.implementations.push(implementation);
+                }
+            }
+            KeywordActions => {
+                let last_pou = unit.units.last().map(|it| it.name.as_str()).unwrap_or("__unknown__");
+                let mut actions = parse_actions(&mut lexer, linkage, last_pou);
+                unit.implementations.append(&mut actions);
+            }
+            KeywordType => {
+                let unit_type = parse_type(&mut lexer);
+                for utype in unit_type {
+                    unit.user_types.push(utype);
+                }
+            }
+            KeywordEndActions | End => return (unit, lexer.diagnostics, lexer.nodes),
             _ => {
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
                     "StartKeyword",

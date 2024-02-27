@@ -30,7 +30,7 @@ macro_rules! parse_left_associative_expression {
                 };
                 $lexer.advance();
                 let right = $action($lexer);
-                left = AstFactory::create_binary_expression(left, operator, right, $lexer.next_id());
+                left = $lexer.create_binary_expression(left, operator, right);
             }
             left
         }

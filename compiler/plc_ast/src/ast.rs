@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use std::hash::{Hash, Hasher};
 use std::{
     fmt::{Debug, Display, Formatter},
     ops::Range,
@@ -591,6 +592,13 @@ pub struct AstNode {
     pub stmt: AstStatement,
     pub id: AstId,
     pub location: SourceLocation,
+}
+
+impl Eq for AstNode {}
+impl Hash for AstNode {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

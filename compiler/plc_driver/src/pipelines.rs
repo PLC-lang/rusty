@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::{
     env,
     fs::{self, File},
@@ -6,6 +7,7 @@ use std::{
 };
 
 use crate::{CompileOptions, LinkOptions};
+use ast::ast::AstNode;
 use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
@@ -47,10 +49,11 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         ctxt: &GlobalContext,
         project: Project<T>,
         diagnostician: &mut Diagnostician,
-    ) -> Result<Self, Diagnostic> {
+    ) -> Result<(Self, HashSet<AstNode>), Diagnostic> {
         //TODO in parallel
         //Parse the source files
         let mut units = vec![];
+        let mut nodes: HashSet<AstNode> = HashSet::new();
 
         let sources = project
             .get_sources()
@@ -59,14 +62,18 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
 
                 let parse_func = match source.get_type() {
-                    source_code::SourceType::Text => parse_file,
-                    source_code::SourceType::Xml => cfc::xml_parser::parse_file,
-                    source_code::SourceType::Unknown => unreachable!(),
+                    _ => parse_file,
+                    // source_code::SourceType::Text => parse_file,
+                    // source_code::SourceType::Xml => cfc::xml_parser::parse_file,
+                    // source_code::SourceType::Unknown => unreachable!(),
                 };
                 Ok(parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician))
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
-        units.extend(sources);
+            .collect::<Result<Vec<(_, _)>, Diagnostic>>()?;
+        for source in sources {
+            units.push(source.0);
+            nodes.extend(source.1);
+        }
 
         //Parse the includes
         let includes = project
@@ -76,8 +83,11 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
                 Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
-        units.extend(includes);
+            .collect::<Result<Vec<(_, _)>, Diagnostic>>()?;
+        for source in includes {
+            units.push(source.0);
+            nodes.extend(source.1);
+        }
 
         //For each lib, parse the includes
         let lib_includes = project
@@ -88,10 +98,13 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
                 Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
-        units.extend(lib_includes);
+            .collect::<Result<Vec<(_, _)>, Diagnostic>>()?;
+        for source in lib_includes {
+            units.push(source.0);
+            nodes.extend(source.1);
+        }
 
-        Ok(ParsedProject { project, units })
+        Ok((ParsedProject { project, units }, nodes))
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes

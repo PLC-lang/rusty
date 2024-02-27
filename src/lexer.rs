@@ -1,10 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use core::ops::Range;
 use logos::{Filter, Lexer, Logos};
-use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType};
+use plc_ast::ast::{
+    AstId, AstNode, AstStatement, BinaryExpression, DirectAccessType, HardwareAccessType, Operator,
+};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use std::collections::HashSet;
 pub use tokens::Token;
 
 #[cfg(test)]
@@ -24,6 +27,7 @@ pub struct ParseSession<'a> {
     pub id_provider: IdProvider,
     pub source_range_factory: SourceLocationFactory,
     pub scope: Option<String>,
+    pub nodes: HashSet<AstNode>,
 }
 
 #[macro_export]
@@ -38,6 +42,32 @@ macro_rules! expect_token {
             return $return_value;
         }
     };
+}
+
+impl<'a> ParseSession<'a> {
+    pub fn create_binary_expression(
+        &mut self,
+        left: AstNode,
+        operator: Operator,
+        right: AstNode,
+    ) -> AstNode {
+        self.nodes.insert(left.clone());
+        self.nodes.insert(right.clone());
+
+        let location = left.location.span(&right.location);
+        let node = AstNode {
+            stmt: AstStatement::BinaryExpression(BinaryExpression {
+                left: Box::new(left),
+                operator,
+                right: Box::new(right),
+            }),
+            id: self.next_id(),
+            location,
+        };
+
+        self.nodes.insert(node.clone());
+        node
+    }
 }
 
 impl<'a> ParseSession<'a> {
@@ -57,6 +87,7 @@ impl<'a> ParseSession<'a> {
             id_provider,
             scope: None,
             source_range_factory,
+            nodes: HashSet::new(),
         };
         lexer.advance();
         lexer
