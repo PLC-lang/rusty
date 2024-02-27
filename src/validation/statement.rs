@@ -796,10 +796,18 @@ fn validate_assignment<T: AnnotationMap>(
         // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
         // are no longer allowed inside a POU body
         if left_type.is_vla() && right_type.is_array() && context.is_call() {
-            // TODO: This could benefit from a better error message, tracked in
-            // https://github.com/PLC-lang/rusty/issues/118
             validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
             return;
+        }
+
+        if left_type.get_type_information().get_name() != "VOID"
+            && right_type.get_type_information().get_name() == "VOID"
+        {
+            validator.push_diagnostic(Diagnostic::invalid_assignment(
+                &get_datatype_name_or_slice(validator.context, right_type),
+                &get_datatype_name_or_slice(validator.context, left_type),
+                location.clone(),
+            ));
         }
 
         if !(left_type.is_compatible_with_type(right_type)

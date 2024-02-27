@@ -809,7 +809,7 @@ impl<'i> TypeAnnotator<'i> {
             {
                 self.visit_statement(ctx, initializer);
 
-                //update the type-hint for the initializer
+                // Update the type-hint for the initializer
                 if let Some(right_type) = self.index.find_effective_type_by_name(name) {
                     self.update_expected_types(right_type, initializer);
                 }
@@ -1760,6 +1760,9 @@ impl<'i> TypeAnnotator<'i> {
                     return;
                 }
                 self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
+            } else if return_type == VOID_TYPE {
+                let void = self.index.find_effective_type_by_name("__void").unwrap();
+                self.annotate(statement, StatementAnnotation::value(void.get_name()));
             }
         }
     }
