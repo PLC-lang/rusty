@@ -136,6 +136,10 @@ impl DataType {
         type_nature.derives_from(nature)
     }
 
+    pub fn is_void(&self) -> bool {
+        self.information.is_void()
+    }
+
     pub fn is_numerical(&self) -> bool {
         self.nature.is_numerical()
     }
@@ -423,6 +427,10 @@ impl DataTypeInformation {
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => "WSTRING",
             DataTypeInformation::Void => "VOID",
         }
+    }
+
+    pub fn is_void(&self) -> bool {
+        matches!(self, DataTypeInformation::Void)
     }
 
     pub fn is_string(&self) -> bool {

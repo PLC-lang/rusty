@@ -1760,8 +1760,8 @@ impl<'i> TypeAnnotator<'i> {
                     return;
                 }
                 self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
-            } else if return_type == VOID_TYPE {
-                let void = self.index.find_effective_type_by_name("__void").unwrap();
+            } else {
+                let void = self.index.find_effective_type_by_name("__void").expect("Internal, must exists");
                 self.annotate(statement, StatementAnnotation::value(void.get_name()));
             }
         }
