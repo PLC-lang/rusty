@@ -801,14 +801,6 @@ fn validate_assignment<T: AnnotationMap>(
             return;
         }
 
-        if right_type.is_void() {
-            validator.push_diagnostic(Diagnostic::invalid_assignment(
-                &get_datatype_name_or_slice(validator.context, right_type),
-                &get_datatype_name_or_slice(validator.context, left_type),
-                location.clone(),
-            ));
-        }
-
         if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
@@ -957,6 +949,10 @@ fn is_valid_assignment(
     location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
+    if right_type.is_void() {
+        return false;
+    }
+
     if is_valid_string_to_char_assignment(
         left_type.get_type_information(),
         right_type.get_type_information(),
