@@ -352,3 +352,32 @@ fn two_identical_enums_in_different_functions_are_referenced_correctly() {
     // See also https://github.com/PLC-lang/rusty/pull/1092
     insta::assert_snapshot!(function)
 }
+
+#[test]
+fn two_identical_enums_in_different_functions_are_referenced_correctly_with_similar_names() {
+    let function = codegen(
+        r"
+        FUNCTION a : DINT
+            VAR position : (x := 1, y := 5) := x;   END_VAR
+        END_FUNCTION
+
+        FUNCTION aa : DINT
+            VAR position : (x := 2, y := 5) := x;   END_VAR
+        END_FUNCTION
+
+        FUNCTION bb : DINT
+            VAR position : (x := 1, y := 5) := x;   END_VAR
+        END_FUNCTION
+
+        FUNCTION b : DINT
+            VAR position : (x := 2, y := 5) := x;   END_VAR
+        END_FUNCTION
+       ",
+    );
+
+    // We want to ensure that the `position` variable in bar has a value of 3 instead of 1.
+    // Previously this was not the case, because the index wouldn't find the locally defined `x`
+    // variant in `bar` and instead referenced the `x` in `foo`.
+    // See also https://github.com/PLC-lang/rusty/pull/1092
+    insta::assert_snapshot!(function)
+}
