@@ -354,6 +354,33 @@ fn two_identical_enums_in_different_functions_are_referenced_correctly() {
 }
 
 #[test]
+fn two_identical_enums_in_different_functions_with_similar_names_are_referenced_correctly() {
+    let function = codegen(
+        r"
+        FUNCTION a : DINT
+            VAR position : (x := 1, y := 5) := x;   END_VAR
+        END_FUNCTION
+
+        FUNCTION aa : DINT
+            VAR position : (x := 2, y := 5) := x;   END_VAR
+        END_FUNCTION
+
+        FUNCTION bb : DINT
+            VAR position : (x := 3, y := 5) := x;   END_VAR
+        END_FUNCTION
+
+        FUNCTION b : DINT
+            VAR position : (x := 4, y := 5) := x;   END_VAR
+        END_FUNCTION
+       ",
+    );
+
+    // We want to ensure that each local `position` enum gets a correct `x` value assigned, i.e.
+    // a.x == 1, aa.x == 2, bb.x == 3, b.x == 4
+    insta::assert_snapshot!(function)
+}
+
+#[test]
 fn enum_variants_have_precedence_over_global_variables_in_inline_assignment() {
     let function = codegen(
         r"
@@ -375,7 +402,7 @@ fn enum_variants_have_precedence_over_global_variables_in_inline_assignment() {
        ",
     );
 
-    // We want to ensure that both the `position` assignment in `foo` nor `bar` references the
+    // We want to ensure that both the `position` assignment in `foo` and `bar` references
     // the enum variant `x` rather than the global variable `x`
     insta::assert_snapshot!(function)
 }
