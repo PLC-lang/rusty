@@ -607,7 +607,7 @@ fn parse_full_data_type_definition(
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
     let end_keyword = if lexer.token == KeywordStruct { KeywordEndStruct } else { KeywordSemicolon };
-    parse_any_in_region(lexer, vec![end_keyword], |lexer| {
+    let parsed_datatype = parse_any_in_region(lexer, vec![end_keyword.clone()], |lexer| {
         let sized = lexer.try_consume(&PropertySized);
         if lexer.try_consume(&KeywordDotDotDot) {
             Some((
@@ -634,7 +634,15 @@ fn parse_full_data_type_definition(
                 }
             })
         }
-    })
+    });
+
+    // The standard allows semicolons at the end of an `END_STRUCT` keyword, hence if we parsed
+    // a struct, try to also consume a semicolon if it exists
+    if end_keyword == KeywordEndStruct {
+        lexer.try_consume(&KeywordSemicolon);
+    }
+
+    parsed_datatype
 }
 
 // TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
