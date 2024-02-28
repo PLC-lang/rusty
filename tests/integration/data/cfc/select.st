@@ -8,4 +8,4 @@ END_VAR
     selector(x, y);
     // expecting y
     main := selector.selected;
-END_PROGRAM
+END_FUNCTION
