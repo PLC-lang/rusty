@@ -12,7 +12,7 @@ use plc_ast::ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use plc_util::convention::{internal_type_name, qualified_name};
+use plc_util::convention::qualified_name;
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
@@ -1142,12 +1142,14 @@ impl Index {
         self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
     }
 
-    /// Returns all enum variants defined within a POU
-    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
+        let qualified_name = variable.data_type_name.to_lowercase();
+
+        // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
         self.enum_qualified_variables
             .keys()
-            .filter(|key| key.starts_with(&internal_type_name(pou, "").to_lowercase()))
-            .flat_map(|key| self.find_fully_qualified_variable(key))
+            .filter(|key| key.split('.').next().is_some_and(|prefix| prefix == qualified_name))
+            .filter_map(|key| self.enum_qualified_variables.get(key))
             .collect()
     }
 
@@ -1156,23 +1158,11 @@ impl Index {
     /// For example calling this method on `TYPE Color : (red, green, blue := 5); END_TYPE` will
     /// return the [`VariableIndexEntry`]s of `red`, `green`, `blue` as well as their values
     /// `0`, `1` and `5` respectively.
-    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
+    pub fn get_enum_variant_values(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
+        let valuess = self.get_enum_variants(variable);
+
         let mut values = Vec::new();
-        let qualified_name = variable.data_type_name.to_lowercase();
-
-        // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
-        let keys = self
-            .enum_qualified_variables
-            .keys()
-            .filter(|key| key.split('.').next().is_some())
-            .filter(|prefix| prefix.starts_with(&qualified_name))
-            .collect::<Vec<_>>();
-
-        for key in keys {
-            let value = self
-                .enum_qualified_variables
-                .get(key.as_str())
-                .expect("Must exist because of previous filter");
+        for value in valuess {
             if let Some(ref const_id) = value.initial_value {
                 if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
                     values.push((value, init));
@@ -1181,6 +1171,11 @@ impl Index {
         }
 
         values
+    }
+
+    /// Returns all enum variants defined within a POU
+    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+        self.get_pou_members(pou).iter().flat_map(|member| self.get_enum_variants(member)).collect()
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
