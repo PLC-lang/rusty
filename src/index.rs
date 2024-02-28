@@ -1136,11 +1136,6 @@ impl Index {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
     }
 
-    /// Tries to return an enum variant defined within a POU
-    pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
-        self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
-    }
-
     /// Returns all enum variants of the given variable.
     pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
         let qualified_name = variable.data_type_name.to_lowercase();
@@ -1176,6 +1171,11 @@ impl Index {
     /// Returns all enum variants defined in the given POU
     pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
         self.get_pou_members(pou).iter().flat_map(|member| self.get_enum_variants(member)).collect()
+    }
+
+    /// Tries to return a specific enum variant defined within a POU
+    pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
+        self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
