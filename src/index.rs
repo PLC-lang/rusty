@@ -12,7 +12,7 @@ use plc_ast::ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use plc_util::convention::{internal_type_name, qualified_name};
+use plc_util::convention::qualified_name;
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
@@ -1101,7 +1101,6 @@ impl Index {
         self.find_variable(q.as_deref(), &segments[..])
     }
 
-    // TODO: Does it make more sense to transfer the enum search to this function (or both)?
     pub fn find_variable(&self, context: Option<&str>, segments: &[&str]) -> Option<&VariableIndexEntry> {
         if segments.is_empty() {
             return None;
@@ -1137,50 +1136,46 @@ impl Index {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
     }
 
-    /// Returns all enum variant values and their constant values for the given variable.
-    ///
-    /// For example calling this method on `TYPE Color : (red, green, blue := 5); END_TYPE` will
-    /// return the [`VariableIndexEntry`]s of `red`, `green`, `blue` as well as their values
-    /// `0`, `1` and `5` respectively.
-    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
-        let mut values = Vec::new();
+    /// Returns all enum variants of the given variable.
+    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
         let qualified_name = variable.data_type_name.to_lowercase();
 
         // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
-        let keys = self
-            .enum_qualified_variables
+        self.enum_qualified_variables
             .keys()
-            .filter(|key| key.split('.').next().is_some())
-            .filter(|prefix| prefix.starts_with(&qualified_name))
-            .collect::<Vec<_>>();
+            .filter(|key| key.split('.').next().is_some_and(|prefix| prefix == qualified_name))
+            .filter_map(|key| self.enum_qualified_variables.get(key))
+            .collect()
+    }
 
-        for key in keys {
-            let value = self
-                .enum_qualified_variables
-                .get(key.as_str())
-                .expect("Must exist because of previous filter");
-            if let Some(ref const_id) = value.initial_value {
+    /// Returns all enum variants and their respective constant value for the given variable.
+    ///
+    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` will return three tuples,
+    /// namely `(red, 0)`, `(green, 1)` and `(blue, 5)` where the first element of the tuple is a
+    /// [`VariableIndexEntry`].
+    pub fn get_enum_variant_values(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
+        let variants = self.get_enum_variants(variable);
+
+        let mut variant_const_values = Vec::new();
+        for variant in variants {
+            if let Some(ref const_id) = variant.initial_value {
                 if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
-                    values.push((value, init));
+                    variant_const_values.push((variant, init));
                 }
             }
         }
 
-        values
+        variant_const_values
+    }
+
+    /// Returns all enum variants defined in the given POU
+    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+        self.get_pou_members(pou).iter().flat_map(|member| self.get_enum_variants(member)).collect()
     }
 
     /// Tries to return an enum variant defined within a POU
     pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
         self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
-    }
-
-    /// Returns all enum variants defined within a POU
-    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
-        self.enum_qualified_variables
-            .keys()
-            .filter(|key| key.starts_with(&internal_type_name(pou, "").to_lowercase()))
-            .flat_map(|key| self.find_fully_qualified_variable(key))
-            .collect()
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
