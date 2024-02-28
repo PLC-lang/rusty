@@ -1151,6 +1151,13 @@
 <a href="#1151" id="1151">1151</a>
 <a href="#1152" id="1152">1152</a>
 <a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1164,7 +1171,10 @@
     },
     provider::IdProvider,
 };
-<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+<span class="kw">use </span>plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
+};
 <span class="kw">use </span>plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
@@ -1194,7 +1204,7 @@
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
-) -&gt; CompilationUnit {
+) -&gt; <span class="prelude-ty">Result</span>&lt;CompilationUnit, Diagnostic&gt; {
     <span class="kw">let </span>location_factory = SourceLocationFactory::for_source(source);
     <span class="kw">let </span>(unit, errors) = parse(
         lexer::lex_with_ids(<span class="kw-2">&amp;</span>source.source, id_provider, location_factory),
@@ -1204,8 +1214,12 @@
     <span class="comment">//Register the source file with the diagnostician
     //TODO: We should reduce the clone here
     </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); <span class="comment">// TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors);
-    unit
+    </span><span class="kw">if </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors) == Severity::Error {
+        <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to critical parse errors&quot;</span>)
+            .with_sub_diagnostics(errors))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(unit)
+    }
 }
 
 <span class="kw">pub fn </span>parse(<span class="kw-2">mut </span>lexer: ParseSession, lnk: LinkageType, file_name: <span class="kw-2">&amp;</span>str) -&gt; ParsedAst {

@@ -519,6 +519,9 @@
 <a href="#519" id="519">519</a>
 <a href="#520" id="520">520</a>
 <a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -584,9 +587,10 @@
                     source_code::SourceType::Xml =&gt; cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown =&gt; <span class="macro">unreachable!</span>(),
                 };
-                <span class="prelude-val">Ok</span>(parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician))
+                parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
             })
-            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
         units.extend(sources);
 
         <span class="comment">//Parse the includes
@@ -595,9 +599,9 @@
             .iter()
             .map(|it| {
                 <span class="kw">let </span>source = ctxt.get(it.get_location_str()).expect(<span class="string">&quot;All sources should&#39;ve been read&quot;</span>);
-                <span class="prelude-val">Ok</span>(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
+                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
             })
-            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         units.extend(includes);
 
         <span class="comment">//For each lib, parse the includes
@@ -607,10 +611,12 @@
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
                 <span class="kw">let </span>source = ctxt.get(it.get_location_str()).expect(<span class="string">&quot;All sources should&#39;ve been read&quot;</span>);
-                <span class="prelude-val">Ok</span>(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
+                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
             })
-            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         units.extend(lib_includes);
+
+        <span class="kw">let </span>units = units.into_iter().collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(ParsedProject { project, units })
     }

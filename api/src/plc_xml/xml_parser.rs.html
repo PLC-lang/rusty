@@ -203,6 +203,12 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>ast::{
@@ -210,7 +216,10 @@
     provider::IdProvider,
 };
 <span class="kw">use </span>plc::{lexer, parser::expressions_parser::parse_expression};
-<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+<span class="kw">use </span>plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
+};
 
 <span class="kw">use </span>plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
@@ -277,12 +286,15 @@
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
-) -&gt; CompilationUnit {
+) -&gt; <span class="prelude-ty">Result</span>&lt;CompilationUnit, Diagnostic&gt; {
     <span class="kw">let </span>(unit, errors) = parse(source, linkage, id_provider);
     <span class="comment">//Register the source file with the diagnostician
     </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); <span class="comment">// TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors);
-    unit
+    </span><span class="kw">if </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors) == Severity::Error {
+        <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to parse errors&quot;</span>))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(unit)
+    }
 }
 
 <span class="kw">fn </span>parse(
