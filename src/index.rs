@@ -1101,7 +1101,6 @@ impl Index {
         self.find_variable(q.as_deref(), &segments[..])
     }
 
-    // TODO: Does it make more sense to transfer the enum search to this function (or both)?
     pub fn find_variable(&self, context: Option<&str>, segments: &[&str]) -> Option<&VariableIndexEntry> {
         if segments.is_empty() {
             return None;
@@ -1142,6 +1141,7 @@ impl Index {
         self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
     }
 
+    /// Returns all enum variants of the given variable.
     pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
         let qualified_name = variable.data_type_name.to_lowercase();
 
@@ -1153,27 +1153,27 @@ impl Index {
             .collect()
     }
 
-    /// Returns all enum variant values and their constant values for the given variable.
+    /// Returns all enum variants and their respective constant value for the given variable.
     ///
-    /// For example calling this method on `TYPE Color : (red, green, blue := 5); END_TYPE` will
-    /// return the [`VariableIndexEntry`]s of `red`, `green`, `blue` as well as their values
-    /// `0`, `1` and `5` respectively.
+    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` will return three tuples,
+    /// namely `(red, 0)`, `(green, 1)` and `(blue, 5)` where the first element of the tuple is a
+    /// [`VariableIndexEntry`].
     pub fn get_enum_variant_values(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
-        let valuess = self.get_enum_variants(variable);
+        let variants = self.get_enum_variants(variable);
 
-        let mut values = Vec::new();
-        for value in valuess {
-            if let Some(ref const_id) = value.initial_value {
+        let mut variant_const_values = Vec::new();
+        for variant in variants {
+            if let Some(ref const_id) = variant.initial_value {
                 if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
-                    values.push((value, init));
+                    variant_const_values.push((variant, init));
                 }
             }
         }
 
-        values
+        variant_const_values
     }
 
-    /// Returns all enum variants defined within a POU
+    /// Returns all enum variants defined in the given POU
     pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
         self.get_pou_members(pou).iter().flat_map(|member| self.get_enum_variants(member)).collect()
     }
