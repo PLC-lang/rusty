@@ -1301,7 +1301,7 @@ fn validate_auto_deref_type_sizes<T: AnnotationMap>(
 
     if left_type_info.get_size(context.index) < right_type_info.get_size(context.index) {
         validator.push_diagnostic(
-            Diagnostic::info(format!(
+            Diagnostic::warning(format!(
                 "Incompatible poiner types: passing by-ref argument of type {} to parameter expecting {}",
                 right_type_info.get_name(),
                 left_type_info.get_name()
