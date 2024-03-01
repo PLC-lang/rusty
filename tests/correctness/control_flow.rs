@@ -166,6 +166,7 @@ fn for_loop_exit_test() {
         EXIT;
         main := 200;
     END_FOR
+    END_FUNCTION
     "#;
 
     let res: i32 = compile_and_run(function.to_string(), &mut MainType { ret: 0 });

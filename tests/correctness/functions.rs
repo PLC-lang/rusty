@@ -592,7 +592,7 @@ fn var_output_assignment_in_functions() {
             END_VAR
             output1 := input1 + 2;
             output2 := input2 + 3;
-        END_PROGRAM
+        END_FUNCTION
 
         PROGRAM main
             VAR
@@ -791,7 +791,7 @@ fn by_ref_and_by_val_mixed_function_call() {
 
         FUNCTION main : DINT
             main := func(10,100,1000,10_000); //1 and 2 by ref, 3 and 4 by val
-        END_PROGRAM
+        END_FUNCTION
         "#;
 
     let res: i32 = compile_and_run(function.to_string(), &mut MainType::default());

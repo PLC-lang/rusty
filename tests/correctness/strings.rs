@@ -290,7 +290,7 @@ fn string_assignment_from_bigger_function_does_not_leak() {
 fn initialization_of_string_arrays() {
     let src = "
         VAR_GLOBAL
-            texts: ARRAY[0..2] OF STRING[10] := ['hello', 'world', 'ten chars!']
+            texts: ARRAY[0..2] OF STRING[10] := ['hello', 'world', 'ten chars!'];
         END_VAR
 
         PROGRAM main
@@ -539,9 +539,9 @@ fn string_as_function_return_type_does_not_truncate() {
 
         PROGRAM main
         VAR
-            x : STRING[100]
+            x : STRING[100];
         END_VAR
-            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
+            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.');
         END_PROGRAM
     ";
 
@@ -582,9 +582,9 @@ fn string_ref_returned_from_wrapper_function_does_not_truncate() {
 
         PROGRAM main
         VAR
-            x : STRING[100]
+            x : STRING[100];
         END_VAR
-            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
+            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.');
         END_PROGRAM
     ";
 
