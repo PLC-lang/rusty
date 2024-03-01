@@ -258,6 +258,18 @@ impl AstLiteral {
                 | AstLiteral::DateAndTime { .. }
         )
     }
+
+    pub fn is_numerical(&self) -> bool {
+        matches!(
+            self,
+            AstLiteral::Integer { .. }
+                | AstLiteral::Real { .. }
+                | AstLiteral::Time { .. }
+                | AstLiteral::Date { .. }
+                | AstLiteral::TimeOfDay { .. }
+                | AstLiteral::DateAndTime { .. }
+        )
+    }
 }
 
 impl Debug for AstLiteral {

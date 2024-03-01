@@ -962,3 +962,58 @@ fn string_type_alias_assignment_can_be_validated() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn integral_promotion_in_expression_does_not_cause_downcast_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a, b, c : SINT;
+        END_VAR
+
+            a := a + b + c + 100;
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn downcast_will_report_bigger_types_in_expression() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a, b, c : SINT;
+            d, e : DINT;
+        END_VAR
+            a := a + b + c + d + e;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn literals_out_of_range_for_lhs_will_result_in_downcast_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : SINT;
+            b : USINT;
+        END_VAR
+
+            a := a + 255 + 1000;    // literals out of range of i8 -> warning
+            b := b + 255;           // 255 is in range of u8 -> no warning, but will silently overflow for anything other than b == 0. Not sure if there is a better way to guard against this
+            a := a + b;             // B is same size as a, but unsigned -> warning
+            a := a + USINT#100;     // will fit into a, but is cast to unsigned type -> warning
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics)
+}

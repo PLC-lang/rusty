@@ -2,8 +2,8 @@ use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
-        Operator, ReferenceAccess,
+        flatten_expression_list, AstNode, AstStatement, BinaryExpression, DirectAccess, DirectAccessType,
+        JumpStatement, Operator, ReferenceAccess,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -815,9 +815,9 @@ fn validate_assignment<T: AnnotationMap>(
                     location.clone(),
                 ));
             }
-        } else if right.is_literal() {
-            // TODO: See https://github.com/PLC-lang/rusty/issues/857
-            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+        } else {
+            // todo: literals
+            validate_assignment_type_sizes(validator, left_type, right, context)
         }
     }
 }
@@ -1272,26 +1272,72 @@ fn validate_type_nature<T: AnnotationMap>(
     }
 }
 
-fn _validate_assignment_type_sizes<T: AnnotationMap>(
+fn validate_assignment_type_sizes<T: AnnotationMap>(
     validator: &mut Validator,
     left: &DataType,
-    right: &DataType,
-    location: &SourceLocation,
+    right: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    if left.get_type_information().get_size(context.index)
-        < right.get_type_information().get_size(context.index)
-    {
-        validator.push_diagnostic(
-            Diagnostic::info(format!(
-                "Potential loss of information due to assigning '{}' to variable of type '{}'.",
-                left.get_name(),
-                right.get_name()
-            ))
-            .with_error_code("E067")
-            .with_location(location.clone()),
-        )
+    use std::collections::HashMap;
+    fn get_expression_types_and_locations<'b, T: AnnotationMap>(
+        lhs: &DataType,
+        expression: &AstNode,
+        context: &'b ValidationContext<T>,
+    ) -> HashMap<&'b DataType, Vec<SourceLocation>> {
+        let mut map: HashMap<&DataType, Vec<SourceLocation>> = HashMap::new();
+        match expression.get_stmt_peeled() {
+            AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. }) => {
+                if !operator.is_bool_type() {
+                    get_expression_types_and_locations(lhs, left, context)
+                        .into_iter()
+                        .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                    get_expression_types_and_locations(lhs, right, context)
+                        .into_iter()
+                        .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                };
+            }
+            // `get_literal_actual_signed_type_name` will always return `LREAL` for FP literals, so they will be handled by the fall-through case according to their annotated type
+            AstStatement::Literal(lit) if !matches!(lit, &AstLiteral::Real(_)) => {
+                if lit.is_numerical() {
+                    if let Some(dt) =
+                        get_literal_actual_signed_type_name(lit, lhs.get_type_information().is_signed_int())
+                            .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
+                    {
+                        map.entry(dt).or_default().push(expression.get_location());
+                    }
+                }
+            }
+            _ => {
+                if context.annotations.get_generic_nature(expression).is_none() {
+                    if let Some(dt) = context.annotations.get_type(expression, context.index) {
+                        map.entry(dt).or_default().push(expression.get_location());
+                    }
+                }
+            }
+        };
+        map
     }
+
+    let lhs = left.get_type_information();
+    let lhs_size = lhs.get_size(context.index);
+    let results_in_truncation = |rhs: &DataType| {
+        let rhs = rhs.get_type_information();
+        let rhs_size = rhs.get_size(context.index);
+        lhs_size < rhs_size || (lhs_size == rhs_size && lhs.is_signed_int() && rhs.is_unsigned_int())
+    };
+
+    get_expression_types_and_locations(left, right, context)
+        .into_iter()
+        .filter_map(|(dt, loc)| if results_in_truncation(dt) { Some((dt.get_name(), loc)) } else { None })
+        .for_each(|(name, location)| {
+            location.into_iter().for_each(|loc| {
+                validator.push_diagnostic(
+                    Diagnostic::info(format!("Implicit downcast from '{}' to '{}'.", name, left.get_name()))
+                        .with_error_code("E067")
+                        .with_location(loc),
+                );
+            })
+        });
 }
 
 mod helper {
