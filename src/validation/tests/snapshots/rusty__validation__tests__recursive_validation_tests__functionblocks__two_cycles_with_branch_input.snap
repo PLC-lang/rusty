@@ -1,7 +1,41 @@
 ---
 source: src/validation/tests/recursive_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SemanticError { message: "Recursive data structure `F -> G -> H -> I -> F` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 25, column: 27, offset: 592 }..TextLocation { line: 25, column: 28, offset: 593 }) }, SourceLocation { span: Range(TextLocation { line: 32, column: 27, offset: 769 }..TextLocation { line: 32, column: 28, offset: 770 }) }, SourceLocation { span: Range(TextLocation { line: 38, column: 27, offset: 919 }..TextLocation { line: 38, column: 28, offset: 920 }) }, SourceLocation { span: Range(TextLocation { line: 44, column: 27, offset: 1057 }..TextLocation { line: 44, column: 28, offset: 1058 }) }], err_no: pou__recursive_data_structure }
-SemanticError { message: "Recursive data structure `B -> C -> E -> F -> B` has infinite size", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 27, offset: 166 }..TextLocation { line: 7, column: 28, offset: 167 }) }, SourceLocation { span: Range(TextLocation { line: 13, column: 27, offset: 304 }..TextLocation { line: 13, column: 28, offset: 305 }) }, SourceLocation { span: Range(TextLocation { line: 19, column: 27, offset: 442 }..TextLocation { line: 19, column: 28, offset: 443 }) }, SourceLocation { span: Range(TextLocation { line: 25, column: 27, offset: 592 }..TextLocation { line: 25, column: 28, offset: 593 }) }], err_no: pou__recursive_data_structure }
+error: Recursive data structure `F -> G -> H -> I -> F` has infinite size
+   ┌─ <internal>:26:28
+   │
+26 │             FUNCTION_BLOCK F
+   │                            ^
+   │                            │
+   │                            Recursive data structure `F -> G -> H -> I -> F` has infinite size
+   │                            see also
+   ·
+33 │             FUNCTION_BLOCK G
+   │                            - see also
+   ·
+39 │             FUNCTION_BLOCK H
+   │                            - see also
+   ·
+45 │             FUNCTION_BLOCK I
+   │                            - see also
+
+error: Recursive data structure `B -> C -> E -> F -> B` has infinite size
+   ┌─ <internal>:8:28
+   │
+ 8 │             FUNCTION_BLOCK B
+   │                            ^
+   │                            │
+   │                            Recursive data structure `B -> C -> E -> F -> B` has infinite size
+   │                            see also
+   ·
+14 │             FUNCTION_BLOCK C
+   │                            - see also
+   ·
+20 │             FUNCTION_BLOCK E
+   │                            - see also
+   ·
+26 │             FUNCTION_BLOCK F
+   │                            - see also
+
 

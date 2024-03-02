@@ -10,16 +10,16 @@ TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE
 TYPE MyRef : REF_TO REF_TO DINT; END_TYPE
 
 FUNCTION main : DINT
-	main := foo();
+    main := foo();
 END_FUNCTION
 
 FUNCTION foo : DINT
 VAR
-				x : DINT;
-				s : MyStruct;
-				u,y : REF_TO DINT;
-				z : REF_TO REF_TO DINT;
-				v : MyRef;
+                x : DINT;
+                s : MyStruct;
+                u,y : REF_TO DINT;
+                z : REF_TO REF_TO DINT;
+                v : MyRef;
 
 END_VAR
 u := REF(s.x);
@@ -47,16 +47,16 @@ TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE
 TYPE MyRef : REF_TO REF_TO DINT; END_TYPE
 
 FUNCTION main : DINT
-	main := foo();
+    main := foo();
 END_FUNCTION
 
 FUNCTION foo : DINT
 VAR
-				x : DINT;
-				s : MyStruct;
-				u,y : REF_TO DINT;
-				z : REF_TO REF_TO DINT;
-				v : MyRef;
+                x : DINT;
+                s : MyStruct;
+                u,y : REF_TO DINT;
+                z : REF_TO REF_TO DINT;
+                v : MyRef;
 
 END_VAR
 u := &s.x;
@@ -97,46 +97,46 @@ fn binary_expressions_for_pointers() {
     }
 
     let function = "
-	PROGRAM main
-	VAR
-		a : CHAR;
-		b : CHAR;
-		c : CHAR;
-		d : CHAR;
-		e : CHAR;
-		equal : BOOL;
-		not_equal : BOOL;
-		less : BOOL;
-		greater : BOOL;
-		less_or_equal : BOOL;
-		greater_or_equal : BOOL;
-	END_VAR
-	VAR_TEMP
-		arr : ARRAY[0..3] OF CHAR := ['a','b','c','d'];
-		ptr : REF_TO CHAR;
-		negative : INT := -1;
-	END_VAR
-		ptr := &(arr);
+    PROGRAM main
+    VAR
+        a : CHAR;
+        b : CHAR;
+        c : CHAR;
+        d : CHAR;
+        e : CHAR;
+        equal : BOOL;
+        not_equal : BOOL;
+        less : BOOL;
+        greater : BOOL;
+        less_or_equal : BOOL;
+        greater_or_equal : BOOL;
+    END_VAR
+    VAR_TEMP
+        arr : ARRAY[0..3] OF CHAR := ['a','b','c','d'];
+        ptr : REF_TO CHAR;
+        negative : INT := -1;
+    END_VAR
+        ptr := &(arr);
 
-		ptr := ptr + 1 + 1;
-		a := ptr^;
-		ptr := ptr + 1;
-		b := ptr^;
-		ptr := ptr - 1;
-		c := ptr^;
-		ptr := ptr + negative;
-		d := ptr^;
-		ptr := ptr - negative;
-		e := ptr^;
+        ptr := ptr + 1 + 1;
+        a := ptr^;
+        ptr := ptr + 1;
+        b := ptr^;
+        ptr := ptr - 1;
+        c := ptr^;
+        ptr := ptr + negative;
+        d := ptr^;
+        ptr := ptr - negative;
+        e := ptr^;
 
-		equal := ptr = ptr;
-		not_equal := ptr <> ptr;
-		less := ptr < ptr + 1;
-		greater := ptr > ptr - 1;
-		less_or_equal := ptr <= ptr;
-		greater_or_equal := ptr >= ptr;
-	END_PROGRAM
-	";
+        equal := ptr = ptr;
+        not_equal := ptr <> ptr;
+        less := ptr < ptr + 1;
+        greater := ptr > ptr - 1;
+        less_or_equal := ptr <= ptr;
+        greater_or_equal := ptr >= ptr;
+    END_PROGRAM
+    ";
     let mut main = Main::default();
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!(main.a, "c".as_bytes()[0]);
@@ -165,25 +165,25 @@ fn binary_expressions_for_pointers_with_function_return() {
     FUNCTION len : INT
         len := 1;
     END_FUNCTION
-	PROGRAM main
-	VAR
-		a : CHAR;
+    PROGRAM main
+    VAR
+        a : CHAR;
         b : CHAR;
         c : CHAR;
-	END_VAR
-	VAR_TEMP
-		arr : ARRAY[0..2] OF CHAR := ['a','b', 'c'];
-		ptr : REF_TO CHAR;
-	END_VAR
-		ptr := &arr;
+    END_VAR
+    VAR_TEMP
+        arr : ARRAY[0..2] OF CHAR := ['a','b', 'c'];
+        ptr : REF_TO CHAR;
+    END_VAR
+        ptr := &arr;
 
-		a := ptr^;
-		ptr := &arr[0] + len() + 1;
-		b := ptr^;
-		ptr := ptr - len() - 1;
-		c := ptr^;
-	END_PROGRAM
-	";
+        a := ptr^;
+        ptr := &arr[0] + len() + 1;
+        b := ptr^;
+        ptr := ptr - len() - 1;
+        c := ptr^;
+    END_PROGRAM
+    ";
     let mut main = Main::default();
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!(main.a, "a".as_bytes()[0]);
@@ -212,30 +212,30 @@ fn value_behind_function_block_pointer_is_assigned_to_correctly() {
     }
 
     let src = r#"
-		FUNCTION_BLOCK file_t
-		VAR_INPUT
-			var1 : BOOL;
-			var2 : BOOL;
-		END_VAR
-		VAR_OUTPUT
-			out1 : BOOL;
-			out2 : BOOL;
-		END_VAR
-			out1 := var1;
-			out2 := var2;
-		END_FUNCTION_BLOCK
+        FUNCTION_BLOCK file_t
+        VAR_INPUT
+            var1 : BOOL;
+            var2 : BOOL;
+        END_VAR
+        VAR_OUTPUT
+            out1 : BOOL;
+            out2 : BOOL;
+        END_VAR
+            out1 := var1;
+            out2 := var2;
+        END_FUNCTION_BLOCK
 
-		PROGRAM main
-		VAR
-			a: BOOL;
-			b: BOOL;
-			file : file_t;
+        PROGRAM main
+        VAR
+            a: BOOL;
+            b: BOOL;
+            file : file_t;
             FileOpen : REF_TO file_t;
         END_VAR
-			FileOpen := &file;
-        	FileOpen^(var1 := FALSE, var2:=TRUE, out1 => a, out2 => b);
+            FileOpen := &file;
+            FileOpen^(var1 := FALSE, var2:=TRUE, out1 => a, out2 => b);
         END_PROGRAM
-		"#;
+        "#;
 
     let mut maintype = MainType::default();
     let _: i32 = compile_and_run(src, &mut maintype);

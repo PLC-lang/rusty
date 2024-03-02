@@ -34,30 +34,29 @@ impl GlobalValidator {
         locations: &[&SourceLocation],
         additional_text: Option<&str>,
     ) {
-        for (idx, v) in locations.iter().enumerate() {
-            let others = locations
-                .iter()
-                .enumerate()
-                .filter(|(j, _)| idx != (*j))
-                .map(|(_, it)| (*it).clone())
-                .collect::<Vec<_>>();
+        for v in locations.iter() {
+            let others = locations.iter().filter(|it| *it != v).map(|it| (*it).clone()).collect::<Vec<_>>();
 
             // If the SourceRange of `v` is undefined, we can assume the user choose a name which clashes
             // with an (internal) built-in datatype, hence the undefined location.
             if v.is_undefined() {
-                self.diagnostics.push(Diagnostic::invalid_type_name(name, others));
-                continue; // Skip this iteration, otherwise we would also report an internal error
-            }
-
-            if let Some(additional_text) = additional_text {
-                self.push_diagnostic(Diagnostic::global_name_conflict_with_text(
-                    name,
-                    (*v).clone(),
-                    others,
-                    additional_text,
-                ));
+                for other in others {
+                    self.diagnostics.push(
+                        Diagnostic::error(format!(
+                            "{name} can not be used as a name because it is a built-in datatype"
+                        ))
+                        .with_location((other).clone())
+                        .with_error_code("E004"),
+                    );
+                }
             } else {
-                self.push_diagnostic(Diagnostic::global_name_conflict(name, (*v).clone(), others));
+                let additional_text = additional_text.unwrap_or("Duplicate symbol.");
+                self.push_diagnostic(
+                    Diagnostic::error(format!("{name}: {additional_text}"))
+                        .with_error_code("E004")
+                        .with_location((*v).clone())
+                        .with_secondary_locations(others),
+                );
             }
         }
     }
@@ -153,22 +152,27 @@ impl GlobalValidator {
                     .unwrap_or(false)
             })
             .map(|it| (it.get_name(), &it.source_location));
-        let all_prgs_and_funcs = index
+        let all_prgs = index
             .get_pous()
             .values()
             .filter(|p| {
                 matches!(
                     p,
                     PouIndexEntry::Program { .. }
-                        | PouIndexEntry::Function { .. }
                         | PouIndexEntry::Method { .. }
                         | PouIndexEntry::Action { .. }
                 )
             })
             .map(|it| (it.get_name(), it.get_location()));
 
+        let all_funcs = index
+            .get_pous()
+            .values()
+            .filter(|p| p.is_function() && !p.is_generic())
+            .map(|it| (it.get_name(), it.get_location()));
+
         self.check_uniqueness_of_cluster(
-            all_fb_instances.chain(all_prgs_and_funcs),
+            all_fb_instances.chain(all_prgs).chain(all_funcs),
             Some("Ambiguous callable symbol."),
         );
     }
@@ -186,7 +190,12 @@ impl GlobalValidator {
             .entries()
             .filter(|(_, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() > 1)
             .map(|(name, pous)| {
-                (name.as_str(), pous.iter().filter(only_toplevel_pous).map(|p| p.get_location()))
+                (
+                    name.as_str(),
+                    pous.iter()
+                        .filter(|p| only_toplevel_pous(p) && !p.is_generic())
+                        .map(|p| p.get_location()),
+                )
             });
 
         for (name, cluster) in pou_clusters {

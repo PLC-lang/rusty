@@ -301,6 +301,22 @@ fn struct_initializer_can_be_parsed() {
 }
 
 #[test]
+fn parenthesized_expression_within_array() {
+    let (result, _) = parse(
+        "
+        PROGRAM main
+            VAR
+                arr : ARRAY[1..5] OF DINT := [(1, 2, 3, 4, 5)];
+            END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let member = &result.units[0].variable_blocks[0].variables[0];
+    assert_debug_snapshot!(&member.initializer);
+}
+
+#[test]
 fn array_initializer_in_pou_can_be_parsed() {
     let (result, ..) = parse(
         r#"

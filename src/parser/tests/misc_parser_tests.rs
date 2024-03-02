@@ -297,7 +297,7 @@ fn ids_are_assigned_to_if_statements() {
     PROGRAM PRG
         IF TRUE THEN
             ;
-        ELSE    
+        ELSE
             ;
         END_IF
     END_PROGRAM

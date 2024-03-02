@@ -51,25 +51,25 @@ struct BoolType {
 #[test]
 fn lword_to_dword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; positive : DWORD; negative : DWORD;
-		max_overflow: DWORD; min_overflow: DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; positive : DWORD; negative : DWORD;
+        max_overflow: DWORD; min_overflow: DWORD;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		max : LWORD := 4294967295;
-		min : LWORD := 0;
-	END_VAR
+    VAR_GLOBAL
+        max : LWORD := 4294967295;
+        min : LWORD := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_DWORD(LWORD#0);
-		ret.positive := LWORD_TO_DWORD(LWORD#100);
-		ret.negative := LWORD_TO_DWORD(-1);
-		ret.max_overflow := LWORD_TO_DWORD(max+1);
-		ret.min_overflow := LWORD_TO_DWORD(min-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_DWORD(LWORD#0);
+        ret.positive := LWORD_TO_DWORD(LWORD#100);
+        ret.negative := LWORD_TO_DWORD(-1);
+        ret.max_overflow := LWORD_TO_DWORD(max+1);
+        ret.min_overflow := LWORD_TO_DWORD(min-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -85,25 +85,25 @@ fn lword_to_dword() {
 #[test]
 fn lword_to_word() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; positive : WORD; negative : WORD;
-		max_overflow: WORD; min_overflow: WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; positive : WORD; negative : WORD;
+        max_overflow: WORD; min_overflow: WORD;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		max : LWORD := 65535;
-		min : LWORD := 0;
-	END_VAR
+    VAR_GLOBAL
+        max : LWORD := 65535;
+        min : LWORD := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_WORD(LWORD#0);
-		ret.positive := LWORD_TO_WORD(LWORD#100);
-		ret.negative := LWORD_TO_WORD(-1);
-		ret.max_overflow := LWORD_TO_WORD(max+1);
-		ret.min_overflow := LWORD_TO_WORD(min-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_WORD(LWORD#0);
+        ret.positive := LWORD_TO_WORD(LWORD#100);
+        ret.negative := LWORD_TO_WORD(-1);
+        ret.max_overflow := LWORD_TO_WORD(max+1);
+        ret.min_overflow := LWORD_TO_WORD(min-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -119,25 +119,25 @@ fn lword_to_word() {
 #[test]
 fn lword_to_byte() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; positive : BYTE; negative : BYTE;
-		max_overflow: BYTE; min_overflow: BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; positive : BYTE; negative : BYTE;
+        max_overflow: BYTE; min_overflow: BYTE;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		max : LWORD := 255;
-		min : LWORD := 0;
-	END_VAR
+    VAR_GLOBAL
+        max : LWORD := 255;
+        min : LWORD := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := LWORD_TO_BYTE(LWORD#0);
-		ret.positive := LWORD_TO_BYTE(LWORD#100);
-		ret.negative := LWORD_TO_BYTE(-1);
-		ret.max_overflow := LWORD_TO_BYTE(max+1);
-		ret.min_overflow := LWORD_TO_BYTE(min-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_BYTE(LWORD#0);
+        ret.positive := LWORD_TO_BYTE(LWORD#100);
+        ret.negative := LWORD_TO_BYTE(-1);
+        ret.max_overflow := LWORD_TO_BYTE(max+1);
+        ret.min_overflow := LWORD_TO_BYTE(min-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -153,19 +153,19 @@ fn lword_to_byte() {
 #[test]
 fn lword_to_bool() {
     let src = r"
-	TYPE myType : STRUCT
-		true_ : BOOL; false_ : BOOL;
-		max_overflow : BOOL; min_overflow : BOOL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        true_ : BOOL; false_ : BOOL;
+        max_overflow : BOOL; min_overflow : BOOL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.true_ := LWORD_TO_BOOL(LWORD#1);
-		ret.false_ := LWORD_TO_BOOL(LWORD#0);
-		ret.max_overflow := LWORD_TO_BOOL(LWORD#2);
-		ret.min_overflow := LWORD_TO_BOOL(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.true_ := LWORD_TO_BOOL(LWORD#1);
+        ret.false_ := LWORD_TO_BOOL(LWORD#0);
+        ret.max_overflow := LWORD_TO_BOOL(LWORD#2);
+        ret.min_overflow := LWORD_TO_BOOL(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -180,17 +180,17 @@ fn lword_to_bool() {
 #[test]
 fn dword_to_lword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; positive : LWORD; negative : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; positive : LWORD; negative : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_LWORD(DWORD#0);
-		ret.positive := DWORD_TO_LWORD(DWORD#100);
-		ret.negative := DWORD_TO_LWORD(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_LWORD(DWORD#0);
+        ret.positive := DWORD_TO_LWORD(DWORD#100);
+        ret.negative := DWORD_TO_LWORD(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -204,25 +204,25 @@ fn dword_to_lword() {
 #[test]
 fn dword_to_word() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; positive : WORD; negative : WORD;
-		max_overflow: WORD; min_overflow: WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; positive : WORD; negative : WORD;
+        max_overflow: WORD; min_overflow: WORD;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		max : DWORD := 65535;
-		min : DWORD := 0;
-	END_VAR
+    VAR_GLOBAL
+        max : DWORD := 65535;
+        min : DWORD := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_WORD(DWORD#0);
-		ret.positive := DWORD_TO_WORD(DWORD#100);
-		ret.negative := DWORD_TO_WORD(-1);
-		ret.max_overflow := DWORD_TO_WORD(max+1);
-		ret.min_overflow := DWORD_TO_WORD(min-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_WORD(DWORD#0);
+        ret.positive := DWORD_TO_WORD(DWORD#100);
+        ret.negative := DWORD_TO_WORD(-1);
+        ret.max_overflow := DWORD_TO_WORD(max+1);
+        ret.min_overflow := DWORD_TO_WORD(min-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -238,25 +238,25 @@ fn dword_to_word() {
 #[test]
 fn dword_to_byte() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; positive : BYTE; negative : BYTE;
-		max_overflow: BYTE; min_overflow: BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; positive : BYTE; negative : BYTE;
+        max_overflow: BYTE; min_overflow: BYTE;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		max : DWORD := 255;
-		min : DWORD := 0;
-	END_VAR
+    VAR_GLOBAL
+        max : DWORD := 255;
+        min : DWORD := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := DWORD_TO_BYTE(DWORD#0);
-		ret.positive := DWORD_TO_BYTE(DWORD#100);
-		ret.negative := DWORD_TO_BYTE(-1);
-		ret.max_overflow := DWORD_TO_BYTE(max+1);
-		ret.min_overflow := DWORD_TO_BYTE(min-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_BYTE(DWORD#0);
+        ret.positive := DWORD_TO_BYTE(DWORD#100);
+        ret.negative := DWORD_TO_BYTE(-1);
+        ret.max_overflow := DWORD_TO_BYTE(max+1);
+        ret.min_overflow := DWORD_TO_BYTE(min-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -272,19 +272,19 @@ fn dword_to_byte() {
 #[test]
 fn dword_to_bool() {
     let src = r"
-	TYPE myType : STRUCT
-		true_ : BOOL; false_ : BOOL;
-		max_overflow : BOOL; min_overflow : BOOL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        true_ : BOOL; false_ : BOOL;
+        max_overflow : BOOL; min_overflow : BOOL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.true_ := DWORD_TO_BOOL(DWORD#1);
-		ret.false_ := DWORD_TO_BOOL(DWORD#0);
-		ret.max_overflow := DWORD_TO_BOOL(DWORD#2);
-		ret.min_overflow := DWORD_TO_BOOL(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.true_ := DWORD_TO_BOOL(DWORD#1);
+        ret.false_ := DWORD_TO_BOOL(DWORD#0);
+        ret.max_overflow := DWORD_TO_BOOL(DWORD#2);
+        ret.min_overflow := DWORD_TO_BOOL(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -299,17 +299,17 @@ fn dword_to_bool() {
 #[test]
 fn word_to_lword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; positive : LWORD; negative : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; positive : LWORD; negative : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_LWORD(WORD#0);
-		ret.positive := WORD_TO_LWORD(WORD#100);
-		ret.negative := WORD_TO_LWORD(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_LWORD(WORD#0);
+        ret.positive := WORD_TO_LWORD(WORD#100);
+        ret.negative := WORD_TO_LWORD(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -323,17 +323,17 @@ fn word_to_lword() {
 #[test]
 fn word_to_dword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; positive : DWORD; negative : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; positive : DWORD; negative : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_DWORD(WORD#0);
-		ret.positive := WORD_TO_DWORD(WORD#100);
-		ret.negative := WORD_TO_DWORD(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_DWORD(WORD#0);
+        ret.positive := WORD_TO_DWORD(WORD#100);
+        ret.negative := WORD_TO_DWORD(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -347,25 +347,25 @@ fn word_to_dword() {
 #[test]
 fn word_to_byte() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; positive : BYTE; negative : BYTE;
-		max_overflow: BYTE; min_overflow: BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; positive : BYTE; negative : BYTE;
+        max_overflow: BYTE; min_overflow: BYTE;
+    END_STRUCT END_TYPE
 
-	VAR_GLOBAL
-		max : WORD := 255;
-		min : WORD := 0;
-	END_VAR
+    VAR_GLOBAL
+        max : WORD := 255;
+        min : WORD := 0;
+    END_VAR
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := WORD_TO_BYTE(WORD#0);
-		ret.positive := WORD_TO_BYTE(WORD#100);
-		ret.negative := WORD_TO_BYTE(-1);
-		ret.max_overflow := WORD_TO_BYTE(max+1);
-		ret.min_overflow := WORD_TO_BYTE(min-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_BYTE(WORD#0);
+        ret.positive := WORD_TO_BYTE(WORD#100);
+        ret.negative := WORD_TO_BYTE(-1);
+        ret.max_overflow := WORD_TO_BYTE(max+1);
+        ret.min_overflow := WORD_TO_BYTE(min-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -381,19 +381,19 @@ fn word_to_byte() {
 #[test]
 fn word_to_bool() {
     let src = r"
-	TYPE myType : STRUCT
-		true_ : BOOL; false_ : BOOL;
-		max_overflow : BOOL; min_overflow : BOOL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        true_ : BOOL; false_ : BOOL;
+        max_overflow : BOOL; min_overflow : BOOL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.true_ := WORD_TO_BOOL(WORD#1);
-		ret.false_ := WORD_TO_BOOL(WORD#0);
-		ret.max_overflow := WORD_TO_BOOL(WORD#2);
-		ret.min_overflow := WORD_TO_BOOL(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.true_ := WORD_TO_BOOL(WORD#1);
+        ret.false_ := WORD_TO_BOOL(WORD#0);
+        ret.max_overflow := WORD_TO_BOOL(WORD#2);
+        ret.min_overflow := WORD_TO_BOOL(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -408,17 +408,17 @@ fn word_to_bool() {
 #[test]
 fn byte_to_lword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; positive : LWORD; negative : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; positive : LWORD; negative : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_LWORD(BYTE#0);
-		ret.positive := BYTE_TO_LWORD(BYTE#100);
-		ret.negative := BYTE_TO_LWORD(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_LWORD(BYTE#0);
+        ret.positive := BYTE_TO_LWORD(BYTE#100);
+        ret.negative := BYTE_TO_LWORD(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -432,17 +432,17 @@ fn byte_to_lword() {
 #[test]
 fn byte_to_dword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; positive : DWORD; negative : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; positive : DWORD; negative : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_DWORD(BYTE#0);
-		ret.positive := BYTE_TO_DWORD(BYTE#100);
-		ret.negative := BYTE_TO_DWORD(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_DWORD(BYTE#0);
+        ret.positive := BYTE_TO_DWORD(BYTE#100);
+        ret.negative := BYTE_TO_DWORD(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -456,17 +456,17 @@ fn byte_to_dword() {
 #[test]
 fn byte_to_word() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; positive : WORD; negative : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; positive : WORD; negative : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BYTE_TO_WORD(BYTE#0);
-		ret.positive := BYTE_TO_WORD(BYTE#100);
-		ret.negative := BYTE_TO_WORD(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_WORD(BYTE#0);
+        ret.positive := BYTE_TO_WORD(BYTE#100);
+        ret.negative := BYTE_TO_WORD(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -480,19 +480,19 @@ fn byte_to_word() {
 #[test]
 fn byte_to_bool() {
     let src = r"
-	TYPE myType : STRUCT
-		true_ : BOOL; false_ : BOOL;
-		max_overflow : BOOL; min_overflow : BOOL;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        true_ : BOOL; false_ : BOOL;
+        max_overflow : BOOL; min_overflow : BOOL;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.true_ := BYTE_TO_BOOL(BYTE#1);
-		ret.false_ := BYTE_TO_BOOL(BYTE#0);
-		ret.max_overflow := BYTE_TO_BOOL(BYTE#2);
-		ret.min_overflow := BYTE_TO_BOOL(-1);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.true_ := BYTE_TO_BOOL(BYTE#1);
+        ret.false_ := BYTE_TO_BOOL(BYTE#0);
+        ret.max_overflow := BYTE_TO_BOOL(BYTE#2);
+        ret.min_overflow := BYTE_TO_BOOL(-1);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -514,15 +514,15 @@ fn byte_to_char() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : CHAR;
-		b : CHAR;
-		c : CHAR;
-	END_VAR
-		a := BYTE_TO_CHAR(BYTE#97);
-		b := BYTE_TO_CHAR(BYTE#98);
-		c := BYTE_TO_CHAR(BYTE#99);
+    PROGRAM main
+    VAR
+        a : CHAR;
+        b : CHAR;
+        c : CHAR;
+    END_VAR
+        a := BYTE_TO_CHAR(BYTE#97);
+        b := BYTE_TO_CHAR(BYTE#98);
+        c := BYTE_TO_CHAR(BYTE#99);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -536,19 +536,19 @@ fn byte_to_char() {
 #[test]
 fn bool_to_lword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : LWORD; positive : LWORD; negative : LWORD;
-		max_overflow : LWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : LWORD; positive : LWORD; negative : LWORD;
+        max_overflow : LWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_LWORD(BOOL#0);
-		ret.positive := BOOL_TO_LWORD(BOOL#1);
-		ret.negative := BOOL_TO_LWORD(-1);
-		ret.max_overflow := BOOL_TO_LWORD(10);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_LWORD(BOOL#0);
+        ret.positive := BOOL_TO_LWORD(BOOL#1);
+        ret.negative := BOOL_TO_LWORD(-1);
+        ret.max_overflow := BOOL_TO_LWORD(10);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -563,19 +563,19 @@ fn bool_to_lword() {
 #[test]
 fn bool_to_dword() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : DWORD; positive : DWORD; negative : DWORD;
-		max_overflow : DWORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : DWORD; positive : DWORD; negative : DWORD;
+        max_overflow : DWORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_DWORD(BOOL#0);
-		ret.positive := BOOL_TO_DWORD(BOOL#1);
-		ret.negative := BOOL_TO_DWORD(-1);
-		ret.max_overflow := BOOL_TO_DWORD(10);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_DWORD(BOOL#0);
+        ret.positive := BOOL_TO_DWORD(BOOL#1);
+        ret.negative := BOOL_TO_DWORD(-1);
+        ret.max_overflow := BOOL_TO_DWORD(10);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -590,19 +590,19 @@ fn bool_to_dword() {
 #[test]
 fn bool_to_word() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : WORD; positive : WORD; negative : WORD;
-		max_overflow : WORD;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : WORD; positive : WORD; negative : WORD;
+        max_overflow : WORD;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_WORD(BOOL#0);
-		ret.positive := BOOL_TO_WORD(BOOL#1);
-		ret.negative := BOOL_TO_WORD(-1);
-		ret.max_overflow := BOOL_TO_WORD(10);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_WORD(BOOL#0);
+        ret.positive := BOOL_TO_WORD(BOOL#1);
+        ret.negative := BOOL_TO_WORD(-1);
+        ret.max_overflow := BOOL_TO_WORD(10);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -617,19 +617,19 @@ fn bool_to_word() {
 #[test]
 fn bool_to_byte() {
     let src = r"
-	TYPE myType : STRUCT
-		zero : BYTE; positive : BYTE; negative : BYTE;
-		max_overflow : BYTE;
-	END_STRUCT END_TYPE
+    TYPE myType : STRUCT
+        zero : BYTE; positive : BYTE; negative : BYTE;
+        max_overflow : BYTE;
+    END_STRUCT END_TYPE
 
-	PROGRAM main
-	VAR
-		ret : myType;
-	END_VAR
-		ret.zero := BOOL_TO_BYTE(BOOL#0);
-		ret.positive := BOOL_TO_BYTE(BOOL#1);
-		ret.negative := BOOL_TO_BYTE(-1);
-		ret.max_overflow := BOOL_TO_BYTE(10);
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_BYTE(BOOL#0);
+        ret.positive := BOOL_TO_BYTE(BOOL#1);
+        ret.negative := BOOL_TO_BYTE(-1);
+        ret.max_overflow := BOOL_TO_BYTE(10);
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -651,15 +651,15 @@ fn char_to_byte() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : BYTE;
-		b : BYTE;
-		c : BYTE;
-	END_VAR
-		a := CHAR_TO_BYTE(CHAR#'a');
-		b := CHAR_TO_BYTE(CHAR#'b');
-		c := CHAR_TO_BYTE(CHAR#'c');
+    PROGRAM main
+    VAR
+        a : BYTE;
+        b : BYTE;
+        c : BYTE;
+    END_VAR
+        a := CHAR_TO_BYTE(CHAR#'a');
+        b := CHAR_TO_BYTE(CHAR#'b');
+        c := CHAR_TO_BYTE(CHAR#'c');
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -680,15 +680,15 @@ fn char_to_word() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : WORD;
-		b : WORD;
-		c : WORD;
-	END_VAR
-		a := CHAR_TO_WORD(CHAR#'a');
-		b := CHAR_TO_WORD(CHAR#'b');
-		c := CHAR_TO_WORD(CHAR#'c');
+    PROGRAM main
+    VAR
+        a : WORD;
+        b : WORD;
+        c : WORD;
+    END_VAR
+        a := CHAR_TO_WORD(CHAR#'a');
+        b := CHAR_TO_WORD(CHAR#'b');
+        c := CHAR_TO_WORD(CHAR#'c');
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -709,15 +709,15 @@ fn char_to_dword() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : DWORD;
-		b : DWORD;
-		c : DWORD;
-	END_VAR
-		a := CHAR_TO_DWORD(CHAR#'a');
-		b := CHAR_TO_DWORD(CHAR#'b');
-		c := CHAR_TO_DWORD(CHAR#'c');
+    PROGRAM main
+    VAR
+        a : DWORD;
+        b : DWORD;
+        c : DWORD;
+    END_VAR
+        a := CHAR_TO_DWORD(CHAR#'a');
+        b := CHAR_TO_DWORD(CHAR#'b');
+        c := CHAR_TO_DWORD(CHAR#'c');
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -738,15 +738,15 @@ fn char_to_lword() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : LWORD;
-		b : LWORD;
-		c : LWORD;
-	END_VAR
-		a := CHAR_TO_LWORD(CHAR#'a');
-		b := CHAR_TO_LWORD(CHAR#'b');
-		c := CHAR_TO_LWORD(CHAR#'c');
+    PROGRAM main
+    VAR
+        a : LWORD;
+        b : LWORD;
+        c : LWORD;
+    END_VAR
+        a := CHAR_TO_LWORD(CHAR#'a');
+        b := CHAR_TO_LWORD(CHAR#'b');
+        c := CHAR_TO_LWORD(CHAR#'c');
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -767,15 +767,15 @@ fn wchar_to_word() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : WORD;
-		b : WORD;
-		c : WORD;
-	END_VAR
-		a := WCHAR_TO_WORD(WCHAR#'a');
-		b := WCHAR_TO_WORD(WCHAR#'b');
-		c := WCHAR_TO_WORD(WCHAR#'c');
+    PROGRAM main
+    VAR
+        a : WORD;
+        b : WORD;
+        c : WORD;
+    END_VAR
+        a := WCHAR_TO_WORD(WCHAR#'a');
+        b := WCHAR_TO_WORD(WCHAR#'b');
+        c := WCHAR_TO_WORD(WCHAR#'c');
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -796,15 +796,15 @@ fn wchar_to_dword() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : DWORD;
-		b : DWORD;
-		c : DWORD;
-	END_VAR
-		a := WCHAR_TO_DWORD(WCHAR#'a');
-		b := WCHAR_TO_DWORD(WCHAR#'b');
-		c := WCHAR_TO_DWORD(WCHAR#'c');
+    PROGRAM main
+    VAR
+        a : DWORD;
+        b : DWORD;
+        c : DWORD;
+    END_VAR
+        a := WCHAR_TO_DWORD(WCHAR#'a');
+        b := WCHAR_TO_DWORD(WCHAR#'b');
+        c := WCHAR_TO_DWORD(WCHAR#'c');
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");
@@ -825,15 +825,15 @@ fn wchar_to_lword() {
     }
 
     let src = r"
-	PROGRAM main
-	VAR
-		a : LWORD;
-		b : LWORD;
-		c : LWORD;
-	END_VAR
-		a := WCHAR_TO_LWORD(WCHAR#'a');
-		b := WCHAR_TO_LWORD(WCHAR#'b');
-		c := WCHAR_TO_LWORD(WCHAR#'c');
+    PROGRAM main
+    VAR
+        a : LWORD;
+        b : LWORD;
+        c : LWORD;
+    END_VAR
+        a := WCHAR_TO_LWORD(WCHAR#'a');
+        b := WCHAR_TO_LWORD(WCHAR#'b');
+        c := WCHAR_TO_LWORD(WCHAR#'c');
     END_PROGRAM
         ";
     let sources = add_std!(src, "bit_conversion.st");

@@ -668,12 +668,12 @@ fn visit_array(
                 Ok(Dimension {
                     start_offset: TypeSize::from_expression(constants.add_constant_expression(
                         *start.clone(),
-                        typesystem::INT_TYPE.to_string(),
+                        typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
                     )),
                     end_offset: TypeSize::from_expression(constants.add_constant_expression(
                         *end.clone(),
-                        typesystem::INT_TYPE.to_string(),
+                        typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
                     )),
                 })

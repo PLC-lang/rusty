@@ -8,7 +8,7 @@
                     <content>
 FUNCTION_BLOCK conditional_return
 VAR_INPUT
-	val : DINT;
+    val : DINT;
 END_VAR</content>
                 </textDeclaration>
             </data>

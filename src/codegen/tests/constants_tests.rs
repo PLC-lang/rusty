@@ -6,15 +6,15 @@ fn assigning_const_string_variable() {
     let result = codegen(
         r#"
         PROGRAM main
-		VAR
-			str : STRING;
-		END_VAR
-			str := const_str;
-		END_PROGRAM
+        VAR
+            str : STRING;
+        END_VAR
+            str := const_str;
+        END_PROGRAM
 
-		VAR_GLOBAL CONSTANT
-			const_str : STRING := 'global constant string';
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            const_str : STRING := 'global constant string';
+        END_VAR
     "#,
     );
     // THEN we expect a memcopy for the assignment
@@ -27,15 +27,15 @@ fn assigning_const_array_variable() {
     let result = codegen(
         r#"
         PROGRAM main
-		VAR
-			arr : ARRAY[0..3] OF INT;
-		END_VAR
-			arr := const_arr;
-		END_PROGRAM
+        VAR
+            arr : ARRAY[0..3] OF INT;
+        END_VAR
+            arr := const_arr;
+        END_PROGRAM
 
-		VAR_GLOBAL CONSTANT
-			const_arr : ARRAY[0..3] OF INT := (1,2,3,4);
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            const_arr : ARRAY[0..3] OF INT := (1,2,3,4);
+        END_VAR
     "#,
     );
     // THEN we expect a memcopy for the assignment
@@ -48,21 +48,21 @@ fn assigning_const_struct_variable() {
     let result = codegen(
         r#"
         TYPE Point :
-			STRUCT
-				x,y : INT;
-			END_STRUCT
+            STRUCT
+                x,y : INT;
+            END_STRUCT
         END_TYPE
 
         PROGRAM main
-		VAR
-			strct : Point;
-		END_VAR
-			strct := const_strct;
-		END_PROGRAM
+        VAR
+            strct : Point;
+        END_VAR
+            strct := const_strct;
+        END_PROGRAM
 
-		VAR_GLOBAL CONSTANT
-			const_strct : Point := (x := 1, y := 2);
-		END_VAR
+        VAR_GLOBAL CONSTANT
+            const_strct : Point := (x := 1, y := 2);
+        END_VAR
     "#,
     );
     // THEN we expect a memcopy for the assignment

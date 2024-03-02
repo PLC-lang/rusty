@@ -1,0 +1,21 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: err
+---
+[
+    Diagnostic {
+        message: "Expected a corresponding source-connection mark for sink 'connection1', but could not find one.",
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 3,
+                execution_order: None,
+                inner_range: None,
+            },
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: "E086",
+        sub_diagnostics: [],
+        internal_error: None,
+    },
+]

@@ -1,4 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
@@ -15,6 +16,7 @@ use crate::{
     resolver::{AstAnnotations, Dependency},
     typesystem::{self, DataType, VarArgs},
 };
+use std::collections::HashMap;
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -165,8 +167,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|(i, p)| match declared_parameters.get(i) {
                 Some(v)
                     if v.is_in_parameter_by_ref() &&
-					// parameters by ref will always be a pointer
-					p.into_pointer_type().get_element_type().is_array_type() =>
+                    // parameters by ref will always be a pointer
+                    p.into_pointer_type().get_element_type().is_array_type() =>
                 {
                     // for array types we will generate a pointer to the arrays element type
                     // not a pointer to array
@@ -287,7 +289,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let current_function = self.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
-                &format!("Could not find generated stub for {pou_name}"),
+                format!("Could not find generated stub for {pou_name}"),
                 implementation.location.clone(),
             )
         })?;
@@ -295,27 +297,38 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let (line, column) = implementation
             .statements
             .first()
-            .map(|it| (it.get_location().get_line(), it.get_location().get_column()))
-            .or_else(|| Some((implementation.location.get_line(), implementation.location.get_column())))
+            .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
+            .or_else(|| {
+                Some((implementation.location.get_line_plus_one(), implementation.location.get_column()))
+            })
             // .or_else(|| Some(implementation.location.get_start()))
             .unwrap();
         debug.set_debug_location(&self.llvm, &current_function, line, column);
 
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
+
+        //Create all labels this function will have
+        let mut blocks = HashMap::new();
+        if let Some(labels) = self.index.get_labels(&implementation.name) {
+            for name in labels.keys() {
+                blocks.insert(name.to_string(), self.llvm.context.append_basic_block(current_function, name));
+            }
+        }
         self.llvm.builder.position_at_end(block);
-        //Set debug location
+        blocks.insert("entry".into(), block);
 
         let function_context = FunctionContext {
             linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
                 || {
                     Diagnostic::codegen_error(
-                        &format!("Could not find implementation for {}", &implementation.name),
+                        format!("Could not find implementation for {}", &implementation.name),
                         implementation.location.clone(),
                     )
                 },
             )?,
             function: current_function,
+            blocks,
         };
 
         let mut param_index = 0;
@@ -418,7 +431,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             }
             None => Ok(self.llvm.context.void_type().fn_type(&params, is_var_args)),
             _ => Err(Diagnostic::codegen_error(
-                &format!("Unsupported return type {return_type:?}"),
+                format!("Unsupported return type {return_type:?}"),
                 SourceLocation::undefined(),
             )),
         }
@@ -619,7 +632,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let variable_llvm_type = self
             .llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))?;
+            .map_err(|err| err.with_location(variable.source_location.clone()))?;
 
         let type_size = variable_llvm_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error("Couldn't determine type size", variable.source_location.clone())

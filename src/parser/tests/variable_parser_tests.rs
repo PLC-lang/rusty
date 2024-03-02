@@ -164,14 +164,14 @@ fn two_global_vars_can_be_parsed() {
 
 #[test]
 fn global_var_with_address() {
-    let src = "VAR_GLOBAL 
-            a AT %I* : INT; 
-            b AT %Q* : INT; 
-            c AT %M* : INT; 
-            aa AT %IX7 : INT; 
-            bb AT %QB5.5 : INT; 
-            cc AT %MD3.3.3 : INT; 
-            dd AT %GD4.3.3 : INT; 
+    let src = "VAR_GLOBAL
+            a AT %I* : INT;
+            b AT %Q* : INT;
+            c AT %M* : INT;
+            aa AT %IX7 : INT;
+            bb AT %QB5.5 : INT;
+            cc AT %MD3.3.3 : INT;
+            dd AT %GD4.3.3 : INT;
     END_VAR ";
     let (result, diag) = parse(src);
 
@@ -183,15 +183,15 @@ fn global_var_with_address() {
 #[test]
 fn pou_var_with_address() {
     let src = "PROGRAM main
-    VAR 
-            a AT %I* : INT; 
-            b AT %Q* : INT; 
-            c,d AT %M* : INT; 
-            aa AT %IX7 : INT; 
-            bb AT %QB5.5 : INT; 
-            cc AT %MD3.3.3 : INT; 
-            dd AT %GD4.3.3 : INT; 
-    END_VAR 
+    VAR
+            a AT %I* : INT;
+            b AT %Q* : INT;
+            c,d AT %M* : INT;
+            aa AT %IX7 : INT;
+            bb AT %QB5.5 : INT;
+            cc AT %MD3.3.3 : INT;
+            dd AT %GD4.3.3 : INT;
+    END_VAR
     END_PROGRAM
     ";
     let (result, diag) = parse(src);
@@ -204,13 +204,13 @@ fn pou_var_with_address() {
 #[test]
 fn struct_with_address() {
     let src = "TYPE t : STRUCT
-            a AT %I* : INT; 
-            b AT %Q* : INT; 
-            c AT %M* : INT; 
-            aa AT %IX7 : INT; 
-            bb AT %QB5.5 : INT; 
-            cc AT %MD3.3.3 : INT; 
-            dd AT %GD4.3.3 : INT; 
+            a AT %I* : INT;
+            b AT %Q* : INT;
+            c AT %M* : INT;
+            aa AT %IX7 : INT;
+            bb AT %QB5.5 : INT;
+            cc AT %MD3.3.3 : INT;
+            dd AT %GD4.3.3 : INT;
     END_STRUCT
     END_TYPE
     ";

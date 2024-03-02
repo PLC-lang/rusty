@@ -26,7 +26,7 @@ impl Task for Lexer {
         let elapsed = now.elapsed();
 
         assert_eq!(lexer.token, plc::lexer::Token::End);
-        assert_eq!(lexer.last_range, 139145..139156);
+        assert_eq!(lexer.last_range, 143145..143156);
         Ok(elapsed)
     }
 

@@ -258,7 +258,7 @@ fn int_bigger_than_byte_promoted_on_compare_statement() {
 #[test]
 fn numerical_promotion_for_variadic_functions_without_declaration() {
     let src = r#"
-    {external} 
+    {external}
     FUNCTION printf : DINT
     VAR_IN_OUT
         format: STRING;
@@ -268,7 +268,7 @@ fn numerical_promotion_for_variadic_functions_without_declaration() {
     END_VAR
     END_FUNCTION
 
-    PROGRAM main 
+    PROGRAM main
     VAR_TEMP
         s: STRING := '$N numbers: %f %f %f %d $N $N';
         float: REAL := 3.0;
@@ -286,7 +286,7 @@ fn numerical_promotion_for_variadic_functions_without_declaration() {
 #[test]
 fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type() {
     let src = r#"
-    {external} 
+    {external}
     FUNCTION printf : DINT
     VAR_IN_OUT
         format: STRING;

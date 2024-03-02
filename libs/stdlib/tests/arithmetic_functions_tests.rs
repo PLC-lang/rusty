@@ -186,7 +186,7 @@ fn sin_called_on_real() {
                 a,b : REAL;
             END_VAR
             a := SIN(FRAC_PI_2_REAL) - REAL#1.0;
-            b := SIN(REAL#0.0); 
+            b := SIN(REAL#0.0);
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -204,7 +204,7 @@ fn sin_called_on_lreal() {
                 a,b : LREAL;
             END_VAR
             a := SIN(FRAC_PI_2_LREAL) - LREAL#1.0;
-            b := SIN(LREAL#0.0); 
+            b := SIN(LREAL#0.0);
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -221,8 +221,8 @@ fn cos_called_on_real() {
             VAR
                 a,b : REAL;
             END_VAR
-            a := COS(PI_REAL) + REAL#1.0; 
-            b := COS(REAL#0.0) - REAL#1.0; 
+            a := COS(PI_REAL) + REAL#1.0;
+            b := COS(REAL#0.0) - REAL#1.0;
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -239,8 +239,8 @@ fn cos_called_on_lreal() {
             VAR
                 a,b : LREAL;
             END_VAR
-            a := COS(PI_LREAL) + LREAL#1.0; 
-            b := COS(LREAL#0.0) - LREAL#1.0; 
+            a := COS(PI_LREAL) + LREAL#1.0;
+            b := COS(LREAL#0.0) - LREAL#1.0;
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -257,8 +257,8 @@ fn tan_called_on_real() {
             VAR
                 a,b : REAL;
             END_VAR
-            a := TAN(FRAC_PI_4_REAL) - REAL#1.0; 
-            b := TAN(PI_REAL); 
+            a := TAN(FRAC_PI_4_REAL) - REAL#1.0;
+            b := TAN(PI_REAL);
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -275,8 +275,8 @@ fn tan_called_on_lreal() {
             VAR
                 a,b : LREAL;
             END_VAR
-            a := TAN(FRAC_PI_4_LREAL) - LREAL#1.0; 
-            a := TAN(PI_LREAL); 
+            a := TAN(FRAC_PI_4_LREAL) - LREAL#1.0;
+            a := TAN(PI_LREAL);
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -357,7 +357,7 @@ fn atan_called_on_real() {
             VAR
                 a,b : REAL;
             END_VAR
-            a := ATAN(REAL#1.0) - FRAC_PI_4_REAL; 
+            a := ATAN(REAL#1.0) - FRAC_PI_4_REAL;
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -373,7 +373,7 @@ fn atan_called_on_lreal() {
             VAR
                 a,b : LREAL;
             END_VAR
-            a := ATAN(LREAL#1.0) - FRAC_PI_4_LREAL; 
+            a := ATAN(LREAL#1.0) - FRAC_PI_4_LREAL;
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -389,8 +389,8 @@ fn atan2_called_on_real() {
             VAR
                 a,b : REAL;
             END_VAR
-            a := ATAN2(REAL#-3.0, REAL#3.0) + FRAC_PI_4_REAL; 
-            b := ATAN2(REAL#3.0, REAL#-3.0) - (REAL#3.0 * FRAC_PI_4_REAL); 
+            a := ATAN2(REAL#-3.0, REAL#3.0) + FRAC_PI_4_REAL;
+            b := ATAN2(REAL#3.0, REAL#-3.0) - (REAL#3.0 * FRAC_PI_4_REAL);
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");
@@ -407,8 +407,8 @@ fn atan2_called_on_lreal() {
             VAR
                 a,b : LREAL;
             END_VAR
-            a := ATAN2(LREAL#-3.0, LREAL#3.0) + FRAC_PI_4_LREAL; 
-            b := ATAN2(LREAL#3.0, LREAL#-3.0) - (REAL#3.0 * FRAC_PI_4_LREAL); 
+            a := ATAN2(LREAL#-3.0, LREAL#3.0) + FRAC_PI_4_LREAL;
+            b := ATAN2(LREAL#3.0, LREAL#-3.0) - (REAL#3.0 * FRAC_PI_4_LREAL);
             END_PROGRAM
         ";
     let sources = add_std!(src, "arithmetic_functions.st");

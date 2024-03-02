@@ -1,7 +1,23 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "prg: Ambiguous global variable.", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 16, offset: 64 }..TextLocation { line: 3, column: 19, offset: 67 }) }, SourceLocation { span: Range(TextLocation { line: 7, column: 20, offset: 139 }..TextLocation { line: 7, column: 23, offset: 142 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "prg: Ambiguous global variable.", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 20, offset: 139 }..TextLocation { line: 7, column: 23, offset: 142 }) }, SourceLocation { span: Range(TextLocation { line: 3, column: 16, offset: 64 }..TextLocation { line: 3, column: 19, offset: 67 }) }], err_no: duplicate_symbol }
+error: prg: Ambiguous global variable.
+  ┌─ <internal>:4:17
+  │
+4 │                 prg: INT;
+  │                 ^^^ prg: Ambiguous global variable.
+  ·
+8 │             PROGRAM prg
+  │                     --- see also
+
+error: prg: Ambiguous global variable.
+  ┌─ <internal>:8:21
+  │
+4 │                 prg: INT;
+  │                 --- see also
+  ·
+8 │             PROGRAM prg
+  │                     ^^^ prg: Ambiguous global variable.
+
 

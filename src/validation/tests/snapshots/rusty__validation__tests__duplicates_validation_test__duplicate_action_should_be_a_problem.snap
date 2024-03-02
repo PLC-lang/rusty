@@ -1,7 +1,23 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "prg.foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 19, offset: 168 }..TextLocation { line: 8, column: 22, offset: 171 }) }, SourceLocation { span: Range(TextLocation { line: 16, column: 19, offset: 310 }..TextLocation { line: 16, column: 22, offset: 313 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "prg.foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 19, offset: 310 }..TextLocation { line: 16, column: 22, offset: 313 }) }, SourceLocation { span: Range(TextLocation { line: 8, column: 19, offset: 168 }..TextLocation { line: 8, column: 22, offset: 171 }) }], err_no: duplicate_symbol }
+error: prg.foo: Ambiguous callable symbol.
+   ┌─ <internal>:9:20
+   │
+ 9 │             ACTION foo
+   │                    ^^^ prg.foo: Ambiguous callable symbol.
+   ·
+17 │             ACTION foo
+   │                    --- see also
+
+error: prg.foo: Ambiguous callable symbol.
+   ┌─ <internal>:17:20
+   │
+ 9 │             ACTION foo
+   │                    --- see also
+   ·
+17 │             ACTION foo
+   │                    ^^^ prg.foo: Ambiguous callable symbol.
+
 

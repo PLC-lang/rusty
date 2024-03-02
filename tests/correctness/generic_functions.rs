@@ -77,7 +77,7 @@ fn test_generic_function_implemented_in_st_called() {
         times_two__REAL := val * 2.0;
     END_FUNCTION
 
-    PROGRAM main 
+    PROGRAM main
     VAR
         a : INT;
         b : REAL;
@@ -143,7 +143,7 @@ fn test_generic_function_with_param_by_ref_called() {
         LEFT_EXT(IN, L, LEFT__STRING);
     END_FUNCTION
 
-    PROGRAM main 
+    PROGRAM main
         VAR
         END_VAR
     END_PROGRAM
@@ -186,34 +186,34 @@ fn test_any_real_called_with_ints() {
     VAR_INPUT
         val : REAL;
     END_VAR
-		times_two__REAL := val * REAL#2.0;
+        times_two__REAL := val * REAL#2.0;
     END_FUNCTION
 
     FUNCTION times_two__LREAL : LREAL
     VAR_INPUT
         val : LREAL;
     END_VAR
-		times_two__LREAL := val * LREAL#2.0;
+        times_two__LREAL := val * LREAL#2.0;
     END_FUNCTION
 
-    PROGRAM main 
+    PROGRAM main
     VAR
         a : REAL;
         b : LREAL;
-		c : REAL;
-		d : REAL;
-		e : REAL;
-		f : REAL;
+        c : REAL;
+        d : REAL;
+        e : REAL;
+        f : REAL;
     END_VAR
-	VAR_TEMP
-		v_dint : DINT := -6;
-	END_VAR
+    VAR_TEMP
+        v_dint : DINT := -6;
+    END_VAR
         a := times_two(REAL#2);
         b := times_two(LREAL#3);
-		c := times_two(SINT#-4);
-		d := times_two(UINT#5);
-		e := times_two(v_dint);
-		f := times_two(ULINT#7);
+        c := times_two(SINT#-4);
+        d := times_two(UINT#5);
+        e := times_two(v_dint);
+        f := times_two(ULINT#7);
     END_PROGRAM
     ";
 

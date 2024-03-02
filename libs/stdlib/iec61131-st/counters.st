@@ -12,16 +12,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : INT;
+    CU : BOOL;
+    R : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -39,16 +39,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_INT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : INT;
+    CU : BOOL;
+    R : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -66,16 +66,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_DINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : DINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : DINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : DINT;
+    Q : BOOL;
+    CV : DINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -93,16 +93,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_UDINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : UDINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : UDINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : UDINT;
+    Q : BOOL;
+    CV : UDINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -120,16 +120,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_LINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : LINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : LINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : LINT;
+    Q : BOOL;
+    CV : LINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -147,16 +147,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTU_ULINT
 VAR_INPUT
-	CU : BOOL;
-	R : BOOL;
-	PV : ULINT;
+    CU : BOOL;
+    R : BOOL;
+    PV : ULINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : ULINT;
+    Q : BOOL;
+    CV : ULINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -174,16 +174,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -201,16 +201,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_INT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : INT;
+    Q : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -228,16 +228,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_DINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : DINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : DINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : DINT;
+    Q : BOOL;
+    CV : DINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -255,16 +255,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_UDINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : UDINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : UDINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : UDINT;
+    Q : BOOL;
+    CV : UDINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -282,16 +282,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_LINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : LINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : LINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : LINT;
+    Q : BOOL;
+    CV : LINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -309,16 +309,16 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTD_ULINT
 VAR_INPUT
-	CD : BOOL;
-	LD : BOOL;
-	PV : ULINT;
+    CD : BOOL;
+    LD : BOOL;
+    PV : ULINT;
 END_VAR
 VAR_OUTPUT
-	Q : BOOL;
-	CV : ULINT;
+    Q : BOOL;
+    CV : ULINT;
 END_VAR
 VAR
-	M : BOOL;
+    M : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -339,20 +339,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : INT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -373,20 +373,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_INT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : INT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : INT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : INT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : INT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -407,20 +407,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_DINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : DINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : DINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : DINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : DINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -441,20 +441,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_UDINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : UDINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : UDINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : UDINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : UDINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -475,20 +475,20 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_LINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : LINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : LINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : LINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : LINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -509,19 +509,19 @@ Return: Output is used as return value
 {external}
 FUNCTION_BLOCK CTUD_ULINT
 VAR_INPUT
-	CU : BOOL;
-	CD : BOOL;
-	R : BOOL;
-	LD : BOOL;
-	PV : ULINT;
+    CU : BOOL;
+    CD : BOOL;
+    R : BOOL;
+    LD : BOOL;
+    PV : ULINT;
 END_VAR
 VAR_OUTPUT
-	QU : BOOL;
-	QD : BOOL;
-	CV : ULINT;
+    QU : BOOL;
+    QD : BOOL;
+    CV : ULINT;
 END_VAR
 VAR
-	MU : BOOL;
-	MD : BOOL;
+    MU : BOOL;
+    MD : BOOL;
 END_VAR
 END_FUNCTION_BLOCK

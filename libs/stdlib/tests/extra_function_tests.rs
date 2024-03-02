@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Utc};
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Timelike, Utc};
 mod common;
 use common::add_std;
 use common::{compile_and_run, compile_and_run_no_params, compile_with_native};
@@ -439,7 +439,7 @@ fn real_to_string_conversion() {
     FUNCTION main : STRING
     VAR
         in: REAL := 13234.25;
-    END_VAR        
+    END_VAR
         main := REAL_TO_STRING(in);
     END_FUNCTION
     "#;
@@ -558,7 +558,7 @@ fn dt_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_micro_opt(1, 59, 59, 256700).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -584,7 +584,7 @@ fn ldt_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_micro_opt(1, 59, 59, 256700).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -610,7 +610,7 @@ fn date_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -636,7 +636,7 @@ fn ldate_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -990,7 +990,7 @@ fn date_to_lint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1016,7 +1016,7 @@ fn ldate_to_lint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1041,8 +1041,8 @@ fn dt_to_lint_conversion() {
     let res: i64 = compile_and_run_no_params(sources);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
-    let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
-    let expected = datetime_utc.timestamp_nanos();
+    let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
+    let expected = datetime_utc.timestamp_nanos_opt().unwrap();
     assert_eq!(expected, res)
 }
 
@@ -1067,8 +1067,8 @@ fn ldt_to_lint_conversion() {
     let res: i64 = compile_and_run_no_params(sources);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
-    let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
-    let expected = datetime_utc.timestamp_nanos();
+    let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
+    let expected = datetime_utc.timestamp_nanos_opt().unwrap();
     assert_eq!(expected, res)
 }
 
@@ -1197,7 +1197,7 @@ fn date_to_ulint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1223,7 +1223,7 @@ fn ldate_to_ulint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos() as u64;
+    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1248,8 +1248,8 @@ fn dt_to_ulint_conversion() {
     let res: u64 = compile_and_run_no_params(sources);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
-    let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
-    let expected = datetime_utc.timestamp_nanos() as u64;
+    let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
+    let expected = datetime_utc.timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1274,8 +1274,8 @@ fn ldt_to_ulint_conversion() {
     let res: u64 = compile_and_run_no_params(sources);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
-    let datetime_utc = DateTime::<Utc>::from_utc(naivedatetime_utc, Utc);
-    let expected = datetime_utc.timestamp_nanos() as u64;
+    let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
+    let expected = datetime_utc.timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1590,7 +1590,7 @@ fn u64_to_ldate_signed_overflow() {
     let src = r#"
     FUNCTION main : DATE
     VAR
-        ul : ULINT := 9_223_372_036_854_775_807 + 1; //i64::MAX + 1 
+        ul : ULINT := 9_223_372_036_854_775_807 + 1; //i64::MAX + 1
     END_VAR
         main := ULINT_TO_DATE(ul);
     END_FUNCTION
@@ -1770,7 +1770,7 @@ fn dt_to_string_conversion() {
     FUNCTION main : STRING
     VAR
         in: DT := DT#1970-01-01-01:10:00;
-    END_VAR        
+    END_VAR
         main := DT_TO_STRING(in);
     END_FUNCTION
     "#;
@@ -1796,7 +1796,7 @@ fn dt_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: DT := DT#1970-01-01-01:10:00;
-    END_VAR        
+    END_VAR
         main := DT_TO_WSTRING(in);
     END_FUNCTION
     "#;
@@ -1849,7 +1849,7 @@ fn date_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: DATE := DATE#1970-01-01;
-    END_VAR        
+    END_VAR
         main := DATE_TO_WSTRING(in);
     END_FUNCTION
     "#;
@@ -1876,7 +1876,7 @@ fn time_to_string_conversion() {
     FUNCTION main : STRING
     VAR
         in: TIME := T#6d2m123ms456us789ns;
-    END_VAR        
+    END_VAR
         main := TIME_TO_STRING(in);
     END_FUNCTION
     "#;
@@ -1902,7 +1902,7 @@ fn time_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: TIME := T#6d3h2m9ns;
-    END_VAR        
+    END_VAR
         main := TIME_TO_WSTRING(in);
     END_FUNCTION
     "#;
@@ -1929,7 +1929,7 @@ fn tod_ltod_to_string_conversion() {
     FUNCTION main : STRING
     VAR
         in: TOD := TOD#15:36:55.123;
-    END_VAR        
+    END_VAR
         main := TOD_TO_STRING(in);
     END_FUNCTION
     "#;
@@ -1955,7 +1955,7 @@ fn tod_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: TOD := TOD#15:36:55.123;
-    END_VAR        
+    END_VAR
         main := TOD_TO_WSTRING(in);
     END_FUNCTION
     "#;
@@ -1982,7 +1982,7 @@ fn ldt_to_string_conversion() {
     FUNCTION main : STRING
     VAR
         in: LDT := LDT#1970-01-01-01:10:00;
-    END_VAR        
+    END_VAR
         main := LDT_TO_STRING(in);
     END_FUNCTION
     "#;
@@ -2008,7 +2008,7 @@ fn ldt_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: LDT := LDT#1970-01-01-01:10:00;
-    END_VAR        
+    END_VAR
         main := LDT_TO_WSTRING(in);
     END_FUNCTION
     "#;
@@ -2061,7 +2061,7 @@ fn ldate_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: LDATE := LDATE#1970-01-01;
-    END_VAR        
+    END_VAR
         main := LDATE_TO_WSTRING(in);
     END_FUNCTION
     "#;
@@ -2088,7 +2088,7 @@ fn ltime_to_string_conversion() {
     FUNCTION main : STRING
     VAR
         in: LTIME := LT#6d3h2m9ns;
-    END_VAR        
+    END_VAR
         main := LTIME_TO_STRING(in);
     END_FUNCTION
     "#;
@@ -2114,7 +2114,7 @@ fn ltime_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: LTIME := LT#6d3h2m9ns;
-    END_VAR        
+    END_VAR
         main := LTIME_TO_WSTRING(in);
     END_FUNCTION
     "#;
@@ -2141,7 +2141,7 @@ fn ltod_to_string_conversion() {
     FUNCTION main : STRING
     VAR
         in: LTOD := LTOD#15:36:55.123;
-    END_VAR        
+    END_VAR
         main := LTOD_TO_STRING(in);
     END_FUNCTION
     "#;
@@ -2167,7 +2167,7 @@ fn ltod_to_wstring_conversion() {
     FUNCTION main : WSTRING
     VAR
         in: LTOD := LTOD#15:36:55.123;
-    END_VAR        
+    END_VAR
         main := LTOD_TO_WSTRING(in);
     END_FUNCTION
     "#;

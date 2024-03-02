@@ -1,8 +1,43 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Invalid case condition!", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 4, offset: 120 }..TextLocation { line: 10, column: 10, offset: 126 }) }], err_no: case__case_condition_outside_case_statement }
-SyntaxError { message: "Cannot resolve constant: CallStatement {\n    operator: ReferenceExpr {\n        kind: Member(\n            Identifier {\n                name: \"foo\",\n            },\n        ),\n        base: None,\n    },\n    parameters: None,\n}. Non constant variables are not supported in case conditions", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 4, offset: 120 }..TextLocation { line: 10, column: 10, offset: 126 }) }], err_no: type__invalid_type }
-SyntaxError { message: "Invalid case condition!", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 4, offset: 146 }..TextLocation { line: 12, column: 12, offset: 154 }) }], err_no: case__case_condition_outside_case_statement }
+error: Invalid case condition!
+   ┌─ <internal>:11:17
+   │
+11 │                 foo():
+   │                 ^^^^^^ Invalid case condition!
+
+error: Cannot resolve constant: CallStatement {
+    operator: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "foo",
+            },
+        ),
+        base: None,
+    },
+    parameters: None,
+}. Non constant variables are not supported in case conditions
+   ┌─ <internal>:11:17
+   │
+11 │                 foo():
+   │                 ^^^^^^ Cannot resolve constant: CallStatement {
+    operator: ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "foo",
+            },
+        ),
+        base: None,
+    },
+    parameters: None,
+}. Non constant variables are not supported in case conditions
+
+error: Invalid case condition!
+   ┌─ <internal>:13:17
+   │
+13 │                 res := 2:
+   │                 ^^^^^^^^ Invalid case condition!
+
 

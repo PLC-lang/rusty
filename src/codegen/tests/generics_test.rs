@@ -18,7 +18,7 @@ fn generic_function_call_generates_real_type_call() {
         @EXTERNAL FUNCTION MAX<T : ANY_NUM> : T VAR_INPUT in1, in2 : T END_VAR END_FUNCTION
         FUNCTION MAX__DINT : DINT VAR_INPUT in1, in2 : DINT END_VAR END_FUNCTION
 
-        PROGRAM prg 
+        PROGRAM prg
         VAR
             a, b : INT;
         END_VAR
@@ -36,7 +36,7 @@ fn generic_function_call_generates_real_type_call() {
 fn generic_output_parameter() {
     // GIVEN ... (see comments in st-code)
     let src = r"
-        // ... a generic function FOO with a T, defined by a VAR_OUT 
+        // ... a generic function FOO with a T, defined by a VAR_OUT
         // parameter (which will be interally treated as a pointer)
             FUNCTION foo <T: ANY_INT> : T
                 VAR_INPUT   in1 : DATE; END_VAR
@@ -51,8 +51,8 @@ fn generic_output_parameter() {
 
         // ... AND a program calling foo with an INT-parameter
             PROGRAM prg
-            VAR 
-                theInt, iResult : INT; 
+            VAR
+                theInt, iResult : INT;
                 data : DATE;
             END_VAR
 
@@ -67,14 +67,14 @@ fn generic_output_parameter() {
 #[test]
 fn generic_call_gets_cast_to_biggest_type() {
     let src = r"
- 
+
     {external}
     FUNCTION MAX<T : ANY> : T
         VAR_INPUT
             args : {sized} T...;
         END_VAR
     END_FUNCTION
- 
+
  FUNCTION main : LREAL
     main := MAX(SINT#5,DINT#1,LREAL#1.5,1.2);
     END_FUNCTION";
@@ -86,38 +86,38 @@ fn generic_call_gets_cast_to_biggest_type() {
 #[test]
 fn any_real_function_called_with_ints() {
     let src = r"
-		FUNCTION foo <T: ANY_REAL> : T
-			VAR_INPUT   in1 : T; END_VAR
-		END_FUNCTION
+        FUNCTION foo <T: ANY_REAL> : T
+            VAR_INPUT   in1 : T; END_VAR
+        END_FUNCTION
 
-		FUNCTION foo__REAL : REAL
-			VAR_INPUT   in1 : REAL; END_VAR
-		END_FUNCTION
+        FUNCTION foo__REAL : REAL
+            VAR_INPUT   in1 : REAL; END_VAR
+        END_FUNCTION
 
-		PROGRAM prg
-		VAR 
-			res_sint : REAL;
-			res_int : REAL;
-			res_dint : REAL;
-			res_lint : LREAL;
-			res_usint : REAL;
-			res_uint : REAL;
-			res_udint : REAL;
-			res_ulint : LREAL;
-		END_VAR
-		VAR_TEMP
-			v_dint : DINT := 1;
-			v_udint : DINT := 1;
-		END_VAR
-			res_sint := foo(SINT#1);
-			res_int := foo(INT#1);
-			res_dint := foo(v_dint);
-			res_lint := foo(LINT#1);
-			res_usint := foo(USINT#1);
-			res_uint := foo(UINT#1);
-			res_udint := foo(v_udint);
-			res_ulint := foo(ULINT#1);
-		END_PROGRAM";
+        PROGRAM prg
+        VAR
+            res_sint : REAL;
+            res_int : REAL;
+            res_dint : REAL;
+            res_lint : LREAL;
+            res_usint : REAL;
+            res_uint : REAL;
+            res_udint : REAL;
+            res_ulint : LREAL;
+        END_VAR
+        VAR_TEMP
+            v_dint : DINT := 1;
+            v_udint : DINT := 1;
+        END_VAR
+            res_sint := foo(SINT#1);
+            res_int := foo(INT#1);
+            res_dint := foo(v_dint);
+            res_lint := foo(LINT#1);
+            res_usint := foo(USINT#1);
+            res_uint := foo(UINT#1);
+            res_udint := foo(v_udint);
+            res_ulint := foo(ULINT#1);
+        END_PROGRAM";
     //Expecting to REAL/LREAL conversion for every call
     insta::assert_snapshot!(codegen(src));
 }

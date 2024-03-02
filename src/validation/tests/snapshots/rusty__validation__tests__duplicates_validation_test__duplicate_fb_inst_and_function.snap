@@ -1,7 +1,23 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 16, offset: 142 }..TextLocation { line: 6, column: 19, offset: 145 }) }, SourceLocation { span: Range(TextLocation { line: 9, column: 21, offset: 196 }..TextLocation { line: 9, column: 24, offset: 199 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 21, offset: 196 }..TextLocation { line: 9, column: 24, offset: 199 }) }, SourceLocation { span: Range(TextLocation { line: 6, column: 16, offset: 142 }..TextLocation { line: 6, column: 19, offset: 145 }) }], err_no: duplicate_symbol }
+error: foo: Ambiguous callable symbol.
+   ┌─ <internal>:7:17
+   │
+ 7 │                 foo: FooFB;
+   │                 ^^^ foo: Ambiguous callable symbol.
+   ·
+10 │             FUNCTION foo: INT
+   │                      --- see also
+
+error: foo: Ambiguous callable symbol.
+   ┌─ <internal>:10:22
+   │
+ 7 │                 foo: FooFB;
+   │                 --- see also
+   ·
+10 │             FUNCTION foo: INT
+   │                      ^^^ foo: Ambiguous callable symbol.
+
 

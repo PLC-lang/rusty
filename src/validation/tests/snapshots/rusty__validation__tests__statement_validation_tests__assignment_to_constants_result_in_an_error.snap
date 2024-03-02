@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Cannot assign to CONSTANT 'prg.cl'", range: [SourceLocation { span: Range(TextLocation { line: 19, column: 12, offset: 327 }..TextLocation { line: 19, column: 14, offset: 329 }) }], err_no: var__cannot_assign_to_const }
-SyntaxError { message: "Cannot assign to CONSTANT 'ci'", range: [SourceLocation { span: Range(TextLocation { line: 21, column: 12, offset: 371 }..TextLocation { line: 21, column: 14, offset: 373 }) }], err_no: var__cannot_assign_to_const }
+error: Cannot assign to CONSTANT 'prg.cl'
+   ┌─ <internal>:20:13
+   │
+20 │             cl  := 4;
+   │             ^^ Cannot assign to CONSTANT 'prg.cl'
+
+error: Cannot assign to CONSTANT 'ci'
+   ┌─ <internal>:22:13
+   │
+22 │             ci  := 4;
+   │             ^^ Cannot assign to CONSTANT 'ci'
+
 

@@ -5,9 +5,9 @@
 *********************)
 FUNCTION LWORD_TO_DWORD : DWORD
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_DWORD := in;
+    LWORD_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -17,9 +17,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_WORD : WORD
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_WORD := in;
+    LWORD_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -29,9 +29,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_BYTE : BYTE
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_BYTE := in;
+    LWORD_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -41,9 +41,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_BOOL : BOOL
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_BOOL := in.0;
+    LWORD_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -53,9 +53,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_LWORD : LWORD
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_LWORD := in;
+    DWORD_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -65,9 +65,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_WORD : WORD
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_WORD := in;
+    DWORD_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -77,9 +77,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_BYTE : BYTE
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_BYTE := in;
+    DWORD_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -89,9 +89,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_BOOL : BOOL
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_BOOL := in.0;
+    DWORD_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -101,9 +101,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_LWORD : LWORD
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_LWORD := in;
+    WORD_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -113,9 +113,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_DWORD : DWORD
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_DWORD := in;
+    WORD_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -125,9 +125,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_BYTE : BYTE
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_BYTE := in;
+    WORD_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -137,9 +137,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_BOOL : BOOL
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_BOOL := in.0;
+    WORD_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -149,9 +149,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_LWORD : LWORD
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_LWORD := in;
+    BYTE_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -161,9 +161,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_DWORD : DWORD
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_DWORD := in;
+    BYTE_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -173,9 +173,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_WORD : WORD
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_WORD := in;
+    BYTE_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -185,9 +185,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_BOOL : BOOL
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_BOOL := in.0;
+    BYTE_TO_BOOL := in.0;
 END_FUNCTION
 
 (********************
@@ -197,13 +197,13 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_CHAR : CHAR
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
 VAR
-	ptr : REF_TO CHAR;
+    ptr : REF_TO CHAR;
 END_VAR
-	ptr := &in;
-	BYTE_TO_CHAR := ptr^;
+    ptr := &in;
+    BYTE_TO_CHAR := ptr^;
 END_FUNCTION
 
 (********************
@@ -213,13 +213,13 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_LWORD : LWORD
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_LWORD := 1;
-	ELSE
-		BOOL_TO_LWORD := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_LWORD := 1;
+    ELSE
+        BOOL_TO_LWORD := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -229,13 +229,13 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_DWORD : DWORD
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_DWORD := 1;
-	ELSE
-		BOOL_TO_DWORD := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_DWORD := 1;
+    ELSE
+        BOOL_TO_DWORD := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -245,13 +245,13 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_WORD : WORD
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_WORD := 1;
-	ELSE
-		BOOL_TO_WORD := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_WORD := 1;
+    ELSE
+        BOOL_TO_WORD := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -261,13 +261,13 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_BYTE : BYTE
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	IF in <> 0 THEN
-		BOOL_TO_BYTE := 1;
-	ELSE
-		BOOL_TO_BYTE := 0;
-	END_IF;
+    IF in <> 0 THEN
+        BOOL_TO_BYTE := 1;
+    ELSE
+        BOOL_TO_BYTE := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -277,13 +277,13 @@ END_FUNCTION
 *********************)
 FUNCTION CHAR_TO_BYTE : BYTE
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
 VAR
-	ptr : REF_TO BYTE;
+    ptr : REF_TO BYTE;
 END_VAR
-	ptr := &in;
-	CHAR_TO_BYTE := ptr^;
+    ptr := &in;
+    CHAR_TO_BYTE := ptr^;
 END_FUNCTION
 
 (********************
@@ -293,9 +293,9 @@ END_FUNCTION
 *********************)
 FUNCTION CHAR_TO_WORD : WORD
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
-	CHAR_TO_WORD := CHAR_TO_BYTE(in);
+    CHAR_TO_WORD := CHAR_TO_BYTE(in);
 END_FUNCTION
 
 (********************
@@ -305,9 +305,9 @@ END_FUNCTION
 *********************)
 FUNCTION CHAR_TO_DWORD : DWORD
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
-	CHAR_TO_DWORD := CHAR_TO_BYTE(in);
+    CHAR_TO_DWORD := CHAR_TO_BYTE(in);
 END_FUNCTION
 
 (********************
@@ -317,9 +317,9 @@ END_FUNCTION
 *********************)
 FUNCTION CHAR_TO_LWORD : LWORD
 VAR_INPUT
-	in : CHAR;
+    in : CHAR;
 END_VAR
-	CHAR_TO_LWORD := CHAR_TO_BYTE(in);
+    CHAR_TO_LWORD := CHAR_TO_BYTE(in);
 END_FUNCTION
 
 (********************
@@ -329,13 +329,13 @@ END_FUNCTION
 *********************)
 FUNCTION WCHAR_TO_WORD : WORD
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
 VAR
-	ptr : REF_TO WORD;
+    ptr : REF_TO WORD;
 END_VAR
-	ptr := &in;
-	WCHAR_TO_WORD := ptr^;
+    ptr := &in;
+    WCHAR_TO_WORD := ptr^;
 END_FUNCTION
 
 (********************
@@ -345,9 +345,9 @@ END_FUNCTION
 *********************)
 FUNCTION WCHAR_TO_DWORD : DWORD
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
-	WCHAR_TO_DWORD := WCHAR_TO_WORD(in);
+    WCHAR_TO_DWORD := WCHAR_TO_WORD(in);
 END_FUNCTION
 
 (********************
@@ -357,7 +357,7 @@ END_FUNCTION
 *********************)
 FUNCTION WCHAR_TO_LWORD : LWORD
 VAR_INPUT
-	in : WCHAR;
+    in : WCHAR;
 END_VAR
-	WCHAR_TO_LWORD := WCHAR_TO_WORD(in);
+    WCHAR_TO_LWORD := WCHAR_TO_WORD(in);
 END_FUNCTION

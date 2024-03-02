@@ -2,23 +2,25 @@ use plc_ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
+use plc_index::GlobalContext;
 use plc_source::source_location::SourceLocationFactory;
+use plc_source::SourceCode;
 
 use crate::{
-    assert_validation_snapshot,
     index::{visitor, Index},
     lexer, parser,
     resolver::TypeAnnotator,
-    test_utils::tests::parse_and_validate,
+    test_utils::tests::parse_and_validate_buffered,
     typesystem,
     validation::Validator,
 };
+use insta::assert_snapshot;
 
 #[test]
 fn duplicate_pous_validation() {
     // GIVEN two POUs witht he same name
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION        foo : INT  END_FUNCTION
 
@@ -28,42 +30,42 @@ fn duplicate_pous_validation() {
     "#,
     );
     // THEN there should be 3 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_pous_and_types_validation() {
     // GIVEN a POU and a Type with the same name
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
         TYPE foo : INT; END_TYPE
     "#,
     );
     // THEN there should be 3 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_function_and_type_is_no_issue() {
     // GIVEN a Function and a Type with the same name
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION  foo: INT  END_FUNCTION
         TYPE foo : INT; END_TYPE
     "#,
     );
     // THEN there should be 0 duplication diagnostics
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn duplicate_global_variables() {
     // GIVEN some duplicate global variables
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         VAR_GLOBAL
             a: INT;
@@ -74,18 +76,18 @@ fn duplicate_global_variables() {
         VAR_GLOBAL
             a: BOOL;
         END_VAR
-    
+
         "#,
     );
     // THEN there should be 0 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_variables_in_same_pou() {
     // GIVEN a POU with a duplicate variable
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM prg
         VAR
@@ -100,28 +102,28 @@ fn duplicate_variables_in_same_pou() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_enum_members_in_different_types_is_no_issue() {
     // GIVEN a two enums with the same elements
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             TYPE enum1 : (red, green, yellow); END_TYPE
             TYPE enum2 : (red, green, yellow); END_TYPE
         "#,
     );
     // THEN there should be no issues
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn duplicate_fb_inst_and_function() {
     // GIVEN a global fb-instance called foo and a function called foo
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             FUNCTION_BLOCK FooFB
                 VAR x : INT; END_VAR
@@ -139,27 +141,27 @@ fn duplicate_fb_inst_and_function() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_enum_variables() {
     // GIVEN an enum with two identical elements
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             TYPE enum1 : (red, green, yellow, red); END_TYPE
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_global_and_program() {
     // GIVEN a global variable `prg` and a Program `prg`
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             VAR_GLOBAL
                 a: INT;
@@ -175,14 +177,14 @@ fn duplicate_global_and_program() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_action_should_be_a_problem() {
     // GIVEN a program with two actions with the same name
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             PROGRAM prg
                 VAR_INPUT
@@ -190,7 +192,7 @@ fn duplicate_action_should_be_a_problem() {
                 END_VAR
             END_PROGRAM
 
-            ACTIONS 
+            ACTIONS
             ACTION foo
                 x := 2;
             END_ACTION
@@ -208,40 +210,40 @@ fn duplicate_action_should_be_a_problem() {
     );
 
     // THEN there should be 2 duplication diagnostics
-    assert_validation_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics);
 }
 
 #[test]
 fn duplicate_actions_in_different_pous_are_no_issue() {
     // GIVEN two POUs with actions with the same name
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             PROGRAM prg
             END_PROGRAM
 
-            ACTIONS 
+            ACTIONS
                 ACTION foo END_ACTION
             END_ACTIONS
 
             PROGRAM prg2
             END_PROGRAM
 
-            ACTIONS 
+            ACTIONS
                 ACTION foo END_ACTION
             END_ACTIONS
         "#,
     );
 
     // THEN there should be no duplication diagnostics
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn automatically_generated_ptr_types_dont_cause_duplication_issues() {
     // GIVEN some code that automatically generates a pointer type
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             PROGRAM prg
             VAR
@@ -256,14 +258,14 @@ fn automatically_generated_ptr_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn automatically_generated_string_types_dont_cause_duplication_issues() {
     // GIVEN some code that automatically generates a pointer type
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             PROGRAM prg
             VAR
@@ -277,14 +279,14 @@ fn automatically_generated_string_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn automatically_generated_byref_types_dont_cause_duplication_issues() {
     // GIVEN some code that automatically generates a ref-types
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             FUNCTION foo : INT
                 VAR_INPUT {ref}
@@ -296,14 +298,14 @@ fn automatically_generated_byref_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn automatically_generated_inout_types_dont_cause_duplication_issues() {
     // GIVEN some code that automatically generates a ptr-types
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             FUNCTION foo : INT
                 VAR_IN_OUT
@@ -315,14 +317,14 @@ fn automatically_generated_inout_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn automatically_generated_output_types_dont_cause_duplication_issues() {
     // GIVEN some code that automatically generates a ptr-types
     // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             FUNCTION foo : INT
                 VAR_OUTPUT
@@ -334,7 +336,7 @@ fn automatically_generated_output_types_dont_cause_duplication_issues() {
     );
 
     // THEN there should be no duplication diagnostics
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -353,9 +355,10 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
         index
     }
 
+    let mut ctxt = GlobalContext::new();
+
     // GIVEN some code that automatically generates a ptr-types
-    let ids = IdProvider::default();
-    let index1 = do_index(
+    let code1 = SourceCode::from(
         r#"
             FUNCTION foo : INT
                 VAR_OUTPUT
@@ -364,11 +367,10 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
                 END_VAR
             END_FUNCTION
         "#,
-        ids.clone(),
-    );
+    )
+    .with_path("file1");
 
-    //AND another file with also OUTPUT-INTS
-    let index2 = do_index(
+    let code2 = SourceCode::from(
         r#"
             FUNCTION foo2 : INT
                 VAR_OUTPUT
@@ -377,8 +379,13 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
                 END_VAR
             END_FUNCTION
         "#,
-        ids,
-    );
+    )
+    .with_path("file2");
+
+    ctxt.insert(&code1, None).unwrap();
+    ctxt.insert(&code2, None).unwrap();
+    let index1 = do_index(&code1.source, ctxt.provider());
+    let index2 = do_index(&code2.source, ctxt.provider());
 
     // WHEN the index is combined
     let mut global_index = Index::default();
@@ -386,10 +393,10 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
     global_index.import(index2); //import file 2
 
     // THEN there should be no duplication diagnostics
-    let mut validator = Validator::new();
+    let mut validator = Validator::new(&ctxt);
     validator.perform_global_validation(&global_index);
     let diagnostics = validator.diagnostics();
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -408,9 +415,9 @@ fn duplicate_with_generic() {
         (index, unit)
     }
 
-    // GIVEN a generic function defined in its own file
-    let ids = IdProvider::default();
-    let (index1, unit1) = do_index(
+    let mut ctxt = GlobalContext::new();
+
+    let code1 = SourceCode::from(
         r#"
             {external}
             FUNCTION foo <T: ANY_INT> : DATE
@@ -421,13 +428,10 @@ fn duplicate_with_generic() {
             END_VAR
             END_FUNCTION
         "#,
-        ids.clone(),
-        "file1.st",
-    );
+    )
+    .with_path("file1");
 
-    // AND another file that calls that generic function and implicitely
-    // create type-specific foo-implementations
-    let (index2, unit2) = do_index(
+    let code2 = SourceCode::from(
         r#"
         PROGRAM prg1
             foo(INT#1, SINT#2, SINT#3);
@@ -436,13 +440,10 @@ fn duplicate_with_generic() {
             foo(INT#1, SINT#2, SINT#3);
         END_PROGRAM
         "#,
-        ids.clone(),
-        "file2.st",
-    );
+    )
+    .with_path("file2");
 
-    // AND another file that calls that generic function and implicitely
-    // create type-specific foo-implementations
-    let (index3, unit3) = do_index(
+    let code3 = SourceCode::from(
         r#"
         PROGRAM prg2
             foo(INT#1, SINT#2, SINT#3);
@@ -451,9 +452,24 @@ fn duplicate_with_generic() {
             foo(INT#1, SINT#2, SINT#3);
         END_PROGRAM
         "#,
-        ids.clone(),
-        "file3.st",
-    );
+    )
+    .with_path("file3");
+
+    ctxt.insert(&code1, None).unwrap();
+    ctxt.insert(&code2, None).unwrap();
+    ctxt.insert(&code3, None).unwrap();
+
+    // GIVEN a generic function defined in its own file
+    let (index1, unit1) = do_index(&code1.source, ctxt.provider(), "file1.st");
+
+    // AND another file that calls that generic function and implicitely
+    // create type-specific foo-implementations
+    let (index2, unit2) = do_index(&code2.source, ctxt.provider(), "file2.st");
+
+    // AND another file that calls that generic function and implicitely
+    // create type-specific foo-implementations
+    let (index3, unit3) = do_index(&code3.source, ctxt.provider(), "file3.st");
+
     // WHEN the index is combined
     let mut global_index = Index::default();
     for data_type in typesystem::get_builtin_types() {
@@ -464,9 +480,9 @@ fn duplicate_with_generic() {
     global_index.import(index3); //import file 3
 
     // AND the resolvers does its job
-    let (mut annotations1, ..) = TypeAnnotator::visit_unit(&global_index, &unit1, ids.clone());
-    let (mut annotations2, ..) = TypeAnnotator::visit_unit(&global_index, &unit2, ids.clone());
-    let (mut annotations3, ..) = TypeAnnotator::visit_unit(&global_index, &unit3, ids);
+    let (mut annotations1, ..) = TypeAnnotator::visit_unit(&global_index, &unit1, ctxt.provider());
+    let (mut annotations2, ..) = TypeAnnotator::visit_unit(&global_index, &unit2, ctxt.provider());
+    let (mut annotations3, ..) = TypeAnnotator::visit_unit(&global_index, &unit3, ctxt.provider());
     global_index.import(std::mem::take(&mut annotations1.new_index));
     global_index.import(std::mem::take(&mut annotations2.new_index));
     global_index.import(std::mem::take(&mut annotations3.new_index));
@@ -478,10 +494,42 @@ fn duplicate_with_generic() {
     );
 
     // AND there should be no duplication diagnostics
-    let mut validator = Validator::new();
+    let mut validator = Validator::new(&ctxt);
     validator.perform_global_validation(&global_index);
     let diagnostics = validator.diagnostics();
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn generics_with_duplicate_symbol_dont_err() {
+    // GIVEN a builtin function with the signature
+    // FUNCTION ADD<T: ANY_NUM> : T
+    // VAR_INPUT
+    //     args: {sized} T...;
+    // END_VAR
+    // END_FUNCTION
+
+    // WHEN it is indexed and validated with other generic functions with the same name
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+            FUNCTION ADD < T1: ANY, T2: ANY >: T1
+            VAR_INPUT
+                IN1: T1;
+                IN2: T2;
+            END_VAR
+            END_FUNCTION
+
+            FUNCTION ADD < K: ANY, V: ANY > : K
+            VAR_INPUT
+                IN1: K;
+                IN2: V;
+            END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert!(diagnostics.is_empty());
 }
 
 // #[test]

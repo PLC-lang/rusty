@@ -6,7 +6,7 @@ use insta::assert_snapshot;
 fn unknown_reference_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -25,7 +25,7 @@ fn unknown_reference_should_be_reported_with_line_number() {
 fn exit_not_in_loop() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -44,7 +44,7 @@ fn exit_not_in_loop() {
 fn continue_not_in_loop() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -65,13 +65,13 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
         TYPE MyStruct:
-        STRUCT 
+        STRUCT
             a : INT;
             b : INT;
         END_STRUCT
         END_TYPE
 
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : MyStruct;
             END_VAR
@@ -92,7 +92,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
 fn invalid_array_access_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : INT;
             END_VAR
@@ -114,13 +114,13 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(
         "
         TYPE MyStruct:
-        STRUCT 
+        STRUCT
             a : INT;
             b : INT;
         END_STRUCT
         END_TYPE
 
-       PROGRAM prg 
+       PROGRAM prg
             VAR
                 x : MyStruct;
             END_VAR
@@ -139,7 +139,7 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
 #[test]
 fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
     let src = "
-       PROGRAM prg 
+       PROGRAM prg
             VAR
                 x : ARRAY[0..1] OF INT;
             END_VAR
@@ -160,7 +160,7 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
 #[test]
 fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     let src = "
-        PROGRAM prg 
+        PROGRAM prg
             VAR
                 x : ARRAY[0..1] OF INT;
                 y : INT;
@@ -189,13 +189,13 @@ fn invalid_initial_constant_values_in_pou_variables() {
         VAR_GLOBAL
             LEN : DINT := MAX_LEN - 2;
         END_VAR
- 
+
         PROGRAM prg
-      	  VAR_INPUT
+          VAR_INPUT
             my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
           END_VAR
         END_PROGRAM
- 
+
         "#,
         crate::DebugLevel::None,
     )
@@ -212,13 +212,10 @@ fn recursive_initial_constant_values() {
             b : INT := a;
         END_VAR
         "#,
-    );
+    )
+    .unwrap_err();
 
-    if let Err(msg) = result {
-        assert_snapshot!(msg)
-    } else {
-        panic!("expected code-gen error but got none")
-    }
+    assert_snapshot!(result)
 }
 
 #[test]
@@ -227,12 +224,12 @@ fn assigning_string_literal_to_int_variable_results_in_casting_error() {
     // WHEN codegen
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-	END_VAR
-		x := 'A';
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+    END_VAR
+        x := 'A';
+    END_PROGRAM"#,
     );
     // THEN result shoud be a casting error
     if let Err(msg) = result {
@@ -248,12 +245,12 @@ fn assigning_empty_string_literal_to_char_results_in_error() {
     // WHEN codegen
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : CHAR;
-	END_VAR
-		x := '';
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : CHAR;
+    END_VAR
+        x := '';
+    END_PROGRAM"#,
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
@@ -269,12 +266,12 @@ fn assigning_empty_string_literal_to_wide_char_results_in_error() {
     // WHEN codegen
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : WCHAR;
-	END_VAR
-		x := "";
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : WCHAR;
+    END_VAR
+        x := "";
+    END_PROGRAM"#,
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
@@ -288,14 +285,14 @@ fn assigning_empty_string_literal_to_wide_char_results_in_error() {
 fn pointer_binary_expression_adding_two_pointers() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr + ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr + ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)
@@ -308,14 +305,14 @@ fn pointer_binary_expression_adding_two_pointers() {
 fn pointer_binary_expression_multiplication() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr * ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr * ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)
@@ -328,14 +325,14 @@ fn pointer_binary_expression_multiplication() {
 fn pointer_binary_expression_division() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr / ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr / ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)
@@ -348,14 +345,14 @@ fn pointer_binary_expression_division() {
 fn pointer_binary_expression_modulo() {
     let result = codegen_without_unwrap(
         r#"
-	PROGRAM mainProg
-	VAR
-		x : INT;
-		ptr : REF_TO INT;
-	END_VAR
-		ptr := &(x);
-		ptr := ptr MOD ptr;
-	END_PROGRAM"#,
+    PROGRAM mainProg
+    VAR
+        x : INT;
+        ptr : REF_TO INT;
+    END_VAR
+        ptr := &(x);
+        ptr := ptr MOD ptr;
+    END_PROGRAM"#,
     );
     if let Err(msg) = result {
         assert_snapshot!(msg)
@@ -373,7 +370,7 @@ fn assigning_to_rvalue() {
             x : INT;
         END_VAR
         END_FUNCTION
-    
+
         PROGRAM main
             func(1 := 1);
         END_PROGRAM

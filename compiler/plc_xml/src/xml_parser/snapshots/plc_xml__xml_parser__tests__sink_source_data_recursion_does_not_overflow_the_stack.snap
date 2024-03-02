@@ -1,0 +1,60 @@
+---
+source: compiler/plc_xml/src/xml_parser/tests.rs
+expression: diagnostics
+---
+[
+    Diagnostic {
+        message: "Sink is connected to itself. Found the following recursion: s3 -> s2 -> s1 -> s3",
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 23,
+                execution_order: None,
+                inner_range: None,
+            },
+            file: Some(
+                "test",
+            ),
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: "E085",
+        sub_diagnostics: [],
+        internal_error: None,
+    },
+    Diagnostic {
+        message: "Sink is connected to itself. Found the following recursion: s1 -> s3 -> s2 -> s1",
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 24,
+                execution_order: None,
+                inner_range: None,
+            },
+            file: Some(
+                "test",
+            ),
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: "E085",
+        sub_diagnostics: [],
+        internal_error: None,
+    },
+    Diagnostic {
+        message: "Sink is connected to itself. Found the following recursion: s2 -> s1 -> s3 -> s2",
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 26,
+                execution_order: None,
+                inner_range: None,
+            },
+            file: Some(
+                "test",
+            ),
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: "E085",
+        sub_diagnostics: [],
+        internal_error: None,
+    },
+]

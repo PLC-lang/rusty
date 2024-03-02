@@ -93,12 +93,12 @@ CompilationUnit {
                 span: Range(
                     TextLocation {
                         line: 11,
-                        column: 2,
-                        offset: 150,
+                        column: 8,
+                        offset: 219,
                     }..TextLocation {
                         line: 11,
-                        column: 14,
-                        offset: 162,
+                        column: 20,
+                        offset: 231,
                     },
                 ),
             },
@@ -179,12 +179,12 @@ CompilationUnit {
                 span: Range(
                     TextLocation {
                         line: 17,
-                        column: 2,
-                        offset: 215,
+                        column: 8,
+                        offset: 317,
                     }..TextLocation {
                         line: 18,
-                        column: 13,
-                        offset: 270,
+                        column: 19,
+                        offset: 378,
                     },
                 ),
             },
@@ -192,12 +192,12 @@ CompilationUnit {
                 span: Range(
                     TextLocation {
                         line: 13,
-                        column: 10,
-                        offset: 174,
+                        column: 16,
+                        offset: 249,
                     }..TextLocation {
                         line: 13,
-                        column: 14,
-                        offset: 178,
+                        column: 20,
+                        offset: 253,
                     },
                 ),
             },

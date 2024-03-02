@@ -3,8 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use anyhow::{Context, Result};
 use glob::glob;
-use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     build_config::{LinkageInfo, ProjectConfig},
@@ -77,6 +77,8 @@ pub struct Project<T: SourceContainer> {
     objects: Vec<Object>,
     /// Libraries included in the project configuration
     libraries: Vec<LibraryInformation<T>>,
+    /// Additional library paths to consider
+    library_paths: Vec<PathBuf>,
     /// Output format
     format: FormatOption,
     /// Output Name
@@ -123,7 +125,7 @@ impl<T: SourceContainer> CompiledLibrary<T> {
 //configuration
 impl Project<PathBuf> {
     /// Retrieve a project for compilation from a json description
-    pub fn from_config(config: &Path) -> Result<Self, Diagnostic> {
+    pub fn from_config(config: &Path) -> Result<Self> {
         let project_config = ProjectConfig::from_file(config)?;
         let libraries = project_config
             .libraries
@@ -155,7 +157,7 @@ impl Project<PathBuf> {
                     library: Library::Compiled(compiled_library),
                 })
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Result<Vec<_>>>()?;
 
         let current_dir = env::current_dir()?;
         let location = config.parent().map(Path::to_path_buf).or(Some(current_dir));
@@ -169,10 +171,11 @@ impl Project<PathBuf> {
             output: project_config.output,
             includes: vec![],
             objects: vec![],
+            library_paths: vec![],
         })
     }
 
-    pub fn with_file_pathes(self, files: Vec<PathBuf>) -> Self {
+    pub fn with_file_paths(self, files: Vec<PathBuf>) -> Self {
         let mut proj = self;
         let files = resolve_file_paths(proj.get_location(), files).unwrap();
         for file in files {
@@ -186,9 +189,15 @@ impl Project<PathBuf> {
         proj
     }
 
-    pub fn with_include_pathes(self, files: Vec<PathBuf>) -> Self {
+    pub fn with_include_paths(self, files: Vec<PathBuf>) -> Self {
         let mut proj = self;
         proj.includes = resolve_file_paths(proj.get_location(), files).unwrap();
+        proj
+    }
+
+    pub fn with_library_paths(self, paths: Vec<PathBuf>) -> Self {
+        let mut proj = self;
+        proj.library_paths.extend(resolve_file_paths(proj.get_location(), paths).unwrap());
         proj
     }
 
@@ -203,6 +212,10 @@ impl Project<PathBuf> {
         proj.output = output.or(proj.output);
         proj
     }
+
+    pub fn get_library_paths(&self) -> &[PathBuf] {
+        &self.library_paths
+    }
 }
 
 impl<S: SourceContainer> Project<S> {
@@ -214,6 +227,7 @@ impl<S: SourceContainer> Project<S> {
             includes: vec![],
             objects: vec![],
             libraries: vec![],
+            library_paths: vec![],
             format: FormatOption::default(),
             output: None,
         }
@@ -283,16 +297,17 @@ impl<S: SourceContainer> Project<S> {
     }
 }
 
-fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>, Diagnostic> {
+fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>> {
     let mut sources = Vec::new();
+    //Ensure we are working with a directory
+    let location = location.and_then(|it| if it.is_file() { it.parent() } else { Some(it) });
     for input in &inputs {
         let input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
         let path = &input.to_string_lossy();
-        let paths = glob(path)
-            .map_err(|e| Diagnostic::param_error(&format!("Failed to read glob pattern: {path}, ({e})")))?;
+        let paths = glob(path).context(format!("Failed to read glob pattern {path}"))?;
 
         for p in paths {
-            let path = p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {err}")))?;
+            let path = p.context("Illegal Path")?;
             sources.push(path);
         }
     }

@@ -1,8 +1,23 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: diagnostics
 ---
-SemanticError { message: "This will overflow for type INT", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 35, offset: 36 }..TextLocation { line: 1, column: 40, offset: 41 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type REAL", range: [SourceLocation { span: Range(TextLocation { line: 2, column: 35, offset: 87 }..TextLocation { line: 2, column: 49, offset: 101 }) }], err_no: var__overflow }
-SemanticError { message: "This will overflow for type LREAL", range: [SourceLocation { span: Range(TextLocation { line: 3, column: 35, offset: 147 }..TextLocation { line: 3, column: 58, offset: 170 }) }], err_no: var__overflow }
+warning: This will overflow for type INT
+  ┌─ <internal>:2:36
+  │
+2 │         TYPE MyINT      : INT   := 60000; END_TYPE
+  │                                    ^^^^^ This will overflow for type INT
+
+warning: This will overflow for type REAL
+  ┌─ <internal>:3:36
+  │
+3 │         TYPE MyREAL     : REAL  := 3.50282347E+38; END_TYPE
+  │                                    ^^^^^^^^^^^^^^ This will overflow for type REAL
+
+warning: This will overflow for type LREAL
+  ┌─ <internal>:4:36
+  │
+4 │         TYPE MyLREAL    : LREAL := 1.8076931348623157E+308; END_TYPE
+  │                                    ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
+
 

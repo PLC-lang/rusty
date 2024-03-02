@@ -27,7 +27,7 @@ fn representation() {
 
     // The probably most interesting entry here is the `source` field, indicating that the given struct is a
     // VLA with one dimension of type DINT.
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__foo_arr").unwrap(), 
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__foo_arr").unwrap(),
     @r###"
     DataType {
         name: "__foo_arr",
@@ -95,7 +95,7 @@ fn representation() {
     "###);
 
     // Pointer to `__arr_vla_1_dint`, which translates to...
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(), 
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(),
     @r###"
     DataType {
         name: "__ptr_to___arr_vla_1_dint",
@@ -136,7 +136,7 @@ fn representation() {
     "###);
 
     // Finally the dimensions array, which is being populated at runtime; see [`pass`]
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___arr_vla_1_dint").unwrap(), 
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___arr_vla_1_dint").unwrap(),
     @r###"
     DataType {
         name: "__bounds___arr_vla_1_dint",
@@ -211,7 +211,7 @@ fn pass() {
     let (_, local) = deconstruct_call_statement!(&statements[0]);
 
     // `local` is defined as an array of type DINT...
-    insta::assert_debug_snapshot!(annotations.get_type(local[0], &index).unwrap(), 
+    insta::assert_debug_snapshot!(annotations.get_type(local[0], &index).unwrap(),
     @r###"
     DataType {
         name: "__main_local",
@@ -256,7 +256,7 @@ fn pass() {
     // ...but their type-hint indicates it should be VLA / fat-pointer struct. Such type-mismatches (for VLAs)
     // result in wrapping arrays into structs.
     let hint = annotations.get_type_hint(local[0], &index).unwrap();
-    insta::assert_debug_snapshot!(index.find_elementary_pointer_type(&hint.information), 
+    insta::assert_debug_snapshot!(index.find_elementary_pointer_type(&hint.information),
     @r###"
     Struct {
         name: "__foo_arr",
@@ -309,7 +309,7 @@ fn pass() {
     // 1. Stack-allocate a struct
     // 2. GEP the structs array and dimension field
     // 3. Populate them based on the information we have on `local`, i.e. 1D and (start, end)-offset = (0, 5)
-    insta::assert_snapshot!(codegen(src), 
+    insta::assert_snapshot!(codegen(src),
     @r###"
     ; ModuleID = 'main'
     source_filename = "main"
@@ -375,7 +375,7 @@ fn access() {
         END_FUNCTION
     ";
 
-    insta::assert_snapshot!(codegen(src), 
+    insta::assert_snapshot!(codegen(src),
     @r###"
     ; ModuleID = 'main'
     source_filename = "main"
@@ -433,15 +433,15 @@ fn multi_dimensional() {
     // To increase readability of the generated IR, most values are named according to their purpose.
     // When dealing with a higher dimension-count or multiple access statements, the IR gets bloated really fast and
     // is borderline incomprehensible as a result, if not given readable names.
-    insta::assert_snapshot!(codegen(src), 
+    insta::assert_snapshot!(codegen(src),
     @r###"
         ; ModuleID = 'main'
         source_filename = "main"
-        
+
         %__foo_arr = type { i32*, [4 x i32] }
-        
+
         @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
-        
+
         define i32 @foo(%__foo_arr* %0) {
         entry:
           %foo = alloca i32, align 4

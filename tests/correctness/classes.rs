@@ -22,11 +22,11 @@ fn class_reference_in_pou() {
             VAR
                 x, y : INT;
             END_VAR
-        
+
             METHOD testMethod : INT
                 VAR_INPUT myMethodArg : INT; END_VAR
                 VAR myMethodLocalVar : INT; END_VAR
-        
+
                 x := myMethodArg;
                 y := x + 1;
                 myMethodLocalVar := y + 1;
@@ -34,7 +34,7 @@ fn class_reference_in_pou() {
             END_METHOD
         END_CLASS
 
-        PROGRAM main 
+        PROGRAM main
         VAR
           cl : MyClass;
           x : INT := 0;

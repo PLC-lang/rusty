@@ -39,7 +39,8 @@ fn add_datetime_time(in1: i64, in2: i64) -> i64 {
         .timestamp_nanos(in1)
         .checked_add_signed(chrono::Duration::nanoseconds(in2))
         .unwrap()
-        .timestamp_nanos()
+        .timestamp_nanos_opt()
+        .unwrap()
 }
 
 /// .
@@ -109,7 +110,8 @@ fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
         .timestamp_nanos(in1)
         .checked_sub_signed(chrono::Duration::nanoseconds(in2))
         .unwrap()
-        .timestamp_nanos()
+        .timestamp_nanos_opt()
+        .unwrap()
 }
 
 /// .

@@ -9,14 +9,14 @@ fn initial_constant_values_in_pou_variables() {
         MIN_LEN : INT := 10;
         LEN : INT := MIN_LEN + 10;
         END_VAR
- 
+
         PROGRAM prg
-      	  VAR_INPUT
+          VAR_INPUT
             my_len: INT := LEN + 4;
             my_size: INT := MAX_LEN - MIN_LEN;
           END_VAR
         END_PROGRAM
- 
+
         "#,
     );
 
@@ -72,8 +72,8 @@ fn initial_values_in_function_block_pou() {
 fn initial_values_in_array_of_array_variable() {
     let result = codegen(
         "
-         VAR_GLOBAL 
-           a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
+         VAR_GLOBAL
+           a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]];
          END_VAR
          ",
     );
@@ -85,15 +85,15 @@ fn initial_values_in_array_of_array_variable() {
 fn default_values_for_not_initialized_function_vars() {
     let result = codegen(
         "
-		FUNCTION func : INT
-		VAR
-			int_var : INT;
-			arr_var : ARRAY[-1..2] OF DINT;
-			ptr_var	: REF_TO DINT;
-			float_var	: REAL;
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION func : INT
+        VAR
+            int_var : INT;
+            arr_var : ARRAY[-1..2] OF DINT;
+            ptr_var : REF_TO DINT;
+            float_var   : REAL;
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -102,12 +102,12 @@ fn default_values_for_not_initialized_function_vars() {
 fn initialized_array_in_function() {
     let result = codegen(
         "
-		FUNCTION func : INT
-		VAR
-			arr_var : ARRAY[-1..2] OF DINT := [1,2,3,4];
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION func : INT
+        VAR
+            arr_var : ARRAY[-1..2] OF DINT := [1,2,3,4];
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -117,12 +117,12 @@ fn initialized_array_type_in_function() {
     let result = codegen(
         "
     TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
-		FUNCTION func : INT
-		VAR
-			arr_var : arr;
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION func : INT
+        VAR
+            arr_var : arr;
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -131,12 +131,12 @@ fn initialized_array_type_in_function() {
 fn memcpy_for_struct_initialization_in_function() {
     let result = codegen(
         "
-		FUNCTION func : INT
-		VAR
-			a : STRUCT x : INT := 0; END_STRUCT
-		END_VAR
-		END_FUNCTION
-		",
+        FUNCTION func : INT
+        VAR
+            a : STRUCT x : INT := 0; END_STRUCT
+        END_VAR
+        END_FUNCTION
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -145,12 +145,12 @@ fn memcpy_for_struct_initialization_in_function() {
 fn no_memcpy_for_struct_initialization_in_program() {
     let result = codegen(
         "
-		PROGRAM prog
-		VAR
-			a : STRUCT x : INT := 0; END_STRUCT
-		END_VAR
-		END_PROGRAM
-		",
+        PROGRAM prog
+        VAR
+            a : STRUCT x : INT := 0; END_STRUCT
+        END_VAR
+        END_PROGRAM
+        ",
     );
     insta::assert_snapshot!(result);
 }

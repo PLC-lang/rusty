@@ -4,12 +4,9 @@ use crate::model::pou::Pou;
 
 use super::ParseSession;
 
-impl Pou {
+impl<'xml> Pou<'xml> {
     fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
-        let Some(fbd) = &self.body.function_block_diagram else {
-            // empty body
-            return vec![];
-        };
+        let fbd = &self.body.function_block_diagram;
 
         if cfg!(feature = "debug") {
             let statements = fbd.transform(session);
@@ -25,8 +22,8 @@ impl Pou {
         let statements = self.transform(session);
 
         Implementation {
-            name: self.name.to_owned(),
-            type_name: self.name.to_owned(),
+            name: self.name.to_string(),
+            type_name: self.name.to_string(),
             linkage: session.linkage,
             pou_type: self.pou_type.into(),
             statements,

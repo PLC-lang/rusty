@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Missing datatype : Sized Variadics require a known datatype.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 26, offset: 103 }..TextLocation { line: 4, column: 29, offset: 106 }) }], err_no: var__missing_type }
+error: Missing datatype: Sized Variadics require a known datatype.
+  ┌─ <internal>:5:27
+  │
+5 │             args : {sized}...;
+  │                           ^^^ Missing datatype: Sized Variadics require a known datatype.
+
 

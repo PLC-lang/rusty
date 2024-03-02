@@ -5,7 +5,7 @@ use std::sync::{
 
 use crate::ast::AstId;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct IdProvider {
     current_id: Arc<AtomicUsize>,
 }

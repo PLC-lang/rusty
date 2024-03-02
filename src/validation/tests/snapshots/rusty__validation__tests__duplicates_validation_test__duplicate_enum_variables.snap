@@ -1,7 +1,21 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "enum1.red: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 26, offset: 27 }..TextLocation { line: 1, column: 29, offset: 30 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 46, offset: 47 }..TextLocation { line: 1, column: 49, offset: 50 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "enum1.red: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 1, column: 46, offset: 47 }..TextLocation { line: 1, column: 49, offset: 50 }) }, SourceLocation { span: Range(TextLocation { line: 1, column: 26, offset: 27 }..TextLocation { line: 1, column: 29, offset: 30 }) }], err_no: duplicate_symbol }
+error: enum1.red: Duplicate symbol.
+  ┌─ <internal>:2:27
+  │
+2 │             TYPE enum1 : (red, green, yellow, red); END_TYPE
+  │                           ^^^                 --- see also
+  │                           │                    
+  │                           enum1.red: Duplicate symbol.
+
+error: enum1.red: Duplicate symbol.
+  ┌─ <internal>:2:47
+  │
+2 │             TYPE enum1 : (red, green, yellow, red); END_TYPE
+  │                           ---                 ^^^ enum1.red: Duplicate symbol.
+  │                           │                    
+  │                           see also
+
 

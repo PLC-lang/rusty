@@ -28,11 +28,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 6,
                         column: 12,
-                        offset: 99,
+                        offset: 98,
                     }..TextLocation {
                         line: 6,
                         column: 20,
-                        offset: 107,
+                        offset: 106,
                     },
                 ),
             },
@@ -67,11 +67,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 8,
                         column: 8,
-                        offset: 124,
+                        offset: 123,
                     }..TextLocation {
                         line: 8,
                         column: 11,
-                        offset: 127,
+                        offset: 126,
                     },
                 ),
             },
@@ -127,11 +127,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 8,
-                        offset: 40,
+                        offset: 39,
                     }..TextLocation {
                         line: 3,
                         column: 9,
-                        offset: 41,
+                        offset: 40,
                     },
                 ),
             },
@@ -187,11 +187,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 10,
-                        offset: 42,
+                        offset: 41,
                     }..TextLocation {
                         line: 3,
                         column: 11,
-                        offset: 43,
+                        offset: 42,
                     },
                 ),
             },
@@ -226,11 +226,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 9,
                         column: 8,
-                        offset: 157,
+                        offset: 156,
                     }..TextLocation {
                         line: 9,
                         column: 12,
-                        offset: 161,
+                        offset: 160,
                     },
                 ),
             },
@@ -300,11 +300,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 8,
-                        offset: 40,
+                        offset: 39,
                     }..TextLocation {
                         line: 3,
                         column: 9,
-                        offset: 41,
+                        offset: 40,
                     },
                 ),
             },
@@ -374,11 +374,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 3,
                         column: 10,
-                        offset: 42,
+                        offset: 41,
                     }..TextLocation {
                         line: 3,
                         column: 11,
-                        offset: 43,
+                        offset: 42,
                     },
                 ),
             },
@@ -413,11 +413,11 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                     TextLocation {
                         line: 10,
                         column: 8,
-                        offset: 196,
+                        offset: 195,
                     }..TextLocation {
                         line: 10,
                         column: 12,
-                        offset: 200,
+                        offset: 199,
                     },
                 ),
             },

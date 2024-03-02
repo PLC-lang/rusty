@@ -109,7 +109,7 @@ fn accessing_array_elements() {
             END_VAR
 
             a[2] := b[4];
-        END_PROGRAM       
+        END_PROGRAM
         "#;
 
     // ... both will use 0-based indexing internally, although one is 0-based and the other is 3-based

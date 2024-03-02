@@ -103,11 +103,26 @@ impl RecursiveValidator {
         match path.get_index_of(node) {
             Some(idx) => {
                 let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
-                let ranges = slice.iter().map(|node| node.location.to_owned()).collect();
+                let ranges = slice.iter().map(|node| node.location.to_owned()).collect::<Vec<_>>();
 
                 slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
                 let error = slice.iter().map(|it| it.get_name()).join(" -> ");
-                self.diagnostics.push(Diagnostic::recursive_datastructure(&error, ranges));
+                let diagnostic =
+                    Diagnostic::error(format!("Recursive data structure `{}` has infinite size", error))
+                        .with_error_code("E029");
+
+                let diagnostic = if let Some(first) = ranges.first() {
+                    diagnostic.with_location(first.clone())
+                } else {
+                    diagnostic
+                };
+
+                let diagnostic = if ranges.len() > 1 {
+                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it.clone()))
+                } else {
+                    diagnostic
+                };
+                self.diagnostics.push(diagnostic);
             }
 
             None => unreachable!("Node has to be in the IndexSet"),

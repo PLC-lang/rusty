@@ -1,55 +1,59 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
-use crate::{error::Error, extensions::GetOrErr, reader::PeekableReader, xml_parser::Parseable};
+use crate::{
+    error::Error,
+    extensions::GetOrErr,
+    reader::Reader,
+    xml_parser::{get_attributes, Parseable},
+};
 
 use super::variables::BlockVariable;
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct Block {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub(crate) struct Block<'xml> {
     pub local_id: usize,
-    pub type_name: String,
-    pub instance_name: Option<String>,
+    pub type_name: Cow<'xml, str>,
+    pub instance_name: Option<Cow<'xml, str>>,
     pub execution_order_id: Option<usize>,
     pub variables: Vec<BlockVariable>,
 }
 
-impl Block {
+impl<'xml> Block<'xml> {
     pub fn new(mut hm: HashMap<String, String>, variables: Vec<BlockVariable>) -> Result<Self, Error> {
         Ok(Self {
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
-            type_name: hm.get_or_err("typeName")?,
-            instance_name: hm.remove("instanceName"),
+            type_name: Cow::from(hm.get_or_err("typeName")?),
+            instance_name: hm.remove("instanceName").map(Cow::from),
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             variables,
         })
     }
 }
 
-impl Parseable for Block {
-    type Item = Self;
-
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let attributes = reader.attributes()?;
+impl<'xml> Parseable for Block<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
+        let attributes = get_attributes(tag.attributes())?;
         let mut variables = Vec::new();
 
         loop {
-            match reader.peek()? {
+            match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) => match tag.name().as_ref() {
                     b"inputVariables" | b"outputVariables" | b"inOutVariables" => {
-                        variables.extend(BlockVariable::visit(reader)?)
+                        let new_vars: Vec<BlockVariable> = Parseable::visit(reader, Some(tag))?;
+                        variables.extend(new_vars);
                     }
-                    _ => reader.consume()?,
+                    _ => {}
                 },
 
                 Event::End(tag) if tag.name().as_ref() == b"block" => {
-                    reader.consume()?;
                     break;
                 }
 
                 Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"block"])),
-                _ => reader.consume()?,
+                _ => {}
             }
         }
 
@@ -63,27 +67,23 @@ mod tests {
 
     use crate::{
         model::block::Block,
-        reader::PeekableReader,
-        serializer::{XBlock, XInOutVariables, XInputVariables, XOutputVariables, XVariable},
+        reader::{get_start_tag, Reader},
+        serializer::{SBlock, SVariable},
         xml_parser::Parseable,
     };
 
     #[test]
     fn add_block() {
-        let content = XBlock::init("1", "ADD", "0")
-            .with_input_variables(
-                XInputVariables::new()
-                    .with_variable(XVariable::init("a", false).with_connection_in_initialized("1"))
-                    .with_variable(XVariable::init("b", false).with_connection_in_initialized("2")),
-            )
-            .with_inout_variables(XInOutVariables::new().close())
-            .with_output_variables(
-                XOutputVariables::new()
-                    .with_variable(XVariable::init("c", false).with_connection_out_initialized()),
-            )
+        let content = SBlock::init("ADD", 1, 0)
+            .with_input(vec![
+                &SVariable::new().with_name("a").connect(1),
+                &SVariable::new().with_name("b").connect(2),
+            ])
+            .with_output(vec![&SVariable::new().with_name("c")])
             .serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(Block::visit(&mut reader).unwrap());
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(Block::visit(&mut reader, tag).unwrap());
     }
 }

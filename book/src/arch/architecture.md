@@ -2,9 +2,10 @@
 
 ## Overview
 
-RuSTy is a Compiler for Structured Text.
-It utilizes the llvm compiler infrastructurue and contributes a [Structured Text](https://en.wikipedia.org/wiki/Structured_text) Frontend that translates Structured Text into llvm's language independent intermediate representation (IR).
-The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see [here](https://www.aosabook.org/en/llvm.html)).
+RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC ("FBD") are supported.
+It utilizes the LLVM compiler infrastructurue and contributes a [Structured Text](https://en.wikipedia.org/wiki/Structured_text) frontend that translates Structured Text into LLVM's language independent intermediate representation (IR).
+[CFC](../cfc/cfc.md) uses a M2M-transformation and reuses most of the ST frontend for compilation.
+The further optimization and native code generation is performed by the existing LLVM infrastructure, namely LLVM's common optimizer and the platform specific backend (see [here](https://www.aosabook.org/en/llvm.html)).
 
 ```ignore
     ┌──────────────────┐    ┌───────────────┐    ┌────────────────┐
@@ -21,9 +22,11 @@ This means that this compiler can benefit from llvm's existing compiler-optimiza
 
 ## Rusty Frontend Architecture
 
-Ultimately the goal of a compiler frontend, is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about [LLVM IR](https://llvm.org/docs/LangRef.html)).
+Ultimately the goal of a compiler frontend is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about [LLVM IR](https://llvm.org/docs/LangRef.html)).
 RuSTy treats this task as a compilation step of its own.
 While a fully fledged compiler generates machine code as a last step, RuSTy generates LLVM IR assembly code.
+
+## Structured Text
 
 ```ignore
       ┌────────┐                                                          ┌────────┐
@@ -40,4 +43,23 @@ While a fully fledged compiler generates machine code as a last step, RuSTy gene
     │            │   │            │   │            │   │            │   │            │
     │            │   │            │   │            │   │            │   │            │
     └────────────┘   └────────────┘   └────────────┘   └────────────┘   └────────────┘
+```
+
+## CFC/FBD
+
+```ignore
+         ┌────────┐                                                            ┌────────┐
+         │ Source │                                                            │  LLVM  │
+         │        │                                                            │   IR   │
+         │ Files  │                                                            │        │
+         └───┬────┘                                                            └────────┘
+             │                                                                      ▲
+             ▼                                                                      │
+    ┌────────────────┐    ┌────────────┐   ┌────────────┐   ┌────────────┐   ┌──────┴─────┐
+    │                │    │            │   │            │   │            │   │            │
+    │ Model-to-Model │    │            │   │            │   │            │   │            │
+    │ Transformation ├───►│   Indexer  ├──►│   Linker   ├──►│ Validation ├──►│   Codegen  │
+    │                │    │            │   │            │   │            │   │            │
+    │                │    │            │   │            │   │            │   │            │
+    └────────────────┘    └────────────┘   └────────────┘   └────────────┘   └────────────┘
 ```

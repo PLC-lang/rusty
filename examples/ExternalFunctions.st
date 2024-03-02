@@ -13,6 +13,6 @@ END_FUNCTION
 
 
 FUNCTION main : DINT
-	main := LOG(100);
-  PRINTF('Log value %d\n', main);
+    main := LOG(100);
+    PRINTF('Log value %d\n', main);
 END_FUNCTION

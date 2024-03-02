@@ -4,17 +4,26 @@ use crate::model::action::Action;
 
 use super::ParseSession;
 
-impl Action {
-    pub(crate) fn transform(&self, _session: &ParseSession) -> Vec<AstNode> {
-        todo!()
+impl<'xml> Action<'xml> {
+    pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
+        let fbd = &self.body.function_block_diagram;
+
+        if cfg!(feature = "debug") {
+            let statements = fbd.transform(session);
+            println!("{statements:#?}");
+
+            return statements;
+        }
+
+        fbd.transform(session)
     }
 
-    pub(crate) fn build_implementation(&self, session: &ParseSession) -> Implementation {
+    pub(crate) fn build_implementation(&self, session: &mut ParseSession) -> Implementation {
         let statements = self.transform(session);
 
         Implementation {
-            name: self.name.to_owned(),
-            type_name: self.type_name.to_owned(),
+            name: format!("{}.{}", self.type_name, self.name),
+            type_name: self.type_name.to_string(),
             linkage: session.linkage,
             pou_type: AstPouType::Action,
             statements,

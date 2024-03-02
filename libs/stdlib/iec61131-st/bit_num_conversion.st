@@ -6,7 +6,7 @@
 {external}
 FUNCTION LWORD_TO_LREAL : LREAL
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
 END_FUNCTION
 
@@ -17,9 +17,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_LINT : LINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_LINT := in;
+    LWORD_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -29,9 +29,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_DINT : DINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_DINT := in;
+    LWORD_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -41,9 +41,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_INT : INT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_INT := in;
+    LWORD_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -53,9 +53,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_SINT : SINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_SINT := in;
+    LWORD_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -65,9 +65,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_ULINT : ULINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_ULINT := in;
+    LWORD_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -77,9 +77,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_UDINT : UDINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_UDINT := in;
+    LWORD_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -89,9 +89,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_UINT : UINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_UINT := in;
+    LWORD_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -101,9 +101,9 @@ END_FUNCTION
 *********************)
 FUNCTION LWORD_TO_USINT : USINT
 VAR_INPUT
-	in : LWORD;
+    in : LWORD;
 END_VAR
-	LWORD_TO_USINT := in;
+    LWORD_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -114,7 +114,7 @@ END_FUNCTION
 {external}
 FUNCTION DWORD_TO_REAL : REAL
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
 END_FUNCTION
 
@@ -125,9 +125,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_LINT : LINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_LINT := in;
+    DWORD_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -137,9 +137,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_DINT : DINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_DINT := in;
+    DWORD_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -149,9 +149,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_INT : INT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_INT := in;
+    DWORD_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -161,9 +161,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_SINT : SINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_SINT := in;
+    DWORD_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -173,9 +173,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_ULINT : ULINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_ULINT := in;
+    DWORD_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -185,9 +185,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_UDINT : UDINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_UDINT := in;
+    DWORD_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -197,9 +197,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_UINT : UINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_UINT := in;
+    DWORD_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -209,9 +209,9 @@ END_FUNCTION
 *********************)
 FUNCTION DWORD_TO_USINT : USINT
 VAR_INPUT
-	in : DWORD;
+    in : DWORD;
 END_VAR
-	DWORD_TO_USINT := in;
+    DWORD_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -221,9 +221,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_LINT : LINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_LINT := in;
+    WORD_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -233,9 +233,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_DINT : DINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_DINT := in;
+    WORD_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -245,9 +245,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_INT : INT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_INT := in;
+    WORD_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -257,9 +257,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_SINT : SINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_SINT := in;
+    WORD_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -269,9 +269,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_ULINT : ULINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_ULINT := in;
+    WORD_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -281,9 +281,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_UDINT : UDINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_UDINT := in;
+    WORD_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -293,9 +293,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_UINT : UINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_UINT := in;
+    WORD_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -305,9 +305,9 @@ END_FUNCTION
 *********************)
 FUNCTION WORD_TO_USINT : USINT
 VAR_INPUT
-	in : WORD;
+    in : WORD;
 END_VAR
-	WORD_TO_USINT := in;
+    WORD_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -317,9 +317,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_LINT : LINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_LINT := in;
+    BYTE_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -329,9 +329,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_DINT : DINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_DINT := in;
+    BYTE_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -341,9 +341,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_INT : INT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_INT := in;
+    BYTE_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -353,9 +353,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_SINT : SINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_SINT := in;
+    BYTE_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -365,9 +365,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_ULINT : ULINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_ULINT := in;
+    BYTE_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -377,9 +377,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_UDINT : UDINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_UDINT := in;
+    BYTE_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -389,9 +389,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_UINT : UINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_UINT := in;
+    BYTE_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -401,9 +401,9 @@ END_FUNCTION
 *********************)
 FUNCTION BYTE_TO_USINT : USINT
 VAR_INPUT
-	in : BYTE;
+    in : BYTE;
 END_VAR
-	BYTE_TO_USINT := in;
+    BYTE_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -413,9 +413,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_LINT : LINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_LINT := in;
+    BOOL_TO_LINT := in;
 END_FUNCTION
 
 (********************
@@ -425,9 +425,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_DINT : DINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_DINT := in;
+    BOOL_TO_DINT := in;
 END_FUNCTION
 
 (********************
@@ -437,9 +437,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_INT : INT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_INT := in;
+    BOOL_TO_INT := in;
 END_FUNCTION
 
 (********************
@@ -449,9 +449,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_SINT : SINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_SINT := in;
+    BOOL_TO_SINT := in;
 END_FUNCTION
 
 (********************
@@ -461,9 +461,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_ULINT : ULINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_ULINT := in;
+    BOOL_TO_ULINT := in;
 END_FUNCTION
 
 (********************
@@ -473,9 +473,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_UDINT : UDINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_UDINT := in;
+    BOOL_TO_UDINT := in;
 END_FUNCTION
 
 (********************
@@ -485,9 +485,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_UINT : UINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_UINT := in;
+    BOOL_TO_UINT := in;
 END_FUNCTION
 
 (********************
@@ -497,9 +497,9 @@ END_FUNCTION
 *********************)
 FUNCTION BOOL_TO_USINT : USINT
 VAR_INPUT
-	in : BOOL;
+    in : BOOL;
 END_VAR
-	BOOL_TO_USINT := in;
+    BOOL_TO_USINT := in;
 END_FUNCTION
 
 (********************
@@ -510,7 +510,7 @@ END_FUNCTION
 {external}
 FUNCTION LREAL_TO_LWORD : LWORD
 VAR_INPUT
-	in : LREAL;
+    in : LREAL;
 END_VAR
 END_FUNCTION
 
@@ -522,7 +522,7 @@ END_FUNCTION
 {external}
 FUNCTION REAL_TO_DWORD : DWORD
 VAR_INPUT
-	in : REAL;
+    in : REAL;
 END_VAR
 END_FUNCTION
 
@@ -533,9 +533,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_LWORD := in;
+    LINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -545,9 +545,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_DWORD := in;
+    LINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -557,9 +557,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_WORD : WORD
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_WORD := in;
+    LINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -569,9 +569,9 @@ END_FUNCTION
 *********************)
 FUNCTION LINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : LINT;
+    in : LINT;
 END_VAR
-	LINT_TO_BYTE := in;
+    LINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -581,9 +581,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_LWORD := in;
+    DINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -593,9 +593,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_DWORD := in;
+    DINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -605,9 +605,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_WORD : WORD
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_WORD := in;
+    DINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -617,9 +617,9 @@ END_FUNCTION
 *********************)
 FUNCTION DINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : DINT;
+    in : DINT;
 END_VAR
-	DINT_TO_BYTE := in;
+    DINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -629,9 +629,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_LWORD : LWORD
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_LWORD := in;
+    INT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -641,9 +641,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_DWORD : DWORD
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_DWORD := in;
+    INT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -653,9 +653,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_WORD : WORD
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_WORD := in;
+    INT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -665,9 +665,9 @@ END_FUNCTION
 *********************)
 FUNCTION INT_TO_BYTE : BYTE
 VAR_INPUT
-	in : INT;
+    in : INT;
 END_VAR
-	INT_TO_BYTE := in;
+    INT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -677,9 +677,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_LWORD := in;
+    SINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -689,9 +689,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_DWORD := in;
+    SINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -701,9 +701,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_WORD : WORD
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_WORD := in;
+    SINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -713,9 +713,9 @@ END_FUNCTION
 *********************)
 FUNCTION SINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : SINT;
+    in : SINT;
 END_VAR
-	SINT_TO_BYTE := in;
+    SINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -725,9 +725,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_LWORD := in;
+    ULINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -737,9 +737,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_DWORD := in;
+    ULINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -749,9 +749,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_WORD : WORD
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_WORD := in;
+    ULINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -761,9 +761,9 @@ END_FUNCTION
 *********************)
 FUNCTION ULINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : ULINT;
+    in : ULINT;
 END_VAR
-	ULINT_TO_BYTE := in;
+    ULINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -773,9 +773,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_LWORD := in;
+    UDINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -785,9 +785,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_DWORD := in;
+    UDINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -797,9 +797,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_WORD : WORD
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_WORD := in;
+    UDINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -809,9 +809,9 @@ END_FUNCTION
 *********************)
 FUNCTION UDINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : UDINT;
+    in : UDINT;
 END_VAR
-	UDINT_TO_BYTE := in;
+    UDINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -821,9 +821,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_LWORD := in;
+    UINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -833,9 +833,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_DWORD := in;
+    UINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -845,9 +845,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_WORD : WORD
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_WORD := in;
+    UINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -857,9 +857,9 @@ END_FUNCTION
 *********************)
 FUNCTION UINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : UINT;
+    in : UINT;
 END_VAR
-	UINT_TO_BYTE := in;
+    UINT_TO_BYTE := in;
 END_FUNCTION
 
 (********************
@@ -869,9 +869,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_LWORD : LWORD
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_LWORD := in;
+    USINT_TO_LWORD := in;
 END_FUNCTION
 
 (********************
@@ -881,9 +881,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_DWORD : DWORD
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_DWORD := in;
+    USINT_TO_DWORD := in;
 END_FUNCTION
 
 (********************
@@ -893,9 +893,9 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_WORD : WORD
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_WORD := in;
+    USINT_TO_WORD := in;
 END_FUNCTION
 
 (********************
@@ -905,7 +905,7 @@ END_FUNCTION
 *********************)
 FUNCTION USINT_TO_BYTE : BYTE
 VAR_INPUT
-	in : USINT;
+    in : USINT;
 END_VAR
-	USINT_TO_BYTE := in;
+    USINT_TO_BYTE := in;
 END_FUNCTION

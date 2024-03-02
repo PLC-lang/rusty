@@ -1,20 +1,29 @@
+use std::collections::HashMap;
+
 use ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType as AstPouType},
     provider::IdProvider,
 };
 use plc::{lexer, parser::expressions_parser::parse_expression};
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
+};
 
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
 };
-use quick_xml::events::Event;
+use quick_xml::events::{attributes::Attributes, BytesStart, Event};
 
 use crate::{
     error::Error,
-    model::{pou::PouType, project::Project},
-    reader::PeekableReader,
+    extensions::TryToString,
+    model::{
+        pou::{Pou, PouType},
+        project::Project,
+    },
+    reader::Reader,
 };
 
 mod action;
@@ -26,34 +35,55 @@ mod pou;
 mod tests;
 mod variables;
 
-pub(crate) trait Parseable {
-    type Item;
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error>;
+pub(crate) fn get_attributes(attributes: Attributes) -> Result<HashMap<String, String>, Error> {
+    attributes
+        .flatten()
+        .map(|it| Ok((it.key.try_to_string()?, it.value.try_to_string()?)))
+        .collect::<Result<HashMap<_, _>, Error>>()
+}
+
+pub(crate) trait Parseable
+where
+    Self: Sized,
+{
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error>;
 }
 
 pub(crate) fn visit(content: &str) -> Result<Project, Error> {
-    let mut reader = PeekableReader::new(content);
+    let mut reader = Reader::new(content);
+    reader.trim_text(true).expand_empty_elements(true);
+    let mut project = Project::default();
+
     loop {
-        match reader.peek()? {
-            Event::Start(tag) if tag.name().as_ref() == b"pou" => return Project::pou_entry(&mut reader),
-            Event::Start(tag) if tag.name().as_ref() == b"project" => return Project::visit(&mut reader),
-            Event::Eof => return Err(Error::UnexpectedEndOfFile(vec![b"pou"])),
-            _ => reader.consume()?,
+        match reader.read_event()? {
+            Event::Start(tag) if tag.name().as_ref() == b"pou" => {
+                project.pous.push(Pou::visit(&mut reader, Some(tag))?)
+            }
+            Event::Start(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => {
+                todo!("Project support comming in #977")
+            }
+            Event::End(tag) if tag.name().as_ref() == b"project" || tag.name().as_ref() == b"pous" => break,
+            Event::Eof => break,
+            _ => {}
         }
     }
+    Ok(project)
 }
 
 pub fn parse_file(
-    source: SourceCode,
+    source: &SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
-) -> CompilationUnit {
-    let (unit, errors) = parse(&source, linkage, id_provider);
+) -> Result<CompilationUnit, Diagnostic> {
+    let (unit, errors) = parse(source, linkage, id_provider);
     //Register the source file with the diagnostician
-    diagnostician.register_file(source.get_location_str().to_string(), source.source.to_string());
-    diagnostician.handle(&errors);
-    unit
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
+    if diagnostician.handle(&errors) == Severity::Error {
+        Err(Diagnostic::error("Compilation aborted due to parse errors"))
+    } else {
+        Ok(unit)
+    }
 }
 
 fn parse(
@@ -61,22 +91,25 @@ fn parse(
     linkage: LinkageType,
     id_provider: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
+    let source_location_factory = SourceLocationFactory::for_source(source);
     // Transform the xml file to a data model.
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
-    let project = match visit(&source.source) {
+    let mut project = match visit(&source.source) {
         Ok(project) => project,
         Err(why) => todo!("cfc errors need to be transformed into diagnostics; {why:?}"),
     };
 
+    let mut diagnostics = vec![];
+    let _ = project.desugar(&source_location_factory).map_err(|e| diagnostics.extend(e));
+
     // Create a new parse session
-    let source_location_factory = SourceLocationFactory::for_source(source);
     let parser =
         ParseSession::new(&project, source.get_location_str(), id_provider, linkage, source_location_factory);
-
     // Parse the declaration data field
-    let Some((unit, mut diagnostics)) = parser.try_parse_declaration() else {
+    let Some((unit, declaration_diagnostics)) = parser.try_parse_declaration() else {
         unimplemented!("XML schemas without text declarations are not yet supported")
     };
+    diagnostics.extend(declaration_diagnostics);
 
     // Transform the data-model into an AST
     let (implementations, parser_diagnostics) = parser.parse_model();
@@ -85,8 +118,8 @@ fn parse(
     (unit.with_implementations(implementations), diagnostics)
 }
 
-pub(crate) struct ParseSession<'parse> {
-    project: &'parse Project,
+pub(crate) struct ParseSession<'parse, 'xml> {
+    project: &'parse Project<'xml>,
     id_provider: IdProvider,
     linkage: LinkageType,
     file_name: &'static str,
@@ -94,9 +127,9 @@ pub(crate) struct ParseSession<'parse> {
     diagnostics: Vec<Diagnostic>,
 }
 
-impl<'parse> ParseSession<'parse> {
+impl<'parse, 'xml> ParseSession<'parse, 'xml> {
     fn new(
-        project: &'parse Project,
+        project: &'parse Project<'xml>,
         file_name: &'static str,
         id_provider: IdProvider,
         linkage: LinkageType,
@@ -142,7 +175,9 @@ impl<'parse> ParseSession<'parse> {
             // transform body
             implementations.push(pou.build_implementation(&mut self));
             // transform actions
-            pou.actions.iter().for_each(|action| implementations.push(action.build_implementation(&self)));
+            pou.actions
+                .iter()
+                .for_each(|action| implementations.push(action.build_implementation(&mut self)));
         }
 
         (implementations, self.diagnostics)

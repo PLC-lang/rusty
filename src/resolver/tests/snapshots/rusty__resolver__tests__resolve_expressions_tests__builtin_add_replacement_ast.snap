@@ -1,0 +1,49 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+expression: annotations.get(operator)
+---
+Some(
+    ReplacementAst {
+        statement: BinaryExpression {
+            operator: Plus,
+            left: BinaryExpression {
+                operator: Plus,
+                left: BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "c",
+                        },
+                    ),
+                    base: None,
+                },
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "d",
+                    },
+                ),
+                base: None,
+            },
+        },
+    },
+)

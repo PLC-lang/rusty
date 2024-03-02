@@ -1,11 +1,41 @@
 ---
 source: src/validation/tests/literals_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Literal true is not compatible to STRING", range: [SourceLocation { span: Range(TextLocation { line: 6, column: 12, offset: 102 }..TextLocation { line: 6, column: 23, offset: 113 }) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal false is not compatible to WSTRING", range: [SourceLocation { span: Range(TextLocation { line: 7, column: 12, offset: 127 }..TextLocation { line: 7, column: 25, offset: 140 }) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 22 is not compatible to STRING", range: [SourceLocation { span: Range(TextLocation { line: 9, column: 12, offset: 155 }..TextLocation { line: 9, column: 21, offset: 164 }) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 33 is not compatible to WSTRING", range: [SourceLocation { span: Range(TextLocation { line: 10, column: 12, offset: 178 }..TextLocation { line: 10, column: 22, offset: 188 }) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 3.14 is not compatible to STRING", range: [SourceLocation { span: Range(TextLocation { line: 12, column: 12, offset: 203 }..TextLocation { line: 12, column: 23, offset: 214 }) }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 1.0 is not compatible to WSTRING", range: [SourceLocation { span: Range(TextLocation { line: 13, column: 12, offset: 228 }..TextLocation { line: 13, column: 23, offset: 239 }) }], err_no: type__incompatible_literal_cast }
+error: Literal true is not compatible to STRING
+  ┌─ <internal>:7:13
+  │
+7 │             STRING#TRUE;
+  │             ^^^^^^^^^^^ Literal true is not compatible to STRING
+
+error: Literal false is not compatible to WSTRING
+  ┌─ <internal>:8:13
+  │
+8 │             WSTRING#FALSE;
+  │             ^^^^^^^^^^^^^ Literal false is not compatible to WSTRING
+
+error: Literal 22 is not compatible to STRING
+   ┌─ <internal>:10:13
+   │
+10 │             STRING#22;
+   │             ^^^^^^^^^ Literal 22 is not compatible to STRING
+
+error: Literal 33 is not compatible to WSTRING
+   ┌─ <internal>:11:13
+   │
+11 │             WSTRING#33;
+   │             ^^^^^^^^^^ Literal 33 is not compatible to WSTRING
+
+error: Literal 3.14 is not compatible to STRING
+   ┌─ <internal>:13:13
+   │
+13 │             STRING#3.14;
+   │             ^^^^^^^^^^^ Literal 3.14 is not compatible to STRING
+
+error: Literal 1.0 is not compatible to WSTRING
+   ┌─ <internal>:14:13
+   │
+14 │             WSTRING#1.0;
+   │             ^^^^^^^^^^^ Literal 1.0 is not compatible to WSTRING
+
 

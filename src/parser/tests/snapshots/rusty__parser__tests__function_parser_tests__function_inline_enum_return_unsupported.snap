@@ -2,10 +2,10 @@
 source: src/parser/tests/function_parser_tests.rs
 expression: diagnostics
 ---
-error: Data Type DataTypeDefinition { data_type: EnumType { name: None, numeric_type: "DINT", elements: ExpressionList { expressions: [ReferenceExpr { kind: Member(Identifier { name: "green" }), base: None }, ReferenceExpr { kind: Member(Identifier { name: "yellow" }), base: None }, ReferenceExpr { kind: Member(Identifier { name: "red" }), base: None }] } } } not supported as a function return type!
+error: Data Type (green, yellow, red) not supported as a function return type!
   ┌─ <internal>:1:16
   │
 1 │ FUNCTION foo : (green, yellow, red) VAR_INPUT END_VAR END_FUNCTION
-  │                ^^^^^^^^^^^^^^^^^^^^ Data Type DataTypeDefinition { data_type: EnumType { name: None, numeric_type: "DINT", elements: ExpressionList { expressions: [ReferenceExpr { kind: Member(Identifier { name: "green" }), base: None }, ReferenceExpr { kind: Member(Identifier { name: "yellow" }), base: None }, ReferenceExpr { kind: Member(Identifier { name: "red" }), base: None }] } } } not supported as a function return type!
+  │                ^^^^^^^^^^^^^^^^^^^^ Data Type (green, yellow, red) not supported as a function return type!
 
 

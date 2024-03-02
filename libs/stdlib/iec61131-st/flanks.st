@@ -1,41 +1,41 @@
 (******************************************************************************
 Description: Rising Edge detection
 Input:
-  - CLK:  Signal to detect 
+  - CLK:  Signal to detect
 Output:
-  - Q:  Edge detected 
+  - Q:  Edge detected
 Return: Output variable are used for return.
 ******************************************************************************)
-{external} 
+{external}
 FUNCTION_BLOCK R_TRIG
 VAR_INPUT
-	CLK: BOOL;
+    CLK: BOOL;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
+    Q: BOOL;
 END_VAR
 VAR
-	M: BOOL;	
+    M: BOOL;
 END_VAR
 END_FUNCTION_BLOCK
 
 (******************************************************************************
 Description: Falling Edge detection
 Input:
-  - CLK:  Signal to detect 
+  - CLK:  Signal to detect
 Output:
-  - Q:  Edge detected 
+  - Q:  Edge detected
 Return: Output variable is used for return.
 ******************************************************************************)
-{external} 
+{external}
 FUNCTION_BLOCK F_TRIG
 VAR_INPUT
-	CLK: BOOL;
+    CLK: BOOL;
 END_VAR
 VAR_OUTPUT
-	Q: BOOL;
+    Q: BOOL;
 END_VAR
 VAR
-	M: BOOL;	
+    M: BOOL;
 END_VAR
 END_FUNCTION_BLOCK

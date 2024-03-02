@@ -1,11 +1,15 @@
-use quick_xml::events::Event;
+use quick_xml::events::{BytesStart, Event};
 
+use crate::error::Error;
 use crate::extensions::GetOrErr;
-use crate::xml_parser::Parseable;
-use crate::{error::Error, extensions::TryToString, reader::PeekableReader};
+use crate::reader::Reader;
+use crate::xml_parser::{get_attributes, Parseable};
+use std::borrow::Cow;
 use std::{collections::HashMap, str::FromStr};
 
-#[derive(Debug, PartialEq)]
+use super::fbd::NodeId;
+
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub(crate) struct BlockVariable {
     pub kind: VariableKind,
     pub formal_parameter: String,
@@ -16,13 +20,13 @@ pub(crate) struct BlockVariable {
     pub enable: Option<bool>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub(crate) enum Edge {
     Falling,
     Rising,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub(crate) enum Storage {
     Set,
     Reset,
@@ -40,36 +44,50 @@ impl BlockVariable {
             enable: hm.get("enable").map(|it| it == "true"),
         })
     }
+
+    pub fn update_ref(&mut self, new_ref: NodeId) {
+        self.ref_local_id = Some(new_ref);
+    }
+
+    pub fn with_kind(mut self, kind: VariableKind) -> Self {
+        self.kind = kind;
+        self
+    }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub(crate) enum VariableKind {
     Input,
     Output,
     InOut,
+    #[default]
     Temp,
 }
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct FunctionBlockVariable {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub(crate) struct FunctionBlockVariable<'xml> {
     pub kind: VariableKind,
     pub local_id: usize,
     pub negated: bool,
-    pub expression: String,
+    pub expression: Cow<'xml, str>,
     pub execution_order_id: Option<usize>,
     pub ref_local_id: Option<usize>,
 }
 
-impl FunctionBlockVariable {
+impl<'xml> FunctionBlockVariable<'xml> {
     pub fn new(hm: HashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             negated: hm.get_or_err("negated").map(|it| it == "true")?,
-            expression: hm.get_or_err("expression")?,
+            expression: Cow::from(hm.get_or_err("expression")?),
             execution_order_id: hm.get("executionOrderId").map(|it| it.parse()).transpose()?,
             ref_local_id: hm.get("refLocalId").map(|it| it.parse()).transpose()?,
         })
+    }
+
+    pub fn update_ref(&mut self, new_ref: NodeId) {
+        self.ref_local_id = Some(new_ref);
     }
 }
 
@@ -113,43 +131,30 @@ impl FromStr for Storage {
     }
 }
 
-impl Parseable for FunctionBlockVariable {
-    type Item = Self;
+impl<'xml> Parseable for FunctionBlockVariable<'xml> {
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
+        let kind = tag.name().as_ref().try_into()?;
+        let mut attributes = get_attributes(tag.attributes())?;
 
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let next = reader.peek()?;
-        let kind = match &next {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"inVariable" => VariableKind::Input,
-                b"outVariable" => VariableKind::Output,
-                b"inOutVariable" => VariableKind::InOut,
-                _ => unreachable!(),
-            },
-
-            _ => unreachable!(),
-        };
-
-        let mut attributes = reader.attributes()?;
         loop {
-            match reader.peek()? {
+            match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
-                    attributes.extend(reader.attributes()?);
+                    attributes.extend(get_attributes(tag.attributes())?);
                 }
 
                 Event::Text(tag) => {
-                    attributes.insert("expression".into(), tag.as_ref().try_to_string()?);
-                    reader.consume()?;
+                    attributes.insert("expression".into(), tag.unescape()?.to_string());
                 }
 
                 Event::End(tag) => match tag.name().as_ref() {
                     b"inVariable" | b"outVariable" => {
-                        reader.consume()?;
                         break;
                     }
-                    _ => reader.consume()?,
+                    _ => {}
                 },
 
-                _ => reader.consume()?,
+                _ => {}
             }
         }
 
@@ -157,32 +162,24 @@ impl Parseable for FunctionBlockVariable {
     }
 }
 
-impl Parseable for BlockVariable {
-    type Item = Vec<Self>;
+impl Parseable for Vec<BlockVariable> {
+    fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
 
-    fn visit(reader: &mut PeekableReader) -> Result<Self::Item, Error> {
-        let kind = match reader.next()? {
-            Event::Start(tag) | Event::Empty(tag) => VariableKind::try_from(tag.name().as_ref())?,
-            _ => unreachable!(),
-        };
-
-        let mut res = vec![];
-
+        let mut variables = vec![];
+        let kind = VariableKind::try_from(tag.name().as_ref())?;
         loop {
-            match reader.peek()? {
+            match reader.read_event().map_err(Error::ReadEvent)? {
                 Event::Start(tag) if tag.name().as_ref() == b"variable" => {
-                    let attributes = visit_variable(reader)?;
-                    res.push(BlockVariable::new(attributes, kind)?);
+                    variables.push(BlockVariable::visit(reader, Some(tag))?.with_kind(kind))
                 }
-
                 Event::End(tag)
                     if matches!(
                         tag.name().as_ref(),
                         b"inputVariables" | b"outputVariables" | b"inOutVariables"
                     ) =>
                 {
-                    reader.consume()?;
-                    return Ok(res);
+                    break
                 }
 
                 Event::Eof => {
@@ -192,85 +189,94 @@ impl Parseable for BlockVariable {
                         b"inOutVariables",
                     ]))
                 }
-                _ => reader.consume()?,
+                _ => {}
             };
         }
+        Ok(variables)
     }
 }
 
-fn visit_variable(reader: &mut PeekableReader) -> Result<HashMap<String, String>, Error> {
-    let mut attributes = HashMap::new();
-    loop {
-        match reader.peek()? {
-            Event::Start(tag) | Event::Empty(tag) => match tag.name().as_ref() {
-                b"variable" | b"connection" => attributes.extend(reader.attributes()?),
-                _ => reader.consume()?,
-            },
+impl Parseable for BlockVariable {
+    fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
+        let Some(tag) = tag else { unreachable!() };
 
-            Event::End(tag) if tag.name().as_ref() == b"variable" => {
-                reader.consume()?;
-                break;
+        let mut attributes = get_attributes(tag.attributes())?;
+        loop {
+            match reader.read_event().map_err(Error::ReadEvent)? {
+                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                    attributes.extend(get_attributes(tag.attributes())?);
+                }
+
+                Event::End(tag) if tag.name().as_ref() == b"variable" => {
+                    break;
+                }
+
+                _ => {}
             }
-            _ => reader.consume()?,
         }
-    }
 
-    Ok(attributes)
+        BlockVariable::new(attributes, VariableKind::default())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
 
+    use crate::serializer::{
+        SInOutVariables, SInVariable, SInputVariables, SOutVariable, SOutputVariables, SVariable,
+    };
     use crate::{
         model::variables::{BlockVariable, FunctionBlockVariable},
-        reader::PeekableReader,
-        serializer::{
-            XExpression, XInOutVariables, XInVariable, XInputVariables, XOutVariable, XOutputVariables,
-            XVariable,
-        },
+        reader::{get_start_tag, Reader},
         xml_parser::Parseable,
     };
 
     #[test]
     fn block_input_variable() {
-        let content = XInputVariables::new().with_variable(XVariable::init("", false)).serialize();
+        let content = SInputVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
     }
 
     #[test]
     fn block_output_variable() {
-        let content = XOutputVariables::new().with_variable(XVariable::init("", false)).serialize();
+        let content = SOutputVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
     }
 
     #[test]
     fn block_inout_variable() {
-        let content = XInOutVariables::new().with_variable(XVariable::init("", false)).serialize();
+        let content = SInOutVariables::new().children(vec![&SVariable::new().with_name("")]).serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(BlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variables: Result<Vec<BlockVariable>, _> = Parseable::visit(&mut reader, tag);
+        assert_debug_snapshot!(variables);
     }
 
     #[test]
     fn fbd_in_variable() {
-        let content =
-            XInVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
+        let content = SInVariable::id(0).with_expression("a").serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader, tag));
     }
 
     #[test]
     fn fbd_out_variable() {
-        let content =
-            XOutVariable::init("0", false).with_expression(XExpression::new().with_data("a")).serialize();
+        let content = SOutVariable::id(0).with_expression("a").serialize();
 
-        let mut reader = PeekableReader::new(&content);
-        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader));
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader, tag));
     }
 }

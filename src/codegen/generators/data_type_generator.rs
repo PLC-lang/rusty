@@ -20,7 +20,6 @@ use inkwell::{
 use plc_ast::ast::{AstNode, AstStatement};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_diagnostics::errno::ErrNo;
 use plc_source::source_location::SourceLocation;
 /// the data_type_generator generates user defined data-types
 /// - Structures
@@ -155,16 +154,14 @@ pub fn generate_data_types<'ink>(
             .map(|(name, ty)| {
                 errors
                     .remove(name)
-                    .map(|diag| diag.with_extra_ranges(&[ty.location.clone()]))
+                    .map(|diag| diag.with_secondary_location(ty.location.clone()))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
         //Report the operation failure
-        return Err(Diagnostic::CombinedDiagnostic {
-            message: "Some initial values were not generated".to_string(),
-            err_no: ErrNo::codegen__general,
-            inner_diagnostics: diags,
-        });
+        return Err(Diagnostic::error("Some initial values were not generated")
+            .with_error_code("E075")
+            .with_sub_diagnostics(diags));
     }
     Ok(generator.types_index)
 }
@@ -230,11 +227,11 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 if let DataTypeInformation::Integer { .. } = effective_type.get_type_information() {
                     self.create_type(name, effective_type)
                 } else {
-                    Err(Diagnostic::invalid_type_nature(
-                        effective_type.get_name(),
-                        "ANY_INT",
-                        SourceLocation::undefined(),
+                    Err(Diagnostic::error(format!(
+                        "Invalid type nature for generic argument. {} is no `ANY_INT`.",
+                        effective_type.get_name()
                     ))
+                    .with_error_code("E062"))
                 }
             }
             DataTypeInformation::Float { size, .. } => {
@@ -405,7 +402,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 Ok(Some(generator.generate_literal(initializer)?.get_basic_value_enum()))
             } else {
                 Err(Diagnostic::codegen_error(
-                    &format!("Expected {expected_ast} but found {initializer:?}"),
+                    format!("Expected {expected_ast} but found {initializer:?}"),
                     initializer.get_location(),
                 ))
             }

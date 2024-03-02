@@ -1,6 +1,11 @@
 ---
 source: src/validation/tests/pou_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Function Return type missing", range: [SourceLocation { span: Range(TextLocation { line: 0, column: 9, offset: 9 }..TextLocation { line: 0, column: 12, offset: 12 }) }], err_no: pou__missing_return_type }
+error: Function Return type missing
+  ┌─ <internal>:1:10
+  │
+1 │ FUNCTION foo VAR_INPUT END_VAR END_FUNCTION
+  │          ^^^ Function Return type missing
+
 

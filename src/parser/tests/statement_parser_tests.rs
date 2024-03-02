@@ -237,23 +237,23 @@ fn empty_parameter_assignments_in_call_statement() {
     let (result, diagnostics) = parse(
         r#"
         FUNCTION foo : INT
-		VAR_INPUT
-			input1 : INT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : INT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : INT;
-		END_VAR
-		END_FUNCTION
+        VAR_INPUT
+            input1 : INT;
+        END_VAR
+        VAR_OUTPUT
+            output1 : INT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : INT;
+        END_VAR
+        END_FUNCTION
 
-		PROGRAM main
-		VAR
-			a, b, c : INT;
-		END_VAR
-		foo(input1 := , output1 => , inout1 => );
-		END_PROGRAM
+        PROGRAM main
+        VAR
+            a, b, c : INT;
+        END_VAR
+        foo(input1 := , output1 => , inout1 => );
+        END_PROGRAM
         "#,
     );
 

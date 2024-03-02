@@ -7,7 +7,7 @@ use crate::{
 use indexmap::IndexMap;
 use itertools::Itertools;
 use plc_ast::ast::{
-    AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
+    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
     TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -26,6 +26,25 @@ pub mod symbol;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
+
+/// A label represents a possible jump point in the source.
+/// It can be referenced by jump elements in the same unit
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct Label {
+    pub id: AstId,
+    pub name: String,
+    pub location: SourceLocation,
+}
+
+impl From<&AstNode> for Label {
+    fn from(value: &AstNode) -> Self {
+        Label {
+            id: value.get_id(),
+            name: value.get_label_name().unwrap_or_default().to_string(),
+            location: value.get_location(),
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct VariableIndexEntry {
@@ -806,6 +825,9 @@ pub struct Index {
 
     /// Type layout for the target
     data_layout: DataLayout,
+
+    /// The labels contained in each pou
+    labels: IndexMap<String, SymbolMap<String, Label>>,
 }
 
 impl Index {
@@ -915,6 +937,9 @@ impl Index {
                 }
             }
         }
+
+        //labels
+        self.labels.extend(other.labels);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -1090,13 +1115,10 @@ impl Index {
         segments
             .iter()
             .skip(1)
-            .fold(Some((segments[0], init)), |accum, current| match accum {
-                Some((_, Some(context))) => {
-                    Some((*current, self.find_member(&context.data_type_name, current)))
-                }
+            .try_fold((segments[0], init), |accum, current| match accum {
+                (_, Some(context)) => Some((*current, self.find_member(&context.data_type_name, current))),
                 // The variable could be in a block that has no global variable (Function block)
-                Some((name, None)) => Some((*current, self.find_member(name, current))),
-                None => Some((*current, self.find_global_variable(current))),
+                (name, None) => Some((*current, self.find_member(name, current))),
             })
             .and_then(|(_, it)| it)
     }
@@ -1111,6 +1133,38 @@ impl Index {
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_qualified_enum_element(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
         self.enum_qualified_variables.get(&qualified_name.to_lowercase())
+    }
+
+    /// Returns all enum variant values and their constant values for the given variable.
+    ///
+    /// For example calling this method on `TYPE Color : (red, green, blue := 5); END_TYPE` will
+    /// return the [`VariableIndexEntry`]s of `red`, `green`, `blue` as well as their values
+    /// `0`, `1` and `5` respectively.
+    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
+        let mut values = Vec::new();
+        let qualified_name = variable.data_type_name.to_lowercase();
+
+        // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
+        let keys = self
+            .enum_qualified_variables
+            .keys()
+            .filter(|key| key.split('.').next().is_some())
+            .filter(|prefix| prefix.starts_with(&qualified_name))
+            .collect::<Vec<_>>();
+
+        for key in keys {
+            let value = self
+                .enum_qualified_variables
+                .get(key.as_str())
+                .expect("Must exist because of previous filter");
+            if let Some(ref const_id) = value.initial_value {
+                if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
+                    values.push((value, init));
+                }
+            }
+        }
+
+        values
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
@@ -1223,7 +1277,7 @@ impl Index {
         self.get_const_expressions().maybe_get_constant_statement(id)
     }
 
-    /// returns type aliased by Alias or SubRange    
+    /// returns type aliased by Alias or SubRange
     fn get_aliased_target_type(&self, dt: &DataTypeInformation) -> Option<&DataType> {
         match dt {
             DataTypeInformation::SubRange { referenced_type, .. }
@@ -1548,6 +1602,20 @@ impl Index {
             }
             _ => None,
         }
+    }
+
+    /// Adds a label definition for the POU
+    pub fn add_label(&mut self, pou_name: &str, label: Label) {
+        let labels = self.labels.entry(pou_name.to_string()).or_default();
+        labels.insert(label.name.clone(), label);
+    }
+
+    pub fn get_label(&self, pou_name: &str, label_name: &str) -> Option<&Label> {
+        self.labels.get(pou_name).and_then(|it| it.get(label_name))
+    }
+
+    pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
+        self.labels.get(pou_name)
     }
 }
 

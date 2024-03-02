@@ -1,0 +1,20 @@
+---
+source: tests/integration/cfc/resolver_tests.rs
+expression: "index.get_label(\"main\", \"lbl\").unwrap()"
+---
+Label {
+    id: 26,
+    name: "lbl",
+    location: SourceLocation {
+        span: Block {
+            local_id: 2,
+            execution_order: Some(
+                5,
+            ),
+            inner_range: None,
+        },
+        file: Some(
+            "<internal>.cfc",
+        ),
+    },
+}

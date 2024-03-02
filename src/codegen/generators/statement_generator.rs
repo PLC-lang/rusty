@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
@@ -7,7 +9,7 @@ use crate::{
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     index::{ImplementationIndexEntry, Index},
-    resolver::{AnnotationMap, AstAnnotations},
+    resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{self, DataTypeInformation},
 };
 use inkwell::{
@@ -18,7 +20,8 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, Operator, ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, AstFactory, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
+        ReferenceAccess, ReferenceExpr,
     },
     control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
@@ -31,6 +34,8 @@ pub struct FunctionContext<'ink, 'b> {
     pub linking_context: &'b ImplementationIndexEntry,
     /// the llvm function to generate statements into
     pub function: FunctionValue<'ink>,
+    /// The blocks/labels this function can use
+    pub blocks: HashMap<String, BasicBlock<'ink>>,
 }
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
@@ -124,8 +129,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::ReturnStatement(ReturnStatement { condition }) => match condition {
                 Some(condition) => {
-                    self.register_debug_location(statement);
-                    self.generate_conditional_return(condition)?;
+                    self.generate_conditional_return(statement, condition)?;
                 }
                 None => {
                     self.register_debug_location(statement);
@@ -133,6 +137,46 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.generate_buffer_block(); // XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
                 }
             },
+            AstStatement::LabelStatement(LabelStatement { name }) => {
+                if let Some(block) = self.function_context.blocks.get(name) {
+                    //unconditionally jump to the label
+                    self.register_debug_location(statement);
+                    self.llvm.builder.build_unconditional_branch(*block);
+                    //Place the current instert block at the label statement
+                    self.llvm.builder.position_at_end(*block);
+                }
+            }
+            AstStatement::JumpStatement(JumpStatement { condition, .. }) => {
+                //Find the label to jump to
+                let Some(then_block) = self.annotations.get(statement).and_then(|label| {
+                    if let StatementAnnotation::Label { name } = label {
+                        self.function_context.blocks.get(name)
+                    } else {
+                        None
+                    }
+                }) else {
+                    return Err(Diagnostic::codegen_error(
+                        "Could not find label for {statement:?}",
+                        statement.get_location(),
+                    ));
+                };
+                //Set current location as else block
+                let current_block = self.llvm.builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
+                let else_block = self.llvm.context.insert_basic_block_after(current_block, "else_block");
+
+                self.register_debug_location(condition);
+                let expression_generator = self.create_expr_generator();
+                let condition = expression_generator.generate_expression(condition)?;
+
+                self.register_debug_location(statement);
+                self.llvm.builder.build_conditional_branch(
+                    condition.into_int_value(),
+                    *then_block,
+                    else_block,
+                );
+                // Make sure further code is at the else block
+                self.llvm.builder.position_at_end(else_block);
+            }
             AstStatement::ExitStatement(_) => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);
@@ -231,7 +275,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     fn register_debug_location(&self, statement: &AstNode) {
-        let line = statement.get_location().get_line();
+        let line = statement.get_location().get_line_plus_one();
         let column = statement.get_location().get_column();
         self.debug.set_debug_location(self.llvm, &self.function_context.function, line, column);
     }
@@ -278,10 +322,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     left_type,
                 )
             } else {
-                Err(Diagnostic::syntax_error(
-                    &format!("{element:?} not a direct access"),
-                    element.get_location(),
-                ))
+                //TODO: using the global context we could get a slice here
+                Err(Diagnostic::error(format!("{element:?} not a direct access"))
+                    .with_error_code("E055")
+                    .with_location(element.get_location()))
             }?;
             for element in direct_access {
                 let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -292,10 +336,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         left_type,
                     )
                 } else {
-                    Err(Diagnostic::syntax_error(
-                        &format!("{element:?} not a direct access"),
-                        element.get_location(),
-                    ))
+                    //TODO: using the global context we could get a slice here
+                    Err(Diagnostic::error(&format!("{element:?} not a direct access"))
+                        .with_error_code("E055")
+                        .with_location(element.get_location()))
                 }?;
                 rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
             }
@@ -752,7 +796,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let value_ptr =
                     self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
-                            &format!("Cannot generate return variable for {call_name:}"),
+                            format!("Cannot generate return variable for {call_name:}"),
                             SourceLocation::undefined(),
                         )
                     })?;
@@ -767,8 +811,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// Generates LLVM IR for conditional returns, which return if a given condition evaluates to true and
     /// does nothing otherwise.
-    pub fn generate_conditional_return(&'a self, condition: &AstNode) -> Result<(), Diagnostic> {
+    pub fn generate_conditional_return(
+        &'a self,
+        statement: &AstNode,
+        condition: &AstNode,
+    ) -> Result<(), Diagnostic> {
         let expression_generator = self.create_expr_generator();
+
+        self.register_debug_location(condition);
         let condition = expression_generator.generate_expression(condition)?;
 
         let then_block = self.llvm.context.append_basic_block(self.function_context.function, "then_block");
@@ -781,8 +831,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
 
         self.llvm.builder.position_at_end(then_block);
+        self.register_debug_location(statement);
         self.generate_return_statement()?;
-
         self.llvm.builder.position_at_end(else_block);
 
         Ok(())

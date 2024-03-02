@@ -1,7 +1,9 @@
 ---
 source: compiler/plc_xml/src/model/body.rs
-expression: "Body::visit(&mut reader).unwrap()"
+expression: "Body::visit(&mut reader, None).unwrap()"
 ---
 Body {
-    function_block_diagram: None,
+    function_block_diagram: FunctionBlockDiagram {
+        nodes: {},
+    },
 }

@@ -1,8 +1,23 @@
 ---
 source: src/validation/tests/variable_length_array_test.rs
-expression: res
+expression: diagnostics
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_int' to '__fn_arr'", range: [SourceLocation { span: Range(TextLocation { line: 14, column: 19, offset: 436 }..TextLocation { line: 14, column: 28, offset: 445 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_float' to '__fn_arr'", range: [SourceLocation { span: Range(TextLocation { line: 15, column: 19, offset: 467 }..TextLocation { line: 15, column: 30, offset: 478 }) }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_local_string' to '__fn_arr'", range: [SourceLocation { span: Range(TextLocation { line: 16, column: 19, offset: 500 }..TextLocation { line: 16, column: 31, offset: 512 }) }], err_no: var__invalid_assignment }
+error: Invalid assignment: cannot assign 'ARRAY[0..10] OF INT' to 'ARRAY[*] OF DINT'
+   ┌─ <internal>:15:20
+   │
+15 │                 fn(local_int);
+   │                    ^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF INT' to 'ARRAY[*] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..10] OF REAL' to 'ARRAY[*] OF DINT'
+   ┌─ <internal>:16:20
+   │
+16 │                 fn(local_float);
+   │                    ^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF REAL' to 'ARRAY[*] OF DINT'
+
+error: Invalid assignment: cannot assign 'ARRAY[0..10] OF STRING' to 'ARRAY[*] OF DINT'
+   ┌─ <internal>:17:20
+   │
+17 │                 fn(local_string);
+   │                    ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF STRING' to 'ARRAY[*] OF DINT'
+
 

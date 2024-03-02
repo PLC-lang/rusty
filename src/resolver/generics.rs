@@ -394,7 +394,7 @@ impl<'i> TypeAnnotator<'i> {
                                 .find_effective_type_by_name(current.get_name())
                                 .map(|t| {
                                     t.has_nature(*nature, self.index)
-										// INT parameter for REAL is allowed
+                                        // INT parameter for REAL is allowed
                                             | (nature.is_real() & t.is_numerical())
                                 })
                                 .unwrap_or_default()

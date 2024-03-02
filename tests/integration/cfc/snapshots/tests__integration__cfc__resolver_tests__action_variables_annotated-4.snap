@@ -1,0 +1,15 @@
+---
+source: tests/integration/cfc/resolver_tests.rs
+expression: annotations.get(left)
+---
+Some(
+    Variable {
+        resulting_type: "DINT",
+        qualified_name: "main.b",
+        constant: false,
+        argument_type: ByVal(
+            Local,
+        ),
+        is_auto_deref: false,
+    },
+)

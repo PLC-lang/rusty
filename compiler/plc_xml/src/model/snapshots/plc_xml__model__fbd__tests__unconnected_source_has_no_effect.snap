@@ -1,0 +1,21 @@
+---
+source: compiler/plc_xml/src/model/fbd.rs
+expression: err
+---
+[
+    Diagnostic {
+        message: "Source 'connection1' is not connected.",
+        primary_location: SourceLocation {
+            span: Block {
+                local_id: 3,
+                execution_order: None,
+                inner_range: None,
+            },
+        },
+        secondary_locations: None,
+        severity: Error,
+        error_code: "E084",
+        sub_diagnostics: [],
+        internal_error: None,
+    },
+]

@@ -2,8 +2,18 @@
 f = open("gen.txt", "w")
 
 # list of data types
-types = ["LREAL", "REAL", "LINT", "DINT", "INT",
-         "SINT", "ULINT", "UDINT", "UINT", "USINT"]
+types = [
+    "LREAL",
+    "REAL",
+    "LINT",
+    "DINT",
+    "INT",
+    "SINT",
+    "ULINT",
+    "UDINT",
+    "UINT",
+    "USINT",
+]
 
 src = """(********************
 *
@@ -12,9 +22,9 @@ src = """(********************
 *********************)
 FUNCTION {0}_TO_{1} : {1}
 VAR_INPUT
-	in : {0};
+    in : {0};
 END_VAR
-	{0}_TO_{1} := in;
+    {0}_TO_{1} := in;
 END_FUNCTION
 
 """

@@ -9,8 +9,8 @@ error: Cannot generate literal initializer for 'MyStruct2.b': Value cannot be de
   │
 7 │         TYPE MyStruct2: STRUCT
   │              --------- see also
-8 │             a : MyStruct  := (a:=5, b:=3); 
-9 │             b : MyStruct  := (c:=7); 
+8 │             a : MyStruct  := (a:=5, b:=3);
+9 │             b : MyStruct  := (c:=7);
   │                               ^^^^ Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived
 
 

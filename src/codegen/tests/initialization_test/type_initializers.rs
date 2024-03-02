@@ -1,7 +1,9 @@
 use insta::assert_snapshot;
 
 use crate::{
-    test_utils::tests::{codegen, codegen_debug_without_unwrap, codegen_without_unwrap, parse_and_validate},
+    test_utils::tests::{
+        codegen, codegen_debug_without_unwrap, codegen_without_unwrap, parse_and_validate_buffered,
+    },
     DebugLevel,
 };
 
@@ -60,7 +62,7 @@ fn struct_initial_values_different_data_types() {
 fn initial_values_in_type_alias() {
     let result = codegen(
         "
-        TYPE MyInt: INT := 7; END_TYPE 
+        TYPE MyInt: INT := 7; END_TYPE
         VAR_GLOBAL x : MyInt; END_VAR
         ",
     );
@@ -72,7 +74,7 @@ fn initial_values_in_type_alias() {
 fn initial_values_in_sub_range_type() {
     let result = codegen(
         "
-        TYPE MyInt: INT(0..1000) := 7; END_TYPE 
+        TYPE MyInt: INT(0..1000) := 7; END_TYPE
         VAR_GLOBAL x : MyInt; END_VAR
         ",
     );
@@ -84,12 +86,12 @@ fn initial_values_in_sub_range_type() {
 fn expression_list_as_array_initilization() {
     let result = codegen(
         "
-		VAR_GLOBAL
-			arr : ARRAY[-1..3] OF INT := 1, 2, 3;
-			b_exp : ARRAY[-1..4] OF DINT := 1+3, 2*3, 7-1, 10;
-			str : ARRAY[-1..2] OF STRING := 'first', 'second';
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[-1..3] OF INT := 1, 2, 3;
+            b_exp : ARRAY[-1..4] OF DINT := 1+3, 2*3, 7-1, 10;
+            str : ARRAY[-1..2] OF STRING := 'first', 'second';
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -98,10 +100,10 @@ fn expression_list_as_array_initilization() {
 fn incomplete_array_initialization() {
     let result = codegen(
         "
-		VAR_GLOBAL
-			arr : ARRAY[0..5] OF INT := 0, 1, 2;
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[0..5] OF INT := 0, 1, 2;
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -112,10 +114,10 @@ fn incomplete_array_initialization_with_custom_init_value() {
         "
         TYPE MyInt : INT := 7; END_TYPE
 
-		VAR_GLOBAL
-			arr : ARRAY[0..5] OF MyInt := 0, 1, 2;
-		END_VAR
-		",
+        VAR_GLOBAL
+            arr : ARRAY[0..5] OF MyInt := 0, 1, 2;
+        END_VAR
+        ",
     );
     insta::assert_snapshot!(result);
 }
@@ -124,12 +126,12 @@ fn incomplete_array_initialization_with_custom_init_value() {
 fn alias_chain_with_lots_of_initializers() {
     let result = codegen(
         "
-        TYPE MyInt: MyOtherInt1; END_TYPE 
-        VAR_GLOBAL 
-          x0 : MyInt; 
-          x1 : MyOtherInt1; 
-          x2 : MyOtherInt2; 
-          x3 : MyOtherInt3; 
+        TYPE MyInt: MyOtherInt1; END_TYPE
+        VAR_GLOBAL
+          x0 : MyInt;
+          x1 : MyOtherInt1;
+          x2 : MyOtherInt2;
+          x3 : MyOtherInt3;
         END_VAR
         TYPE MyOtherInt3 : DINT := 3; END_TYPE
         TYPE MyOtherInt1 : MyOtherInt2 := 1; END_TYPE
@@ -144,15 +146,15 @@ fn alias_chain_with_lots_of_initializers() {
 fn initial_values_in_single_dimension_array_variable() {
     let result = codegen(
         "
-        VAR_GLOBAL 
-          a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
-          b : ARRAY[0..2] OF INT  := [1, 2, 3]; 
-          c : ARRAY[0..2] OF DINT  := [1, 2, 3]; 
-          d : ARRAY[0..2] OF LINT  := [1, 2, 3]; 
-          e : ARRAY[0..2] OF USINT  := [1, 2, 3]; 
-          f : ARRAY[0..2] OF UINT  := [1, 2, 3]; 
-          g : ARRAY[0..2] OF ULINT := [1, 2, 3]; 
-          h : ARRAY[0..2] OF BOOL := [TRUE, FALSE, TRUE]; 
+        VAR_GLOBAL
+          a : ARRAY[0..2] OF SINT  := [1, 2, 3];
+          b : ARRAY[0..2] OF INT  := [1, 2, 3];
+          c : ARRAY[0..2] OF DINT  := [1, 2, 3];
+          d : ARRAY[0..2] OF LINT  := [1, 2, 3];
+          e : ARRAY[0..2] OF USINT  := [1, 2, 3];
+          f : ARRAY[0..2] OF UINT  := [1, 2, 3];
+          g : ARRAY[0..2] OF ULINT := [1, 2, 3];
+          h : ARRAY[0..2] OF BOOL := [TRUE, FALSE, TRUE];
         END_VAR
         ",
     );
@@ -176,8 +178,8 @@ fn initial_values_in_single_dimension_array_type() {
 fn initial_values_in_multi_dimension_array_variable() {
     let result = codegen(
         "
-         VAR_GLOBAL 
-           a : ARRAY[0..1, 0..1] OF BYTE  := [1,2,3,4]; 
+         VAR_GLOBAL
+           a : ARRAY[0..1, 0..1] OF BYTE  := [1,2,3,4];
          END_VAR
          ",
     );
@@ -189,11 +191,11 @@ fn initial_values_in_multi_dimension_array_variable() {
 fn initial_values_in_array_variable_using_multiplied_statement() {
     let result = codegen(
         "
-         VAR_GLOBAL 
-           a : ARRAY[0..3] OF BYTE  := [4(7)]; 
-           b : ARRAY[0..3] OF BYTE  := [2, 2(7), 3]; 
-           c : ARRAY[0..9] OF BYTE  := [5(0,1)]; 
-           d : ARRAY[0..9] OF BYTE  := [2(2(0), 2(1), 2)]; 
+         VAR_GLOBAL
+           a : ARRAY[0..3] OF BYTE  := [4(7)];
+           b : ARRAY[0..3] OF BYTE  := [2, 2(7), 3];
+           c : ARRAY[0..9] OF BYTE  := [5(0,1)];
+           d : ARRAY[0..9] OF BYTE  := [2(2(0), 2(1), 2)];
          END_VAR
          ",
     );
@@ -211,9 +213,9 @@ fn initial_values_in_struct_variable() {
         END_STRUCT
         END_TYPE
 
-         VAR_GLOBAL 
-           a : MyStruct  := (a:=3, b:=5); 
-           b : MyStruct  := (b:=3, a:=5); 
+         VAR_GLOBAL
+           a : MyStruct  := (a:=3, b:=5);
+           b : MyStruct  := (b:=3, a:=5);
          END_VAR
          ",
     );
@@ -232,9 +234,9 @@ fn initial_values_in_struct_variable_missing_init() {
         END_STRUCT
         END_TYPE
 
-         VAR_GLOBAL 
-           a : MyStruct  := (a:=5, c := 10); 
-           b : MyStruct  := (b:=3, c := 10); 
+         VAR_GLOBAL
+           a : MyStruct  := (a:=5, c := 10);
+           b : MyStruct  := (b:=3, c := 10);
          END_VAR
          ",
     );
@@ -246,14 +248,14 @@ fn initial_values_in_struct_variable_missing_init() {
 fn unresolvable_types_validation() {
     let msg = codegen_debug_without_unwrap(
         "
-        VAR_GLOBAL 
-            a : MyStruct2  := (a := (c:=5, b:= 7), b := (a:=3, b:=2)); 
-            b : MyStruct2  := (b := (a:= 9)); 
+        VAR_GLOBAL
+            a : MyStruct2  := (a := (c:=5, b:= 7), b := (a:=3, b:=2));
+            b : MyStruct2  := (b := (a:= 9));
         END_VAR
 
         TYPE MyStruct2: STRUCT
-            a : MyStruct  := (a:=5, b:=3); 
-            b : MyStruct  := (c:=7); 
+            a : MyStruct  := (a:=5, b:=3);
+            b : MyStruct  := (c:=7);
         END_STRUCT
         END_TYPE
 
@@ -273,14 +275,14 @@ fn unresolvable_types_validation() {
 fn initial_nested_struct_delayed_init() {
     let result = codegen(
         "
-        VAR_GLOBAL 
-            a : MyStruct2  := (a := (a:=5, b:= 7), b := (a:=3, b:=2)); 
-            b : MyStruct2  := (b := (a:= 9)); 
+        VAR_GLOBAL
+            a : MyStruct2  := (a := (a:=5, b:= 7), b := (a:=3, b:=2));
+            b : MyStruct2  := (b := (a:= 9));
         END_VAR
 
         TYPE MyStruct2: STRUCT
-            a : MyStruct  := (a:=5, b:=3); 
-            b : MyStruct  := (b:=7); 
+            a : MyStruct  := (a:=5, b:=3);
+            b : MyStruct  := (b:=7);
         END_STRUCT
         END_TYPE
 
@@ -329,7 +331,7 @@ fn initial_values_in_fb_variable() {
         END_VAR
         END_FUNCTION_BLOCK
 
-        PROGRAM main 
+        PROGRAM main
 
         VAR CONSTANT
             TEN : INT := 10;
@@ -353,7 +355,7 @@ fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
           y: DINT;
         END_STRUCT
         END_TYPE
- 
+
         TYPE MyStruct: STRUCT
           point: MyPoint;
           my_array: ARRAY[0..3] OF INT;
@@ -361,12 +363,12 @@ fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
         END_STRUCT
         END_TYPE
 
-        VAR_GLOBAL 
+        VAR_GLOBAL
           a : MyStruct  := (
               point := (x := 1, y:= 2),
               my_array := [0,1,2,3],
               f := 7
-            ); 
+            );
         END_VAR
         ",
     );
@@ -382,8 +384,8 @@ fn struct_with_one_field_can_be_initialized() {
           x: DINT;
         END_STRUCT
         END_TYPE
- 
-        VAR_GLOBAL 
+
+        VAR_GLOBAL
           a : MyPoint := ( x := 7);
         END_VAR
         ",
@@ -400,7 +402,7 @@ fn struct_initializer_needs_assignments() {
               y: DINT;
             END_STRUCT
             END_TYPE
- 
+
             VAR_GLOBAL
                 x : Point := (x := 1, 2);
             END_VAR
@@ -423,7 +425,7 @@ fn struct_initialization_uses_types_default_if_not_provided() {
               z: MyDINT;
             END_STRUCT
             END_TYPE
- 
+
             VAR_GLOBAL
                 x : Point := (x := 1, y := 2);
             END_VAR
@@ -448,7 +450,7 @@ fn struct_initializer_uses_fallback_to_field_default() {
               z: DINT := 3;
             END_STRUCT
             END_TYPE
- 
+
             VAR_GLOBAL
                 x : Point := (x := 1);
             END_VAR
@@ -461,26 +463,26 @@ fn struct_initializer_uses_fallback_to_field_default() {
 #[test]
 fn array_of_struct_initialization() {
     let source = "
-	TYPE myStruct : STRUCT
-			a, b : DINT;
-			c : ARRAY[0..1] OF DINT;
-		END_STRUCT
-	END_TYPE
+    TYPE myStruct : STRUCT
+            a, b : DINT;
+            c : ARRAY[0..1] OF DINT;
+        END_STRUCT
+    END_TYPE
 
-	TYPE AliasMyStruct : myStruct; END_TYPE
+    TYPE AliasMyStruct : myStruct; END_TYPE
 
-	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 50, b := 60, c := [70, 80]);
-		alias_str : AliasMyStruct := (a := 50, b := 60, c := [70, 80]);
-		global_arr : ARRAY[0..1] OF DINT := [30, 40];
-	END_VAR
+    VAR_GLOBAL CONSTANT
+        str : myStruct := (a := 50, b := 60, c := [70, 80]);
+        alias_str : AliasMyStruct := (a := 50, b := 60, c := [70, 80]);
+        global_arr : ARRAY[0..1] OF DINT := [30, 40];
+    END_VAR
 
-	PROGRAM main
-	VAR
-		arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
-		alias_arr : ARRAY[0..1] OF AliasMyStruct := [(a := 10, b := 20, c := global_arr), alias_str];
-	END_VAR
-	END_PROGRAM
+    PROGRAM main
+    VAR
+        arr : ARRAY[0..1] OF myStruct := [(a := 10, b := 20, c := [30, 40]), str];
+        alias_arr : ARRAY[0..1] OF AliasMyStruct := [(a := 10, b := 20, c := global_arr), alias_str];
+    END_VAR
+    END_PROGRAM
     ";
     let result = codegen(source);
 
@@ -525,7 +527,7 @@ fn partly_uninitialized_const_struct_will_get_default_values() {
               z: DINT := 3;
             END_STRUCT
             END_TYPE
- 
+
             VAR_GLOBAL CONSTANT
                 x : Point := (x := 1);
                 empty: Point;
@@ -538,7 +540,7 @@ fn partly_uninitialized_const_struct_will_get_default_values() {
 
 #[test]
 fn partly_uninitialized_const_struct_will_not_report_errors() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r#"
             TYPE MyOtherDINT : DINT := 2 ; END_TYPE
             TYPE MyDINT      : MyOtherDINT; END_TYPE
@@ -549,20 +551,20 @@ fn partly_uninitialized_const_struct_will_not_report_errors() {
               z: DINT := 3;
             END_STRUCT
             END_TYPE
- 
+
             VAR_GLOBAL CONSTANT
                 x : Point := (x := 1);
                 empty: Point;
             END_VAR
         "#,
     );
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty())
 }
 
 #[test]
 fn enums_with_inline_initializer_do_not_report_errors() {
-    let diagnostics = parse_and_validate(
-        r#"            
+    let diagnostics = parse_and_validate_buffered(
+        r#"
         VAR_GLOBAL
               x : (red, yellow, green) := red;
         END_VAR
@@ -579,13 +581,13 @@ fn enums_with_inline_initializer_do_not_report_errors() {
         END_FUNCTION
         "#,
     );
-    assert_eq!(diagnostics, vec![]);
+    assert!(diagnostics.is_empty())
 }
 
 #[test]
 fn enums_with_inline_initializer_are_initialized() {
     let res = codegen(
-        r#"            
+        r#"
         VAR_GLOBAL
               x : (red, yellow, green) := 2;
         END_VAR
@@ -604,5 +606,35 @@ fn enums_with_inline_initializer_are_initialized() {
         END_FUNCTION
         "#,
     );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn skipped_field_members_for_array_of_structs_are_zero_initialized() {
+    let res = codegen(
+        r#"
+        TYPE STRUCT1 : STRUCT
+            idx: DINT;
+            arr: ARRAY[1..2] OF STRUCT2;
+        END_STRUCT END_TYPE
+
+        TYPE STRUCT2 : STRUCT
+            x: DINT;
+            y: DINT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+            VAR
+                var_init1 : ARRAY[1..3] OF STRUCT1 := [
+                    (idx := 0, arr := [(x := 1)]),
+                    (idx := 2, arr := [(x := 1, y := 1)]),
+                    (idx := 1, arr := [(x := 1), (y := 2)])
+                ];
+            END_VAR
+        END_PROGRAM
+        "#,
+    );
+
     insta::assert_snapshot!(res);
 }

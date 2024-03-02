@@ -168,3 +168,9 @@ To reference an environment variable in the description file, reference the vari
  ]
 }
 ```
+
+## Validation
+
+The build description file uses a [Json Schema](https://json-schema.org/) file located at `compiler/plc_project/schema/plc-json.schema` to validate the build description before build.
+In order for the schema to be used, it has to be either in that location for source builds or copied next to the build binaries.
+If the schema is not found, the schema based validation will be skipped.

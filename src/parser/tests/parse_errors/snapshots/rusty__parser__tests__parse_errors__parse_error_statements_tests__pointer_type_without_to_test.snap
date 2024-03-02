@@ -2,11 +2,11 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-warning: 'POINTER TO' is not a standard keyword, use REF_TO instead
+warning: `POINTER TO` is not a standard keyword, use `REF_TO` instead
   ┌─ <internal>:3:13
   │
 3 │             POINTER INT;
-  │             ^^^^^^^ 'POINTER TO' is not a standard keyword, use REF_TO instead
+  │             ^^^^^^^ `POINTER TO` is not a standard keyword, use `REF_TO` instead
 
 error: Unexpected token: expected KeywordTo but found INT
   ┌─ <internal>:3:21

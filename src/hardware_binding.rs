@@ -1,5 +1,5 @@
 use plc_ast::ast::{DirectAccessType, HardwareAccessType};
-use plc_diagnostics::{diagnostics::Diagnostic, errno::ErrNo};
+use plc_diagnostics::diagnostics::Diagnostic;
 use serde::{
     ser::{SerializeSeq, SerializeStruct},
     Serialize, Serializer,
@@ -142,7 +142,7 @@ pub fn collect_hardware_configuration(index: &Index) -> Result<HardwareConfigura
         .collect();
 
     conf.map(|hardware_binding| HardwareConfiguration { index, hardware_binding })
-        .map_err(|message| Diagnostic::GeneralError { err_no: ErrNo::general__io_err, message })
+        .map_err(|message| Diagnostic::error(message).with_error_code("E002"))
 }
 
 pub fn generate_hardware_configuration(
@@ -150,10 +150,12 @@ pub fn generate_hardware_configuration(
     format: ConfigFormat,
 ) -> Result<String, Diagnostic> {
     match format {
-        ConfigFormat::JSON => serde_json::to_string_pretty(&config)
-            .map_err(|e| Diagnostic::GeneralError { message: e.to_string(), err_no: ErrNo::general__io_err }),
-        ConfigFormat::TOML => toml::ser::to_string_pretty(&config)
-            .map_err(|e| Diagnostic::GeneralError { message: e.to_string(), err_no: ErrNo::general__io_err }),
+        ConfigFormat::JSON => serde_json::to_string_pretty(&config).map_err(|e| {
+            Diagnostic::error(e.to_string()).with_error_code("E002").with_internal_error(e.into())
+        }),
+        ConfigFormat::TOML => toml::ser::to_string_pretty(&config).map_err(|e| {
+            Diagnostic::error(e.to_string()).with_error_code("E002").with_internal_error(e.into())
+        }),
     }
 }
 

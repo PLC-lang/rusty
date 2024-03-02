@@ -1,6 +1,8 @@
 use driver::runner::compile_and_run;
 
 use crate::get_test_file;
+mod resolver_tests;
+mod validation_tests;
 
 #[test]
 fn variables_assigned() {
@@ -151,14 +153,61 @@ fn conditional_return_block_evaluating_false() {
     assert_eq!(res, 10);
 }
 
+#[test]
+fn connection_sink_source() {
+    // GIVEN a CFC program which assigns variables through a sink-source-pair and adds them together
+    let st_file = get_test_file("cfc/connection.st");
+    let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
+    // WHEN calling the program
+    let res: i32 = compile_and_run(vec![st_file, cfc_file], &mut {});
+    // THEN the result will have double the value of the initial value
+    assert_eq!(res, 4);
+}
+
+#[test]
+fn jump_to_label_with_true() {
+    let cfc_file = get_test_file("cfc/jump_true.cfc");
+
+    let res: i32 = compile_and_run(vec![cfc_file], &mut {});
+    assert_eq!(res, 3);
+}
+
+#[test]
+fn jump_to_label_with_false() {
+    let cfc_file = get_test_file("cfc/jump_false.cfc");
+
+    let res: i32 = compile_and_run(vec![cfc_file], &mut {});
+    assert_eq!(res, 5);
+}
+
+#[test]
+fn actions_called_correctly() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        a: i32,
+        b: i32,
+    }
+
+    let mut main = MainType::default();
+
+    let file = get_test_file("cfc/actions.cfc");
+    let _: i32 = compile_and_run(vec![file], &mut main);
+
+    assert_eq!(main.a, 1);
+    assert_eq!(main.b, 2);
+}
+
 // TODO(volsa): Remove this once our `test_utils.rs` file has been polished to also support CFC.
 // More specifically transform the following tests into simple codegen ones.
 #[cfg(test)]
 mod ir {
-    use std::io::Read;
-
-    use driver::compile;
+    use driver::{compile, generate_to_string, generate_to_string_debug};
     use insta::assert_snapshot;
+    use plc_source::SourceCode;
+    use plc_xml::serializer::{
+        SAction, SBlock, SConnector, SContinuation, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn,
+    };
 
     use crate::get_test_file;
 
@@ -171,15 +220,12 @@ mod ir {
         let output_file = tempfile::NamedTempFile::new().unwrap();
         let output_file_path = output_file.path().to_string_lossy();
         compile(&["plc", &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
-
-        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
-        let mut output_file_content = String::new();
-        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+        let res = generate_to_string("plc", vec![cfc_file]).unwrap();
 
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
-        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -187,18 +233,12 @@ mod ir {
         let st_file = get_test_file("cfc/conditional_return_evaluating_true.st");
         let cfc_file = get_test_file("cfc/conditional_return.cfc");
 
-        let output_file = tempfile::NamedTempFile::new().unwrap();
-        let output_file_path = output_file.path().to_string_lossy();
-        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
-
-        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
-        let mut output_file_content = String::new();
-        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
 
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
-        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -206,17 +246,165 @@ mod ir {
         let st_file = get_test_file("cfc/conditional_return_evaluating_true_negated.st");
         let cfc_file = get_test_file("cfc/conditional_return_negated.cfc");
 
-        let output_file = tempfile::NamedTempFile::new().unwrap();
-        let output_file_path = output_file.path().to_string_lossy();
-        compile(&["plc", &st_file, &cfc_file, "--ir", "-o", &output_file_path]).unwrap();
-
-        let mut output_file_handle = std::fs::File::open(output_file).unwrap();
-        let mut output_file_content = String::new();
-        output_file_handle.read_to_string(&mut output_file_content).unwrap();
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
 
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
-        let output_file_content_without_headers = output_file_content.lines().skip(3).collect::<Vec<&str>>();
-        assert_snapshot!(output_file_content_without_headers.join(NEWLINE));
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    fn variable_source_to_variable_and_block_sink() {
+        let st_file = get_test_file("cfc/connection.st");
+        let cfc_file = get_test_file("cfc/connection_var_source_multi_sink.cfc");
+
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    #[ignore = "block-to-block connections not yet implemented"]
+    fn block_source_to_variable_and_block_sink() {
+        let st_file = get_test_file("cfc/connection.st");
+        let cfc_file = get_test_file("cfc/connection_block_source_multi_sink.cfc");
+
+        let res = generate_to_string("plc", vec![st_file, cfc_file]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    fn jump_to_label_with_true() {
+        let cfc_file = get_test_file("cfc/jump_true.cfc");
+
+        let res = generate_to_string("plc", vec![cfc_file]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    fn jump_to_label_with_false() {
+        let cfc_file = get_test_file("cfc/jump_false.cfc");
+
+        let res = generate_to_string("plc", vec![cfc_file]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
+    fn conditional_return_debug() {
+        let declaration = "FUNCTION foo : DINT VAR_INPUT val : DINT; END_VAR";
+        let content = SPou::init("foo", "function", declaration).with_fbd(vec![
+            // IF val = 1 THEN RETURN
+            &SInVariable::id(2).with_expression("val = 5"),
+            &SReturn::id(3).with_execution_id(2).connect(2).negate(false),
+            // ELSE val := 10
+            &SInVariable::id(4).with_expression("10"),
+            &SInVariable::id(5).with_execution_id(3).connect(4).with_expression("val"),
+        ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
+        // We expect two different !dbg statements for the return statement and its condition
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
+    fn jump_debug() {
+        let declaration = "PROGRAM foo VAR val : DINT := 0; END_VAR";
+        let content = SPou::init("foo", "program", declaration).with_fbd(vec![
+            // IF TRUE THEN GOTO lbl
+            &SInVariable::id(1).with_expression("val = 0"), // condition
+            &SLabel::id(2).with_name("lbl").with_execution_id(1), // label
+            &SJump::id(3).with_name("lbl").with_execution_id(2).connect(1), // statement
+            // ELSE x := FALSE
+            &SOutVariable::id(4).with_execution_id(3).with_expression("val").connect(5), // assignment
+            &SInVariable::id(5).with_expression("1"),
+        ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
+        // We expect four different !dbg statement for the condition, label, statement and the assignment
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
+    fn actions_debug() {
+        let content = SPou::init("main", "program", "PROGRAM main VAR a, b : DINT; END_VAR")
+            .with_actions(vec![
+                &SAction::name("newAction").with_fbd(vec![
+                    &SOutVariable::id(1).with_expression("a").with_execution_id(0).connect(2),
+                    &SInVariable::id(2).with_expression("a + 1"),
+                ]),
+                &SAction::name("newAction2").with_fbd(vec![
+                    &SInVariable::id(1).with_expression("b + 2"),
+                    &SOutVariable::id(2).with_expression("b").with_execution_id(0).connect(1),
+                ]),
+            ])
+            .with_fbd(vec![
+                &SBlock::id(1).with_name("newAction").with_execution_id(1),
+                &SBlock::id(2).with_name("newAction2").with_execution_id(2),
+                &SInVariable::id(4).with_expression("0"),
+                &SOutVariable::id(3).with_expression("a").with_execution_id(0).connect(4),
+            ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
+        assert_snapshot!(output_file_content_without_headers);
+    }
+
+    #[test]
+    // TODO: Transfer this test to `codegen/tests/debug_tests/cfc.rs` once `test_utils.rs` has been refactored
+    fn sink_source_debug() {
+        let content = SPou::init("main", "program", "PROGRAM main VAR x: DINT; END_VAR").with_fbd(vec![
+            &SInVariable::id(1).with_expression("5"),
+            &SConnector::id(2).with_name("s1").connect(1),
+            &SContinuation::id(3).with_name("s1"),
+            &SOutVariable::id(4).with_expression("x").with_execution_id(1).connect(3),
+        ]);
+
+        let mut source = SourceCode::from(content.serialize());
+        source.path = Some("<internal>.cfc".into());
+        let res = generate_to_string_debug("plc", vec![source]).unwrap();
+
+        // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
+        // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
+        let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
+
+        assert_snapshot!(output_file_content_without_headers);
     }
 }

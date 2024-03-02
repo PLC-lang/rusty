@@ -157,6 +157,30 @@ impl TypeNature {
     }
 }
 
+impl Display for TypeNature {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let name = match self {
+            TypeNature::Any => "ANY",
+            TypeNature::Derived => "ANY_DERIVED",
+            TypeNature::Elementary => "ANY_ELEMENTARY",
+            TypeNature::Magnitude => "ANY_MAGNITUDE",
+            TypeNature::Num => "ANY_NUMBER",
+            TypeNature::Real => "ANY_REAL",
+            TypeNature::Int => "ANY_INT",
+            TypeNature::Signed => "ANY_SIGNED",
+            TypeNature::Unsigned => "ANY_UNSIGNED",
+            TypeNature::Duration => "ANY_DURATION",
+            TypeNature::Bit => "ANY_BIT",
+            TypeNature::Chars => "ANY_CHARS",
+            TypeNature::String => "ANY_STRING",
+            TypeNature::Char => "ANY_CHAR",
+            TypeNature::Date => "ANY_DATE",
+            TypeNature::__VLA => "__ANY_VLA",
+        };
+        write!(f, "{name}")
+    }
+}
+
 impl DirectAccessType {
     /// Returns the size of the bitaccess result
     pub fn get_bit_width(&self) -> u64 {
@@ -379,21 +403,6 @@ impl Variable {
     }
 }
 
-pub trait DiagnosticInfo {
-    fn get_description(&self) -> String;
-    fn get_location(&self) -> SourceLocation;
-}
-
-impl DiagnosticInfo for AstNode {
-    fn get_description(&self) -> String {
-        format!("{self:?}")
-    }
-
-    fn get_location(&self) -> SourceLocation {
-        self.get_location()
-    }
-}
-
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
     DataTypeReference { referenced_type: String, location: SourceLocation },
@@ -553,7 +562,7 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ReferenceAccess {
     /**
      * a, a.b
@@ -584,7 +593,7 @@ pub struct AstNode {
     pub location: SourceLocation,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
     // a placeholder that indicates a default value of a datatype
@@ -601,6 +610,7 @@ pub enum AstStatement {
     BinaryExpression(BinaryExpression),
     UnaryExpression(UnaryExpression),
     ExpressionList(Vec<AstNode>),
+    ParenExpression(Box<AstNode>),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
     // Assignment
@@ -616,6 +626,8 @@ pub enum AstStatement {
     ExitStatement(()),
     ContinueStatement(()),
     ReturnStatement(ReturnStatement),
+    JumpStatement(JumpStatement),
+    LabelStatement(LabelStatement),
 }
 
 impl Debug for AstNode {
@@ -636,6 +648,9 @@ impl Debug for AstNode {
             }
             AstStatement::ExpressionList(expressions) => {
                 f.debug_struct("ExpressionList").field("expressions", expressions).finish()
+            }
+            AstStatement::ParenExpression(expression) => {
+                f.debug_struct("ParenExpression").field("expression", expression).finish()
             }
             AstStatement::RangeStatement(RangeStatement { start, end }) => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
@@ -726,6 +741,12 @@ impl Debug for AstNode {
             AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
                 f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
             }
+            AstStatement::JumpStatement(JumpStatement { condition, target, .. }) => {
+                f.debug_struct("JumpStatement").field("condition", condition).field("target", target).finish()
+            }
+            AstStatement::LabelStatement(LabelStatement { name, .. }) => {
+                f.debug_struct("LabelStatement").field("name", name).finish()
+            }
         }
     }
 }
@@ -754,6 +775,16 @@ impl AstNode {
 
     pub fn get_stmt(&self) -> &AstStatement {
         &self.stmt
+    }
+
+    /// Similar to [`AstNode::get_stmt`] with the exception of peeling parenthesized expressions.
+    /// For example if called on `((1))` this function would return a [`AstStatement::Literal`] ignoring the
+    /// parenthesized expressions altogether.
+    pub fn get_stmt_peeled(&self) -> &AstStatement {
+        match &self.stmt {
+            AstStatement::ParenExpression(expr) => expr.get_stmt_peeled(),
+            _ => &self.stmt,
+        }
     }
 
     /// Returns true if the current statement has a direct access.
@@ -807,14 +838,15 @@ impl AstNode {
             AstStatement::ReferenceExpr(
                 ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
                 ..,
-            ) => {
-                if let AstStatement::Identifier(name, ..) = &reference.as_ref().stmt {
-                    Some(name)
-                } else {
-                    None
-                }
-            }
+            ) => reference.as_ref().get_flat_reference_name(),
             AstStatement::Identifier(name, ..) => Some(name),
+            _ => None,
+        }
+    }
+
+    pub fn get_label_name(&self) -> Option<&str> {
+        match &self.stmt {
+            AstStatement::LabelStatement(LabelStatement { name, .. }) => Some(name.as_str()),
             _ => None,
         }
     }
@@ -825,6 +857,10 @@ impl AstNode {
 
     pub fn is_reference(&self) -> bool {
         matches!(self.stmt, AstStatement::ReferenceExpr(..))
+    }
+
+    pub fn is_call(&self) -> bool {
+        matches!(self.stmt, AstStatement::CallStatement(..))
     }
 
     pub fn is_hardware_access(&self) -> bool {
@@ -843,6 +879,10 @@ impl AstNode {
             self.stmt,
             AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }, ..)
         )
+    }
+
+    pub fn is_paren(&self) -> bool {
+        matches!(self.stmt, AstStatement::ParenExpression { .. })
     }
 
     pub fn is_expression_list(&self) -> bool {
@@ -912,12 +952,29 @@ impl AstNode {
         matches!(self.stmt, AstStatement::Literal(..))
     }
 
+    pub fn is_literal_integer(&self) -> bool {
+        matches!(self.stmt, AstStatement::Literal(AstLiteral::Integer(..), ..))
+    }
+
+    pub fn get_literal_integer_value(&self) -> Option<i128> {
+        match &self.stmt {
+            AstStatement::Literal(AstLiteral::Integer(value), ..) => Some(*value),
+            _ => None,
+        }
+    }
+
     pub fn is_identifier(&self) -> bool {
         matches!(self.stmt, AstStatement::Identifier(..))
     }
 
     pub fn is_default_value(&self) -> bool {
         matches!(self.stmt, AstStatement::DefaultValue { .. })
+    }
+
+    /// Negates the given element by adding it to a not expression
+    pub fn negate(self: AstNode, mut id_provider: IdProvider) -> AstNode {
+        let location = self.get_location();
+        AstFactory::create_not_expression(self, location, id_provider.next_id())
     }
 }
 
@@ -991,6 +1048,7 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
         AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
             std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
         }
+        AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],
     }
 }
@@ -1112,6 +1170,10 @@ impl AstFactory {
         AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
     }
 
+    pub fn create_paren_expression(expression: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ParenExpression(Box::new(expression)), location, id }
+    }
+
     /// creates a new if-statement
     pub fn create_if_statement(
         blocks: Vec<ConditionalBlock>,
@@ -1218,7 +1280,7 @@ impl AstFactory {
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: usize) -> AstNode {
         AstNode {
             stmt: AstStatement::UnaryExpression(UnaryExpression {
                 value: Box::new(operator),
@@ -1465,70 +1527,98 @@ impl AstFactory {
             id_provider,
         )
     }
+
+    pub fn create_jump_statement(
+        condition: Box<AstNode>,
+        target: Box<AstNode>,
+        location: SourceLocation,
+        id: AstId,
+    ) -> AstNode {
+        AstNode { stmt: AstStatement::JumpStatement(JumpStatement { condition, target }), location, id }
+    }
+
+    pub fn create_label_statement(name: String, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
+    }
 }
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EmptyStatement {}
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DefaultValue {}
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CastStatement {
     pub target: Box<AstNode>,
     pub type_name: String,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MultipliedStatement {
     pub multiplier: u32,
     pub element: Box<AstNode>,
 }
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReferenceExpr {
     pub access: ReferenceAccess,
     pub base: Option<Box<AstNode>>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DirectAccess {
     pub access: DirectAccessType,
     pub index: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HardwareAccess {
     pub direction: HardwareAccessType,
     pub access: DirectAccessType,
     pub address: Vec<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BinaryExpression {
     pub operator: Operator,
     pub left: Box<AstNode>,
     pub right: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnaryExpression {
     pub operator: Operator,
     pub value: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RangeStatement {
     pub start: Box<AstNode>,
     pub end: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Assignment {
     pub left: Box<AstNode>,
     pub right: Box<AstNode>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CallStatement {
     pub operator: Box<AstNode>,
     pub parameters: Option<Box<AstNode>>,
+}
+
+/// Represents a conditional jump from current location to a specified label
+#[derive(Debug, Clone, PartialEq)]
+pub struct JumpStatement {
+    /// The condition based on which the current statement will perform a jump
+    pub condition: Box<AstNode>,
+    /// The target location (Label) the statement will jump to
+    pub target: Box<AstNode>,
+}
+
+/// Represents a location in code that could be jumbed to
+#[derive(Debug, Clone, PartialEq)]
+pub struct LabelStatement {
+    pub name: String,
 }

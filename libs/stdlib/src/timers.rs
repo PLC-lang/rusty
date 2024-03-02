@@ -20,6 +20,7 @@ pub struct TimerParams {
     output: bool,
     elapsed_time: Time,
     input_edge: Signal,
+    is_running: bool,
     start_time: Option<Instant>,
 }
 
@@ -28,16 +29,18 @@ impl TimerParams {
     /// It does not take into consideration the preset/range for the timer
     /// Only if a start time has been set.
     fn is_running(&self) -> bool {
-        self.start_time.is_some()
+        self.is_running
     }
 
     fn start(&mut self) {
         self.start_time = Some(Instant::now());
+        self.is_running = true;
         self.set_elapsed_time(0);
     }
 
     fn reset(&mut self) {
         self.start_time = None;
+        self.is_running = false;
         self.set_elapsed_time(0);
     }
 

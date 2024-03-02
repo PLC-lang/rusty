@@ -13,11 +13,11 @@ END_VAR
     // x := 2x + 3y + 3
     adder();
     main := adder.x;
-END_PROGRAM
+END_FUNCTION
 
 FUNCTION myAdd : DINT
 VAR_INPUT
-	a, b : DINT;
+    a, b : DINT;
 END_VAR
     myAdd := a + b;
 END_FUNCTION

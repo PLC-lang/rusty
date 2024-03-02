@@ -1,13 +1,53 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 20, offset: 589 }..TextLocation { line: 22, column: 21, offset: 590 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 22, column: 23, offset: 592 }..TextLocation { line: 22, column: 24, offset: 593 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 23, column: 20, offset: 616 }..TextLocation { line: 23, column: 21, offset: 617 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 24, column: 23, offset: 646 }..TextLocation { line: 24, column: 24, offset: 647 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 20, offset: 706 }..TextLocation { line: 26, column: 21, offset: 707 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 26, column: 23, offset: 709 }..TextLocation { line: 26, column: 24, offset: 710 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceLocation { span: Range(TextLocation { line: 27, column: 20, offset: 733 }..TextLocation { line: 27, column: 21, offset: 734 }) }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceLocation { span: Range(TextLocation { line: 28, column: 23, offset: 763 }..TextLocation { line: 28, column: 24, offset: 764 }) }], err_no: call__invalid_parameter_type }
+error: Expected a reference for parameter byRefInOut because their type is InOut
+   ┌─ <internal>:23:21
+   │
+23 │             func(1, 2, 3);
+   │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
+
+error: Expected a reference for parameter byRefOutput because their type is Output
+   ┌─ <internal>:23:24
+   │
+23 │             func(1, 2, 3);
+   │                        ^ Expected a reference for parameter byRefOutput because their type is Output
+
+error: Expected a reference for parameter byRefInOut because their type is InOut
+   ┌─ <internal>:24:21
+   │
+24 │             func(1, 2, x);
+   │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
+
+error: Expected a reference for parameter byRefOutput because their type is Output
+   ┌─ <internal>:25:24
+   │
+25 │             func(1, x, 3);
+   │                        ^ Expected a reference for parameter byRefOutput because their type is Output
+
+error: Expected a reference for parameter byRefInOut because their type is InOut
+   ┌─ <internal>:27:21
+   │
+27 │             func(x, 2, 3);
+   │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
+
+error: Expected a reference for parameter byRefOutput because their type is Output
+   ┌─ <internal>:27:24
+   │
+27 │             func(x, 2, 3);
+   │                        ^ Expected a reference for parameter byRefOutput because their type is Output
+
+error: Expected a reference for parameter byRefInOut because their type is InOut
+   ┌─ <internal>:28:21
+   │
+28 │             func(x, 2, x);
+   │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
+
+error: Expected a reference for parameter byRefOutput because their type is Output
+   ┌─ <internal>:29:24
+   │
+29 │             func(x, x, 3);
+   │                        ^ Expected a reference for parameter byRefOutput because their type is Output
+
 

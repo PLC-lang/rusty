@@ -9,7 +9,7 @@ Return:
 {external}
 FUNCTION IS_VALID <T: ANY_REAL> : BOOL
 VAR_INPUT
-	IN : T;
+    IN : T;
 END_VAR
 END_FUNCTION
 
@@ -26,6 +26,6 @@ Return:
 {external}
 FUNCTION IS_VALID_BCD <T: ANY_BIT> : BOOL
 VAR_INPUT
-	IN : T;
+    IN : T;
 END_VAR
 END_FUNCTION

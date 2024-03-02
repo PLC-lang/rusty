@@ -42,6 +42,12 @@ impl SourceLocationFactory {
     pub fn create_file_only_location(&self) -> SourceLocation {
         SourceLocation { span: CodeSpan::None, file: self.file }
     }
+
+    pub fn create_range_to_end_of_line(&self, line: usize, column: usize) -> SourceLocation {
+        let start = TextLocation::new(line, column, 0);
+        let end = TextLocation::new(line, self.newlines.get_end_of_line(line), 0);
+        SourceLocation { span: CodeSpan::Range(start..end), file: self.file }
+    }
 }
 
 /// The location of a certain element in a text file
@@ -50,7 +56,7 @@ impl SourceLocationFactory {
 pub struct TextLocation {
     /// Line in the source code where this location points to
     line: usize,
-    /// Column in the sourcecode where this location points o
+    /// Column in the sourcecode where this location points to
     column: usize,
     /// Raw offset to this location from the start of the file
     offset: usize,
@@ -120,6 +126,14 @@ impl CodeSpan {
         }
     }
 
+    pub fn get_line_plus_one(&self) -> usize {
+        match self {
+            Self::Range(range) => range.start.line + 1,
+            Self::Block { local_id, .. } => *local_id,
+            _ => 0,
+        }
+    }
+
     /// Gets the colmumn representation for a source location
     /// If the location does not represent a line, 0 is returned
     pub fn get_column(&self) -> usize {
@@ -175,9 +189,14 @@ impl SourceLocation {
 
     /// Gets the line representation for a source location
     /// If the location does not represent a line, the closest equivalent is returned
-    // That is 0 for None and the ID for id/inner spans
+    /// That is 0 for None and the ID for id/inner spans
     pub fn get_line(&self) -> usize {
         self.span.get_line()
+    }
+
+    /// Same as [`get_line`] but adds one to the line number if its of type [`CodeSpan::Range`].
+    pub fn get_line_plus_one(&self) -> usize {
+        self.span.get_line_plus_one()
     }
 
     /// Gets the colmumn representation for a source location
@@ -322,6 +341,12 @@ impl NewLines {
         } else {
             offset
         }
+    }
+
+    ///
+    /// returns the 0 based column of end-of-line character for the given line
+    pub fn get_end_of_line(&self, line: usize) -> usize {
+        self.line_breaks.get(line).copied().unwrap_or_default()
     }
 }
 

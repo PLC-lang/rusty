@@ -15,7 +15,7 @@ use insta::{assert_debug_snapshot, assert_snapshot};
 #[test]
 fn missing_pou_name() {
     let src = r"
-            PROGRAM  
+            PROGRAM
             VAR END_VAR
             a;
             END_PROGRAM
@@ -34,7 +34,7 @@ fn missing_pou_name() {
 fn missing_pou_name_2() {
     // in this case, a becomes the POU's name
     let src = r"
-            PROGRAM 
+            PROGRAM
             a := 2;
             x;
             END_PROGRAM

@@ -8,7 +8,7 @@
                     <content>
 FUNCTION_BLOCK myAdder
 VAR
-	x, y: DINT;
+    x, y: DINT;
 END_VAR
 
 VAR_OUTPUT
@@ -18,7 +18,7 @@ END_VAR
 VAR
 
 END_VAR
-					</content>
+                    </content>
                 </textDeclaration>
             </data>
         </addData>

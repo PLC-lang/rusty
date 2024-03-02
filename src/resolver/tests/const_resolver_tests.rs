@@ -66,7 +66,7 @@ fn const_references_to_int_compile_time_evaluation() {
             iZ : INT := iY;
             rZ : LREAL := rY;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : INT := iX;
             b : INT := iY;
@@ -115,7 +115,7 @@ fn const_enum_variable_default_value_compile_time_evaluation() {
     // GIVEN an enum with its first value using a const-initializer
     let ir = codegen(
         "
-        
+
         VAR_GLOBAL CONSTANT
             me          : MyEnum;
             THREE       : INT := 3;
@@ -134,7 +134,7 @@ fn local_const_references_to_int_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
     let (_, index) = index(
         "
-        PROGRAM prg 
+        PROGRAM prg
             VAR CONSTANT
                 iX : INT := 4;
                 rX : LREAL := 4.2;
@@ -171,7 +171,7 @@ fn local_const_references_to_int_compile_time_evaluation_uses_correct_scopes() {
             h : INT := prg.a; // should be 4
         END_VAR
 
-        PROGRAM prg 
+        PROGRAM prg
             VAR CONSTANT
                 a : INT := 4;
             END_VAR
@@ -208,7 +208,7 @@ fn non_const_references_to_int_compile_time_evaluation() {
             a : INT := 3;
             b : INT := 4;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             ok      : INT := iX;
             nok_a   : INT := iX + a;
@@ -228,9 +228,9 @@ fn non_const_references_to_int_compile_time_evaluation() {
 
     debug_assert_eq!(
         vec![
-            UnresolvableConstant::new(global!(index, "nok_a"), "'a' is no const reference"),
-            UnresolvableConstant::new(global!(index, "nok_b"), "'b' is no const reference"),
-            UnresolvableConstant::new(global!(index, "temp"), "'a' is no const reference"),
+            UnresolvableConstant::new(global!(index, "nok_a"), "`a` is no const reference"),
+            UnresolvableConstant::new(global!(index, "nok_b"), "`b` is no const reference"),
+            UnresolvableConstant::new(global!(index, "temp"), "`a` is no const reference"),
             UnresolvableConstant::incomplete_initialzation(&global!(index, "incomplete")), //this one is fine, but one depency cannot be resolved
         ],
         unresolvable
@@ -283,7 +283,7 @@ fn const_references_to_negative_reference() {
             iX : INT := 4;
             rX : LREAL := 4.2;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : INT := -iX;
             b : LREAL := -rX;
@@ -314,7 +314,7 @@ fn const_references_to_int_additions_compile_time_evaluation() {
             iZ : INT := iY + 7;
             rZ : LREAL := rY + 7.7;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : INT := iX;
             b : INT := iY;
@@ -351,7 +351,7 @@ fn const_references_to_int_subtractions_compile_time_evaluation() {
             iZ : INT := iY - 7;
             rZ : LREAL := rY - 7.7;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : INT := iX;
             b : INT := iY;
@@ -388,7 +388,7 @@ fn const_references_to_int_multiplications_compile_time_evaluation() {
             iZ : INT := iY * 7;
             rZ : LREAL := rY * 7.7;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : INT := iX;
             b : INT := iY;
@@ -425,7 +425,7 @@ fn const_references_to_int_division_compile_time_evaluation() {
             iZ : INT := iY / 7;
             rZ : LREAL := rY / 7.7;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : INT := iX;
             b : INT := iY;
@@ -606,7 +606,7 @@ fn const_references_bool_bit_functions_behavior_evaluation() {
             _true : BOOL := TRUE;
             _false : BOOL := FALSE;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : WORD := _true;
             b : WORD := a AND _false;
@@ -637,7 +637,7 @@ fn const_references_int_bit_functions_behavior_evaluation() {
         "VAR_GLOBAL CONSTANT
             _0x00ff : WORD := 16#00FF;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : WORD := 16#FFAB;
             b : WORD := a AND _0x00ff;
@@ -692,7 +692,7 @@ fn division_by_0_should_fail() {
             b : REAL := 5 / zero_real;
             c : REAL := 5.0 / zero_int;
             d : REAL := 5.0 / zero_real;
-            
+
             aa : REAL := 5 MOD zero_int;
             bb : REAL := 5 MOD zero_real;
             cc : REAL := 5.0 MOD zero_int;
@@ -749,7 +749,7 @@ fn const_references_not_function_with_signed_ints() {
         "VAR_GLOBAL CONSTANT
             _0x00ff : INT := 16#00FF;   // 255
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : INT := INT#16#55;       // 85;
             aa : INT := WORD#16#FFAB;   // 65xxx;
@@ -784,7 +784,7 @@ fn const_references_to_bool_compile_time_evaluation() {
             y : BOOL := FALSE;
             z : BOOL := y;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             a : BOOL := x;
             b : BOOL := y OR NOT y;
@@ -863,7 +863,7 @@ fn const_string_initializers_should_be_converted() {
             a : STRING := 'Hello';
             b : WSTRING := "World";
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             aa : STRING := b;
             bb : WSTRING := a;
@@ -892,7 +892,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
         VAR_GLOBAL CONSTANT
             clreal : LREAL := 3.1415;
         END_VAR
-        
+
         VAR_GLOBAL CONSTANT
             tau : LREAL := 2 * clreal;
         END_VAR
@@ -931,7 +931,7 @@ fn array_size_from_constant() {
             VAR CONSTANT
                 a : INT := 3;
                 b : INT := 7;
-            END_VAR 
+            END_VAR
 
             VAR
                 arr : ARRAY[a..b] OF BYTE;
@@ -1005,7 +1005,7 @@ fn nested_array_literals_type_resolving() {
     let (parse_result, mut index) = index_with_ids(
         r#"
         VAR_GLOBAL CONSTANT
-            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
+            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]];
         END_VAR
        "#,
         id_provider.clone(),
@@ -1064,7 +1064,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
     let (parse_result, mut index) = index_with_ids(
         r#"
         VAR_GLOBAL CONSTANT
-            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[2(2)],[2(3)]]; 
+            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[2(2)],[2(3)]];
         END_VAR
        "#,
         id_provider.clone(),
@@ -1157,7 +1157,7 @@ fn function_block_initializers_constant_resolved_in_assignment() {
             END_VAR
             END_FUNCTION_BLOCK
 
-        PROGRAM main 
+        PROGRAM main
 
         VAR CONSTANT
             TEN : INT := 10;
@@ -1184,7 +1184,7 @@ fn function_block_initializers_constant_resolved_in_assignment() {
 fn contants_in_case_statements_resolved() {
     let id_provider = IdProvider::default();
     let (parse_result, mut index) = index_with_ids(
-        " 
+        "
         PROGRAM main
             VAR
                 DAYS_IN_MONTH : DINT;
@@ -1193,12 +1193,12 @@ fn contants_in_case_statements_resolved() {
                 SIXTY : DINT := 60;
             END_VAR
             CASE DAYS_IN_MONTH OF
-              32..SIXTY	:	DAYS_IN_MONTH := 29;
-              (SIXTY	+ 2)..70 :	DAYS_IN_MONTH := 30;
+              32..SIXTY :   DAYS_IN_MONTH := 29;
+              (SIXTY    + 2)..70 :  DAYS_IN_MONTH := 30;
             ELSE
               DAYS_IN_MONTH := 31;
             END_CASE;
-        END_PROGRAM 
+        END_PROGRAM
         ",
         id_provider.clone(),
     );
@@ -1220,7 +1220,7 @@ fn contants_in_case_statements_resolved() {
 fn default_values_are_transitive_for_range_types() {
     // GIVEN a range type that inherits the default value from its referenced type
     let src = codegen(
-        " 
+        "
         TYPE MyINT : INT := 7; END_TYPE
 
         TYPE MyRange : MyINT(1..10); END_TYPE

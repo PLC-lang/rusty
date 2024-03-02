@@ -26,7 +26,7 @@ fn test_unexpected_token_error_message2() {
 #[test]
 fn for_with_unexpected_token_1() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         FOR z ALPHA x TO y DO
             x;
             y;
@@ -40,7 +40,7 @@ fn for_with_unexpected_token_1() {
 #[test]
 fn for_with_unexpected_token_2() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         FOR z := x BRAVO y DO
             x;
             y;
@@ -54,7 +54,7 @@ fn for_with_unexpected_token_2() {
 #[test]
 fn if_then_with_unexpected_token() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         IF TRUE CHARLIE
             x;
         ELSE
@@ -69,7 +69,7 @@ fn if_then_with_unexpected_token() {
 #[test]
 fn case_with_unexpected_token() {
     let src = "
-        PROGRAM exp 
+        PROGRAM exp
         CASE StateMachine DELTA
         1: x;
         END_CASE
@@ -82,7 +82,7 @@ fn case_with_unexpected_token() {
 #[test]
 fn test_unclosed_body_error_message() {
     let src = "
-            
+
             PROGRAM My_PRG
 
     ";

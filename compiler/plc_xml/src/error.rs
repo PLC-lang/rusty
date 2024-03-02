@@ -60,3 +60,9 @@ impl std::fmt::Debug for Error {
         }
     }
 }
+
+impl From<quick_xml::Error> for Error {
+    fn from(value: quick_xml::Error) -> Self {
+        Error::ReadEvent(value)
+    }
+}

@@ -3,9 +3,9 @@ source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
 error: Operator 'MOD' unimplemented for pointers
-  ┌─ <internal>:8:10
+  ┌─ <internal>:8:16
   │
-8 │     ptr := ptr MOD ptr;
-  │            ^^^^^^^^^^^ Operator 'MOD' unimplemented for pointers
+8 │         ptr := ptr MOD ptr;
+  │                ^^^^^^^^^^^ Operator 'MOD' unimplemented for pointers
 
 

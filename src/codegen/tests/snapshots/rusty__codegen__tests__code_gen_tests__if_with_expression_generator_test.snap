@@ -15,22 +15,26 @@ entry:
   %b1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sgt i32 %load_x, 1
-  br i1 %tmpVar, label %3, label %1
+  %1 = zext i1 %tmpVar to i8
+  %2 = icmp ne i8 %1, 0
+  br i1 %2, label %5, label %3
 
-condition_body:                                   ; preds = %3
+condition_body:                                   ; preds = %5
   %load_x1 = load i32, i32* %x, align 4
   br label %continue
 
-continue:                                         ; preds = %condition_body, %3
+continue:                                         ; preds = %condition_body, %5
   ret void
 
-1:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_b1 = load i8, i8* %b1, align 1
-  %2 = icmp ne i8 %load_b1, 0
-  br label %3
+  %4 = icmp ne i8 %load_b1, 0
+  br label %5
 
-3:                                                ; preds = %1, %entry
-  %4 = phi i1 [ %tmpVar, %entry ], [ %2, %1 ]
-  br i1 %4, label %condition_body, label %continue
+5:                                                ; preds = %3, %entry
+  %6 = phi i1 [ %2, %entry ], [ %4, %3 ]
+  %7 = zext i1 %6 to i8
+  %8 = icmp ne i8 %7, 0
+  br i1 %8, label %condition_body, label %continue
 }
 

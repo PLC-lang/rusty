@@ -47,7 +47,7 @@ fn equal_comparison_with_arbitrary_datatypes() {
                 STRING_EQUAL := TRUE;
             END_FUNCTION
 
-            PROGRAM main 
+            PROGRAM main
             VAR
                 result1 : DINT;
                 result2 : DINT;
@@ -193,7 +193,7 @@ fn enums_can_be_compared() {
     let function = "
         TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
 
-        PROGRAM main 
+        PROGRAM main
             VAR a,b,c : BOOL; END_VAR
 
             VAR_TEMP
@@ -209,11 +209,11 @@ fn enums_can_be_compared() {
             IF y = 7 THEN
                 b := TRUE;
             END_IF
-            
+
             IF z = 8 THEN
                 c := TRUE;
             END_IF
-        END_PROGRAM 
+        END_PROGRAM
     ";
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([true, true, true], [main.a, main.b, main.c]);
@@ -239,7 +239,7 @@ fn amp_as_and_correctness_test() {
             a := TRUE;
             b := TRUE;
             c := FALSE;
-            
+
             IF a & b THEN
                 d := TRUE;
             END_IF
@@ -272,9 +272,9 @@ fn aliased_ranged_numbers_can_be_compared() {
     let src = r#"
     TYPE MyInt: INT(0..500); END_TYPE
     PROGRAM main
-    VAR 
+    VAR
         a, b, c, d, e, f : BOOL;
-    END_VAR      
+    END_VAR
     VAR_TEMP
         x,y : MyInt;
     END_VAR
@@ -344,4 +344,40 @@ fn casting_of_floating_point_types_lreal() {
 
     let _: i32 = compile_and_run(src, &mut main);
     assert_eq!([main.a, main.b, main.c, main.d], [3.0, 3.5, 3.5, 3.5])
+}
+
+#[test]
+fn aliased_ranged_numbers_can_be_compared_with_builtins() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct Main {
+        a: bool,
+        b: bool,
+        c: bool,
+        d: bool,
+        e: bool,
+        f: bool,
+    }
+
+    let mut main = Main::default();
+
+    let src = r#"
+    TYPE MyInt: INT(0..500); END_TYPE
+    PROGRAM main
+    VAR
+        a, b, c, d, e, f : BOOL;
+    END_VAR
+    VAR_TEMP
+        x,y : MyInt;
+    END_VAR
+        a := LT(x, y);
+        b := LE(y, 0);
+        c := EQ(x, 3);
+        d := EQ(y, 500);
+        e := GE(x, 0) AND LE(x, 500);
+        f := LT(x, 0) OR GT(x, 500);
+    END_PROGRAM
+    "#;
+    let _: i32 = compile_and_run(src, &mut main);
+    assert_eq!([main.a, main.b, main.c, main.d, main.e, main.f], [false, true, false, false, true, false]);
 }

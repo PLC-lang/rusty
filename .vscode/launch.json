@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug source 'demo.st'",
+            "name": "Debug source 'target/demo.st'",
             "cargo": {
                 "args": [
                     "build",
@@ -20,7 +20,9 @@
                 }
             },
             "args": [
-                "target/demo.st"
+                "--check",
+                "target/demo.st",
+                "-i","libs/stdlib/iec61131-st/timers.st"
             ],
             "cwd": "${workspaceFolder}"
         },

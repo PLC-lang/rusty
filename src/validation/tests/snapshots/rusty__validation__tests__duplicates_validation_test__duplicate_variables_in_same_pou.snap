@@ -1,7 +1,23 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
-expression: res
+expression: "&diagnostics"
 ---
-SyntaxError { message: "prg.b: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 4, column: 12, offset: 65 }..TextLocation { line: 4, column: 13, offset: 66 }) }, SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 133 }..TextLocation { line: 8, column: 13, offset: 134 }) }], err_no: duplicate_symbol }
-SyntaxError { message: "prg.b: Duplicate symbol.", range: [SourceLocation { span: Range(TextLocation { line: 8, column: 12, offset: 133 }..TextLocation { line: 8, column: 13, offset: 134 }) }, SourceLocation { span: Range(TextLocation { line: 4, column: 12, offset: 65 }..TextLocation { line: 4, column: 13, offset: 66 }) }], err_no: duplicate_symbol }
+error: prg.b: Duplicate symbol.
+  ┌─ <internal>:5:13
+  │
+5 │             b: INT;
+  │             ^ prg.b: Duplicate symbol.
+  ·
+9 │             b: BOOL;
+  │             - see also
+
+error: prg.b: Duplicate symbol.
+  ┌─ <internal>:9:13
+  │
+5 │             b: INT;
+  │             - see also
+  ·
+9 │             b: BOOL;
+  │             ^ prg.b: Duplicate symbol.
+
 

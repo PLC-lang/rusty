@@ -63,7 +63,7 @@ fn program_variables_are_retrieved() {
 fn global_struct_variables_are_retrieved() {
     let (_, index) = index(
         "
-    TYPE str : STRUCT 
+    TYPE str : STRUCT
         a,b : DINT;
     END_STRUCT
     END_TYPE
@@ -84,11 +84,11 @@ fn global_struct_variables_are_retrieved() {
 fn nested_global_struct_variables_are_retrieved() {
     let (_, index) = index(
         "
-    TYPE str : STRUCT 
+    TYPE str : STRUCT
         a,b : str2;
     END_STRUCT
     END_TYPE
-    TYPE str2 : STRUCT 
+    TYPE str2 : STRUCT
         c,d : DINT;
     END_STRUCT
     END_TYPE
@@ -109,7 +109,7 @@ fn nested_global_struct_variables_are_retrieved() {
 fn global_fb_variables_are_retrieved() {
     let (_, index) = index(
         "
-    FUNCTION_BLOCK fb 
+    FUNCTION_BLOCK fb
     VAR
         a,b : DINT;
     END_VAR
@@ -131,7 +131,7 @@ fn global_fb_variables_are_retrieved() {
 fn array_instances_are_repeated() {
     let (_, index) = index(
         "
-    FUNCTION_BLOCK fb 
+    FUNCTION_BLOCK fb
     VAR
         c,b : DINT;
     END_VAR
@@ -152,7 +152,7 @@ fn array_instances_are_repeated() {
 fn array_with_const_instances_are_repeated() {
     let (_, index) = index(
         "
-    FUNCTION_BLOCK fb 
+    FUNCTION_BLOCK fb
     VAR
         c,b : DINT;
     END_VAR
@@ -174,7 +174,7 @@ fn array_with_const_instances_are_repeated() {
 fn pointer_variables_are_not_retrieved() {
     let (_, index) = index(
         "
-    FUNCTION_BLOCK fb 
+    FUNCTION_BLOCK fb
     VAR
         a,b : DINT;
     END_VAR
@@ -193,7 +193,7 @@ fn pointer_variables_are_not_retrieved() {
 fn filter_on_variables_are_applied() {
     let (_, index) = index(
         "
-    FUNCTION_BLOCK fb 
+    FUNCTION_BLOCK fb
     VAR
         a,b : DINT;
     END_VAR
