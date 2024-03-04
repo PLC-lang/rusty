@@ -13,9 +13,9 @@ source_filename = "main"
 @green = unnamed_addr constant i8 7
 @red.1 = unnamed_addr constant i16 15
 @yellow.2 = unnamed_addr constant i16 16
-@red.3 = unnamed_addr constant i32 25
-@yellow.4 = unnamed_addr constant i32 26
-@green.5 = unnamed_addr constant i16 17
+@green.3 = unnamed_addr constant i16 17
+@red.4 = unnamed_addr constant i32 25
+@yellow.5 = unnamed_addr constant i32 26
 @green.6 = unnamed_addr constant i32 27
 
 define void @prg(%prg* %0) {

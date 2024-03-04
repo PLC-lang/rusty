@@ -1175,7 +1175,10 @@ impl Index {
 
     /// Tries to return an enum variant defined within a POU
     pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
-        self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
+        self.get_enum_variants_in_pou(pou)
+            .into_iter()
+            .find(|it| it.name == variant)
+            .or(self.find_qualified_enum_element(&format!("{pou}.{variant}")))
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
