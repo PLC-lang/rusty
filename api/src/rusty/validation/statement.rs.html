@@ -2218,7 +2218,7 @@
     };
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(variable) = context.index.find_fully_qualified_variable(qualified_name) <span class="kw">else </span>{ <span class="kw">return </span>};
-    <span class="kw">let </span>variants = context.index.get_enum_variants(variable);
+    <span class="kw">let </span>variants = context.index.get_enum_variant_values(variable);
 
     <span class="kw">match </span>variants.iter().find(|(<span class="kw">_</span>, value_lhs)| <span class="kw-2">*</span>value_lhs == value_rhs) {
         <span class="prelude-val">Some</span>((variant, <span class="kw">_</span>)) =&gt; {

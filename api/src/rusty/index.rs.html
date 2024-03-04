@@ -1623,6 +1623,17 @@
 <a href="#1623" id="1623">1623</a>
 <a href="#1624" id="1624">1624</a>
 <a href="#1625" id="1625">1625</a>
+<a href="#1626" id="1626">1626</a>
+<a href="#1627" id="1627">1627</a>
+<a href="#1628" id="1628">1628</a>
+<a href="#1629" id="1629">1629</a>
+<a href="#1630" id="1630">1630</a>
+<a href="#1631" id="1631">1631</a>
+<a href="#1632" id="1632">1632</a>
+<a href="#1633" id="1633">1633</a>
+<a href="#1634" id="1634">1634</a>
+<a href="#1635" id="1635">1635</a>
+<a href="#1636" id="1636">1636</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -2679,13 +2690,14 @@
         container_name: <span class="kw-2">&amp;</span>str,
         variable_name: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
-            <span class="comment">//check qualifier
-            </span>container_name
+        <span class="self">self</span>.type_index
+            .find_type(container_name)
+            .and_then(|it| it.find_member(variable_name))
+            .or(<span class="self">self</span>.find_enum_variant_in_pou(container_name, variable_name))
+            .or(container_name
                 .rfind(<span class="string">&#39;.&#39;</span>)
                 .map(|p| <span class="kw-2">&amp;</span>container_name[..p])
-                .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name))
-        })
+                .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name)))
     }
 
     <span class="doccomment">/// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -2760,36 +2772,46 @@
         <span class="self">self</span>.enum_qualified_variables.get(<span class="kw-2">&amp;</span>qualified_name.to_lowercase())
     }
 
-    <span class="doccomment">/// Returns all enum variant values and their constant values for the given variable.
-    ///
-    /// For example calling this method on `TYPE Color : (red, green, blue := 5); END_TYPE` will
-    /// return the [`VariableIndexEntry`]s of `red`, `green`, `blue` as well as their values
-    /// `0`, `1` and `5` respectively.
-    </span><span class="kw">pub fn </span>get_enum_variants(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: <span class="kw-2">&amp;</span>VariableIndexEntry) -&gt; Vec&lt;(<span class="kw-2">&amp;</span>VariableIndexEntry, i128)&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
+    <span class="doccomment">/// Returns all enum variants of the given variable.
+    </span><span class="kw">pub fn </span>get_enum_variants(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: <span class="kw-2">&amp;</span>VariableIndexEntry) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
         <span class="kw">let </span>qualified_name = variable.data_type_name.to_lowercase();
 
         <span class="comment">// Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
-        </span><span class="kw">let </span>keys = <span class="self">self
-            </span>.enum_qualified_variables
+        </span><span class="self">self</span>.enum_qualified_variables
             .keys()
-            .filter(|key| key.split(<span class="string">&#39;.&#39;</span>).next().is_some())
-            .filter(|prefix| prefix.starts_with(<span class="kw-2">&amp;</span>qualified_name))
-            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+            .filter(|key| key.split(<span class="string">&#39;.&#39;</span>).next().is_some_and(|prefix| prefix == qualified_name))
+            .filter_map(|key| <span class="self">self</span>.enum_qualified_variables.get(key))
+            .collect()
+    }
 
-        <span class="kw">for </span>key <span class="kw">in </span>keys {
-            <span class="kw">let </span>value = <span class="self">self
-                </span>.enum_qualified_variables
-                .get(key.as_str())
-                .expect(<span class="string">&quot;Must exist because of previous filter&quot;</span>);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = value.initial_value {
+    <span class="doccomment">/// Returns all enum variants and their respective constant value for the given variable.
+    ///
+    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` will return three tuples,
+    /// namely `(red, 0)`, `(green, 1)` and `(blue, 5)` where the first element of the tuple is a
+    /// [`VariableIndexEntry`].
+    </span><span class="kw">pub fn </span>get_enum_variant_values(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: <span class="kw-2">&amp;</span>VariableIndexEntry) -&gt; Vec&lt;(<span class="kw-2">&amp;</span>VariableIndexEntry, i128)&gt; {
+        <span class="kw">let </span>variants = <span class="self">self</span>.get_enum_variants(variable);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>variant_const_values = Vec::new();
+        <span class="kw">for </span>variant <span class="kw">in </span>variants {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = variant.initial_value {
                 <span class="kw">if let </span><span class="prelude-val">Ok</span>(init) = <span class="self">self</span>.constant_expressions.get_constant_int_statement_value(const_id) {
-                    values.push((value, init));
+                    variant_const_values.push((variant, init));
                 }
             }
         }
 
-        values
+        variant_const_values
+    }
+
+    <span class="doccomment">/// Returns all enum variants defined in the given POU
+    </span><span class="kw">pub fn </span>get_enum_variants_in_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.get_pou_members(pou).iter().flat_map(|member| <span class="self">self</span>.get_enum_variants(member)).collect()
+    }
+
+    <span class="doccomment">/// Tries to return a specific enum variant defined within a POU
+    </span><span class="kw">pub fn </span>find_enum_variant_in_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>str, variant: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
     }
 
     <span class="doccomment">/// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
