@@ -380,6 +380,8 @@ pub enum DataTypeInformation {
     Enum {
         name: TypeId,
         referenced_type: TypeId,
+        // TODO: Would it make sense to store `VariableIndexEntry`s similar to how the `Struct` variant does?
+        //       This would allow us to pattern match in the index `find_member` method
         elements: Vec<String>,
     },
     Float {
