@@ -1005,3 +1005,33 @@ fn void_assignment_validation() {
 
     "###)
 }
+
+#[test]
+fn void_function_as_if_condition() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION void END_FUNCTION
+        FUNCTION main : DINT
+            IF void() THEN 
+                // This shouldn't work
+            END_IF
+        END_FUNCTION
+        ",
+    );
+
+    // TODO: Duplicate error message
+    assert_snapshot!(diagnostics, @r###"
+    error: Expected bool, found VOID
+      ┌─ <internal>:4:16
+      │
+    4 │             IF void() THEN 
+      │                ^^^^ Expected bool, found VOID
+
+    error: Expected bool, found VOID
+      ┌─ <internal>:4:16
+      │
+    4 │             IF void() THEN 
+      │                ^^^^ Expected bool, found VOID
+
+    "###);
+}
