@@ -55,8 +55,7 @@ pub fn parse_file(
     //TODO: We should reduce the clone here
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     if diagnostician.handle(&errors) == Severity::Error {
-        Err(Diagnostic::error("Compilation aborted due to critical parse errors")
-            .with_sub_diagnostics(errors))
+        Err(Diagnostic::new("Compilation aborted due to critical parse errors").with_sub_diagnostics(errors))
     } else {
         Ok(unit)
     }
