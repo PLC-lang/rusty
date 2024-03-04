@@ -816,7 +816,6 @@ fn validate_assignment<T: AnnotationMap>(
                 ));
             }
         } else {
-            // todo: literals
             validate_assignment_type_sizes(validator, left_type, right, context)
         }
     }
