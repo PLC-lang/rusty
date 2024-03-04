@@ -63,9 +63,10 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
-                Ok(parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician))
+                parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Vec<_>>();
+
         units.extend(sources);
 
         //Parse the includes
@@ -74,9 +75,9 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
             .iter()
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
+                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Vec<_>>();
         units.extend(includes);
 
         //For each lib, parse the includes
@@ -86,10 +87,12 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                Ok(parse_file(source, LinkageType::External, ctxt.provider(), diagnostician))
+                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
             })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
+            .collect::<Vec<_>>();
         units.extend(lib_includes);
+
+        let units = units.into_iter().collect::<Result<Vec<_>, Diagnostic>>()?;
 
         Ok(ParsedProject { project, units })
     }

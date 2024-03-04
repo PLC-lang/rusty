@@ -476,7 +476,7 @@ fn variable_length_array_with_global_array() {
     END_VAR
         foo(arr);
         a := arr[0];
-    END_FUNCTION
+    END_PROGRAM
     "#;
 
     let _: i32 = compile_and_run(src.to_string(), &mut main_type);
@@ -968,7 +968,7 @@ mod builtins {
         END_VAR
             a := lower(x);
             b := upper(x);
-        END_FUNCTION
+        END_PROGRAM
 
         FUNCTION lower : DINT
         VAR_INPUT

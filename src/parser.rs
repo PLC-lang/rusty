@@ -11,7 +11,10 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
+};
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
@@ -41,7 +44,7 @@ pub fn parse_file(
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
-) -> CompilationUnit {
+) -> Result<CompilationUnit, Diagnostic> {
     let location_factory = SourceLocationFactory::for_source(source);
     let (unit, errors) = parse(
         lexer::lex_with_ids(&source.source, id_provider, location_factory),
@@ -51,8 +54,12 @@ pub fn parse_file(
     //Register the source file with the diagnostician
     //TODO: We should reduce the clone here
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    diagnostician.handle(&errors);
-    unit
+    if diagnostician.handle(&errors) == Severity::Error {
+        Err(Diagnostic::error("Compilation aborted due to critical parse errors")
+            .with_sub_diagnostics(errors))
+    } else {
+        Ok(unit)
+    }
 }
 
 pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> ParsedAst {
@@ -598,7 +605,7 @@ fn parse_full_data_type_definition(
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
     let end_keyword = if lexer.token == KeywordStruct { KeywordEndStruct } else { KeywordSemicolon };
-    parse_any_in_region(lexer, vec![end_keyword], |lexer| {
+    let parsed_datatype = parse_any_in_region(lexer, vec![end_keyword.clone()], |lexer| {
         let sized = lexer.try_consume(&PropertySized);
         if lexer.try_consume(&KeywordDotDotDot) {
             Some((
@@ -625,7 +632,15 @@ fn parse_full_data_type_definition(
                 }
             })
         }
-    })
+    });
+
+    // The standard allows semicolons at the end of an `END_STRUCT` keyword, hence if we parsed
+    // a struct, try to also consume a semicolon if it exists
+    if end_keyword == KeywordEndStruct {
+        lexer.try_consume(&KeywordSemicolon);
+    }
+
+    parsed_datatype
 }
 
 // TYPE xxx : 'STRUCT' | '(' | IDENTIFIER

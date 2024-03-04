@@ -856,7 +856,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     };
 
     let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
-    let variants = context.index.get_enum_variants(variable);
+    let variants = context.index.get_enum_variant_values(variable);
 
     match variants.iter().find(|(_, value_lhs)| *value_lhs == value_rhs) {
         Some((variant, _)) => {
