@@ -1054,14 +1054,14 @@ impl Index {
         container_name: &str,
         variable_name: &str,
     ) -> Option<&VariableIndexEntry> {
-        self.type_index
+        self.find_enum_variant_in_pou(container_name, variable_name).or(self
+            .type_index
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
-            .or(self.find_enum_variant_in_pou(container_name, variable_name))
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
-                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
+                .and_then(|qualifier| self.find_member(qualifier, variable_name))))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -1173,9 +1173,12 @@ impl Index {
         self.get_pou_members(pou).iter().flat_map(|member| self.get_enum_variants(member)).collect()
     }
 
-    /// Tries to return a specific enum variant defined within a POU
+    /// Tries to return an enum variant defined within a POU
     pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
-        self.get_enum_variants_in_pou(pou).into_iter().find(|it| it.name == variant)
+        self.get_enum_variants_in_pou(pou)
+            .into_iter()
+            .find(|it| it.name == variant)
+            .or(self.find_qualified_enum_element(&format!("{pou}.{variant}")))
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
