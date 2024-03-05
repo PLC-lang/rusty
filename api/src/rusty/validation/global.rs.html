@@ -216,6 +216,11 @@
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::PouType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -310,8 +315,13 @@
         <span class="self">self</span>.check_uniqueness_of_cluster(globals.chain(prgs), <span class="prelude-val">Some</span>(<span class="string">&quot;Ambiguous global variable.&quot;</span>));
 
         <span class="kw">for </span>ty <span class="kw">in </span>index.get_types().values().chain(index.get_pou_types().values()) {
-            <span class="kw">let </span>members = ty.get_members().iter().sorted_by_key(|it| it.get_qualified_name().to_lowercase());
-            <span class="kw">for </span>(<span class="kw">_</span>, <span class="kw-2">mut </span>vars) <span class="kw">in </span><span class="kw-2">&amp;</span>members.group_by(|it| it.get_qualified_name().to_lowercase()) {
+            <span class="kw">let </span>members = ty
+                .get_members()
+                .iter()
+                .chain(index.get_enum_variants_in_pou(ty.get_name()))
+                .sorted_by_key(|it| it.get_name().to_lowercase())
+                .collect_vec();
+            <span class="kw">for </span>(<span class="kw">_</span>, <span class="kw-2">mut </span>vars) <span class="kw">in </span><span class="kw-2">&amp;</span>members.iter().group_by(|it| it.get_name().to_lowercase()) {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = vars.next() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(second) = vars.next() {
                         <span class="comment">//Collect remaining
