@@ -1054,14 +1054,14 @@ impl Index {
         container_name: &str,
         variable_name: &str,
     ) -> Option<&VariableIndexEntry> {
-        self.find_enum_variant_in_pou(container_name, variable_name).or(self
-            .type_index
+        self.type_index
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
+            .or(self.find_enum_variant_in_pou(container_name, variable_name))
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
-                .and_then(|qualifier| self.find_member(qualifier, variable_name))))
+                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
