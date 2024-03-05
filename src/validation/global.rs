@@ -92,8 +92,13 @@ impl GlobalValidator {
         self.check_uniqueness_of_cluster(globals.chain(prgs), Some("Ambiguous global variable."));
 
         for ty in index.get_types().values().chain(index.get_pou_types().values()) {
-            let members = ty.get_members().iter().sorted_by_key(|it| it.get_qualified_name().to_lowercase());
-            for (_, mut vars) in &members.group_by(|it| it.get_qualified_name().to_lowercase()) {
+            let members = ty
+                .get_members()
+                .iter()
+                .chain(index.get_enum_variants_in_pou(ty.get_name()))
+                .sorted_by_key(|it| it.get_name().to_lowercase())
+                .collect_vec();
+            for (_, mut vars) in &members.iter().group_by(|it| it.get_name().to_lowercase()) {
                 if let Some(first) = vars.next() {
                     if let Some(second) = vars.next() {
                         //Collect remaining
