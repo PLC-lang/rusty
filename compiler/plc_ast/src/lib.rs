@@ -3,6 +3,7 @@
 //! eventually move here
 
 pub mod ast;
+pub mod ast_iter;
 pub mod control_statements;
 pub mod literals;
 mod pre_processor;
