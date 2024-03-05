@@ -2,61 +2,61 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-note: Implicit downcast from 'LREAL' to 'BYTE'.
+warning: Implicit downcast from 'LREAL' to 'BYTE'.
    ┌─ <internal>:29:15
    │
 29 │     v_byte := v_lreal; // valid
    │               ^^^^^^^ Implicit downcast from 'LREAL' to 'BYTE'.
 
-note: Implicit downcast from 'REAL' to 'BYTE'.
+warning: Implicit downcast from 'REAL' to 'BYTE'.
    ┌─ <internal>:30:15
    │
 30 │     v_byte := REAL#2.0; // valid
    │               ^^^^^^^^ Implicit downcast from 'REAL' to 'BYTE'.
 
-note: Implicit downcast from 'UDINT' to 'BYTE'.
+warning: Implicit downcast from 'UDINT' to 'BYTE'.
    ┌─ <internal>:31:15
    │
 31 │     v_byte := v_udint; // valid
    │               ^^^^^^^ Implicit downcast from 'UDINT' to 'BYTE'.
 
-note: Implicit downcast from 'UDINT' to 'BYTE'.
+warning: Implicit downcast from 'UDINT' to 'BYTE'.
    ┌─ <internal>:32:15
    │
 32 │     v_byte := UDINT#10; // valid
    │               ^^^^^^^^ Implicit downcast from 'UDINT' to 'BYTE'.
 
-note: Implicit downcast from 'DINT' to 'BYTE'.
+warning: Implicit downcast from 'DINT' to 'BYTE'.
    ┌─ <internal>:33:15
    │
 33 │     v_byte := v_dint; // valid
    │               ^^^^^^ Implicit downcast from 'DINT' to 'BYTE'.
 
-note: Implicit downcast from 'DINT' to 'BYTE'.
+warning: Implicit downcast from 'DINT' to 'BYTE'.
    ┌─ <internal>:34:15
    │
 34 │     v_byte := DINT#20; // valid
    │               ^^^^^^^ Implicit downcast from 'DINT' to 'BYTE'.
 
-note: Implicit downcast from 'TIME' to 'BYTE'.
+warning: Implicit downcast from 'TIME' to 'BYTE'.
    ┌─ <internal>:35:15
    │
 35 │     v_byte := v_time; // valid
    │               ^^^^^^ Implicit downcast from 'TIME' to 'BYTE'.
 
-note: Implicit downcast from 'TIME' to 'BYTE'.
+warning: Implicit downcast from 'TIME' to 'BYTE'.
    ┌─ <internal>:36:15
    │
 36 │     v_byte := TIME#10h20m30s; // valid
    │               ^^^^^^^^^^^^^^ Implicit downcast from 'TIME' to 'BYTE'.
 
-note: Implicit downcast from 'WORD' to 'BYTE'.
+warning: Implicit downcast from 'WORD' to 'BYTE'.
    ┌─ <internal>:37:15
    │
 37 │     v_byte := v_word; // valid
    │               ^^^^^^ Implicit downcast from 'WORD' to 'BYTE'.
 
-note: Implicit downcast from 'WORD' to 'BYTE'.
+warning: Implicit downcast from 'WORD' to 'BYTE'.
    ┌─ <internal>:38:15
    │
 38 │     v_byte := WORD#16#ffff; // valid
@@ -92,19 +92,19 @@ error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
 43 │     v_byte := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'BYTE'
 
-note: Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
+warning: Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
    ┌─ <internal>:44:15
    │
 44 │     v_byte := v_tod; // valid
    │               ^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
 
-note: Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
+warning: Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
    ┌─ <internal>:45:15
    │
 45 │     v_byte := TOD#15:36:30; // valid
    │               ^^^^^^^^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
 
-note: Implicit downcast from 'INT' to 'BYTE'.
+warning: Implicit downcast from 'INT' to 'BYTE'.
    ┌─ <internal>:46:15
    │
 46 │     v_byte := v_ptr_int^; // valid
@@ -116,7 +116,7 @@ error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
 47 │     v_byte := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
 
-note: Implicit downcast from 'INT' to 'BYTE'.
+warning: Implicit downcast from 'INT' to 'BYTE'.
    ┌─ <internal>:48:15
    │
 48 │     v_byte := v_arr_int_3[0]; // valid

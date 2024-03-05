@@ -2,6 +2,12 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
+warning: Implicit downcast from 'LREAL' to 'TIME'.
+   ┌─ <internal>:29:15
+   │
+29 │     v_time := v_lreal; // valid
+   │               ^^^^^^^ Implicit downcast from 'LREAL' to 'TIME'.
+
 error: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:39:5
    │
@@ -43,5 +49,3 @@ error: Invalid assignment: cannot assign 'STRING' to 'TIME'
    │
 49 │     v_time := v_arr_string_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
-
-

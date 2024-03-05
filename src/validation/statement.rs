@@ -1279,18 +1279,18 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
 ) {
     use std::collections::HashMap;
     fn get_expression_types_and_locations<'b, T: AnnotationMap>(
-        lhs: &DataType,
         expression: &AstNode,
         context: &'b ValidationContext<T>,
+        lhs_is_signed_int: bool,
     ) -> HashMap<&'b DataType, Vec<SourceLocation>> {
         let mut map: HashMap<&DataType, Vec<SourceLocation>> = HashMap::new();
         match expression.get_stmt_peeled() {
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. }) => {
                 if !operator.is_bool_type() {
-                    get_expression_types_and_locations(lhs, left, context)
+                    get_expression_types_and_locations(left, context, lhs_is_signed_int)
                         .into_iter()
                         .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-                    get_expression_types_and_locations(lhs, right, context)
+                    get_expression_types_and_locations(right, context, lhs_is_signed_int)
                         .into_iter()
                         .for_each(|(k, v)| map.entry(k).or_default().extend(v));
                 };
@@ -1298,9 +1298,8 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
             // `get_literal_actual_signed_type_name` will always return `LREAL` for FP literals, so they will be handled by the fall-through case according to their annotated type
             AstStatement::Literal(lit) if !matches!(lit, &AstLiteral::Real(_)) => {
                 if lit.is_numerical() {
-                    if let Some(dt) =
-                        get_literal_actual_signed_type_name(lit, lhs.get_type_information().is_signed_int())
-                            .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
+                    if let Some(dt) = get_literal_actual_signed_type_name(lit, lhs_is_signed_int)
+                        .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
                     {
                         map.entry(dt).or_default().push(expression.get_location());
                     }
@@ -1322,18 +1321,24 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     let results_in_truncation = |rhs: &DataType| {
         let rhs = rhs.get_type_information();
         let rhs_size = rhs.get_size(context.index);
-        lhs_size < rhs_size || (lhs_size == rhs_size && lhs.is_signed_int() && rhs.is_unsigned_int())
+        lhs_size < rhs_size
+            || (lhs_size == rhs_size
+                && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
     };
 
-    get_expression_types_and_locations(left, right, context)
+    get_expression_types_and_locations(right, context, lhs.is_signed_int())
         .into_iter()
-        .filter_map(|(dt, loc)| if results_in_truncation(dt) { Some((dt.get_name(), loc)) } else { None })
-        .for_each(|(name, location)| {
+        .filter(|(dt, _)| results_in_truncation(dt))
+        .for_each(|(dt, location)| {
             location.into_iter().for_each(|loc| {
                 validator.push_diagnostic(
-                    Diagnostic::info(format!("Implicit downcast from '{}' to '{}'.", name, left.get_name()))
-                        .with_error_code("E067")
-                        .with_location(loc),
+                    Diagnostic::warning(format!(
+                        "Implicit downcast from '{}' to '{}'.",
+                        get_datatype_name_or_slice(validator.context, dt),
+                        left.get_name()
+                    ))
+                    .with_error_code("E067")
+                    .with_location(loc),
                 );
             })
         });

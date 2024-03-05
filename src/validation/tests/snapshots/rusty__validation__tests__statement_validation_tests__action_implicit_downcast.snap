@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-note: Implicit downcast from 'LINT' to 'DINT'.
+warning: Implicit downcast from 'LINT' to 'DINT'.
   ┌─ <internal>:9:20
   │
 9 │             fb.foo(var_lint, var_wstr); // downcast, invalid
@@ -14,7 +14,7 @@ error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 9 │             fb.foo(var_lint, var_wstr); // downcast, invalid
   │                              ^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
-note: Implicit downcast from 'LINT' to 'INT'.
+warning: Implicit downcast from 'LINT' to 'INT'.
    ┌─ <internal>:10:22
    │
 10 │             prog.bar(var_lint, var_arr); // downcast, invalid
