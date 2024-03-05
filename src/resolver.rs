@@ -28,6 +28,7 @@ use plc_util::convention::internal_type_name;
 pub mod const_evaluator;
 pub mod generics;
 
+use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -1762,7 +1763,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
             } else {
                 // Assuming this is a VOID function if no annotation is present
-                self.annotate(statement, StatementAnnotation::value("__VOID"));
+                self.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
             }
         }
     }
