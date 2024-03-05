@@ -74,21 +74,6 @@ pub fn visit_statement<T: AnnotationMap>(
                 visit_statement(validator, base, context);
             }
 
-            dbg!(context.annotations.get_type(&statement, context.index));
-
-            if let Some(name) = statement.get_flat_reference_name() {
-                if context.is_control
-                    && context.index.find_pou(name).is_some_and(PouIndexEntry::is_void_function)
-                {
-                    validator.push_diagnostic(
-                        Diagnostic::error("Expected bool, found VOID") // TODO: Rust-like error, expected bool found ...
-                            .with_error_code("E001")
-                            // TODO: Location can be improved, i.e. only report left, right or both depending if VOID type
-                            .with_location(statement.get_location()),
-                    )
-                }
-            }
-
             validate_reference_expression(&data.access, validator, context, statement, &data.base);
         }
         AstStatement::BinaryExpression(data) => {
@@ -118,14 +103,6 @@ pub fn visit_statement<T: AnnotationMap>(
             validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
         }
         AstStatement::CallStatement(data) => {
-            // if context.index.find_pou(data).is_some_and(PouIndexEntry::is_void_function) {
-            //     validator.push_diagnostic(
-            //         Diagnostic::error("Expected bool, found VOID") // TODO: Rust-like error, expected bool found ...
-            //             .with_error_code("E001")
-            //             // TODO: Location can be improved, i.e. only report left, right or both depending if VOID type
-            //             .with_location(statement.get_location()),
-            //     )
-            // }
             validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
         }
         AstStatement::ControlStatement(kind) => validate_control_statement(validator, kind, context),
@@ -292,24 +269,23 @@ fn validate_control_statement<T: AnnotationMap>(
     match control_statement {
         AstControlStatement::If(stmt) => {
             stmt.blocks.iter().for_each(|b| {
-                visit_statement(validator, b.condition.as_ref(), &context.in_condition());
+                visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
             });
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
         }
         AstControlStatement::ForLoop(stmt) => {
-            visit_all_statements!(validator, &context.in_condition(), &stmt.counter, &stmt.start, &stmt.end);
+            visit_all_statements!(validator, context, &stmt.counter, &stmt.start, &stmt.end);
             if let Some(by_step) = &stmt.by_step {
-                visit_statement(validator, by_step, &context.in_condition());
+                visit_statement(validator, by_step, context);
             }
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-            visit_statement(validator, &stmt.condition, &context.in_condition());
+            visit_statement(validator, &stmt.condition, context);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::Case(stmt) => {
-            // TODO: as_control()
             validate_case_statement(validator, &stmt.selector, &stmt.case_blocks, &stmt.else_block, context);
         }
     }
@@ -639,23 +615,8 @@ fn validate_binary_expression<T: AnnotationMap>(
     right: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    let Some(left_type) = context.annotations.get_type(left, context.index) else { return };
-    let Some(right_type) = context.annotations.get_type(right, context.index) else { return };
-
-    // if context.index.find_pou(left_type.get_name()).is_some_and(PouIndexEntry::is_void_function)
-    //     || context.index.find_pou(right_type.get_name()).is_some_and(PouIndexEntry::is_void_function)
-    // {
-    //     validator.push_diagnostic(
-    //         Diagnostic::error("Invalid binary expression involving a VOID type") // TODO: Rust-like error, expected bool found ...
-    //             .with_error_code("E001")
-    //             // TODO: Location can be improved, i.e. only report left, right or both depending if VOID type
-    //             .with_location(statement.get_location()),
-    //     );
-    //     return;
-    // }
-
-    let left_type = left_type.get_type_information();
-    let right_type = right_type.get_type_information();
+    let left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
+    let right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
     // if the type is a subrange, check if the intrinsic type is numerical
     let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
@@ -1124,15 +1085,6 @@ fn validate_call<T: AnnotationMap>(
     visit_statement(validator, operator, context);
 
     if let Some(pou) = context.find_pou(operator) {
-        if pou.is_void_function() && context.is_control {
-            validator.push_diagnostic(
-                Diagnostic::error("Expected bool, found VOID") // TODO: Rust-like error, expected bool found ...
-                    .with_error_code("E001")
-                    // TODO: Location can be improved, i.e. only report left, right or both depending if VOID type
-                    .with_location(operator.get_location()),
-            )
-        }
-
         // additional validation for builtin calls if necessary
         if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
             validation(validator, operator, parameters, context.annotations, context.index)
