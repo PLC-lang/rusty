@@ -77,17 +77,17 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         for (name, variable) in globals {
             let linkage =
                 if !variable.is_in_unit(location) { LinkageType::External } else { variable.get_linkage() };
-            let global_variable =
-                self.generate_global_variable(variable, linkage).map_err(|err| {
-                    match err.get_error_code() {
-                        "E072" | "E048" => {
-                            Diagnostic::new(format!("Cannot generate literal initializer for `{name}`."))
-                                .with_error_code("E041")
-                                .with_sub_diagnostic(err)
-                        }
-                        _ => err,
+            let global_variable = self.generate_global_variable(variable, linkage).map_err(|err| {
+                match err.get_error_code() {
+                    //If we encounter a missing function or an invalid reference, we wrap it in a more generic issue
+                    "E072" | "E048" => {
+                        Diagnostic::new(format!("Cannot generate literal initializer for `{name}`."))
+                            .with_error_code("E041")
+                            .with_sub_diagnostic(err)
                     }
-                })?;
+                    _ => err,
+                }
+            })?;
             index.associate_global(name, global_variable)?;
             //generate debug info
             self.debug.create_global_variable(

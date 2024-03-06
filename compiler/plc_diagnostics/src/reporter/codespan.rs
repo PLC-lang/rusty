@@ -104,7 +104,7 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 Severity::Warning => codespan_reporting::diagnostic::Diagnostic::warning(),
                 Severity::Info => codespan_reporting::diagnostic::Diagnostic::note(),
                 Severity::Ignore => {
-                    log::debug!("Ignoring diagnostic: {}", &d.message);
+                    //Do nothing
                     continue;
                 }
             };

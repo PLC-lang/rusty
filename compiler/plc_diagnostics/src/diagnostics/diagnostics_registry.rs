@@ -1,4 +1,13 @@
 /// Returns a diagnostics map with the error code, default severity and a description
+use std::collections::HashMap;
+
+use crate::diagnostician::DiagnosticAssessor;
+
+use super::{
+    Diagnostic,
+    Severity::{self, Error, Info, Warning},
+};
+
 macro_rules! add_diagnostic {
     ($($number:ident, $severity:expr, $desc:expr,)*) => {
         { let mut m : HashMap<&str, DiagnosticEntry> = HashMap::new();
@@ -11,15 +20,6 @@ macro_rules! add_diagnostic {
             m
         }}
 }
-
-use std::collections::HashMap;
-
-use crate::diagnostician::DiagnosticAssessor;
-
-use super::{
-    Diagnostic,
-    Severity::{self, Error, Info, Warning},
-};
 
 pub struct DiagnosticsRegistry(HashMap<&'static str, DiagnosticEntry>);
 

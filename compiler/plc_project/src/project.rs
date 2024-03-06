@@ -296,14 +296,6 @@ impl<S: SourceContainer> Project<S> {
         self.format
     }
 
-    /// Returns the configuration used by this project to evaluate the diagnostics
-    /// If no configuration is available, the generic configuration is returned
-    pub fn get_diagnostic_configuration(&self) -> impl AsRef<str> {
-        todo!("Missing");
-        #[allow(unreachable_code)]
-        ""
-    }
-
     /// Returns the validation schema used for this project
     pub fn get_validation_schema(&self) -> impl AsRef<str> {
         include_str!("../schema/plc-json.schema")

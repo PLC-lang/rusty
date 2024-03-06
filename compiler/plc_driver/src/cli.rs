@@ -179,12 +179,7 @@ pub struct CompileParameters {
     )]
     pub threads: Option<Threads>,
 
-    #[clap(
-        name = "error-config",
-        long,
-        help = "An diagnostics configuration in JSON format", //TODO: or toml
-        global = true,
-    )]
+    #[clap(name = "error-config", long, help = "A diagnostics configuration in JSON format", global = true)]
     pub error_config: Option<String>,
 
     #[clap(

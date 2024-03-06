@@ -134,6 +134,14 @@ impl DiagnosticAssessor for Diagnostician {
         //delegate to assesor
         self.assessor.assess(d)
     }
+
+    fn explain(&self, _error: &str) -> String {
+        unimplemented!("Error explanation is not supported on this diagnostian")
+    }
+
+    fn get_diagnostic_configuration(&self) -> String {
+        unimplemented!("Diagnostic configuration is not supported on this diagnostian")
+    }
 }
 
 //This clippy lint is wrong her because the trait is expecting dyn
@@ -155,12 +163,11 @@ pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
     fn assess(&self, d: &Diagnostic) -> Severity;
     //TODO should these be results
-    fn explain(&self, error: &str) -> String {
-        format!("Unknown error {error}")
-    }
-    fn get_diagnostic_configuration(&self) -> String {
-        "This assessor cannot be configured".into()
-    }
+    /// Explains the given error based on the diagnostician information
+    fn explain(&self, error: &str) -> String;
+    /// Returns a serialized version of the diagnostics configuration this diagnostician will use
+    /// to assess errors
+    fn get_diagnostic_configuration(&self) -> String;
 }
 
 impl std::fmt::Display for Severity {
