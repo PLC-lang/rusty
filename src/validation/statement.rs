@@ -271,7 +271,7 @@ fn validate_for_loop<T: AnnotationMap>(
 
     let mut validate_if_datatype_is_numerical = |node: Option<&AstNode>| {
         let Some(node) = node else { return };
-        let kind = context.annotations.get_type_or_void(&node, context.index);
+        let kind = context.annotations.get_type_or_void(node, context.index);
 
         // TODO: Error code + Message
         if !kind.is_numerical() {
@@ -295,7 +295,7 @@ fn validate_for_loop<T: AnnotationMap>(
     let mut validate_if_datatype_is_equal_to_reference_datatype = |node: Option<&AstNode>| {
         let Some(reference_dt) = reference_dt else { return };
         let Some(node) = node else { return };
-        let actual_type = context.annotations.get_type_or_void(&node, context.index);
+        let actual_type = context.annotations.get_type_or_void(node, context.index);
 
         // TODO: Error code + Message
         if !node.is_literal_integer() && actual_type != reference_dt {
