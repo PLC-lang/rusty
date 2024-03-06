@@ -1017,3 +1017,45 @@ fn literals_out_of_range_for_lhs_will_result_in_downcast_warning() {
 
     assert_snapshot!(diagnostics)
 }
+
+
+#[test]
+fn literals_out_of_range_inside_unary_expressions_will_cause_no_warning() {
+    // GIVEN literals behind unary expressions (which will be annotated as DINT)
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+        END_VAR
+            a := a;
+            a := a + 254;
+            a := a + 254 - 20;
+            a := a + 254 + (-(10+10));  //rewrite this as a unary expression
+        END_FUNCTION
+        ",
+    );
+    //WE EXPECT NO VALIDATION PROBLEMS
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn literals_out_of_range_in_a_modulo_operation_cannot_exceed_the_left_operand() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            d : DINT := 9;
+        END_VAR
+            a := a + (a MOD d);  // I know this is bullshit - lets ignore it
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect no validation problems, since a mod d should remain in a's datatype
+    assert_snapshot!(diagnostics)
+}
+
