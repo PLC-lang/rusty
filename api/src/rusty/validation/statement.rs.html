@@ -2204,7 +2204,7 @@
         <span class="comment">// ...however function calls for example are no const-expr hence only report if datatypes also differ
         </span><span class="kw">if </span>left_dt.get_name() != right_dt.get_name() {
             validator.push_diagnostic(
-                Diagnostic::error(<span class="macro">format!</span>(
+                Diagnostic::warning(<span class="macro">format!</span>(
                     <span class="string">&quot;Value evaluated at run-time, use an enum variant from `{}`&quot;</span>,
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
