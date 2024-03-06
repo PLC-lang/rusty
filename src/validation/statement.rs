@@ -1,5 +1,6 @@
 use std::{collections::HashSet, mem::discriminant};
 
+use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
@@ -261,6 +262,62 @@ fn validate_direct_access<T: AnnotationMap>(
     }
 }
 
+fn validate_for_loop<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    statement: &ForLoopStatement,
+) {
+    // [x] Condition consist of only numerical values
+    // [x] Condition consist of only numerical values / types that are equal (i.e. DINT != SINT)
+    // [ ] Body doesn't modify condition
+
+    let mut reference_dt: Option<&DataType> = None;
+
+    let mut validate_if_datatype_is_numerical = |node: Option<&AstNode>| {
+        let Some(node) = node else { return };
+        let kind = context.annotations.get_type_or_void(&node, context.index);
+
+        if !kind.is_numerical() {
+            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let message = format!("Expected a numerical value, got `{slice}`");
+            validator.push_diagnostic(Diagnostic::error(message).with_location(node.get_location()));
+            return;
+        }
+
+        if reference_dt.is_none() {
+            reference_dt.replace(kind);
+        }
+    };
+
+    validate_if_datatype_is_numerical(Some(&statement.counter));
+    validate_if_datatype_is_numerical(Some(&statement.start));
+    validate_if_datatype_is_numerical(Some(&statement.end));
+    validate_if_datatype_is_numerical(statement.by_step.as_deref());
+
+    let mut validate_if_datatypes_are_same = |node: Option<&AstNode>, dt: Option<&DataType>| {
+        let Some(dt) = dt else { return };
+        let Some(node) = node else { return };
+        let kind = context.annotations.get_type_or_void(&node, context.index);
+
+        if !node.is_literal_integer() && kind != dt {
+            let slice1 = get_datatype_name_or_slice(validator.context, dt);
+            let slice2 = get_datatype_name_or_slice(validator.context, kind);
+            let message = format!("Expected `{slice1}` but got `{slice2}`");
+            validator.push_diagnostic(Diagnostic::error(message).with_location(node.get_location()));
+        }
+    };
+
+    validate_if_datatypes_are_same(Some(&statement.counter), reference_dt);
+    validate_if_datatypes_are_same(Some(&statement.start), reference_dt);
+    validate_if_datatypes_are_same(Some(&statement.end), reference_dt);
+    validate_if_datatypes_are_same(statement.by_step.as_deref(), reference_dt);
+
+    // Check if the body doesn't modify conditional values
+    for _stmt in &statement.body {
+        todo!("This is only possible with some analysis which we lack right now, right?")
+    }
+}
+
 fn validate_control_statement<T: AnnotationMap>(
     validator: &mut Validator,
     control_statement: &AstControlStatement,
@@ -275,6 +332,7 @@ fn validate_control_statement<T: AnnotationMap>(
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
         }
         AstControlStatement::ForLoop(stmt) => {
+            validate_for_loop(validator, context, stmt);
             visit_all_statements!(validator, context, &stmt.counter, &stmt.start, &stmt.end);
             if let Some(by_step) = &stmt.by_step {
                 visit_statement(validator, by_step, context);

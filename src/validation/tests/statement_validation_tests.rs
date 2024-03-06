@@ -1388,3 +1388,83 @@ fn invalid_cast_statement_causes_error() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn for_loop_conditions_are_numerical() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                i : STRING;
+                x : BOOL;
+                y : DINT;
+            END_VAR
+
+        FOR i := 100000 TO x BY y DO
+        END_FOR
+            
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error: Expected a numerical value, got `STRING`
+      ┌─ <internal>:9:13
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │             ^ Expected a numerical value, got `STRING`
+
+    error: Expected a numerical value, got `BOOL`
+      ┌─ <internal>:9:28
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │                            ^ Expected a numerical value, got `BOOL`
+
+    error: Expected `DINT` but got `STRING`
+      ┌─ <internal>:9:13
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │             ^ Expected `DINT` but got `STRING`
+
+    error: Expected `DINT` but got `BOOL`
+      ┌─ <internal>:9:28
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │                            ^ Expected `DINT` but got `BOOL`
+
+    "###);
+}
+
+#[test]
+fn for_loop_conditions_have_same_type() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                i :  INT;
+                x : SINT;
+                y : DINT;
+            END_VAR
+
+        FOR i := 100000 TO x BY y DO
+        END_FOR
+            
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error: Expected `INT` but got `SINT`
+      ┌─ <internal>:9:28
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │                            ^ Expected `INT` but got `SINT`
+
+    error: Expected `INT` but got `DINT`
+      ┌─ <internal>:9:33
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │                                 ^ Expected `INT` but got `DINT`
+
+    "###);
+}
