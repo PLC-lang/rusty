@@ -2182,6 +2182,10 @@
 <a href="#2182" id="2182">2182</a>
 <a href="#2183" id="2183">2183</a>
 <a href="#2184" id="2184">2184</a>
+<a href="#2185" id="2185">2185</a>
+<a href="#2186" id="2186">2186</a>
+<a href="#2187" id="2187">2187</a>
+<a href="#2188" id="2188">2188</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2212,6 +2216,7 @@
 <span class="kw">pub mod </span>const_evaluator;
 <span class="kw">pub mod </span>generics;
 
+<span class="kw">use </span><span class="kw">crate</span>::typesystem::VOID_INTERNAL_NAME;
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -2993,7 +2998,7 @@
             {
                 <span class="self">self</span>.visit_statement(ctx, initializer);
 
-                <span class="comment">//update the type-hint for the initializer
+                <span class="comment">// Update the type-hint for the initializer
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(right_type) = <span class="self">self</span>.index.find_effective_type_by_name(name) {
                     <span class="self">self</span>.update_expected_types(right_type, initializer);
                 }
@@ -3944,6 +3949,9 @@
                     </span><span class="kw">return</span>;
                 }
                 <span class="self">self</span>.annotate(statement, StatementAnnotation::value(return_type.get_name()));
+            } <span class="kw">else </span>{
+                <span class="comment">// Assuming this is a VOID function if no annotation is present
+                </span><span class="self">self</span>.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
             }
         }
     }

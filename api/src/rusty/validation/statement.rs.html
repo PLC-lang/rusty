@@ -1360,6 +1360,40 @@
 <a href="#1360" id="1360">1360</a>
 <a href="#1361" id="1361">1361</a>
 <a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::{
@@ -2133,10 +2167,19 @@
                     .with_location(left.get_location()),
             );
         }
+
+        <span class="kw">if </span>has_return_assignment_in_void_function(context, left) {
+            validator.push_diagnostic(
+                Diagnostic::warning(<span class="string">&quot;Function declared as VOID, but trying to assign a return value&quot;</span>)
+                    .with_location(location.to_owned())
+                    .with_error_code(<span class="string">&quot;E092&quot;</span>),
+            )
+        }
     }
 
     <span class="kw">let </span>right_type = context.annotations.get_type(right, context.index);
     <span class="kw">let </span>left_type = context.annotations.get_type_hint(right, context.index);
+
     <span class="kw">if let </span>(<span class="prelude-val">Some</span>(right_type), <span class="prelude-val">Some</span>(left_type)) = (right_type, left_type) {
         <span class="comment">// implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type
@@ -2151,9 +2194,7 @@
         <span class="comment">// VLA &lt;- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
         // are no longer allowed inside a POU body
         </span><span class="kw">if </span>left_type.is_vla() &amp;&amp; right_type.is_array() &amp;&amp; context.is_call() {
-            <span class="comment">// TODO: This could benefit from a better error message, tracked in
-            // https://github.com/PLC-lang/rusty/issues/118
-            </span>validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
+            validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
             <span class="kw">return</span>;
         }
 
@@ -2183,6 +2224,29 @@
         </span>}
     }
 }
+
+<span class="doccomment">/// Returns true if an assignment statement exists such that a return value is assigned to a void
+/// function. For example the following will return true
+/// ```norun
+/// FUNCTION foo
+/// foo := 1; // Doesn&#39;t make sense, foo is of type VOID
+/// END_FUNCTION
+/// ```
+</span><span class="kw">fn </span>has_return_assignment_in_void_function&lt;T&gt;(context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;, left: <span class="kw-2">&amp;</span>AstNode) -&gt; bool
+<span class="kw">where
+    </span>T: AnnotationMap,
+{
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((var_name, qualifier)) = left.get_flat_reference_name().zip(context.qualifier) {
+        <span class="kw">let </span>variable = context.index.find_variable(context.qualifier, <span class="kw-2">&amp;</span>[var_name]);
+        <span class="kw">let </span>pou = context.index.find_pou(qualifier);
+
+        <span class="kw">if </span>variable.is_none() &amp;&amp; pou.is_some_and(|fun| fun.is_void_function()) {
+            <span class="kw">return </span>var_name == qualifier;
+        }
+    }
+
+    <span class="bool-val">false
+</span>}
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_enum_variant_assignment&lt;T: AnnotationMap&gt;(
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
@@ -2282,6 +2346,10 @@
     location: <span class="kw-2">&amp;</span>SourceLocation,
     validator: <span class="kw-2">&amp;mut </span>Validator,
 ) -&gt; bool {
+    <span class="kw">if </span>right_type.is_void() {
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    }
+
     <span class="kw">if </span>is_valid_string_to_char_assignment(
         left_type.get_type_information(),
         right_type.get_type_information(),

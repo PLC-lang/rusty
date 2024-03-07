@@ -126,16 +126,6 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{Implementation, LinkageType, Pou, PouType, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -197,7 +187,7 @@
 
 <span class="kw">fn </span>validate_pou&lt;T: AnnotationMap&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou, context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">&#39;_</span>, T&gt;) {
     <span class="kw">if </span>pou.pou_type == PouType::Function {
-        validate_function(validator, pou, context);
+        validate_function(validator, pou);
     };
     <span class="kw">if </span>pou.pou_type == PouType::Class {
         validate_class(validator, pou, context);
@@ -233,23 +223,13 @@
     }
 }
 
-<span class="kw">fn </span>validate_function&lt;T: AnnotationMap&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou, context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;) {
+<span class="kw">fn </span>validate_function(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou) {
     <span class="comment">// functions cannot use EXTENDS
     </span><span class="kw">if </span>pou.super_class.is_some() {
         validator.push_diagnostic(
             Diagnostic::error(<span class="string">&quot;A function cannot use `EXTEND`&quot;</span>)
                 .with_error_code(<span class="string">&quot;E021&quot;</span>)
                 .with_location(pou.name_location.to_owned()),
-        );
-    }
-
-    <span class="kw">let </span>return_type = context.index.find_return_type(<span class="kw-2">&amp;</span>pou.name);
-    <span class="comment">// functions must have a return type
-    </span><span class="kw">if </span>return_type.is_none() {
-        validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;Function Return type missing&quot;</span>)
-                .with_error_code(<span class="string">&quot;E025&quot;</span>)
-                .with_location(pou.name_location.clone()),
         );
     }
 }
