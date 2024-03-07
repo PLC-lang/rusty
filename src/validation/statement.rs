@@ -267,23 +267,24 @@ fn validate_for_loop<T: AnnotationMap>(
     context: &ValidationContext<T>,
     statement: &ForLoopStatement,
 ) {
-    let mut reference_dt: Option<&DataType> = None;
+    let mut reference: Option<(&DataType, AstNode)> = None;
 
     let mut validate_if_datatype_is_numerical = |node: Option<&AstNode>| {
         let Some(node) = node else { return };
         let kind = context.annotations.get_type_or_void(node, context.index);
 
-        // TODO: Error code + Message
         if !kind.is_numerical() {
             let slice = get_datatype_name_or_slice(validator.context, kind);
             let message = format!("Expected a numerical value, got `{slice}`");
-            validator.push_diagnostic(Diagnostic::error(message).with_location(node.get_location()));
+            validator.push_diagnostic(
+                Diagnostic::error(message).with_location(node.get_location()).with_error_code("E094"),
+            );
 
             return;
         }
 
-        if reference_dt.is_none() {
-            reference_dt.replace(kind);
+        if reference.is_none() {
+            reference.replace((kind, node.clone()));
         }
     };
 
@@ -293,17 +294,21 @@ fn validate_for_loop<T: AnnotationMap>(
     validate_if_datatype_is_numerical(statement.by_step.as_deref());
 
     let mut validate_if_datatype_is_equal_to_reference_datatype = |node: Option<&AstNode>| {
-        let Some(reference_dt) = reference_dt else { return };
+        let Some((reference_dt, reference_node)) = reference.as_ref() else { return };
         let Some(node) = node else { return };
         let actual_type = context.annotations.get_type_or_void(node, context.index);
 
-        // TODO: Error code + Message
-        if !node.is_literal_integer() && actual_type != reference_dt {
+        if !node.is_literal_integer() && actual_type != *reference_dt {
             let ref_dt_slice = get_datatype_name_or_slice(validator.context, reference_dt);
             let actual_dt_slice = get_datatype_name_or_slice(validator.context, actual_type);
-            let message = format!("Expected `{ref_dt_slice}` but got `{actual_dt_slice}`");
+            let message = format!("Conditional loop values must be of the same type, expected `{ref_dt_slice}` but got `{actual_dt_slice}`");
 
-            validator.push_diagnostic(Diagnostic::error(message).with_location(node.get_location()));
+            validator.push_diagnostic(
+                Diagnostic::error(message)
+                    .with_location(node.get_location())
+                    .with_secondary_location(reference_node.get_location())
+                    .with_error_code("E093"),
+            );
         }
     };
 
@@ -313,11 +318,12 @@ fn validate_for_loop<T: AnnotationMap>(
     validate_if_datatype_is_equal_to_reference_datatype(statement.by_step.as_deref());
 
     // Check if the body doesn't modify conditional values
-    // TODO: Is this currently possible? I feel like we lack some analysis feature for this to be
-    //       bullet-proof. We could check if the body contains assignments and the left-hand side of
-    //       that assignment is a loop conditional value, but what if that loop conditional value
-    //       is passed as a reference to a function that mutates it?
-    for _stmt in &statement.body {}
+    for _ in &statement.body {
+        // TODO: This requires some analysis feature which we currently lack.
+        //       While it might be possible to check if the left-hand side of an assignment is a
+        //       conditional value, we currently can not guarantee these values will not be mutated
+        //       by a VAR_INPUT {ref} function call.
+    }
 }
 
 fn validate_control_statement<T: AnnotationMap>(
