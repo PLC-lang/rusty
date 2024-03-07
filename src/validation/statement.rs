@@ -775,7 +775,8 @@ fn validate_assignment<T: AnnotationMap>(
         if has_return_assignment_in_void_function(context, left) {
             validator.push_diagnostic(
                 Diagnostic::warning("Function declared as VOID, but trying to assign a return value")
-                    .with_location(location.to_owned()),
+                    .with_location(location.to_owned())
+                    .with_error_code("E092"),
             )
         }
     }
