@@ -1420,22 +1420,6 @@ fn for_loop_conditions_are_numerical() {
     9 │         FOR i := 100000 TO x BY y DO
       │                            ^ Expected an integer value, got `BOOL`
 
-    error: Conditional loop values must be of the same type, expected `DINT` but got `STRING`
-      ┌─ <internal>:9:13
-      │
-    9 │         FOR i := 100000 TO x BY y DO
-      │             ^    ------ see also
-      │             │     
-      │             Conditional loop values must be of the same type, expected `DINT` but got `STRING`
-
-    error: Conditional loop values must be of the same type, expected `DINT` but got `BOOL`
-      ┌─ <internal>:9:28
-      │
-    9 │         FOR i := 100000 TO x BY y DO
-      │                  ------    ^ Conditional loop values must be of the same type, expected `DINT` but got `BOOL`
-      │                  │          
-      │                  see also
-
     "###);
 }
 
@@ -1481,44 +1465,6 @@ fn for_loop_conditions_are_real_and_trigger_error() {
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │                               ^ Expected an integer value, got `REAL`
-
-    "###);
-}
-
-#[test]
-fn for_loop_conditions_have_same_type() {
-    let diagnostics = parse_and_validate_buffered(
-        "
-        PROGRAM main
-            VAR
-                i :  INT;
-                x : SINT;
-                y : DINT;
-            END_VAR
-
-        FOR i := 100000 TO x BY y DO
-        END_FOR
-            
-        END_PROGRAM
-        ",
-    );
-
-    assert_snapshot!(diagnostics, @r###"
-    error: Conditional loop values must be of the same type, expected `INT` but got `SINT`
-      ┌─ <internal>:9:28
-      │
-    9 │         FOR i := 100000 TO x BY y DO
-      │             -              ^ Conditional loop values must be of the same type, expected `INT` but got `SINT`
-      │             │               
-      │             see also
-
-    error: Conditional loop values must be of the same type, expected `INT` but got `DINT`
-      ┌─ <internal>:9:33
-      │
-    9 │         FOR i := 100000 TO x BY y DO
-      │             -                   ^ Conditional loop values must be of the same type, expected `INT` but got `DINT`
-      │             │                    
-      │             see also
 
     "###);
 }

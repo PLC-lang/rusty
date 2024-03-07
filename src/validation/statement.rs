@@ -293,30 +293,6 @@ fn validate_for_loop<T: AnnotationMap>(
     validate_if_datatype_is_numerical(Some(&statement.end));
     validate_if_datatype_is_numerical(statement.by_step.as_deref());
 
-    let mut validate_if_datatype_is_equal_to_reference_datatype = |node: Option<&AstNode>| {
-        let Some((reference_dt, reference_node)) = reference.as_ref() else { return };
-        let Some(node) = node else { return };
-        let actual_type = context.annotations.get_type_or_void(node, context.index);
-
-        if !node.is_literal_integer() && actual_type != *reference_dt {
-            let ref_dt_slice = get_datatype_name_or_slice(validator.context, reference_dt);
-            let actual_dt_slice = get_datatype_name_or_slice(validator.context, actual_type);
-            let message = format!("Conditional loop values must be of the same type, expected `{ref_dt_slice}` but got `{actual_dt_slice}`");
-
-            validator.push_diagnostic(
-                Diagnostic::error(message)
-                    .with_location(node.get_location())
-                    .with_secondary_location(reference_node.get_location())
-                    .with_error_code("E093"),
-            );
-        }
-    };
-
-    validate_if_datatype_is_equal_to_reference_datatype(Some(&statement.counter));
-    validate_if_datatype_is_equal_to_reference_datatype(Some(&statement.start));
-    validate_if_datatype_is_equal_to_reference_datatype(Some(&statement.end));
-    validate_if_datatype_is_equal_to_reference_datatype(statement.by_step.as_deref());
-
     // Check if the body doesn't modify conditional values
     for _ in &statement.body {
         // TODO: This requires some analysis feature which we currently lack.
