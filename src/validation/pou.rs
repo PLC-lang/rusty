@@ -59,7 +59,7 @@ pub fn visit_implementation<T: AnnotationMap>(
 
 fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.pou_type == PouType::Function {
-        validate_function(validator, pou, context);
+        validate_function(validator, pou);
     };
     if pou.pou_type == PouType::Class {
         validate_class(validator, pou, context);
@@ -95,23 +95,13 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
     }
 }
 
-fn validate_function<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
+fn validate_function(validator: &mut Validator, pou: &Pou) {
     // functions cannot use EXTENDS
     if pou.super_class.is_some() {
         validator.push_diagnostic(
             Diagnostic::error("A function cannot use `EXTEND`")
                 .with_error_code("E021")
                 .with_location(pou.name_location.to_owned()),
-        );
-    }
-
-    let return_type = context.index.find_return_type(&pou.name);
-    // functions must have a return type
-    if return_type.is_none() {
-        validator.push_diagnostic(
-            Diagnostic::error("Function Return type missing")
-                .with_error_code("E025")
-                .with_location(pou.name_location.clone()),
         );
     }
 }

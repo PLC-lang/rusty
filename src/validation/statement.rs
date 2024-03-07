@@ -771,10 +771,19 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_location(left.get_location()),
             );
         }
+
+        if has_return_assignment_in_void_function(context, left) {
+            validator.push_diagnostic(
+                Diagnostic::warning("Function declared as VOID, but trying to assign a return value")
+                    .with_location(location.to_owned())
+                    .with_error_code("E092"),
+            )
+        }
     }
 
     let right_type = context.annotations.get_type(right, context.index);
     let left_type = context.annotations.get_type_hint(right, context.index);
+
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type
@@ -789,8 +798,6 @@ fn validate_assignment<T: AnnotationMap>(
         // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
         // are no longer allowed inside a POU body
         if left_type.is_vla() && right_type.is_array() && context.is_call() {
-            // TODO: This could benefit from a better error message, tracked in
-            // https://github.com/PLC-lang/rusty/issues/118
             validate_variable_length_array_assignment(validator, context, location, left_type, right_type);
             return;
         }
@@ -820,6 +827,29 @@ fn validate_assignment<T: AnnotationMap>(
             // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
+}
+
+/// Returns true if an assignment statement exists such that a return value is assigned to a void
+/// function. For example the following will return true
+/// ```norun
+/// FUNCTION foo
+/// foo := 1; // Doesn't make sense, foo is of type VOID
+/// END_FUNCTION
+/// ```
+fn has_return_assignment_in_void_function<T>(context: &ValidationContext<T>, left: &AstNode) -> bool
+where
+    T: AnnotationMap,
+{
+    if let Some((var_name, qualifier)) = left.get_flat_reference_name().zip(context.qualifier) {
+        let variable = context.index.find_variable(context.qualifier, &[var_name]);
+        let pou = context.index.find_pou(qualifier);
+
+        if variable.is_none() && pou.is_some_and(|fun| fun.is_void_function()) {
+            return var_name == qualifier;
+        }
+    }
+
+    false
 }
 
 pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
@@ -920,6 +950,10 @@ fn is_valid_assignment(
     location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
+    if right_type.is_void() {
+        return false;
+    }
+
     if is_valid_string_to_char_assignment(
         left_type.get_type_information(),
         right_type.get_type_information(),
