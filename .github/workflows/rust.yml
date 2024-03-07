@@ -34,6 +34,12 @@ jobs:
           echo "Build command : ./scripts/build.sh --build --test"
           ./scripts/build.sh --build --test
 
+      - name: Cargo test --release
+        shell: bash
+        run: |
+          echo "Build command : ./scripts/build.sh --build --test --release"
+          ./scripts/build.sh --build --test --release
+
   package-linux:
     name: Package Linux
     runs-on: ubuntu-latest
@@ -101,6 +107,24 @@ jobs:
         with:
           command: test
           args: integration -- --nocapture --test-threads=1
+
+      - name: Cargo test release (Unit)
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --lib --release -- --nocapture
+
+      - name: Cargo test release (Correctness)
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: correctness --release -- --nocapture --test-threads=1
+
+      - name: Cargo test release (Integration)
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: integration --release -- --nocapture --test-threads=1
 
       - name: Release Build
         uses: actions-rs/cargo@v1
