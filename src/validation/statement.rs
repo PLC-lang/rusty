@@ -273,9 +273,9 @@ fn validate_for_loop<T: AnnotationMap>(
         let Some(node) = node else { return };
         let kind = context.annotations.get_type_or_void(node, context.index);
 
-        if !kind.is_numerical() {
+        if kind.is_real() || !kind.is_numerical() {
             let slice = get_datatype_name_or_slice(validator.context, kind);
-            let message = format!("Expected a numerical value, got `{slice}`");
+            let message = format!("Expected an integer value, got `{slice}`");
             validator.push_diagnostic(
                 Diagnostic::error(message).with_location(node.get_location()).with_error_code("E094"),
             );

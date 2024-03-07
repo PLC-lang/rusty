@@ -1408,29 +1408,79 @@ fn for_loop_conditions_are_numerical() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error: Expected a numerical value, got `STRING`
+    error: Expected an integer value, got `STRING`
       ┌─ <internal>:9:13
       │
     9 │         FOR i := 100000 TO x BY y DO
-      │             ^ Expected a numerical value, got `STRING`
+      │             ^ Expected an integer value, got `STRING`
 
-    error: Expected a numerical value, got `BOOL`
+    error: Expected an integer value, got `BOOL`
       ┌─ <internal>:9:28
       │
     9 │         FOR i := 100000 TO x BY y DO
-      │                            ^ Expected a numerical value, got `BOOL`
+      │                            ^ Expected an integer value, got `BOOL`
 
-    error: Expected `DINT` but got `STRING`
+    error: Conditional loop values must be of the same type, expected `DINT` but got `STRING`
       ┌─ <internal>:9:13
       │
     9 │         FOR i := 100000 TO x BY y DO
-      │             ^ Expected `DINT` but got `STRING`
+      │             ^    ------ see also
+      │             │     
+      │             Conditional loop values must be of the same type, expected `DINT` but got `STRING`
 
-    error: Expected `DINT` but got `BOOL`
+    error: Conditional loop values must be of the same type, expected `DINT` but got `BOOL`
       ┌─ <internal>:9:28
       │
     9 │         FOR i := 100000 TO x BY y DO
-      │                            ^ Expected `DINT` but got `BOOL`
+      │                  ------    ^ Conditional loop values must be of the same type, expected `DINT` but got `BOOL`
+      │                  │          
+      │                  see also
+
+    "###);
+}
+
+#[test]
+fn for_loop_conditions_are_real_and_trigger_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                i : STRING;
+                x : REAL;
+                y : REAL;
+            END_VAR
+
+        FOR i := 10.0 TO x BY y DO
+        END_FOR
+            
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error: Expected an integer value, got `STRING`
+      ┌─ <internal>:9:13
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │             ^ Expected an integer value, got `STRING`
+
+    error: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:18
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                  ^^^^ Expected an integer value, got `REAL`
+
+    error: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:26
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                          ^ Expected an integer value, got `REAL`
+
+    error: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:31
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                               ^ Expected an integer value, got `REAL`
 
     "###);
 }
@@ -1454,17 +1504,21 @@ fn for_loop_conditions_have_same_type() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error: Expected `INT` but got `SINT`
+    error: Conditional loop values must be of the same type, expected `INT` but got `SINT`
       ┌─ <internal>:9:28
       │
     9 │         FOR i := 100000 TO x BY y DO
-      │                            ^ Expected `INT` but got `SINT`
+      │             -              ^ Conditional loop values must be of the same type, expected `INT` but got `SINT`
+      │             │               
+      │             see also
 
-    error: Expected `INT` but got `DINT`
+    error: Conditional loop values must be of the same type, expected `INT` but got `DINT`
       ┌─ <internal>:9:33
       │
     9 │         FOR i := 100000 TO x BY y DO
-      │                                 ^ Expected `INT` but got `DINT`
+      │             -                   ^ Conditional loop values must be of the same type, expected `INT` but got `DINT`
+      │             │                    
+      │             see also
 
     "###);
 }
