@@ -26,7 +26,7 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name},
+    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
     validation::{Validator, Validators},
 };
 
@@ -159,20 +159,7 @@ lazy_static! {
                         let cases = blocks.into_iter().enumerate().map::<Result<(IntValue, BasicBlock), Diagnostic>, _>(|(index, (it, block))| {
                             let value = context.i32_type().const_int(index as u64, false);
                             builder.position_at_end(block);
-                            if result_type.is_array_type() || result_type.is_struct_type() {
-                                let src =
-                                    generator.generate_expression_value(it)?.get_basic_value_enum().into_pointer_value();
-                                let Some(size) = result_type.size_of() else {
-                                    return Err(Diagnostic::codegen_error(format!("Could not determine size of {}", type_hint.get_name()), location.clone())) //XXX: this might be unreachable
-                                };
-
-                                builder
-                                    .build_memcpy(result_var, 1, src, 1, size).map_err(|e| Diagnostic::codegen_error(e.to_string(), location.clone()))?;
-                            } else {
-                                let expr = generator.generate_expression(it)?;
-                                builder.build_store(result_var, expr);
-                            }
-
+                            generator.generate_store(result_var, type_hint.get_type_information(), it)?;
                             builder.build_unconditional_branch(continue_block);
                             Ok((value,block))
                         }).collect::<Result<Vec<_>,_>>()?;
