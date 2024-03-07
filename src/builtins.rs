@@ -141,11 +141,11 @@ lazy_static! {
 
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
+                        let type_hint = params.first()
+                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location.clone()))
+                        .and_then(|it| generator.get_type_hint_info_for(it))?;
                         //Create a temp var
-                        let result_type = params.first()
-                            .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location))
-                            .and_then(|it| generator.get_type_hint_info_for(it))
-                            .and_then(|it| generator.llvm_index.get_associated_type(it.get_name()))?;
+                        let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
                         let result_var = generator.llvm.create_local_variable("", &result_type);
                         let k = generator.generate_expression(k)?;
 
@@ -154,16 +154,29 @@ lazy_static! {
                             let block = context.append_basic_block(function_context.function, "");
                             blocks.push((*it,block))
                         }
-                        let continue_block = context.append_basic_block(function_context.function, "continue_block");
 
+                        let continue_block = context.append_basic_block(function_context.function, "continue_block");
                         let cases = blocks.into_iter().enumerate().map::<Result<(IntValue, BasicBlock), Diagnostic>, _>(|(index, (it, block))| {
                             let value = context.i32_type().const_int(index as u64, false);
                             builder.position_at_end(block);
-                            let expr = generator.generate_expression(it)?;
-                            builder.build_store(result_var, expr);
+                            if result_type.is_array_type() || result_type.is_struct_type() {
+                                let src =
+                                    generator.generate_expression_value(it)?.get_basic_value_enum().into_pointer_value();
+                                let Some(size) = result_type.size_of() else {
+                                    return Err(Diagnostic::codegen_error(format!("Could not determine size of {}", type_hint.get_name()), location.clone())) //XXX: this might be unreachable
+                                };
+
+                                builder
+                                    .build_memcpy(result_var, 1, src, 1, size).map_err(|e| Diagnostic::codegen_error(e.to_string(), location.clone()))?;
+                            } else {
+                                let expr = generator.generate_expression(it)?;
+                                builder.build_store(result_var, expr);
+                            }
+
                             builder.build_unconditional_branch(continue_block);
                             Ok((value,block))
                         }).collect::<Result<Vec<_>,_>>()?;
+
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, &cases);
                         builder.position_at_end(continue_block);
