@@ -277,7 +277,7 @@ fn validate_for_loop<T: AnnotationMap>(
             let slice = get_datatype_name_or_slice(validator.context, kind);
             let message = format!("Expected an integer value, got `{slice}`");
             validator.push_diagnostic(
-                Diagnostic::error(message).with_location(node.get_location()).with_error_code("E094"),
+                Diagnostic::error(message).with_location(node.get_location()).with_error_code("E093"),
             );
 
             return;
@@ -293,13 +293,12 @@ fn validate_for_loop<T: AnnotationMap>(
     validate_if_datatype_is_numerical(Some(&statement.end));
     validate_if_datatype_is_numerical(statement.by_step.as_deref());
 
-    // Check if the body doesn't modify conditional values
-    for _ in &statement.body {
-        // TODO: This requires some analysis feature which we currently lack.
-        //       While it might be possible to check if the left-hand side of an assignment is a
-        //       conditional value, we currently can not guarantee these values will not be mutated
-        //       by a VAR_INPUT {ref} function call.
-    }
+    // TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
+    // TODO: Check if the body doesn't modify the conditional values
+    //       NOTE: This requires some analysis feature which we currently lack.
+    //       While it might be possible to check if the left-hand side of an assignment is a
+    //       conditional value, we currently can not guarantee these values will not be mutated
+    //       by a VAR_INPUT {ref} function call.
 }
 
 fn validate_control_statement<T: AnnotationMap>(
