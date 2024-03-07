@@ -1018,7 +1018,6 @@ fn literals_out_of_range_for_lhs_will_result_in_downcast_warning() {
     assert_snapshot!(diagnostics)
 }
 
-
 #[test]
 fn literals_out_of_range_inside_unary_expressions_will_cause_no_warning() {
     // GIVEN literals behind unary expressions (which will be annotated as DINT)
@@ -1037,7 +1036,7 @@ fn literals_out_of_range_inside_unary_expressions_will_cause_no_warning() {
         ",
     );
     //WE EXPECT NO VALIDATION PROBLEMS
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty())
 }
 
 #[test]
@@ -1058,4 +1057,3 @@ fn literals_out_of_range_in_a_modulo_operation_cannot_exceed_the_left_operand() 
     //THEN we expect no validation problems, since a mod d should remain in a's datatype
     assert_snapshot!(diagnostics)
 }
-

@@ -1326,7 +1326,7 @@ impl<'i> TypeAnnotator<'i> {
                             )
                         };
 
-                        let target_name = if data.operator.is_bool_type() {
+                        let target_name = if data.operator.is_comparison_operator() {
                             BOOL_TYPE.to_string()
                         } else {
                             bigger_type.get_name().to_string()
