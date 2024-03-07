@@ -14,7 +14,7 @@ use crate::{
     },
     index::{self, ImplementationType},
     resolver::{AstAnnotations, Dependency},
-    typesystem::{self, DataType, VarArgs},
+    typesystem::{self, DataType, DataTypeInformation, StringEncoding, TypeSize, VarArgs},
 };
 use std::collections::HashMap;
 
@@ -40,6 +40,7 @@ use inkwell::{
 use plc_ast::ast::{AstNode, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
+use section_mangler::{FunctionArgument, SectionMangler, StringEncoding as SectionStringEncoding, Type};
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
@@ -150,6 +151,62 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         PouGenerator { llvm, index, annotations, llvm_index }
     }
 
+    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> String {
+        let ctx = SectionMangler::function(implementation.get_call_name());
+
+        let params = self.index.get_declared_parameters(implementation.get_call_name());
+
+        let ctx = params.into_iter().fold(ctx, |ctx, param| {
+            // FIXME: Can we unwrap here?
+            let ty = self.mangle_type(self.index.get_effective_type_by_name(&param.data_type_name).unwrap());
+            let parameter = match param.argument_type {
+                // TODO: We need to handle the `VariableType` enum as well - this describes the mode of
+                // argument passing, e.g. inout
+                index::ArgumentType::ByVal(_) => FunctionArgument::ByValue(ty),
+                index::ArgumentType::ByRef(_) => FunctionArgument::ByRef(ty),
+            };
+
+            ctx.with_parameter(parameter)
+        });
+
+        let return_ty =
+            self.index.find_return_type(implementation.get_type_name()).map(|ty| self.mangle_type(ty));
+
+        ctx.with_return_type(return_ty).mangle()
+    }
+
+    fn mangle_type(&self, ty: &typesystem::DataType) -> Type {
+        // TODO: This is a bit ugly because we keep dereferencing references to Copy types like
+        // bool, u32, etc, because `DataTypeInformation::Pointer` keeps a `String` which is not
+        // Copy. the alternative is for section_mangle::Type to keep references everywhere, and
+        // have a lifetime generic parameter, e.g. `section_mangler::Type<'a>` - which is also
+        // annoying.
+        match ty.get_type_information() {
+            DataTypeInformation::Void => Type::Void,
+            DataTypeInformation::Integer { signed, size, semantic_size, .. } => {
+                Type::Integer { signed: *signed, size: *size, semantic_size: *semantic_size }
+            }
+            DataTypeInformation::Float { size, .. } => Type::Float { size: *size },
+            DataTypeInformation::String { size: TypeSize::LiteralInteger(size), encoding } => {
+                let encoding = match encoding {
+                    StringEncoding::Utf8 => SectionStringEncoding::Utf8,
+                    StringEncoding::Utf16 => SectionStringEncoding::Utf16,
+                };
+
+                Type::String { size: *size as usize, encoding }
+            }
+            DataTypeInformation::Pointer { inner_type_name, .. } => Type::Pointer {
+                inner: Box::new(
+                    self.mangle_type(self.index.get_effective_type_by_name(inner_type_name).unwrap()),
+                ),
+            },
+            // FIXME: For now, encode all unknown types as "void" since this is not required for
+            // execution. Not doing so (and doing an `unreachable!()` for example) obviously causes
+            // failures, because complex types are already implemented in the compiler.
+            _ => Type::Void,
+        }
+    }
+
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
     pub fn generate_implementation_stub(
         &self,
@@ -192,6 +249,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .index
             .find_return_type(implementation.get_type_name())
             .and_then(|dt| self.index.find_effective_type(dt));
+
         // see if we need to adapt the parameters list
         let (return_type_llvm, parameters) = match return_type {
             // function with a aggrate-return type
@@ -220,6 +278,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let function_declaration = self.create_llvm_function_type(parameters, variadic, return_type_llvm)?;
 
         let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
+
+        let section_name = self.mangle_function(implementation);
+        curr_f.set_section(Some(&section_name));
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
