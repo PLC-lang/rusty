@@ -872,7 +872,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         // ...however function calls for example are no const-expr hence only report if datatypes also differ
         if left_dt.get_name() != right_dt.get_name() {
             validator.push_diagnostic(
-                Diagnostic::error(format!(
+                Diagnostic::warning(format!(
                     "Value evaluated at run-time, use an enum variant from `{}`",
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
@@ -886,7 +886,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     };
 
     let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
-    let variants = context.index.get_enum_variants(variable);
+    let variants = context.index.get_enum_variant_values(variable);
 
     match variants.iter().find(|(_, value_lhs)| *value_lhs == value_rhs) {
         Some((variant, _)) => {
