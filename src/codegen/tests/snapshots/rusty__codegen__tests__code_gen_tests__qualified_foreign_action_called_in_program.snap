@@ -11,22 +11,21 @@ source_filename = "main"
 @bar_instance = global %bar zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @bar(%bar* %0) {
+define void @bar(%bar* %0) section "fn-bar:v" {
 entry:
   call void @prg.foo(%prg* @prg_instance)
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
 }
 
-define void @prg.foo(%prg* %0) {
+define void @prg.foo(%prg* %0) section "fn-prg.foo:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4
   ret void
 }
-

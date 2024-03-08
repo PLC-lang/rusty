@@ -16,9 +16,8 @@ source_filename = "prog.st"
 
 @prog_instance = global %prog zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v" {
 entry:
   %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void
 }
-
