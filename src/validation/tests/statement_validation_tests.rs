@@ -1402,7 +1402,7 @@ fn for_loop_conditions_are_numerical() {
 
         FOR i := 100000 TO x BY y DO
         END_FOR
-            
+
         END_PROGRAM
         ",
     );
@@ -1436,7 +1436,7 @@ fn for_loop_conditions_are_real_and_trigger_error() {
 
         FOR i := 10.0 TO x BY y DO
         END_FOR
-            
+
         END_PROGRAM
         ",
     );
