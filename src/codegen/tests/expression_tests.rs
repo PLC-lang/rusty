@@ -320,7 +320,21 @@ fn builtin_function_call_mux() {
         VAR
             a,b,c,d,e : DINT;
         END_VAR
-            a := MUX(3, b,c,d,e); //3 = d
+            a := MUX(3, b,c,d,e); // 3 = e
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_mux_with_aggregate_type() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            str1 : STRING;
+        END_VAR
+            str1 := MUX(3, 'lorem', 'ipsum', 'dolor', 'sit'); // 3 = sit
         END_PROGRAM",
     );
 

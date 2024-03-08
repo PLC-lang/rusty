@@ -532,6 +532,22 @@ fn generics_with_duplicate_symbol_dont_err() {
     assert!(diagnostics.is_empty());
 }
 
+#[test]
+fn enum_variants_are_considered_when_checking_for_duplicate_variable_symbols() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION main : DINT
+            VAR
+                x : DINT;
+                position : (x, y);
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
 // #[test]
 // fn duplicate_with_generic_ir() {
 //     // GIVEN several files with calls to a generic function

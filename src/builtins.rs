@@ -26,7 +26,7 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name},
+    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
     validation::{Validator, Validators},
 };
 
@@ -141,11 +141,11 @@ lazy_static! {
 
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
+                        let type_hint = params.first()
+                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location.clone()))
+                        .and_then(|it| generator.get_type_hint_info_for(it))?;
                         //Create a temp var
-                        let result_type = params.first()
-                            .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location))
-                            .and_then(|it| generator.get_type_hint_info_for(it))
-                            .and_then(|it| generator.llvm_index.get_associated_type(it.get_name()))?;
+                        let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
                         let result_var = generator.llvm.create_local_variable("", &result_type);
                         let k = generator.generate_expression(k)?;
 
@@ -154,16 +154,16 @@ lazy_static! {
                             let block = context.append_basic_block(function_context.function, "");
                             blocks.push((*it,block))
                         }
-                        let continue_block = context.append_basic_block(function_context.function, "continue_block");
 
+                        let continue_block = context.append_basic_block(function_context.function, "continue_block");
                         let cases = blocks.into_iter().enumerate().map::<Result<(IntValue, BasicBlock), Diagnostic>, _>(|(index, (it, block))| {
                             let value = context.i32_type().const_int(index as u64, false);
                             builder.position_at_end(block);
-                            let expr = generator.generate_expression(it)?;
-                            builder.build_store(result_var, expr);
+                            generator.generate_store(result_var, type_hint.get_type_information(), it)?;
                             builder.build_unconditional_branch(continue_block);
                             Ok((value,block))
                         }).collect::<Result<Vec<_>,_>>()?;
+
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, &cases);
                         builder.position_at_end(continue_block);

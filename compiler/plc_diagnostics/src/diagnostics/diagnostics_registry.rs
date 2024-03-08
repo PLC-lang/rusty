@@ -373,10 +373,13 @@ lazy_static! {
     include_str!("./error_codes/E090.md"), //Incompatible reference Assignment
     E091,
     Error,
-    include_str!("./error_codes/E091.md"), //Incompatible reference Assignment
+    include_str!("./error_codes/E091.md"),
     E092,
     Info,
-    include_str!("./error_codes/E092.md"), //Incompatible reference Assignment
+    include_str!("./error_codes/E092.md"),
+    E093,
+    Warning,
+    include_str!("./error_codes/E093.md"),
 );
 }
 

@@ -154,5 +154,3 @@ error[E040]: Invalid enum value `invalidReferenceForEnum` for `State`
    ·
 46 │                 localState := invalidReferenceForEnum;
    │                               ^^^^^^^^^^^^^^^^^^^^^^^ Invalid enum value `invalidReferenceForEnum` for `State`
-
-
