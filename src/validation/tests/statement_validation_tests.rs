@@ -1485,6 +1485,11 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
             ELSIF   z THEN
             ELSIF   0 THEN
             ELSIF   1 THEN
+
+            // These should be Ok
+            ELSIF   (0 < 1)         THEN
+            ELSIF   (y < 0)         THEN
+            ELSIF   ((1 = 2) = 3)   THEN
             END_IF
         END_FUNCTION
         ",
