@@ -5,7 +5,7 @@ expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
 ; ModuleID = 'func.st'
 source_filename = "func.st"
 
-define i32 @func() {
+define i32 @func() section "fn-func:i32" {
 entry:
   %func = alloca i32, align 4
   store i32 0, i32* %func, align 4
@@ -20,7 +20,7 @@ source_filename = "fb.st"
 
 @__fb__init = unnamed_addr constant %fb zeroinitializer
 
-define void @fb(%fb* %0) {
+define void @fb(%fb* %0) section "fn-fb:v" {
 entry:
   ret void
 }
@@ -32,7 +32,7 @@ source_filename = "prg.st"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
@@ -45,7 +45,7 @@ source_filename = "prg2.st"
 
 @prg2_instance = global %prg2 zeroinitializer
 
-define void @prg2(%prg2* %0) {
+define void @prg2(%prg2* %0) section "fn-prg2:v" {
 entry:
   %b = getelementptr inbounds %prg2, %prg2* %0, i32 0, i32 0
   ret void
@@ -64,7 +64,7 @@ source_filename = "prog.st"
 @prg_instance = external global %prg.5
 @prg2_instance = external global %prg2.6
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v" {
 entry:
   %myFb = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %load_a = load i32, i32* getelementptr inbounds (%prg.5, %prg.5* @prg_instance, i32 0, i32 0), align 4
@@ -74,11 +74,10 @@ entry:
   ret void
 }
 
-declare void @fb(%fb.4*)
+declare void @fb(%fb.4*) section "fn-fb:v"
 
-declare void @prg(%prg.5*)
+declare void @prg(%prg.5*) section "fn-prg:v"
 
-declare void @prg2(%prg2.6*)
+declare void @prg2(%prg2.6*) section "fn-prg2:v"
 
-declare i32 @func()
-
+declare i32 @func() section "fn-func:i32"

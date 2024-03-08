@@ -11,14 +11,13 @@ source_filename = "main"
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) {
+define void @foo(%foo* %0) section "fn-foo:v" {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   call void @foo(%foo* @foo_instance)
   ret void
 }
-

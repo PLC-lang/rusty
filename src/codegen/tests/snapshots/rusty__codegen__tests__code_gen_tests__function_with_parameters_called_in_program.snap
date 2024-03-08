@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer
 
-define i32 @foo(i32 %0) {
+define i32 @foo(i32 %0) section "fn-foo:i32[i32]" {
 entry:
   %foo = alloca i32, align 4
   %bar = alloca i32, align 4
@@ -20,11 +20,10 @@ entry:
   ret i32 %foo_ret
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %call = call i32 @foo(i32 2)
   store i32 %call, i32* %x, align 4
   ret void
 }
-

@@ -1,12 +1,12 @@
 ---
 source: tests/integration/cfc.rs
-expression: output_file_content_without_headers.join(NEWLINE)
+expression: output_file_content_without_headers
 ---
 %conditional_return = type { i32 }
 
 @__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer
 
-define void @conditional_return(%conditional_return* %0) {
+define void @conditional_return(%conditional_return* %0) section "fn-conditional_return:v[i32]" {
 entry:
   %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
   %load_val = load i32, i32* %val, align 4
