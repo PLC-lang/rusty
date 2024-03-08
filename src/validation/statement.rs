@@ -1,7 +1,6 @@
-use std::os::macos::raw::stat;
 use std::{collections::HashSet, mem::discriminant};
 
-use plc_ast::control_statements::{ForLoopStatement, IfStatement, LoopStatement};
+use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
@@ -268,8 +267,8 @@ fn validate_control_statement<T: AnnotationMap>(
     control_statement: &AstControlStatement,
     context: &ValidationContext<T>,
 ) {
-    let mut validate_condition_is_bool = |node: &AstNode| {
-        let kind = context.annotations.get_type_or_void(&node, context.index);
+    let mut validate_if_condition_is_bool = |node: &AstNode| {
+        let kind = context.annotations.get_type_or_void(node, context.index);
 
         if !kind.get_type_information().is_bool() {
             let slice = get_datatype_name_or_slice(validator.context, kind);
@@ -282,7 +281,7 @@ fn validate_control_statement<T: AnnotationMap>(
 
     match control_statement {
         AstControlStatement::If(stmt) => {
-            stmt.blocks.iter().map(|it| it.condition.as_ref()).for_each(validate_condition_is_bool);
+            stmt.blocks.iter().map(|it| it.condition.as_ref()).for_each(validate_if_condition_is_bool);
             stmt.blocks.iter().for_each(|b| {
                 visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
@@ -298,7 +297,7 @@ fn validate_control_statement<T: AnnotationMap>(
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-            validate_condition_is_bool(&stmt.condition);
+            validate_if_condition_is_bool(&stmt.condition);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::Case(stmt) => {
@@ -637,9 +636,7 @@ fn validate_binary_expression<T: AnnotationMap>(
     // if the type is a subrange, check if the intrinsic type is numerical
     let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
 
-    if std::mem::discriminant(left_type) == std::mem::discriminant(right_type)
-        && !(is_numerical || left_type.is_pointer())
-    {
+    if discriminant(left_type) == discriminant(right_type) && !(is_numerical || left_type.is_pointer()) {
         // see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
         if operator.is_comparison_operator()
             && !compare_function_exists(left_type.get_name(), operator, context)
@@ -647,9 +644,7 @@ fn validate_binary_expression<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::error(format!(
                     "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
-                    crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
-                        .unwrap_or_default()
-                        .as_str(),
+                    get_equals_function_name_for(left_type.get_name(), operator).unwrap_or_default().as_str(),
                     left_type.get_name(),
                 ))
                 .with_error_code("E073")
