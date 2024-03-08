@@ -1468,3 +1468,52 @@ fn for_loop_conditions_are_real_and_trigger_error() {
 
     "###);
 }
+
+#[test]
+fn if_statement_triggers_error_if_condition_is_not_boolean() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : BOOL;
+                y : DINT;
+                z : STRING;
+            END_VAR
+
+            IF      x THEN
+            ELSIF   y THEN
+            ELSIF   z THEN
+            ELSIF   0 THEN
+            ELSIF   1 THEN
+            END_IF
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error: Expected a boolean, got `DINT`
+       ┌─ <internal>:10:21
+       │
+    10 │             ELSIF   y THEN
+       │                     ^ Expected a boolean, got `DINT`
+
+    error: Expected a boolean, got `STRING`
+       ┌─ <internal>:11:21
+       │
+    11 │             ELSIF   z THEN
+       │                     ^ Expected a boolean, got `STRING`
+
+    error: Expected a boolean, got `DINT`
+       ┌─ <internal>:12:21
+       │
+    12 │             ELSIF   0 THEN
+       │                     ^ Expected a boolean, got `DINT`
+
+    error: Expected a boolean, got `DINT`
+       ┌─ <internal>:13:21
+       │
+    13 │             ELSIF   1 THEN
+       │                     ^ Expected a boolean, got `DINT`
+
+    "###);
+}

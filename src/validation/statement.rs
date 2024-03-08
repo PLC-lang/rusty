@@ -1,6 +1,6 @@
 use std::{collections::HashSet, mem::discriminant};
 
-use plc_ast::control_statements::ForLoopStatement;
+use plc_ast::control_statements::{ForLoopStatement, IfStatement};
 use plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
@@ -287,6 +287,26 @@ fn validate_for_loop<T: AnnotationMap>(
     //       by a VAR_INPUT {ref} function call.
 }
 
+fn validate_if_statement<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    statement: &IfStatement,
+) {
+    for block in &statement.blocks {
+        let kind = context.annotations.get_type_or_void(&block.condition, context.index);
+
+        if !kind.get_type_information().is_bool() {
+            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let message = format!("Expected a boolean, got `{slice}`");
+            validator.push_diagnostic(
+                Diagnostic::error(message)
+                    .with_location(block.condition.get_location())
+                    .with_error_code("E093"),
+            )
+        }
+    }
+}
+
 fn validate_control_statement<T: AnnotationMap>(
     validator: &mut Validator,
     control_statement: &AstControlStatement,
@@ -294,6 +314,7 @@ fn validate_control_statement<T: AnnotationMap>(
 ) {
     match control_statement {
         AstControlStatement::If(stmt) => {
+            validate_if_statement(validator, context, stmt);
             stmt.blocks.iter().for_each(|b| {
                 visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
