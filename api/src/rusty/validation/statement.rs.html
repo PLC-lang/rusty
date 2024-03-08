@@ -1394,8 +1394,36 @@
 <a href="#1394" id="1394">1394</a>
 <a href="#1395" id="1395">1395</a>
 <a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
+<span class="kw">use </span>plc_ast::control_statements::ForLoopStatement;
 <span class="kw">use </span>plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
@@ -1657,6 +1685,31 @@
     }
 }
 
+<span class="kw">fn </span>validate_for_loop&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    statement: <span class="kw-2">&amp;</span>ForLoopStatement,
+) {
+    statement.get_conditionals().iter().for_each(|node| {
+        <span class="kw">let </span>kind = context.annotations.get_type_or_void(node, context.index);
+
+        <span class="kw">if </span>kind.is_real() || !kind.is_numerical() {
+            <span class="kw">let </span>slice = get_datatype_name_or_slice(validator.context, kind);
+            <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Expected an integer value, got `{slice}`&quot;</span>);
+            validator.push_diagnostic(
+                Diagnostic::error(message).with_location(node.get_location()).with_error_code(<span class="string">&quot;E093&quot;</span>),
+            );
+        }
+    })
+
+    <span class="comment">// TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
+    // TODO: Check if the body doesn&#39;t modify the conditional values
+    //       NOTE: This requires some analysis feature which we currently lack.
+    //       While it might be possible to check if the left-hand side of an assignment is a
+    //       conditional value, we currently can not guarantee these values will not be mutated
+    //       by a VAR_INPUT {ref} function call.
+</span>}
+
 <span class="kw">fn </span>validate_control_statement&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     control_statement: <span class="kw-2">&amp;</span>AstControlStatement,
@@ -1671,6 +1724,7 @@
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
         }
         AstControlStatement::ForLoop(stmt) =&gt; {
+            validate_for_loop(validator, context, stmt);
             <span class="macro">visit_all_statements!</span>(validator, context, <span class="kw-2">&amp;</span>stmt.counter, <span class="kw-2">&amp;</span>stmt.start, <span class="kw-2">&amp;</span>stmt.end);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(by_step) = <span class="kw-2">&amp;</span>stmt.by_step {
                 visit_statement(validator, by_step, context);
