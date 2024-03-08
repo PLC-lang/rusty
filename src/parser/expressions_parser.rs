@@ -523,7 +523,7 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
     } else if lexer.try_consume(&KeywordParensOpen) {
         let start = location.start;
         let multiplier = result.parse::<u32>().map_err(|e| {
-            Diagnostic::new(format!("Failed parsing number {result}"))
+            Diagnostic::new(format!("Failed to parse number {result}"))
                 .with_error_code("E011")
                 .with_location(lexer.source_range_factory.create_range(location))
                 .with_internal_error(e.into())
@@ -570,7 +570,7 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstNode,
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceLocation) -> Result<F, Diagnostic> {
     text.parse::<F>().map_err(|_| {
-        Diagnostic::new(format!("Failed parsing number {text}"))
+        Diagnostic::new(format!("Failed to parse number {text}"))
             .with_error_code("E011")
             .with_location(location.clone())
     })

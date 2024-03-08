@@ -79,7 +79,7 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
         )
     }) {
         validator.push_diagnostic(
-            Diagnostic::new("A class cannot have a var in/out/inout blocks")
+            Diagnostic::new("A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks")
                 .with_error_code("E019")
                 .with_location(pou.name_location.to_owned()),
         );

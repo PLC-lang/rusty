@@ -175,7 +175,7 @@ lazy_static! {
     include_str!("./error_codes/E024.md"), //Invalid pragma location
     E025,
     Error,
-    include_str!("./error_codes/E025.md"),
+    include_str!("./error_codes/E025.md"), // Missing return type
     E026,
     Error,
     include_str!("./error_codes/E026.md"),
