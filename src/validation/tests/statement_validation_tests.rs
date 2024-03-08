@@ -1480,11 +1480,17 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
                 z : STRING;
             END_VAR
 
-            IF      x THEN
-            ELSIF   y THEN
+            // These are not OK
+            IF      y THEN
             ELSIF   z THEN
             ELSIF   0 THEN
             ELSIF   1 THEN
+
+            // These are OK
+            ELSIF   x               THEN
+            ELSIF   (0 < 1)         THEN
+            ELSIF   (y < 0)         THEN
+            ELSIF   ((1 = 2) = 3)   THEN
             END_IF
         END_FUNCTION
         ",
@@ -1494,7 +1500,7 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
     error: Expected a boolean, got `DINT`
        ┌─ <internal>:10:21
        │
-    10 │             ELSIF   y THEN
+    10 │             IF      y THEN
        │                     ^ Expected a boolean, got `DINT`
 
     error: Expected a boolean, got `STRING`
@@ -1514,6 +1520,60 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
        │
     13 │             ELSIF   1 THEN
        │                     ^ Expected a boolean, got `DINT`
+
+    "###);
+}
+
+#[test]
+fn while_loop_triggers_error_if_condition_is_not_boolean() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : BOOL;
+                y : DINT;
+                z : STRING;
+            END_VAR
+
+            // These are not OK
+            WHILE y DO END_WHILE
+            WHILE z DO END_WHILE
+            WHILE 0 DO END_WHILE
+            WHILE 1 DO END_WHILE
+
+            // These are OK
+            WHILE x             DO END_WHILE
+            WHILE (0 < 1)       DO END_WHILE
+            WHILE (y < 0)       DO END_WHILE
+            WHILE ((1 = 2) = 3) DO END_WHILE
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error: Expected a boolean, got `DINT`
+       ┌─ <internal>:10:19
+       │
+    10 │             WHILE y DO END_WHILE
+       │                   ^ Expected a boolean, got `DINT`
+
+    error: Expected a boolean, got `STRING`
+       ┌─ <internal>:11:19
+       │
+    11 │             WHILE z DO END_WHILE
+       │                   ^ Expected a boolean, got `STRING`
+
+    error: Expected a boolean, got `DINT`
+       ┌─ <internal>:12:19
+       │
+    12 │             WHILE 0 DO END_WHILE
+       │                   ^ Expected a boolean, got `DINT`
+
+    error: Expected a boolean, got `DINT`
+       ┌─ <internal>:13:19
+       │
+    13 │             WHILE 1 DO END_WHILE
+       │                   ^ Expected a boolean, got `DINT`
 
     "###);
 }
