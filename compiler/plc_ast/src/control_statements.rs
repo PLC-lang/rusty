@@ -17,6 +17,21 @@ pub struct ForLoopStatement {
     pub body: Vec<AstNode>,
 }
 
+impl ForLoopStatement {
+    pub fn get_conditionals(&self) -> Vec<&AstNode> {
+        let mut conditionals = Vec::new();
+
+        conditionals.push(self.counter.as_ref());
+        conditionals.push(self.start.as_ref());
+        conditionals.push(self.end.as_ref());
+        if let Some(ref step) = self.by_step {
+            conditionals.push(step);
+        }
+
+        conditionals
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 /// used for While and Repeat loops
 pub struct LoopStatement {

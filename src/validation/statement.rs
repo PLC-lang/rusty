@@ -267,10 +267,7 @@ fn validate_for_loop<T: AnnotationMap>(
     context: &ValidationContext<T>,
     statement: &ForLoopStatement,
 ) {
-    let mut reference: Option<(&DataType, AstNode)> = None;
-
-    let mut validate_if_datatype_is_numerical = |node: Option<&AstNode>| {
-        let Some(node) = node else { return };
+    statement.get_conditionals().iter().for_each(|node| {
         let kind = context.annotations.get_type_or_void(node, context.index);
 
         if kind.is_real() || !kind.is_numerical() {
@@ -279,19 +276,8 @@ fn validate_for_loop<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::error(message).with_location(node.get_location()).with_error_code("E093"),
             );
-
-            return;
         }
-
-        if reference.is_none() {
-            reference.replace((kind, node.clone()));
-        }
-    };
-
-    validate_if_datatype_is_numerical(Some(&statement.counter));
-    validate_if_datatype_is_numerical(Some(&statement.start));
-    validate_if_datatype_is_numerical(Some(&statement.end));
-    validate_if_datatype_is_numerical(statement.by_step.as_deref());
+    })
 
     // TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
     // TODO: Check if the body doesn't modify the conditional values
