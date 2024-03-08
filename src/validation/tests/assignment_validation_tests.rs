@@ -962,3 +962,46 @@ fn string_type_alias_assignment_can_be_validated() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn void_assignment_validation() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo
+            VAR_INPUT
+                x: LINT;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                x : LINT;
+            END_VAR
+
+            x := foo(x);
+            x := foo(foo(x));
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:13:13
+       │
+    13 │             x := foo(x);
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    error: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:14:22
+       │
+    14 │             x := foo(foo(x));
+       │                      ^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    error: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:14:13
+       │
+    14 │             x := foo(foo(x));
+       │             ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    "###)
+}
