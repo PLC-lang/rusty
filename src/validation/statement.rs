@@ -263,31 +263,6 @@ fn validate_direct_access<T: AnnotationMap>(
     }
 }
 
-fn validate_for_loop<T: AnnotationMap>(
-    validator: &mut Validator,
-    context: &ValidationContext<T>,
-    statement: &ForLoopStatement,
-) {
-    statement.get_conditionals().iter().for_each(|node| {
-        let kind = context.annotations.get_type_or_void(node, context.index);
-
-        if kind.is_real() || !kind.is_numerical() {
-            let slice = get_datatype_name_or_slice(validator.context, kind);
-            let message = format!("Expected an integer value, got `{slice}`");
-            validator.push_diagnostic(
-                Diagnostic::error(message).with_location(node.get_location()).with_error_code("E093"),
-            );
-        }
-    })
-
-    // TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
-    // TODO: Check if the body doesn't modify the conditional values
-    //       NOTE: This requires some analysis feature which we currently lack.
-    //       While it might be possible to check if the left-hand side of an assignment is a
-    //       conditional value, we currently can not guarantee these values will not be mutated
-    //       by a VAR_INPUT {ref} function call.
-}
-
 fn validate_control_statement<T: AnnotationMap>(
     validator: &mut Validator,
     control_statement: &AstControlStatement,
@@ -1297,6 +1272,31 @@ fn validate_case_statement<T: AnnotationMap>(
     });
 
     else_block.iter().for_each(|s| visit_statement(validator, s, context));
+}
+
+fn validate_for_loop<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    statement: &ForLoopStatement,
+) {
+    statement.get_conditionals().iter().for_each(|node| {
+        let kind = context.annotations.get_type_or_void(node, context.index);
+
+        if kind.is_real() || !kind.is_numerical() {
+            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let message = format!("Expected an integer value, got `{slice}`");
+            validator.push_diagnostic(
+                Diagnostic::error(message).with_location(node.get_location()).with_error_code("E093"),
+            );
+        }
+    })
+
+    // TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
+    // TODO: Check if the body doesn't modify the conditional values
+    //       NOTE: This requires some analysis feature which we currently lack.
+    //       While it might be possible to check if the left-hand side of an assignment is a
+    //       conditional value, we currently can not guarantee these values will not be mutated
+    //       by a VAR_INPUT {ref} function call.
 }
 
 /// Validates that the assigned type and type hint are compatible with the nature for this
