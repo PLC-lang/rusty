@@ -1388,3 +1388,83 @@ fn invalid_cast_statement_causes_error() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn for_loop_conditions_are_numerical() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                i : STRING;
+                x : BOOL;
+                y : DINT;
+            END_VAR
+
+        FOR i := 100000 TO x BY y DO
+        END_FOR
+            
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error: Expected an integer value, got `STRING`
+      ┌─ <internal>:9:13
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │             ^ Expected an integer value, got `STRING`
+
+    error: Expected an integer value, got `BOOL`
+      ┌─ <internal>:9:28
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │                            ^ Expected an integer value, got `BOOL`
+
+    "###);
+}
+
+#[test]
+fn for_loop_conditions_are_real_and_trigger_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                i : STRING;
+                x : REAL;
+                y : REAL;
+            END_VAR
+
+        FOR i := 10.0 TO x BY y DO
+        END_FOR
+            
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error: Expected an integer value, got `STRING`
+      ┌─ <internal>:9:13
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │             ^ Expected an integer value, got `STRING`
+
+    error: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:18
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                  ^^^^ Expected an integer value, got `REAL`
+
+    error: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:26
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                          ^ Expected an integer value, got `REAL`
+
+    error: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:31
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                               ^ Expected an integer value, got `REAL`
+
+    "###);
+}

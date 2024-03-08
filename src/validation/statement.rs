@@ -1,5 +1,6 @@
 use std::{collections::HashSet, mem::discriminant};
 
+use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
@@ -261,6 +262,31 @@ fn validate_direct_access<T: AnnotationMap>(
     }
 }
 
+fn validate_for_loop<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    statement: &ForLoopStatement,
+) {
+    statement.get_conditionals().iter().for_each(|node| {
+        let kind = context.annotations.get_type_or_void(node, context.index);
+
+        if kind.is_real() || !kind.is_numerical() {
+            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let message = format!("Expected an integer value, got `{slice}`");
+            validator.push_diagnostic(
+                Diagnostic::error(message).with_location(node.get_location()).with_error_code("E093"),
+            );
+        }
+    })
+
+    // TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
+    // TODO: Check if the body doesn't modify the conditional values
+    //       NOTE: This requires some analysis feature which we currently lack.
+    //       While it might be possible to check if the left-hand side of an assignment is a
+    //       conditional value, we currently can not guarantee these values will not be mutated
+    //       by a VAR_INPUT {ref} function call.
+}
+
 fn validate_control_statement<T: AnnotationMap>(
     validator: &mut Validator,
     control_statement: &AstControlStatement,
@@ -275,6 +301,7 @@ fn validate_control_statement<T: AnnotationMap>(
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
         }
         AstControlStatement::ForLoop(stmt) => {
+            validate_for_loop(validator, context, stmt);
             visit_all_statements!(validator, context, &stmt.counter, &stmt.start, &stmt.end);
             if let Some(by_step) = &stmt.by_step {
                 visit_statement(validator, by_step, context);
