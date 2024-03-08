@@ -380,6 +380,9 @@ lazy_static! {
     E093,
     Warning,
     include_str!("./error_codes/E093.md"),
+    E094,
+    Error,
+    include_str!("./error_codes/E094.md"),
 );
 }
 
