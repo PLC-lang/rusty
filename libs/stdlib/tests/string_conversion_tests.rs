@@ -15,7 +15,7 @@ fn wstring_to_string_conversion() {
     let src = r#"
     PROGRAM main
     VAR
-        res : STRING;
+        res : STRING[5];
         ptr : REF_TO STRING;
     END_VAR
         res := WSTRING_TO_STRING(WSTRING#"hello");
@@ -59,8 +59,7 @@ fn wstring_to_string_extra_conversion() {
     let src = r#"
     PROGRAM main
     VAR
-        res : STRING;
-        ptr : REF_TO STRING;
+        res : STRING[14];
     END_VAR
         res := WSTRING_TO_STRING(WSTRING#"hèßlo👽️");
     END_PROGRAM
@@ -132,7 +131,7 @@ fn string_to_wstring_conversion() {
     let src = r#"
     PROGRAM main
     VAR
-        res : WSTRING;
+        res : WSTRING[5];
     END_VAR
         res := STRING_TO_WSTRING(STRING#'Hello');
     END_PROGRAM
@@ -172,7 +171,7 @@ fn string_to_wstring_extra_conversion() {
     let src = r#"
     PROGRAM main
     VAR
-        res : WSTRING;
+        res : WSTRING[7];
     END_VAR
         res := STRING_TO_WSTRING('Hèßlo😀');
     END_PROGRAM
