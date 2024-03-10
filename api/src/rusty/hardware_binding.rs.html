@@ -426,7 +426,7 @@
         .collect();
 
     conf.map(|hardware_binding| HardwareConfiguration { index, hardware_binding })
-        .map_err(|message| Diagnostic::error(message).with_error_code(<span class="string">&quot;E002&quot;</span>))
+        .map_err(|message| Diagnostic::new(message).with_error_code(<span class="string">&quot;E002&quot;</span>))
 }
 
 <span class="kw">pub fn </span>generate_hardware_configuration(
@@ -435,10 +435,10 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
     <span class="kw">match </span>format {
         ConfigFormat::JSON =&gt; serde_json::to_string_pretty(<span class="kw-2">&amp;</span>config).map_err(|e| {
-            Diagnostic::error(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
+            Diagnostic::new(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
         }),
         ConfigFormat::TOML =&gt; toml::ser::to_string_pretty(<span class="kw-2">&amp;</span>config).map_err(|e| {
-            Diagnostic::error(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
+            Diagnostic::new(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
         }),
     }
 }

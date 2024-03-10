@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["prelude"],"struct":["Event","EventListener"],"trait":["IntoNotification","Notification"]};
+window.SIDEBAR_ITEMS = {"macro":["listener"],"struct":["Event","EventListener"],"trait":["IntoNotification","Listener","Notification"]};

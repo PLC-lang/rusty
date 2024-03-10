@@ -318,7 +318,7 @@
             };
 
             <span class="self">self</span>.push_diagnostic(
-                Diagnostic::warning(reason).with_error_code(<span class="string">&quot;E038&quot;</span>).with_location(location.to_owned()),
+                Diagnostic::new(reason).with_error_code(<span class="string">&quot;E039&quot;</span>).with_location(location.to_owned()),
             );
         }
     }

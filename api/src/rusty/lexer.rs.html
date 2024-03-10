@@ -502,7 +502,7 @@
             | Token::KeywordEndClass =&gt; {
                 <span class="kw">if </span>!<span class="self">self</span>.slice().to_string().contains(<span class="string">&#39;_&#39;</span>) {
                     <span class="self">self</span>.accept_diagnostic(
-                        Diagnostic::warning(<span class="macro">format!</span>(
+                        Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">&quot;the words in {} should be separated by a `_`&quot;</span>,
                             <span class="self">self</span>.slice()
                         ))

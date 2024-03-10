@@ -3088,7 +3088,7 @@
                 <span class="prelude-val">Ok</span>(reference)
             }
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Cannot cast from {} to Integer Type&quot;</span>, access_type.get_name()))
+            <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Cannot cast from {} to Integer Type&quot;</span>, access_type.get_name()))
                 .with_error_code(<span class="string">&quot;E051&quot;</span>)
                 .with_location(index.get_location()))
         }
@@ -4647,7 +4647,7 @@
             DataTypeInformation::Integer { size: <span class="number">16</span>, .. } <span class="kw">if </span>expected_type.is_character() =&gt; {
                 <span class="self">self</span>.llvm.create_llvm_const_i16_char(value, location).map(ExpressionValue::RValue)
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;Cannot generate String-Literal for type {}&quot;</span>,
                 expected_type.get_name()
             ))
@@ -5323,7 +5323,7 @@
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(
                     <span class="comment">//TODO: use global context to get an expression slice
-                    </span>Diagnostic::error(<span class="string">&quot;Expression is not assignable&quot;</span>)
+                    </span>Diagnostic::new(<span class="string">&quot;Expression is not assignable&quot;</span>)
                         .with_error_code(<span class="string">&quot;E050&quot;</span>)
                         .with_location(param_statement.get_location()),
                 );

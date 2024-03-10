@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["source","value"],"struct":["Error","Key","Value"],"trait":["ToKey","ToValue"]};
+window.SIDEBAR_ITEMS = {"mod":["source","value"],"struct":["Error","Key"],"trait":["ToKey"]};

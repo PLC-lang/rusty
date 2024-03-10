@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.31/src/format/formatting.rs`."><title>formatting.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/format/formatting.rs`."><title>formatting.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -952,80 +952,40 @@
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
 <a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a>
-<a href="#977" id="977">977</a>
-<a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
 </pre></div><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
 </span><span class="doccomment">//! Date and time formatting routines.
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(all(not(feature = <span class="string">&quot;std&quot;</span>), feature = <span class="string">&quot;alloc&quot;</span>))]
 </span><span class="kw">use </span>alloc::string::{String, ToString};
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">use </span>core::borrow::Borrow;
-<span class="kw">use </span>core::fmt;
-<span class="kw">use </span>core::fmt::Write;
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">use </span>core::fmt::Display;
+<span class="kw">use </span>core::fmt::{<span class="self">self</span>, Write};
 
-<span class="attr">#[cfg(any(
-    feature = <span class="string">&quot;alloc&quot;</span>,
-    feature = <span class="string">&quot;std&quot;</span>,
-    feature = <span class="string">&quot;serde&quot;</span>,
-    feature = <span class="string">&quot;rustc-serialize&quot;
-</span>))]
-</span><span class="kw">use </span><span class="kw">crate</span>::datetime::SecondsFormat;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::offset::Offset;
-<span class="attr">#[cfg(any(
-    feature = <span class="string">&quot;alloc&quot;</span>,
-    feature = <span class="string">&quot;std&quot;</span>,
-    feature = <span class="string">&quot;serde&quot;</span>,
-    feature = <span class="string">&quot;rustc-serialize&quot;
-</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;serde&quot;</span>, feature = <span class="string">&quot;rustc-serialize&quot;</span>))]
 </span><span class="kw">use crate</span>::{Datelike, FixedOffset, NaiveDateTime, Timelike};
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">use crate</span>::{NaiveDate, NaiveTime, Weekday};
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::locales;
-<span class="attr">#[cfg(any(
-    feature = <span class="string">&quot;alloc&quot;</span>,
-    feature = <span class="string">&quot;std&quot;</span>,
-    feature = <span class="string">&quot;serde&quot;</span>,
-    feature = <span class="string">&quot;rustc-serialize&quot;
-</span>))]
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;unstable-locales&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">super</span>::Locale;
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;serde&quot;</span>, feature = <span class="string">&quot;rustc-serialize&quot;</span>))]
 </span><span class="kw">use super</span>::{Colons, OffsetFormat, OffsetPrecision, Pad};
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
-</span><span class="kw">use super</span>::{Fixed, InternalFixed, InternalInternal, Item, Locale, Numeric};
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">use super</span>::{Fixed, InternalFixed, InternalInternal, Item, Numeric};
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">use </span>locales::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// A *temporary* object which can be used as an argument to `format!` or others.
 /// This is normally constructed via `format` methods of each date and time type.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
-#[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))))]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 #[derive(Debug)]
 </span><span class="kw">pub struct </span>DelayedFormat&lt;I&gt; {
     <span class="doccomment">/// The date view, if any.
@@ -1043,7 +1003,7 @@
     </span>locale: <span class="prelude-ty">Option</span>&lt;Locale&gt;,
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Iterator&lt;Item = B&gt; + Clone, B: Borrow&lt;Item&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt; DelayedFormat&lt;I&gt; {
     <span class="doccomment">/// Makes a new `DelayedFormat` value out of local date and time.
     </span><span class="attr">#[must_use]
@@ -1067,7 +1027,7 @@
         items: I,
     ) -&gt; DelayedFormat&lt;I&gt;
     <span class="kw">where
-        </span>Off: Offset + fmt::Display,
+        </span>Off: Offset + Display,
     {
         <span class="kw">let </span>name_and_diff = (offset.to_string(), offset.fix());
         DelayedFormat {
@@ -1082,7 +1042,6 @@
 
     <span class="doccomment">/// Makes a new `DelayedFormat` value out of local date and time and locale.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)))]
     #[must_use]
     </span><span class="kw">pub fn </span>new_with_locale(
         date: <span class="prelude-ty">Option</span>&lt;NaiveDate&gt;,
@@ -1095,7 +1054,6 @@
 
     <span class="doccomment">/// Makes a new `DelayedFormat` value out of local date and time, UTC offset and locale.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)))]
     #[must_use]
     </span><span class="kw">pub fn </span>new_with_offset_and_locale&lt;Off&gt;(
         date: <span class="prelude-ty">Option</span>&lt;NaiveDate&gt;,
@@ -1105,38 +1063,40 @@
         locale: Locale,
     ) -&gt; DelayedFormat&lt;I&gt;
     <span class="kw">where
-        </span>Off: Offset + fmt::Display,
+        </span>Off: Offset + Display,
     {
         <span class="kw">let </span>name_and_diff = (offset.to_string(), offset.fix());
         DelayedFormat { date, time, off: <span class="prelude-val">Some</span>(name_and_diff), items, locale: <span class="prelude-val">Some</span>(locale) }
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Iterator&lt;Item = B&gt; + Clone, B: Borrow&lt;Item&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt; fmt::Display <span class="kw">for </span>DelayedFormat&lt;I&gt; {
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, I: Iterator&lt;Item = B&gt; + Clone, B: Borrow&lt;Item&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt; Display <span class="kw">for </span>DelayedFormat&lt;I&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
-        </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(locale) = <span class="self">self</span>.locale {
-                <span class="kw">return </span>format_localized(
-                    f,
-                    <span class="self">self</span>.date.as_ref(),
-                    <span class="self">self</span>.time.as_ref(),
-                    <span class="self">self</span>.off.as_ref(),
-                    <span class="self">self</span>.items.clone(),
-                    locale,
-                );
-            }
-        }
+        </span><span class="kw">let </span>locale = <span class="self">self</span>.locale;
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;unstable-locales&quot;</span>))]
+        </span><span class="kw">let </span>locale = <span class="prelude-val">None</span>;
 
-        format(f, <span class="self">self</span>.date.as_ref(), <span class="self">self</span>.time.as_ref(), <span class="self">self</span>.off.as_ref(), <span class="self">self</span>.items.clone())
+        <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
+        <span class="kw">for </span>item <span class="kw">in </span><span class="self">self</span>.items.clone() {
+            format_inner(
+                <span class="kw-2">&amp;mut </span>result,
+                <span class="self">self</span>.date.as_ref(),
+                <span class="self">self</span>.time.as_ref(),
+                <span class="self">self</span>.off.as_ref(),
+                item.borrow(),
+                locale,
+            )<span class="question-mark">?</span>;
+        }
+        f.pad(<span class="kw-2">&amp;</span>result)
     }
 }
 
 <span class="doccomment">/// Tries to format given arguments with given formatting items.
 /// Internally used by `DelayedFormat`.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
-#[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))))]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[deprecated(since = <span class="string">&quot;0.4.32&quot;</span>, note = <span class="string">&quot;Use DelayedFormat::fmt instead&quot;</span>)]
 </span><span class="kw">pub fn </span>format&lt;<span class="lifetime">&#39;a</span>, I, B&gt;(
     w: <span class="kw-2">&amp;mut </span>fmt::Formatter,
     date: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveDate&gt;,
@@ -1148,15 +1108,20 @@
     </span>I: Iterator&lt;Item = B&gt; + Clone,
     B: Borrow&lt;Item&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
-    <span class="kw">for </span>item <span class="kw">in </span>items {
-        format_inner(<span class="kw-2">&amp;mut </span>result, date, time, off, item.borrow(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    DelayedFormat {
+        date: date.copied(),
+        time: time.copied(),
+        off: off.cloned(),
+        items,
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
+        </span>locale: <span class="prelude-val">None</span>,
     }
-    w.pad(<span class="kw-2">&amp;</span>result)
+    .fmt(w)
 }
+
 <span class="doccomment">/// Formats single formatting item
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
-#[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))))]
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[deprecated(since = <span class="string">&quot;0.4.32&quot;</span>, note = <span class="string">&quot;Use DelayedFormat::fmt instead&quot;</span>)]
 </span><span class="kw">pub fn </span>format_item(
     w: <span class="kw-2">&amp;mut </span>fmt::Formatter,
     date: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveDate&gt;,
@@ -1164,51 +1129,18 @@
     off: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(String, FixedOffset)&gt;,
     item: <span class="kw-2">&amp;</span>Item&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; fmt::Result {
-    <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
-    format_inner(<span class="kw-2">&amp;mut </span>result, date, time, off, item, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-    w.pad(<span class="kw-2">&amp;</span>result)
-}
-
-<span class="doccomment">/// Tries to format given arguments with given formatting items.
-/// Internally used by `DelayedFormat`.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)))]
-</span><span class="kw">pub fn </span>format_localized&lt;<span class="lifetime">&#39;a</span>, I, B&gt;(
-    w: <span class="kw-2">&amp;mut </span>fmt::Formatter,
-    date: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveDate&gt;,
-    time: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveTime&gt;,
-    off: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(String, FixedOffset)&gt;,
-    items: I,
-    locale: Locale,
-) -&gt; fmt::Result
-<span class="kw">where
-    </span>I: Iterator&lt;Item = B&gt; + Clone,
-    B: Borrow&lt;Item&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-{
-    <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
-    <span class="kw">for </span>item <span class="kw">in </span>items {
-        format_inner(<span class="kw-2">&amp;mut </span>result, date, time, off, item.borrow(), <span class="prelude-val">Some</span>(locale))<span class="question-mark">?</span>;
+    DelayedFormat {
+        date: date.copied(),
+        time: time.copied(),
+        off: off.cloned(),
+        items: [item].into_iter(),
+        <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
+        </span>locale: <span class="prelude-val">None</span>,
     }
-    w.pad(<span class="kw-2">&amp;</span>result)
+    .fmt(w)
 }
 
-<span class="doccomment">/// Formats single formatting item
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)))]
-</span><span class="kw">pub fn </span>format_item_localized(
-    w: <span class="kw-2">&amp;mut </span>fmt::Formatter,
-    date: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveDate&gt;,
-    time: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveTime&gt;,
-    off: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(String, FixedOffset)&gt;,
-    item: <span class="kw-2">&amp;</span>Item&lt;<span class="lifetime">&#39;_</span>&gt;,
-    locale: Locale,
-) -&gt; fmt::Result {
-    <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
-    format_inner(<span class="kw-2">&amp;mut </span>result, date, time, off, item, <span class="prelude-val">Some</span>(locale))<span class="question-mark">?</span>;
-    w.pad(<span class="kw-2">&amp;</span>result)
-}
-
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">fn </span>format_inner(
     w: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write,
     date: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveDate&gt;,
@@ -1221,7 +1153,7 @@
 
     <span class="kw">match </span><span class="kw-2">*</span>item {
         Item::Literal(s) | Item::Space(s) =&gt; w.write_str(s),
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
         </span>Item::OwnedLiteral(<span class="kw-2">ref </span>s) | Item::OwnedSpace(<span class="kw-2">ref </span>s) =&gt; w.write_str(s),
 
         Item::Numeric(<span class="kw-2">ref </span>spec, <span class="kw-2">ref </span>pad) =&gt; {
@@ -1253,10 +1185,10 @@
                 Timestamp =&gt; (
                     <span class="number">1</span>,
                     <span class="kw">match </span>(date, time, off) {
-                        (<span class="prelude-val">Some</span>(d), <span class="prelude-val">Some</span>(t), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Some</span>(d.and_time(<span class="kw-2">*</span>t).timestamp()),
-                        (<span class="prelude-val">Some</span>(d), <span class="prelude-val">Some</span>(t), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, off))) =&gt; {
-                            <span class="prelude-val">Some</span>(d.and_time(<span class="kw-2">*</span>t).timestamp() - i64::from(off.local_minus_utc()))
-                        }
+                        (<span class="prelude-val">Some</span>(d), <span class="prelude-val">Some</span>(t), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Some</span>(d.and_time(<span class="kw-2">*</span>t).and_utc().timestamp()),
+                        (<span class="prelude-val">Some</span>(d), <span class="prelude-val">Some</span>(t), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, off))) =&gt; <span class="prelude-val">Some</span>(
+                            d.and_time(<span class="kw-2">*</span>t).and_utc().timestamp() - i64::from(off.local_minus_utc()),
+                        ),
                         (<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
                     },
                 ),
@@ -1415,7 +1347,7 @@
                 <span class="comment">// same as `%a, %d %b %Y %H:%M:%S %z`
                 </span>{
                     <span class="kw">if let </span>(<span class="prelude-val">Some</span>(d), <span class="prelude-val">Some</span>(t), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, off))) = (date, time, off) {
-                        <span class="prelude-val">Some</span>(write_rfc2822_inner(w, <span class="kw-2">*</span>d, <span class="kw-2">*</span>t, off, locale))
+                        <span class="prelude-val">Some</span>(write_rfc2822(w, <span class="kw">crate</span>::NaiveDateTime::new(<span class="kw-2">*</span>d, <span class="kw-2">*</span>t), off))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">None
                     </span>}
@@ -1444,7 +1376,7 @@
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;serde&quot;</span>, feature = <span class="string">&quot;rustc-serialize&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;serde&quot;</span>, feature = <span class="string">&quot;rustc-serialize&quot;</span>))]
 </span><span class="kw">impl </span>OffsetFormat {
     <span class="doccomment">/// Writes an offset from UTC with the format defined by `self`.
     </span><span class="kw">fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, w: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write, off: FixedOffset) -&gt; fmt::Result {
@@ -1524,9 +1456,37 @@
     }
 }
 
+<span class="doccomment">/// Specific formatting options for seconds. This may be extended in the
+/// future, so exhaustive matching in external code is not recommended.
+///
+/// See the `TimeZone::to_rfc3339_opts` function for usage.
+</span><span class="attr">#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[allow(clippy::manual_non_exhaustive)]
+</span><span class="kw">pub enum </span>SecondsFormat {
+    <span class="doccomment">/// Format whole seconds only, with no decimal point nor subseconds.
+    </span>Secs,
+
+    <span class="doccomment">/// Use fixed 3 subsecond digits. This corresponds to [Fixed::Nanosecond3].
+    </span>Millis,
+
+    <span class="doccomment">/// Use fixed 6 subsecond digits. This corresponds to [Fixed::Nanosecond6].
+    </span>Micros,
+
+    <span class="doccomment">/// Use fixed 9 subsecond digits. This corresponds to [Fixed::Nanosecond9].
+    </span>Nanos,
+
+    <span class="doccomment">/// Automatically select one of `Secs`, `Millis`, `Micros`, or `Nanos` to display all available
+    /// non-zero sub-second digits.  This corresponds to [Fixed::Nanosecond].
+    </span>AutoSi,
+
+    <span class="comment">// Do not match against this.
+    </span><span class="attr">#[doc(hidden)]
+    </span>__NonExhaustive,
+}
+
 <span class="doccomment">/// Writes the date, time and offset to the string. same as `%Y-%m-%dT%H:%M:%S%.f%:z`
 </span><span class="attr">#[inline]
-#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;serde&quot;</span>, feature = <span class="string">&quot;rustc-serialize&quot;</span>))]
+#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;serde&quot;</span>, feature = <span class="string">&quot;rustc-serialize&quot;</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_rfc3339(
     w: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write,
     dt: NaiveDateTime,
@@ -1589,52 +1549,42 @@
     .format(w, off)
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="doccomment">/// write datetimes like `Tue, 1 Jul 2003 10:52:37 +0200`, same as `%a, %d %b %Y %H:%M:%S %z`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_rfc2822(
     w: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write,
     dt: NaiveDateTime,
     off: FixedOffset,
 ) -&gt; fmt::Result {
-    write_rfc2822_inner(w, dt.date(), dt.time(), off, default_locale())
-}
-
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
-</span><span class="doccomment">/// write datetimes like `Tue, 1 Jul 2003 10:52:37 +0200`, same as `%a, %d %b %Y %H:%M:%S %z`
-</span><span class="kw">fn </span>write_rfc2822_inner(
-    w: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write,
-    d: NaiveDate,
-    t: NaiveTime,
-    off: FixedOffset,
-    locale: Locale,
-) -&gt; fmt::Result {
-    <span class="kw">let </span>year = d.year();
+    <span class="kw">let </span>year = dt.year();
     <span class="comment">// RFC2822 is only defined on years 0 through 9999
     </span><span class="kw">if </span>!(<span class="number">0</span>..=<span class="number">9999</span>).contains(<span class="kw-2">&amp;</span>year) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(fmt::Error);
     }
 
-    w.write_str(short_weekdays(locale)[d.weekday().num_days_from_sunday() <span class="kw">as </span>usize])<span class="question-mark">?</span>;
+    <span class="kw">let </span>english = default_locale();
+
+    w.write_str(short_weekdays(english)[dt.weekday().num_days_from_sunday() <span class="kw">as </span>usize])<span class="question-mark">?</span>;
     w.write_str(<span class="string">&quot;, &quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>day = d.day();
+    <span class="kw">let </span>day = dt.day();
     <span class="kw">if </span>day &lt; <span class="number">10 </span>{
         w.write_char((<span class="string">b&#39;0&#39; </span>+ day <span class="kw">as </span>u8) <span class="kw">as </span>char)<span class="question-mark">?</span>;
     } <span class="kw">else </span>{
         write_hundreds(w, day <span class="kw">as </span>u8)<span class="question-mark">?</span>;
     }
     w.write_char(<span class="string">&#39; &#39;</span>)<span class="question-mark">?</span>;
-    w.write_str(short_months(locale)[d.month0() <span class="kw">as </span>usize])<span class="question-mark">?</span>;
+    w.write_str(short_months(english)[dt.month0() <span class="kw">as </span>usize])<span class="question-mark">?</span>;
     w.write_char(<span class="string">&#39; &#39;</span>)<span class="question-mark">?</span>;
     write_hundreds(w, (year / <span class="number">100</span>) <span class="kw">as </span>u8)<span class="question-mark">?</span>;
     write_hundreds(w, (year % <span class="number">100</span>) <span class="kw">as </span>u8)<span class="question-mark">?</span>;
     w.write_char(<span class="string">&#39; &#39;</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(hour, min, sec) = t.hms();
+    <span class="kw">let </span>(hour, min, sec) = dt.time().hms();
     write_hundreds(w, hour <span class="kw">as </span>u8)<span class="question-mark">?</span>;
     w.write_char(<span class="string">&#39;:&#39;</span>)<span class="question-mark">?</span>;
     write_hundreds(w, min <span class="kw">as </span>u8)<span class="question-mark">?</span>;
     w.write_char(<span class="string">&#39;:&#39;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>sec = sec + t.nanosecond() / <span class="number">1_000_000_000</span>;
+    <span class="kw">let </span>sec = sec + dt.nanosecond() / <span class="number">1_000_000_000</span>;
     write_hundreds(w, sec <span class="kw">as </span>u8)<span class="question-mark">?</span>;
     w.write_char(<span class="string">&#39; &#39;</span>)<span class="question-mark">?</span>;
     OffsetFormat {
@@ -1659,15 +1609,15 @@
 }
 
 <span class="attr">#[cfg(test)]
-#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::{Colons, OffsetFormat, OffsetPrecision, Pad};
     <span class="kw">use </span><span class="kw">crate</span>::FixedOffset;
-    <span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
     </span><span class="kw">use crate</span>::{NaiveDate, NaiveTime, TimeZone, Timelike, Utc};
 
     <span class="attr">#[test]
-    #[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+    #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
     </span><span class="kw">fn </span>test_date_format() {
         <span class="kw">let </span>d = NaiveDate::from_ymd_opt(<span class="number">2012</span>, <span class="number">3</span>, <span class="number">4</span>).unwrap();
         <span class="macro">assert_eq!</span>(d.format(<span class="string">&quot;%Y,%C,%y,%G,%g&quot;</span>).to_string(), <span class="string">&quot;2012,20,12,2012,12&quot;</span>);
@@ -1712,7 +1662,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+    #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
     </span><span class="kw">fn </span>test_time_format() {
         <span class="kw">let </span>t = NaiveTime::from_hms_nano_opt(<span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">98765432</span>).unwrap();
         <span class="macro">assert_eq!</span>(t.format(<span class="string">&quot;%H,%k,%I,%l,%P,%p&quot;</span>).to_string(), <span class="string">&quot;03, 3,03, 3,am,AM&quot;</span>);
@@ -1748,7 +1698,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+    #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
     </span><span class="kw">fn </span>test_datetime_format() {
         <span class="kw">let </span>dt =
             NaiveDate::from_ymd_opt(<span class="number">2010</span>, <span class="number">9</span>, <span class="number">8</span>).unwrap().and_hms_milli_opt(<span class="number">7</span>, <span class="number">6</span>, <span class="number">54</span>, <span class="number">321</span>).unwrap();
@@ -1766,7 +1716,7 @@
     </span>}
 
     <span class="attr">#[test]
-    #[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+    #[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
     </span><span class="kw">fn </span>test_datetime_format_alignment() {
         <span class="kw">let </span>datetime = Utc
             .with_ymd_and_hms(<span class="number">2007</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>)

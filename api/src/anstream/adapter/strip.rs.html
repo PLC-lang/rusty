@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstream-0.6.4/src/adapter/strip.rs`."><title>strip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstream-0.6.13/src/adapter/strip.rs`."><title>strip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -507,10 +507,6 @@
 <a href="#507" id="507">507</a>
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a>
-<a href="#511" id="511">511</a>
-<a href="#512" id="512">512</a>
-<a href="#513" id="513">513</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anstyle_parse::state::state_change;
 <span class="kw">use </span>anstyle_parse::state::Action;
 <span class="kw">use </span>anstyle_parse::state::State;
@@ -631,7 +627,7 @@
         <span class="kw">if </span>next_state != State::Anywhere {
             <span class="kw-2">*</span>state = next_state;
         }
-        is_printable_str(action, b)
+        is_printable_bytes(action, b)
     });
     <span class="kw">let </span>(<span class="kw">_</span>, next) = bytes.split_at(offset.unwrap_or(bytes.len()));
     <span class="kw-2">*</span>bytes = next;
@@ -639,7 +635,7 @@
 
     <span class="kw">let </span>offset = bytes.iter().copied().position(|b| {
         <span class="kw">let </span>(_next_state, action) = state_change(State::Ground, b);
-        !is_printable_str(action, b)
+        !(is_printable_bytes(action, b) || is_utf8_continuation(b))
     });
     <span class="kw">let </span>(printable, next) = bytes.split_at(offset.unwrap_or(bytes.len()));
     <span class="kw-2">*</span>bytes = next;
@@ -664,19 +660,6 @@
     } <span class="kw">else </span>{
         std::str::from_utf8_unchecked(bytes)
     }
-}
-
-<span class="attr">#[inline]
-</span><span class="kw">fn </span>is_printable_str(action: Action, byte: u8) -&gt; bool {
-    <span class="comment">// VT320 considered 0x7f to be `Print`able but we expect to be working in UTF-8 systems and not
-    // ISO Latin-1, making it DEL and non-printable
-    </span><span class="kw">const </span>DEL: u8 = <span class="number">0x7f</span>;
-    (action == Action::Print &amp;&amp; byte != DEL)
-        || action == Action::BeginUtf8
-        <span class="comment">// since we know the input is valid UTF-8, the only thing  we can do with
-        // continuations is to print them
-        </span>|| is_utf8_continuation(byte)
-        || (action == Action::Execute &amp;&amp; byte.is_ascii_whitespace())
 }
 
 <span class="attr">#[inline]
@@ -984,6 +967,15 @@
         <span class="kw">let </span>expected = <span class="string">&quot;&quot;</span>;
         <span class="kw">let </span>actual = String::from_utf8(strip_byte(<span class="kw-2">&amp;</span>bytes).to_vec()).unwrap();
         <span class="macro">assert_eq!</span>(expected, actual);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_strip_str_handles_broken_sequence() {
+        <span class="comment">// valid utf8: \xc3\xb6 then \x1b then \xf0\x9f\x98\x80
+        </span><span class="kw">let </span>s = <span class="string">&quot;ö\x1b😀hello😀goodbye&quot;</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>it = strip_str(s);
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;ö&quot;</span>, it.next().unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;ello😀goodbye&quot;</span>, it.next().unwrap());
     }
 
     <span class="macro">proptest! </span>{

@@ -746,7 +746,7 @@
             severity = severity.max(diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics));
         });
         <span class="kw">if </span>severity == Severity::Error {
-            <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to critical errors&quot;</span>))
+            <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Compilation aborted due to critical errors&quot;</span>))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
@@ -867,7 +867,7 @@
                         <span class="kw">let </span>unit_location = fs::canonicalize(unit_location)<span class="question-mark">?</span>;
                         <span class="kw">let </span>output_name = <span class="kw">if </span>unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
-                                Diagnostic::error(<span class="macro">format!</span>(
+                                Diagnostic::new(<span class="macro">format!</span>(
                                     <span class="string">&quot;Could not strip prefix for {}&quot;</span>,
                                     current_dir.to_string_lossy()
                                 ))
@@ -918,7 +918,7 @@
         <span class="kw">let </span>hw_conf = plc::hardware_binding::collect_hardware_configuration(<span class="kw-2">&amp;</span><span class="self">self</span>.index)<span class="question-mark">?</span>;
         <span class="kw">let </span>generated_conf = plc::hardware_binding::generate_hardware_configuration(<span class="kw-2">&amp;</span>hw_conf, format)<span class="question-mark">?</span>;
         File::create(location).and_then(|<span class="kw-2">mut </span>it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
-            Diagnostic::error(it.to_string()).with_internal_error(it.into()).with_error_code(<span class="string">&quot;E002&quot;</span>)
+            Diagnostic::new(it.to_string()).with_internal_error(it.into()).with_error_code(<span class="string">&quot;E002&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }

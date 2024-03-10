@@ -399,7 +399,7 @@
                 <span class="comment">//If no current condition is available, log a diagnostic and add an empty condition
                 </span><span class="kw">if </span>current_condition.is_none() {
                     lexer.accept_diagnostic(
-                        Diagnostic::error(<span class="string">&quot;Missing Case-Condition&quot;</span>)
+                        Diagnostic::new(<span class="string">&quot;Missing Case-Condition&quot;</span>)
                             .with_error_code(<span class="string">&quot;E012&quot;</span>)
                             .with_location(lexer.location()),
                     );

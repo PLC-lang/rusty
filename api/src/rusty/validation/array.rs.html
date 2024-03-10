@@ -286,7 +286,7 @@
     <span class="kw">let </span>stmt_rhs = peel(rhs_stmt);
     <span class="kw">if </span>!(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;Array assignments must be surrounded with `[]`&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;Array assignments must be surrounded with `[]`&quot;</span>)
                 .with_error_code(<span class="string">&quot;E043&quot;</span>)
                 .with_location(stmt_rhs.get_location()),
         );
@@ -304,7 +304,7 @@
         <span class="kw">let </span>name = statement.lhs_name(validator.context);
         <span class="kw">let </span>location = stmt_rhs.get_location();
         validator.push_diagnostic(
-            Diagnostic::error(<span class="macro">format!</span>(
+            Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided&quot;
             </span>))
             .with_error_code(<span class="string">&quot;E043&quot;</span>)
@@ -332,7 +332,7 @@
         AstStatement::ExpressionList(expressions) =&gt; {
             <span class="kw">for </span>invalid <span class="kw">in </span>expressions.iter().filter(|it| !it.is_paren()) {
                 validator.push_diagnostic(
-                    Diagnostic::error(<span class="string">&quot;Struct initializers within arrays have to be wrapped by `()`&quot;</span>)
+                    Diagnostic::new(<span class="string">&quot;Struct initializers within arrays have to be wrapped by `()`&quot;</span>)
                         .with_error_code(<span class="string">&quot;E043&quot;</span>)
                         .with_location(invalid.get_location()),
                 );
@@ -342,7 +342,7 @@
         <span class="comment">// arr := [foo := 0]
         </span>AstStatement::Assignment(..) =&gt; {
             validator.push_diagnostic(
-                Diagnostic::error(<span class="string">&quot;Struct initializers within arrays have to be wrapped by `()`&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Struct initializers within arrays have to be wrapped by `()`&quot;</span>)
                     .with_error_code(<span class="string">&quot;E043&quot;</span>)
                     .with_location(rhs_stmt.get_location()),
             );

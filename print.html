@@ -382,15 +382,31 @@ It is considered to be the root directory for the purpose of locating headers an
 </ul>
 <h2 id="parallel-compilation"><a class="header" href="#parallel-compilation">Parallel Compilation</a></h2>
 <p>By default, <code>plc</code> uses parallel compilation.</p>
-<p>This option could be controlled with the <code>-j</code> or <code>--threads</code> flag. A value above <code>0</code> will indicate the number of threads to use for the compilation
-Leaving the value unset, setting it to <code>0</code> or simply specifying <code>-j</code> sets the value to the maximum threads that could run for the current machine.
+<p>This option can be controlled with the <code>-j</code> or <code>--threads</code> flag. A value above <code>0</code> will indicate the number of threads to use for the compilation
+Leaving the value unset, setting it to <code>0</code> or simply specifying <code>-j</code> sets the value to the maximum threads that can run for the current machine.
 This is determined by the underlying parallelisation library <a href="https://crates.io/crates/rayon">Rayon</a></p>
 <h3 id="single-module-compilation"><a class="header" href="#single-module-compilation">Single module Compilation</a></h3>
 <p>With the introducton of parallel compilation, every unit is compiled into an object file independently and then linked together in a single module.
-This behaviour might not always be desired and could be disabled using the <code>--single-module</code> flag.</p>
+This behaviour might not always be desired and can be disabled using the <code>--single-module</code> flag.</p>
 <blockquote>
 <p>Note that the single module flag is currently much slower to produce as it requires first generating all modules and then merging them together.</p>
 </blockquote>
+<h2 id="configuration-options"><a class="header" href="#configuration-options">Configuration Options</a></h2>
+<p><code>plc</code> supports different configuration options, these can be printed using the <code>config</code> subcommand</p>
+<h3 id="config-schema"><a class="header" href="#config-schema"><code>config schema</code></a></h3>
+<p>Outputs the json schema used for the validation of the <code>plc.json</code> file</p>
+<h3 id="config-diagnostics"><a class="header" href="#config-diagnostics"><code>config diagnostics</code></a></h3>
+<p>Ouputs a json file with the default error severity configuration for the project.</p>
+<h2 id="error-configuration"><a class="header" href="#error-configuration">Error Configuration</a></h2>
+<p>Errors in a <code>plc</code> project can be configured by providing a json configuration file.
+A diagnostics severity can be changed for example from <code>warning</code> to <code>error</code> or <code>info</code> and vice-versa or <code>ignore</code>d completely.
+To see a default error configuration use <code>plc config diagnostics</code>.
+To provide a custom error configuration use <code>plc --error-config &lt;custom.json&gt;</code>.
+Note that the <code>--error-config</code> command can be used with all subcommands such as <code>build</code> and <code>check</code>.
+Running <code>plc config diagnostics --error-config &lt;custom.json&gt;</code> will print out the full diagnostics configuration taking the provided overrides into account.</p>
+<h2 id="error-description"><a class="header" href="#error-description">Error Description</a></h2>
+<p>Errors produced by <code>plc</code> can be explained using the <code>plc explain &lt;ErrorCode&gt;</code> command.
+Error codes are usually provided in the diagnostic report.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="build-configuration"><a class="header" href="#build-configuration">Build Configuration</a></h1>
 <p>In addition to the comprehensive help, <code>plc</code> offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.7/src/term.rs`."><title>term.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="console" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.8/src/term.rs`."><title>term.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="console" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -630,9 +630,41 @@
 <a href="#630" id="630">630</a>
 <a href="#631" id="631">631</a>
 <a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::{Debug, Display};
 <span class="kw">use </span>std::io::{<span class="self">self</span>, Read, Write};
-<span class="kw">use </span>std::sync::{Arc, Mutex};
+<span class="kw">use </span>std::sync::{Arc, Mutex, RwLock};
 
 <span class="attr">#[cfg(unix)]
 </span><span class="kw">use </span>std::os::unix::io::{AsRawFd, RawFd};
@@ -673,6 +705,8 @@
 </span><span class="kw">pub struct </span>TermInner {
     target: TermTarget,
     buffer: <span class="prelude-ty">Option</span>&lt;Mutex&lt;Vec&lt;u8&gt;&gt;&gt;,
+    prompt: RwLock&lt;String&gt;,
+    prompt_guard: Mutex&lt;()&gt;,
 }
 
 <span class="doccomment">/// The family of the terminal.
@@ -740,7 +774,7 @@
         </span>{
             TermFamily::WindowsConsole
         }
-        <span class="attr">#[cfg(unix)]
+        <span class="attr">#[cfg(all(unix, not(target_arch = <span class="string">&quot;wasm32&quot;</span>)))]
         </span>{
             TermFamily::UnixTerm
         }
@@ -781,6 +815,8 @@
         Term::with_inner(TermInner {
             target: TermTarget::Stdout,
             buffer: <span class="prelude-val">None</span>,
+            prompt: RwLock::new(String::new()),
+            prompt_guard: Mutex::new(()),
         })
     }
 
@@ -790,6 +826,8 @@
         Term::with_inner(TermInner {
             target: TermTarget::Stderr,
             buffer: <span class="prelude-val">None</span>,
+            prompt: RwLock::new(String::new()),
+            prompt_guard: Mutex::new(()),
         })
     }
 
@@ -798,6 +836,8 @@
         Term::with_inner(TermInner {
             target: TermTarget::Stdout,
             buffer: <span class="prelude-val">Some</span>(Mutex::new(<span class="macro">vec!</span>[])),
+            prompt: RwLock::new(String::new()),
+            prompt_guard: Mutex::new(()),
         })
     }
 
@@ -806,6 +846,8 @@
         Term::with_inner(TermInner {
             target: TermTarget::Stderr,
             buffer: <span class="prelude-val">Some</span>(Mutex::new(<span class="macro">vec!</span>[])),
+            prompt: RwLock::new(String::new()),
+            prompt_guard: Mutex::new(()),
         })
     }
 
@@ -833,6 +875,8 @@
                 style,
             }),
             buffer: <span class="prelude-val">None</span>,
+            prompt: RwLock::new(String::new()),
+            prompt_guard: Mutex::new(()),
         })
     }
 
@@ -863,14 +907,19 @@
 
     <span class="doccomment">/// Write a string to the terminal and add a newline.
     </span><span class="kw">pub fn </span>write_line(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>prompt = <span class="self">self</span>.inner.prompt.read().unwrap();
+        <span class="kw">if </span>!prompt.is_empty() {
+            <span class="self">self</span>.clear_line()<span class="question-mark">?</span>;
+        }
         <span class="kw">match </span><span class="self">self</span>.inner.buffer {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>mutex) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>buffer = mutex.lock().unwrap();
                 buffer.extend_from_slice(s.as_bytes());
                 buffer.push(<span class="string">b&#39;\n&#39;</span>);
+                buffer.extend_from_slice(prompt.as_bytes());
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.write_through(<span class="macro">format!</span>(<span class="string">&quot;{}\n&quot;</span>, s).as_bytes()),
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.write_through(<span class="macro">format!</span>(<span class="string">&quot;{}\n{}&quot;</span>, s, prompt.as_str()).as_bytes()),
         }
     }
 
@@ -907,7 +956,15 @@
         <span class="kw">if </span>!<span class="self">self</span>.is_tty {
             <span class="prelude-val">Ok</span>(Key::Unknown)
         } <span class="kw">else </span>{
-            read_single_key()
+            read_single_key(<span class="bool-val">false</span>)
+        }
+    }
+
+    <span class="kw">pub fn </span>read_key_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;Key&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.is_tty {
+            <span class="prelude-val">Ok</span>(Key::Unknown)
+        } <span class="kw">else </span>{
+            read_single_key(<span class="bool-val">true</span>)
         }
     }
 
@@ -916,51 +973,58 @@
     /// This does not include the trailing newline.  If the terminal is not
     /// user attended the return value will always be an empty string.
     </span><span class="kw">pub fn </span>read_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;String&gt; {
-        <span class="kw">if </span>!<span class="self">self</span>.is_tty {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.into());
-        }
-        <span class="kw">let </span><span class="kw-2">mut </span>rv = String::new();
-        io::stdin().read_line(<span class="kw-2">&amp;mut </span>rv)<span class="question-mark">?</span>;
-        <span class="kw">let </span>len = rv.trim_end_matches(<span class="kw-2">&amp;</span>[<span class="string">&#39;\r&#39;</span>, <span class="string">&#39;\n&#39;</span>][..]).len();
-        rv.truncate(len);
-        <span class="prelude-val">Ok</span>(rv)
+        <span class="self">self</span>.read_line_initial_text(<span class="string">&quot;&quot;</span>)
     }
 
     <span class="doccomment">/// Read one line of input with initial text.
     ///
+    /// This method blocks until no other thread is waiting for this read_line
+    /// before reading a line from the terminal.
     /// This does not include the trailing newline.  If the terminal is not
     /// user attended the return value will always be an empty string.
     </span><span class="kw">pub fn </span>read_line_initial_text(<span class="kw-2">&amp;</span><span class="self">self</span>, initial: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;String&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_tty {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.into());
         }
+        <span class="kw-2">*</span><span class="self">self</span>.inner.prompt.write().unwrap() = initial.to_string();
+        <span class="comment">// use a guard in order to prevent races with other calls to read_line_initial_text
+        </span><span class="kw">let </span>_guard = <span class="self">self</span>.inner.prompt_guard.lock().unwrap();
+
         <span class="self">self</span>.write_str(initial)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>chars: Vec&lt;char&gt; = initial.chars().collect();
+        <span class="kw">fn </span>read_line_internal(slf: <span class="kw-2">&amp;</span>Term, initial: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;String&gt; {
+            <span class="kw">let </span>prefix_len = initial.len();
 
-        <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="self">self</span>.read_key()<span class="question-mark">? </span>{
-                Key::Backspace =&gt; {
-                    <span class="kw">if </span>chars.pop().is_some() {
-                        <span class="self">self</span>.clear_chars(<span class="number">1</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>chars: Vec&lt;char&gt; = initial.chars().collect();
+
+            <span class="kw">loop </span>{
+                <span class="kw">match </span>slf.read_key()<span class="question-mark">? </span>{
+                    Key::Backspace =&gt; {
+                        <span class="kw">if </span>prefix_len &lt; chars.len() &amp;&amp; chars.pop().is_some() {
+                            slf.clear_chars(<span class="number">1</span>)<span class="question-mark">?</span>;
+                        }
+                        slf.flush()<span class="question-mark">?</span>;
                     }
-                    <span class="self">self</span>.flush()<span class="question-mark">?</span>;
+                    Key::Char(chr) =&gt; {
+                        chars.push(chr);
+                        <span class="kw">let </span><span class="kw-2">mut </span>bytes_char = [<span class="number">0</span>; <span class="number">4</span>];
+                        chr.encode_utf8(<span class="kw-2">&amp;mut </span>bytes_char);
+                        slf.write_str(chr.encode_utf8(<span class="kw-2">&amp;mut </span>bytes_char))<span class="question-mark">?</span>;
+                        slf.flush()<span class="question-mark">?</span>;
+                    }
+                    Key::Enter =&gt; {
+                        slf.write_through(<span class="macro">format!</span>(<span class="string">&quot;\n{}&quot;</span>, initial).as_bytes())<span class="question-mark">?</span>;
+                        <span class="kw">break</span>;
+                    }
+                    <span class="kw">_ </span>=&gt; (),
                 }
-                Key::Char(chr) =&gt; {
-                    chars.push(chr);
-                    <span class="kw">let </span><span class="kw-2">mut </span>bytes_char = [<span class="number">0</span>; <span class="number">4</span>];
-                    chr.encode_utf8(<span class="kw-2">&amp;mut </span>bytes_char);
-                    <span class="self">self</span>.write_str(chr.encode_utf8(<span class="kw-2">&amp;mut </span>bytes_char))<span class="question-mark">?</span>;
-                    <span class="self">self</span>.flush()<span class="question-mark">?</span>;
-                }
-                Key::Enter =&gt; {
-                    <span class="self">self</span>.write_line(<span class="string">&quot;&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="kw">break</span>;
-                }
-                <span class="kw">_ </span>=&gt; (),
             }
+            <span class="prelude-val">Ok</span>(chars.iter().skip(prefix_len).collect::&lt;String&gt;())
         }
-        <span class="prelude-val">Ok</span>(chars.iter().collect::&lt;String&gt;())
+        <span class="kw">let </span>ret = read_line_internal(<span class="self">self</span>, initial);
+
+        <span class="kw-2">*</span><span class="self">self</span>.inner.prompt.write().unwrap() = String::new();
+        ret
     }
 
     <span class="doccomment">/// Read a line of input securely.
@@ -1256,7 +1320,7 @@
     }
 }
 
-<span class="attr">#[cfg(unix)]
+<span class="attr">#[cfg(all(unix, not(target_arch = <span class="string">&quot;wasm32&quot;</span>)))]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::unix_term::<span class="kw-2">*</span>;
 <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::wasm_term::<span class="kw-2">*</span>;

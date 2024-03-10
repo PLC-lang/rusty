@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.8.0/src/iter/extend.rs`."><title>extend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/extend.rs`."><title>extend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -612,30 +612,92 @@
 <a href="#612" id="612">612</a>
 <a href="#613" id="613">613</a>
 <a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::noop::NoopConsumer;
 <span class="kw">use </span><span class="kw">super</span>::plumbing::{Consumer, Folder, Reducer, UnindexedConsumer};
 <span class="kw">use super</span>::{IntoParallelIterator, ParallelExtend, ParallelIterator};
 
+<span class="kw">use </span>either::Either;
 <span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::collections::LinkedList;
 <span class="kw">use </span>std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 <span class="kw">use </span>std::collections::{BinaryHeap, VecDeque};
+<span class="kw">use </span>std::ffi::{OsStr, OsString};
 <span class="kw">use </span>std::hash::{BuildHasher, Hash};
 
 <span class="doccomment">/// Performs a generic `par_extend` by collecting to a `LinkedList&lt;Vec&lt;_&gt;&gt;` in
 /// parallel, then extending the collection sequentially.
 </span><span class="macro">macro_rules! </span>extend {
-    (<span class="macro-nonterminal">$self</span>:ident, <span class="macro-nonterminal">$par_iter</span>:ident, <span class="macro-nonterminal">$extend</span>:ident) =&gt; {
-        <span class="macro-nonterminal">$extend</span>(
-            <span class="macro-nonterminal">$self</span>,
-            <span class="macro-nonterminal">$par_iter</span>.into_par_iter().drive_unindexed(ListVecConsumer),
-        );
+    (<span class="macro-nonterminal">$self</span>:ident, <span class="macro-nonterminal">$par_iter</span>:ident) =&gt; {
+        <span class="macro">extend!</span>(<span class="macro-nonterminal">$self </span>&lt;- fast_collect(<span class="macro-nonterminal">$par_iter</span>))
+    };
+    (<span class="macro-nonterminal">$self</span>:ident &lt;- <span class="macro-nonterminal">$vecs</span>:expr) =&gt; {
+        <span class="kw">match </span><span class="macro-nonterminal">$vecs </span>{
+            Either::Left(vec) =&gt; <span class="macro-nonterminal">$self</span>.extend(vec),
+            Either::Right(list) =&gt; {
+                <span class="kw">for </span>vec <span class="kw">in </span>list {
+                    <span class="macro-nonterminal">$self</span>.extend(vec);
+                }
+            }
+        }
+    };
+}
+<span class="macro">macro_rules! </span>extend_reserved {
+    (<span class="macro-nonterminal">$self</span>:ident, <span class="macro-nonterminal">$par_iter</span>:ident, <span class="macro-nonterminal">$len</span>:ident) =&gt; {
+        <span class="kw">let </span>vecs = fast_collect(<span class="macro-nonterminal">$par_iter</span>);
+        <span class="macro-nonterminal">$self</span>.reserve(<span class="macro-nonterminal">$len</span>(<span class="kw-2">&amp;</span>vecs));
+        <span class="macro">extend!</span>(<span class="macro-nonterminal">$self </span>&lt;- vecs)
+    };
+    (<span class="macro-nonterminal">$self</span>:ident, <span class="macro-nonterminal">$par_iter</span>:ident) =&gt; {
+        <span class="macro">extend_reserved!</span>(<span class="macro-nonterminal">$self</span>, <span class="macro-nonterminal">$par_iter</span>, len)
     };
 }
 
-<span class="doccomment">/// Computes the total length of a `LinkedList&lt;Vec&lt;_&gt;&gt;`.
-</span><span class="kw">fn </span>len&lt;T&gt;(list: <span class="kw-2">&amp;</span>LinkedList&lt;Vec&lt;T&gt;&gt;) -&gt; usize {
-    list.iter().map(Vec::len).sum()
+<span class="doccomment">/// Computes the total length of a `fast_collect` result.
+</span><span class="kw">fn </span>len&lt;T&gt;(vecs: <span class="kw-2">&amp;</span>Either&lt;Vec&lt;T&gt;, LinkedList&lt;Vec&lt;T&gt;&gt;&gt;) -&gt; usize {
+    <span class="kw">match </span>vecs {
+        Either::Left(vec) =&gt; vec.len(),
+        Either::Right(list) =&gt; list.iter().map(Vec::len).sum(),
+    }
+}
+
+<span class="doccomment">/// Computes the total string length of a `fast_collect` result.
+</span><span class="kw">fn </span>string_len&lt;T: AsRef&lt;str&gt;&gt;(vecs: <span class="kw-2">&amp;</span>Either&lt;Vec&lt;T&gt;, LinkedList&lt;Vec&lt;T&gt;&gt;&gt;) -&gt; usize {
+    <span class="kw">let </span>strs = <span class="kw">match </span>vecs {
+        Either::Left(vec) =&gt; Either::Left(vec.iter()),
+        Either::Right(list) =&gt; Either::Right(list.iter().flatten()),
+    };
+    strs.map(AsRef::as_ref).map(str::len).sum()
+}
+
+<span class="doccomment">/// Computes the total OS-string length of a `fast_collect` result.
+</span><span class="kw">fn </span>osstring_len&lt;T: AsRef&lt;OsStr&gt;&gt;(vecs: <span class="kw-2">&amp;</span>Either&lt;Vec&lt;T&gt;, LinkedList&lt;Vec&lt;T&gt;&gt;&gt;) -&gt; usize {
+    <span class="kw">let </span>osstrs = <span class="kw">match </span>vecs {
+        Either::Left(vec) =&gt; Either::Left(vec.iter()),
+        Either::Right(list) =&gt; Either::Right(list.iter().flatten()),
+    };
+    osstrs.map(AsRef::as_ref).map(OsStr::len).sum()
+}
+
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>fast_collect&lt;I, T&gt;(pi: I) -&gt; Either&lt;Vec&lt;T&gt;, LinkedList&lt;Vec&lt;T&gt;&gt;&gt;
+<span class="kw">where
+    </span>I: IntoParallelIterator&lt;Item = T&gt;,
+    T: Send,
+{
+    <span class="kw">let </span>par_iter = pi.into_par_iter();
+    <span class="kw">match </span>par_iter.opt_len() {
+        <span class="prelude-val">Some</span>(len) =&gt; {
+            <span class="comment">// Pseudo-specialization. See impl of ParallelExtend for Vec for more details.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>vec = Vec::new();
+            <span class="kw">super</span>::collect::special_extend(par_iter, len, <span class="kw-2">&amp;mut </span>vec);
+            Either::Left(vec)
+        }
+        <span class="prelude-val">None </span>=&gt; Either::Right(par_iter.drive_unindexed(ListVecConsumer)),
+    }
 }
 
 <span class="kw">struct </span>ListVecConsumer;
@@ -701,16 +763,6 @@
     </span>}
 }
 
-<span class="kw">fn </span>heap_extend&lt;T, Item&gt;(heap: <span class="kw-2">&amp;mut </span>BinaryHeap&lt;T&gt;, list: LinkedList&lt;Vec&lt;Item&gt;&gt;)
-<span class="kw">where
-    </span>BinaryHeap&lt;T&gt;: Extend&lt;Item&gt;,
-{
-    heap.reserve(len(<span class="kw-2">&amp;</span>list));
-    <span class="kw">for </span>vec <span class="kw">in </span>list {
-        heap.extend(vec);
-    }
-}
-
 <span class="doccomment">/// Extends a binary heap with items from a parallel iterator.
 </span><span class="kw">impl</span>&lt;T&gt; ParallelExtend&lt;T&gt; <span class="kw">for </span>BinaryHeap&lt;T&gt;
 <span class="kw">where
@@ -720,7 +772,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, heap_extend);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -733,16 +785,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, heap_extend);
-    }
-}
-
-<span class="kw">fn </span>btree_map_extend&lt;K, V, Item&gt;(map: <span class="kw-2">&amp;mut </span>BTreeMap&lt;K, V&gt;, list: LinkedList&lt;Vec&lt;Item&gt;&gt;)
-<span class="kw">where
-    </span>BTreeMap&lt;K, V&gt;: Extend&lt;Item&gt;,
-{
-    <span class="kw">for </span>vec <span class="kw">in </span>list {
-        map.extend(vec);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -756,7 +799,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = (K, V)&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, btree_map_extend);
+        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -770,16 +813,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>K, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>V)&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, btree_map_extend);
-    }
-}
-
-<span class="kw">fn </span>btree_set_extend&lt;T, Item&gt;(set: <span class="kw-2">&amp;mut </span>BTreeSet&lt;T&gt;, list: LinkedList&lt;Vec&lt;Item&gt;&gt;)
-<span class="kw">where
-    </span>BTreeSet&lt;T&gt;: Extend&lt;Item&gt;,
-{
-    <span class="kw">for </span>vec <span class="kw">in </span>list {
-        set.extend(vec);
+        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -792,7 +826,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, btree_set_extend);
+        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -805,19 +839,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, btree_set_extend);
-    }
-}
-
-<span class="kw">fn </span>hash_map_extend&lt;K, V, S, Item&gt;(map: <span class="kw-2">&amp;mut </span>HashMap&lt;K, V, S&gt;, list: LinkedList&lt;Vec&lt;Item&gt;&gt;)
-<span class="kw">where
-    </span>HashMap&lt;K, V, S&gt;: Extend&lt;Item&gt;,
-    K: Eq + Hash,
-    S: BuildHasher,
-{
-    map.reserve(len(<span class="kw-2">&amp;</span>list));
-    <span class="kw">for </span>vec <span class="kw">in </span>list {
-        map.extend(vec);
+        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -833,7 +855,7 @@
         </span>I: IntoParallelIterator&lt;Item = (K, V)&gt;,
     {
         <span class="comment">// See the map_collect benchmarks in rayon-demo for different strategies.
-        </span><span class="macro">extend!</span>(<span class="self">self</span>, par_iter, hash_map_extend);
+        </span><span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -848,19 +870,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>K, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>V)&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, hash_map_extend);
-    }
-}
-
-<span class="kw">fn </span>hash_set_extend&lt;T, S, Item&gt;(set: <span class="kw-2">&amp;mut </span>HashSet&lt;T, S&gt;, list: LinkedList&lt;Vec&lt;Item&gt;&gt;)
-<span class="kw">where
-    </span>HashSet&lt;T, S&gt;: Extend&lt;Item&gt;,
-    T: Eq + Hash,
-    S: BuildHasher,
-{
-    set.reserve(len(<span class="kw-2">&amp;</span>list));
-    <span class="kw">for </span>vec <span class="kw">in </span>list {
-        set.extend(vec);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -874,7 +884,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, hash_set_extend);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -888,7 +898,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, hash_set_extend);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -989,9 +999,34 @@
     }
 }
 
-<span class="kw">fn </span>flat_string_extend(string: <span class="kw-2">&amp;mut </span>String, list: LinkedList&lt;String&gt;) {
-    string.reserve(list.iter().map(String::len).sum());
-    string.extend(list);
+<span class="doccomment">/// Extends an OS-string with string slices from a parallel iterator.
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ParallelExtend&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr&gt; <span class="kw">for </span>OsString {
+    <span class="kw">fn </span>par_extend&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, par_iter: I)
+    <span class="kw">where
+        </span>I: IntoParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr&gt;,
+    {
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter, osstring_len);
+    }
+}
+
+<span class="doccomment">/// Extends an OS-string with strings from a parallel iterator.
+</span><span class="kw">impl </span>ParallelExtend&lt;OsString&gt; <span class="kw">for </span>OsString {
+    <span class="kw">fn </span>par_extend&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, par_iter: I)
+    <span class="kw">where
+        </span>I: IntoParallelIterator&lt;Item = OsString&gt;,
+    {
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter, osstring_len);
+    }
+}
+
+<span class="doccomment">/// Extends an OS-string with string slices from a parallel iterator.
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ParallelExtend&lt;Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt;&gt; <span class="kw">for </span>OsString {
+    <span class="kw">fn </span>par_extend&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, par_iter: I)
+    <span class="kw">where
+        </span>I: IntoParallelIterator&lt;Item = Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt;&gt;,
+    {
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter, osstring_len);
+    }
 }
 
 <span class="doccomment">/// Extends a string with characters from a parallel iterator.
@@ -1003,7 +1038,8 @@
         <span class="comment">// This is like `extend`, but `Vec&lt;char&gt;` is less efficient to deal
         // with than `String`, so instead collect to `LinkedList&lt;String&gt;`.
         </span><span class="kw">let </span>list = par_iter.into_par_iter().drive_unindexed(ListStringConsumer);
-        flat_string_extend(<span class="self">self</span>, list);
+        <span class="self">self</span>.reserve(list.iter().map(String::len).sum());
+        <span class="self">self</span>.extend(list);
     }
 }
 
@@ -1082,25 +1118,13 @@
     </span>}
 }
 
-<span class="kw">fn </span>string_extend&lt;Item&gt;(string: <span class="kw-2">&amp;mut </span>String, list: LinkedList&lt;Vec&lt;Item&gt;&gt;)
-<span class="kw">where
-    </span>String: Extend&lt;Item&gt;,
-    Item: AsRef&lt;str&gt;,
-{
-    <span class="kw">let </span>len = list.iter().flatten().map(Item::as_ref).map(str::len).sum();
-    string.reserve(len);
-    <span class="kw">for </span>vec <span class="kw">in </span>list {
-        string.extend(vec);
-    }
-}
-
 <span class="doccomment">/// Extends a string with string slices from a parallel iterator.
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ParallelExtend&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>String {
     <span class="kw">fn </span>par_extend&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, par_iter: I)
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, string_extend);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter, string_len);
     }
 }
 
@@ -1110,7 +1134,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = String&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, string_extend);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter, string_len);
     }
 }
 
@@ -1120,7 +1144,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = Box&lt;str&gt;&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, string_extend);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter, string_len);
     }
 }
 
@@ -1130,17 +1154,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, string_extend);
-    }
-}
-
-<span class="kw">fn </span>deque_extend&lt;T, Item&gt;(deque: <span class="kw-2">&amp;mut </span>VecDeque&lt;T&gt;, list: LinkedList&lt;Vec&lt;Item&gt;&gt;)
-<span class="kw">where
-    </span>VecDeque&lt;T&gt;: Extend&lt;Item&gt;,
-{
-    deque.reserve(len(<span class="kw-2">&amp;</span>list));
-    <span class="kw">for </span>vec <span class="kw">in </span>list {
-        deque.extend(vec);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter, string_len);
     }
 }
 
@@ -1153,7 +1167,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, deque_extend);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -1166,14 +1180,7 @@
     <span class="kw">where
         </span>I: IntoParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
     {
-        <span class="macro">extend!</span>(<span class="self">self</span>, par_iter, deque_extend);
-    }
-}
-
-<span class="kw">fn </span>vec_append&lt;T&gt;(vec: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, list: LinkedList&lt;Vec&lt;T&gt;&gt;) {
-    vec.reserve(len(<span class="kw-2">&amp;</span>list));
-    <span class="kw">for </span><span class="kw-2">mut </span>other <span class="kw">in </span>list {
-        vec.append(<span class="kw-2">&amp;mut </span>other);
+        <span class="macro">extend_reserved!</span>(<span class="self">self</span>, par_iter);
     }
 }
 
@@ -1198,7 +1205,10 @@
             <span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// This works like `extend`, but `Vec::append` is more efficient.
                 </span><span class="kw">let </span>list = par_iter.drive_unindexed(ListVecConsumer);
-                vec_append(<span class="self">self</span>, list);
+                <span class="self">self</span>.reserve(list.iter().map(Vec::len).sum());
+                <span class="kw">for </span><span class="kw-2">mut </span>other <span class="kw">in </span>list {
+                    <span class="self">self</span>.append(<span class="kw-2">&amp;mut </span>other);
+                }
             }
         }
     }

@@ -282,14 +282,14 @@
     <span class="kw">let </span><span class="prelude-val">Some</span>(ref_local_id) = control.ref_local_id <span class="kw">else </span>{
         <span class="kw">let </span>location =
             session.range_factory.create_block_location(control.local_id, control.execution_order_id);
-        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Control statement has no connection&quot;</span>)
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Control statement has no connection&quot;</span>)
             .with_error_code(<span class="string">&quot;E081&quot;</span>)
             .with_location(location));
     };
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(node) = index.get(<span class="kw-2">&amp;</span>ref_local_id) <span class="kw">else </span>{
         <span class="kw">let </span>location = session.range_factory.create_block_location(ref_local_id, <span class="prelude-val">None</span>);
-        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(
             <span class="string">&quot;Node {} is referencing a non-existing element with ID {ref_local_id}&quot;</span>,
             control.local_id
         ))
@@ -307,7 +307,7 @@
             <span class="kw">let </span>location_other =
                 session.range_factory.create_block_location(ref_local_id, node.get_exec_id());
 
-            <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Unexpected relationship between nodes&quot;</span>)
+            <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Unexpected relationship between nodes&quot;</span>)
                 .with_error_code(<span class="string">&quot;E083&quot;</span>)
                 .with_location(location_control.span(<span class="kw-2">&amp;</span>location_other)))
         }

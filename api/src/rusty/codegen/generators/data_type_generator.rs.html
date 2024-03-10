@@ -621,7 +621,7 @@
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="comment">//Report the operation failure
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Some initial values were not generated&quot;</span>)
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Some initial values were not generated&quot;</span>)
             .with_error_code(<span class="string">&quot;E075&quot;</span>)
             .with_sub_diagnostics(diags));
     }
@@ -689,7 +689,7 @@
                 <span class="kw">if let </span>DataTypeInformation::Integer { .. } = effective_type.get_type_information() {
                     <span class="self">self</span>.create_type(name, effective_type)
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(
+                    <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;Invalid type nature for generic argument. {} is no `ANY_INT`.&quot;</span>,
                         effective_type.get_name()
                     ))

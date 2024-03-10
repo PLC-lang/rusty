@@ -506,7 +506,7 @@
             }
 
             <span class="comment">// XXX: jsonschema does not provide error messages with location info
-            </span>Diagnostic::error(message).with_error_code(<span class="string">&quot;E088&quot;</span>)
+            </span>Diagnostic::new(message).with_error_code(<span class="string">&quot;E088&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Chunks","ChunksExact","ChunksExactMut","ChunksMut","Iter","IterMut","RChunks","RChunksExact","RChunksExactMut","RChunksMut","Split","SplitMut","Windows"],"trait":["ParallelSlice","ParallelSliceMut"]};
+window.SIDEBAR_ITEMS = {"struct":["Chunks","ChunksExact","ChunksExactMut","ChunksMut","Iter","IterMut","RChunks","RChunksExact","RChunksExactMut","RChunksMut","Split","SplitInclusive","SplitInclusiveMut","SplitMut","Windows"],"trait":["ParallelSlice","ParallelSliceMut"]};

@@ -266,7 +266,7 @@
                 slice.push(node); <span class="comment">// Append to get `B -&gt; C -&gt; B` instead of `B -&gt; C` in the report
                 </span><span class="kw">let </span>error = slice.iter().map(|it| it.get_name()).join(<span class="string">&quot; -&gt; &quot;</span>);
                 <span class="kw">let </span>diagnostic =
-                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Recursive data structure `{}` has infinite size&quot;</span>, error))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Recursive data structure `{}` has infinite size&quot;</span>, error))
                         .with_error_code(<span class="string">&quot;E029&quot;</span>);
 
                 <span class="kw">let </span>diagnostic = <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = ranges.first() {

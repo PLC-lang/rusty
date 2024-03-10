@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.4.9/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="clap_builder"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/builder/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="clap_builder"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -4875,6 +4875,45 @@
 <a href="#4875" id="4875">4875</a>
 <a href="#4876" id="4876">4876</a>
 <a href="#4877" id="4877">4877</a>
+<a href="#4878" id="4878">4878</a>
+<a href="#4879" id="4879">4879</a>
+<a href="#4880" id="4880">4880</a>
+<a href="#4881" id="4881">4881</a>
+<a href="#4882" id="4882">4882</a>
+<a href="#4883" id="4883">4883</a>
+<a href="#4884" id="4884">4884</a>
+<a href="#4885" id="4885">4885</a>
+<a href="#4886" id="4886">4886</a>
+<a href="#4887" id="4887">4887</a>
+<a href="#4888" id="4888">4888</a>
+<a href="#4889" id="4889">4889</a>
+<a href="#4890" id="4890">4890</a>
+<a href="#4891" id="4891">4891</a>
+<a href="#4892" id="4892">4892</a>
+<a href="#4893" id="4893">4893</a>
+<a href="#4894" id="4894">4894</a>
+<a href="#4895" id="4895">4895</a>
+<a href="#4896" id="4896">4896</a>
+<a href="#4897" id="4897">4897</a>
+<a href="#4898" id="4898">4898</a>
+<a href="#4899" id="4899">4899</a>
+<a href="#4900" id="4900">4900</a>
+<a href="#4901" id="4901">4901</a>
+<a href="#4902" id="4902">4902</a>
+<a href="#4903" id="4903">4903</a>
+<a href="#4904" id="4904">4904</a>
+<a href="#4905" id="4905">4905</a>
+<a href="#4906" id="4906">4906</a>
+<a href="#4907" id="4907">4907</a>
+<a href="#4908" id="4908">4908</a>
+<a href="#4909" id="4909">4909</a>
+<a href="#4910" id="4910">4910</a>
+<a href="#4911" id="4911">4911</a>
+<a href="#4912" id="4912">4912</a>
+<a href="#4913" id="4913">4913</a>
+<a href="#4914" id="4914">4914</a>
+<a href="#4915" id="4915">4915</a>
+<a href="#4916" id="4916">4916</a>
 </pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;usage&quot;</span>), allow(unused_mut))]
 
 </span><span class="comment">// Std
@@ -5175,6 +5214,45 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Allows one to mutate an [`ArgGroup`] after it&#39;s been added to a [`Command`].
+    ///
+    /// # Panics
+    ///
+    /// If the argument is undefined
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use clap_builder as clap;
+    /// # use clap::{Command, arg, ArgGroup};
+    ///
+    /// Command::new(&quot;foo&quot;)
+    ///     .arg(arg!(--&quot;set-ver&quot; &lt;ver&gt; &quot;set the version manually&quot;).required(false))
+    ///     .arg(arg!(--major &quot;auto increase major&quot;))
+    ///     .arg(arg!(--minor &quot;auto increase minor&quot;))
+    ///     .arg(arg!(--patch &quot;auto increase patch&quot;))
+    ///     .group(ArgGroup::new(&quot;vers&quot;)
+    ///          .args([&quot;set-ver&quot;, &quot;major&quot;, &quot;minor&quot;,&quot;patch&quot;])
+    ///          .required(true))
+    ///     .mut_group(&quot;vers&quot;, |a| a.required(false));
+    /// ```
+    </span><span class="attr">#[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    </span><span class="kw">pub fn </span>mut_group&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg_id: <span class="kw">impl </span>AsRef&lt;str&gt;, f: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnOnce(ArgGroup) -&gt; ArgGroup,
+    {
+        <span class="kw">let </span>id = arg_id.as_ref();
+        <span class="kw">let </span>index = <span class="self">self
+            </span>.groups
+            .iter()
+            .position(|g| g.get_id() == id)
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;Group `{id}` is undefined&quot;</span>));
+        <span class="kw">let </span>a = <span class="self">self</span>.groups.remove(index);
+
+        <span class="self">self</span>.groups.push(f(a));
+        <span class="self">self
+    </span>}
     <span class="doccomment">/// Allows one to mutate a [`Command`] after it&#39;s been added as a subcommand.
     ///
     /// This can be useful for modifying auto-generated arguments of nested subcommands with
@@ -5426,7 +5504,7 @@
         Error::raw(kind, message).format(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Parse [`env::args_os`], exiting on failure.
+    <span class="doccomment">/// Parse [`env::args_os`], [exiting][Error::exit] on failure.
     ///
     /// # Panics
     ///
@@ -5448,7 +5526,7 @@
         <span class="self">self</span>.get_matches_from(env::args_os())
     }
 
-    <span class="doccomment">/// Parse [`env::args_os`], exiting on failure.
+    <span class="doccomment">/// Parse [`env::args_os`], [exiting][Error::exit] on failure.
     ///
     /// Like [`Command::get_matches`] but doesn&#39;t consume the `Command`.
     ///
@@ -5508,7 +5586,7 @@
         </span><span class="self">self</span>.try_get_matches_from(env::args_os())
     }
 
-    <span class="doccomment">/// Parse the specified arguments, exiting on failure.
+    <span class="doccomment">/// Parse the specified arguments, [exiting][Error::exit] on failure.
     ///
     /// **NOTE:** The first argument will be parsed as the binary name unless
     /// [`Command::no_binary_name`] is used.
@@ -5964,7 +6042,7 @@
         }
     }
 
-    <span class="doccomment">/// Disables the automatic delimiting of values after `--` or when [`Command::trailing_var_arg`]
+    <span class="doccomment">/// Disables the automatic delimiting of values after `--` or when [`Arg::trailing_var_arg`]
     /// was used.
     ///
     /// **NOTE:** The same thing can be done manually by setting the final positional argument to

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.26/src/net/sockopt.rs`."><title>sockopt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/sockopt.rs`."><title>sockopt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1380,6 +1380,106 @@
 <a href="#1380" id="1380">1380</a>
 <a href="#1381" id="1381">1381</a>
 <a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `getsockopt` and `setsockopt` functions.
 //!
 //! In the rustix API, there is a separate function for each option, so that it
@@ -1389,7 +1489,7 @@
 //!
 //!  - [POSIX `getsockopt`]
 //!  - [Linux `getsockopt`]
-//!  - [Winsock2 `getsockopt`]
+//!  - [Winsock `getsockopt`]
 //!  - [Apple `getsockopt`]
 //!  - [FreeBSD `getsockopt`]
 //!  - [NetBSD `getsockopt`]
@@ -1400,7 +1500,7 @@
 //!
 //! [POSIX `getsockopt`]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/getsockopt.html
 //! [Linux `getsockopt`]: https://man7.org/linux/man-pages/man2/getsockopt.2.html
-//! [Winsock2 `getsockopt`]: https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-getsockopt
+//! [Winsock `getsockopt`]: https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-getsockopt
 //! [Apple `getsockopt`]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/getsockopt.2.html
 //! [FreeBSD `getsockopt`]: https://man.freebsd.org/cgi/man.cgi?query=getsockopt&amp;sektion=2
 //! [NetBSD `getsockopt`]: https://man.netbsd.org/getsockopt.2
@@ -1413,7 +1513,7 @@
 //!
 //!  - [POSIX `setsockopt`]
 //!  - [Linux `setsockopt`]
-//!  - [Winsock2 `setsockopt`]
+//!  - [Winsock `setsockopt`]
 //!  - [Apple `setsockopt`]
 //!  - [FreeBSD `setsockopt`]
 //!  - [NetBSD `setsockopt`]
@@ -1424,7 +1524,7 @@
 //!
 //! [POSIX `setsockopt`]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html
 //! [Linux `setsockopt`]: https://man7.org/linux/man-pages/man2/setsockopt.2.html
-//! [Winsock2 `setsockopt`]: https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-setsockopt
+//! [Winsock `setsockopt`]: https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-setsockopt
 //! [Apple `setsockopt`]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/setsockopt.2.html
 //! [FreeBSD `setsockopt`]: https://man.freebsd.org/cgi/man.cgi?query=setsockopt&amp;sektion=2
 //! [NetBSD `setsockopt`]: https://man.netbsd.org/setsockopt.2
@@ -1439,12 +1539,12 @@
 //!  - [References for all `set_*` functions]
 //!  - [POSIX `sys/socket.h`]
 //!  - [Linux `socket`]
-//!  - [Winsock2 `SOL_SOCKET` options]
+//!  - [Winsock `SOL_SOCKET` options]
 //!  - [glibc `SOL_SOCKET` Options]
 //!
 //! [POSIX `sys/socket.h`]: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_socket.h.html
 //! [Linux `socket`]: https://man7.org/linux/man-pages/man7/socket.7.html
-//! [Winsock2 `SOL_SOCKET` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/sol-socket-socket-options
+//! [Winsock `SOL_SOCKET` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/sol-socket-socket-options
 //! [glibc `SOL_SOCKET` options]: https://www.gnu.org/software/libc/manual/html_node/Socket_002dLevel-Options.html
 //!
 //! # References for `get_ip_*` and `set_ip_*` functions:
@@ -1453,7 +1553,7 @@
 //!  - [References for all `set_*` functions]
 //!  - [POSIX `netinet/in.h`]
 //!  - [Linux `ip`]
-//!  - [Winsock2 `IPPROTO_IP` options]
+//!  - [Winsock `IPPROTO_IP` options]
 //!  - [Apple `ip`]
 //!  - [FreeBSD `ip`]
 //!  - [NetBSD `ip`]
@@ -1463,7 +1563,7 @@
 //!
 //! [POSIX `netinet/in.h`]: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/netinet_in.h.html
 //! [Linux `ip`]: https://man7.org/linux/man-pages/man7/ip.7.html
-//! [Winsock2 `IPPROTO_IP` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ip-socket-options
+//! [Winsock `IPPROTO_IP` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ip-socket-options
 //! [Apple `ip`]: https://opensource.apple.com/source/xnu/xnu-7195.81.3/bsd/man/man4/ip.4.auto.html
 //! [FreeBSD `ip`]: https://man.freebsd.org/cgi/man.cgi?query=ip&amp;sektion=4
 //! [NetBSD `ip`]: https://man.netbsd.org/ip.4
@@ -1477,7 +1577,7 @@
 //!  - [References for all `set_*` functions]
 //!  - [POSIX `netinet/in.h`]
 //!  - [Linux `ipv6`]
-//!  - [Winsock2 `IPPROTO_IPV6` options]
+//!  - [Winsock `IPPROTO_IPV6` options]
 //!  - [Apple `ip6`]
 //!  - [FreeBSD `ip6`]
 //!  - [NetBSD `ip6`]
@@ -1487,7 +1587,7 @@
 //!
 //! [POSIX `netinet/in.h`]: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/netinet_in.h.html
 //! [Linux `ipv6`]: https://man7.org/linux/man-pages/man7/ipv6.7.html
-//! [Winsock2 `IPPROTO_IPV6` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ipv6-socket-options
+//! [Winsock `IPPROTO_IPV6` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-ipv6-socket-options
 //! [Apple `ip6`]: https://opensource.apple.com/source/xnu/xnu-7195.81.3/bsd/man/man4/ip6.4.auto.html
 //! [FreeBSD `ip6`]: https://man.freebsd.org/cgi/man.cgi?query=ip6&amp;sektion=4
 //! [NetBSD `ip6`]: https://man.netbsd.org/ip6.4
@@ -1501,7 +1601,7 @@
 //!  - [References for all `set_*` functions]
 //!  - [POSIX `netinet/tcp.h`]
 //!  - [Linux `tcp`]
-//!  - [Winsock2 `IPPROTO_TCP` options]
+//!  - [Winsock `IPPROTO_TCP` options]
 //!  - [Apple `tcp`]
 //!  - [FreeBSD `tcp`]
 //!  - [NetBSD `tcp`]
@@ -1511,7 +1611,7 @@
 //!
 //! [POSIX `netinet/tcp.h`]: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/netinet_tcp.h.html
 //! [Linux `tcp`]: https://man7.org/linux/man-pages/man7/tcp.7.html
-//! [Winsock2 `IPPROTO_TCP` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-tcp-socket-options
+//! [Winsock `IPPROTO_TCP` options]: https://docs.microsoft.com/en-us/windows/win32/winsock/ipproto-tcp-socket-options
 //! [Apple `tcp`]: https://opensource.apple.com/source/xnu/xnu-7195.81.3/bsd/man/man4/tcp.4.auto.html
 //! [FreeBSD `tcp`]: https://man.freebsd.org/cgi/man.cgi?query=tcp&amp;sektion=4
 //! [NetBSD `tcp`]: https://man.netbsd.org/tcp.4
@@ -1525,7 +1625,9 @@
 </span><span class="attr">#![doc(alias = <span class="string">&quot;getsockopt&quot;</span>)]
 #![doc(alias = <span class="string">&quot;setsockopt&quot;</span>)]
 
-#[cfg(not(any(
+#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::net::xdp::{XdpMmapOffsets, XdpOptionsFlags, XdpStatistics, XdpUmemReg};
+<span class="attr">#[cfg(not(any(
     apple,
     windows,
     target_os = <span class="string">&quot;aix&quot;</span>,
@@ -2752,6 +2854,104 @@
 #[doc(alias = <span class="string">&quot;SO_PEERCRED&quot;</span>)]
 </span><span class="kw">pub fn </span>get_socket_peercred&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;<span class="kw">super</span>::UCred&gt; {
     backend::net::sockopt::get_socket_peercred(fd.as_fd())
+}
+
+<span class="doccomment">/// `setsockopt(fd, SOL_XDP, XDP_UMEM_REG, value)`
+///
+/// On kernel versions only supporting v1, the flags are ignored.
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-umem-reg-setsockopt
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_UMEM_REG&quot;</span>)]
+</span><span class="kw">pub fn </span>set_xdp_umem_reg&lt;Fd: AsFd&gt;(fd: Fd, value: XdpUmemReg) -&gt; io::Result&lt;()&gt; {
+    backend::net::sockopt::set_xdp_umem_reg(fd.as_fd(), value)
+}
+
+<span class="doccomment">/// `setsockopt(fd, SOL_XDP, XDP_UMEM_FILL_RING, value)`
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_UMEM_FILL_RING&quot;</span>)]
+</span><span class="kw">pub fn </span>set_xdp_umem_fill_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
+    backend::net::sockopt::set_xdp_umem_fill_ring_size(fd.as_fd(), value)
+}
+
+<span class="doccomment">/// `setsockopt(fd, SOL_XDP, XDP_UMEM_COMPLETION_RING, value)`
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_UMEM_COMPLETION_RING&quot;</span>)]
+</span><span class="kw">pub fn </span>set_xdp_umem_completion_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
+    backend::net::sockopt::set_xdp_umem_completion_ring_size(fd.as_fd(), value)
+}
+
+<span class="doccomment">/// `setsockopt(fd, SOL_XDP, XDP_TX_RING, value)`
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_TX_RING&quot;</span>)]
+</span><span class="kw">pub fn </span>set_xdp_tx_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
+    backend::net::sockopt::set_xdp_tx_ring_size(fd.as_fd(), value)
+}
+
+<span class="doccomment">/// `setsockopt(fd, SOL_XDP, XDP_RX_RING, value)`
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_RX_RING&quot;</span>)]
+</span><span class="kw">pub fn </span>set_xdp_rx_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
+    backend::net::sockopt::set_xdp_rx_ring_size(fd.as_fd(), value)
+}
+
+<span class="doccomment">/// `getsockopt(fd, SOL_XDP, XDP_MMAP_OFFSETS)`
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_MMAP_OFFSETS&quot;</span>)]
+</span><span class="kw">pub fn </span>get_xdp_mmap_offsets&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;XdpMmapOffsets&gt; {
+    backend::net::sockopt::get_xdp_mmap_offsets(fd.as_fd())
+}
+
+<span class="doccomment">/// `getsockopt(fd, SOL_XDP, XDP_STATISTICS)`
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-statistics-getsockopt
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_STATISTICS&quot;</span>)]
+</span><span class="kw">pub fn </span>get_xdp_statistics&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;XdpStatistics&gt; {
+    backend::net::sockopt::get_xdp_statistics(fd.as_fd())
+}
+
+<span class="doccomment">/// `getsockopt(fd, SOL_XDP, XDP_OPTIONS)`
+///
+/// # References
+///   - [Linux]
+///
+/// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-options-getsockopt
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[doc(alias = <span class="string">&quot;XDP_OPTIONS&quot;</span>)]
+</span><span class="kw">pub fn </span>get_xdp_options&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;XdpOptionsFlags&gt; {
+    backend::net::sockopt::get_xdp_options(fd.as_fd())
 }
 
 <span class="attr">#[test]

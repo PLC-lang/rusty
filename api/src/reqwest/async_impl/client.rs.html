@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.22/src/async_impl/client.rs`."><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/async_impl/client.rs`."><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2490,6 +2490,47 @@
 <a href="#2490" id="2490">2490</a>
 <a href="#2491" id="2491">2491</a>
 <a href="#2492" id="2492">2492</a>
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a>
+<a href="#2497" id="2497">2497</a>
+<a href="#2498" id="2498">2498</a>
+<a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
+<a href="#2505" id="2505">2505</a>
+<a href="#2506" id="2506">2506</a>
+<a href="#2507" id="2507">2507</a>
+<a href="#2508" id="2508">2508</a>
+<a href="#2509" id="2509">2509</a>
+<a href="#2510" id="2510">2510</a>
+<a href="#2511" id="2511">2511</a>
+<a href="#2512" id="2512">2512</a>
+<a href="#2513" id="2513">2513</a>
+<a href="#2514" id="2514">2514</a>
+<a href="#2515" id="2515">2515</a>
+<a href="#2516" id="2516">2516</a>
+<a href="#2517" id="2517">2517</a>
+<a href="#2518" id="2518">2518</a>
+<a href="#2519" id="2519">2519</a>
+<a href="#2520" id="2520">2520</a>
+<a href="#2521" id="2521">2521</a>
+<a href="#2522" id="2522">2522</a>
+<a href="#2523" id="2523">2523</a>
+<a href="#2524" id="2524">2524</a>
+<a href="#2525" id="2525">2525</a>
+<a href="#2526" id="2526">2526</a>
+<a href="#2527" id="2527">2527</a>
+<a href="#2528" id="2528">2528</a>
+<a href="#2529" id="2529">2529</a>
+<a href="#2530" id="2530">2530</a>
+<a href="#2531" id="2531">2531</a>
+<a href="#2532" id="2532">2532</a>
+<a href="#2533" id="2533">2533</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>,))]
 </span><span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::net::IpAddr;
@@ -2529,7 +2570,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::dns::trust_dns::TrustDnsResolver;
 <span class="kw">use </span><span class="kw">crate</span>::dns::{gai::GaiResolver, DnsResolverWithOverrides, DynResolver, Resolve};
 <span class="kw">use </span><span class="kw">crate</span>::error;
-<span class="kw">use </span><span class="kw">crate</span>::into_url::{expect_uri, try_uri};
+<span class="kw">use </span><span class="kw">crate</span>::into_url::try_uri;
 <span class="kw">use </span><span class="kw">crate</span>::redirect::{<span class="self">self</span>, remove_sensitive_headers};
 <span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::tls::{<span class="self">self</span>, TlsBackend};
@@ -3278,7 +3319,11 @@
     /// Cookies received in responses will be preserved and included in
     /// additional requests.
     ///
-    /// By default, no cookie store is used.
+    /// By default, no cookie store is used. Enabling the cookie store
+    /// with `cookie_store(true)` will set the store to a default implementation.
+    /// It is **not** necessary to call [cookie_store(true)](crate::ClientBuilder::cookie_store) if [cookie_provider(my_cookie_store)](crate::ClientBuilder::cookie_provider)
+    /// is used; calling [cookie_store(true)](crate::ClientBuilder::cookie_store) _after_ [cookie_provider(my_cookie_store)](crate::ClientBuilder::cookie_provider) will result
+    /// in the provided `my_cookie_store` being **overridden** with a default implementation.
     ///
     /// # Optional
     ///
@@ -3299,7 +3344,10 @@
     /// Cookies received in responses will be passed to this store, and
     /// additional requests will query this store for cookies.
     ///
-    /// By default, no cookie store is used.
+    /// By default, no cookie store is used. It is **not** necessary to also call
+    /// [cookie_store(true)](crate::ClientBuilder::cookie_store) if [cookie_provider(my_cookie_store)](crate::ClientBuilder::cookie_provider) is used; calling
+    /// [cookie_store(true)](crate::ClientBuilder::cookie_store) _after_ [cookie_provider(my_cookie_store)](crate::ClientBuilder::cookie_provider) will result
+    /// in the provided `my_cookie_store` being **overridden** with a default implementation.
     ///
     /// # Optional
     ///
@@ -3596,6 +3644,7 @@
 
     <span class="doccomment">/// Only use HTTP/3.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(all(reqwest_unstable, feature = <span class="string">&quot;http3&quot;</span>,))))]
     </span><span class="kw">pub fn </span>http3_prior_knowledge(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.config.http_version_pref = HttpVersionPref::Http3;
         <span class="self">self
@@ -4004,6 +4053,14 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Restrict the Client to be used with HTTPS only requests.
+    ///
+    /// Defaults to false.
+    </span><span class="kw">pub fn </span>https_only(<span class="kw-2">mut </span><span class="self">self</span>, enabled: bool) -&gt; ClientBuilder {
+        <span class="self">self</span>.config.https_only = enabled;
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Enables the [trust-dns](trust_dns_resolver) async resolver instead of a default threadpool using `getaddrinfo`.
     ///
     /// If the `trust-dns` feature is turned on, the default option is enabled.
@@ -4034,14 +4091,6 @@
             <span class="self">self
         </span>}
     }
-
-    <span class="doccomment">/// Restrict the Client to be used with HTTPS only requests.
-    ///
-    /// Defaults to false.
-    </span><span class="kw">pub fn </span>https_only(<span class="kw-2">mut </span><span class="self">self</span>, enabled: bool) -&gt; ClientBuilder {
-        <span class="self">self</span>.config.https_only = enabled;
-        <span class="self">self
-    </span>}
 
     <span class="doccomment">/// Override DNS resolution for specific domains to a particular IP address.
     ///
@@ -4085,6 +4134,7 @@
     ///
     /// The default is false.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(all(reqwest_unstable, feature = <span class="string">&quot;http3&quot;</span>,))))]
     </span><span class="kw">pub fn </span>set_tls_enable_early_data(<span class="kw-2">mut </span><span class="self">self</span>, enabled: bool) -&gt; ClientBuilder {
         <span class="self">self</span>.config.tls_enable_early_data = enabled;
         <span class="self">self
@@ -4096,6 +4146,7 @@
     ///
     /// [`TransportConfig`]: https://docs.rs/quinn/latest/quinn/struct.TransportConfig.html
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(all(reqwest_unstable, feature = <span class="string">&quot;http3&quot;</span>,))))]
     </span><span class="kw">pub fn </span>set_quic_max_idle_timeout(<span class="kw-2">mut </span><span class="self">self</span>, value: Duration) -&gt; ClientBuilder {
         <span class="self">self</span>.config.quic_max_idle_timeout = <span class="prelude-val">Some</span>(value);
         <span class="self">self
@@ -4108,6 +4159,7 @@
     ///
     /// [`TransportConfig`]: https://docs.rs/quinn/latest/quinn/struct.TransportConfig.html
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(all(reqwest_unstable, feature = <span class="string">&quot;http3&quot;</span>,))))]
     </span><span class="kw">pub fn </span>set_quic_stream_receive_window(<span class="kw-2">mut </span><span class="self">self</span>, value: VarInt) -&gt; ClientBuilder {
         <span class="self">self</span>.config.quic_stream_receive_window = <span class="prelude-val">Some</span>(value);
         <span class="self">self
@@ -4120,6 +4172,7 @@
     ///
     /// [`TransportConfig`]: https://docs.rs/quinn/latest/quinn/struct.TransportConfig.html
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(all(reqwest_unstable, feature = <span class="string">&quot;http3&quot;</span>,))))]
     </span><span class="kw">pub fn </span>set_quic_receive_window(<span class="kw-2">mut </span><span class="self">self</span>, value: VarInt) -&gt; ClientBuilder {
         <span class="self">self</span>.config.quic_receive_window = <span class="prelude-val">Some</span>(value);
         <span class="self">self
@@ -4131,6 +4184,7 @@
     ///
     /// [`TransportConfig`]: https://docs.rs/quinn/latest/quinn/struct.TransportConfig.html
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(all(reqwest_unstable, feature = <span class="string">&quot;http3&quot;</span>,))))]
     </span><span class="kw">pub fn </span>set_quic_send_window(<span class="kw-2">mut </span><span class="self">self</span>, value: u64) -&gt; ClientBuilder {
         <span class="self">self</span>.config.quic_send_window = <span class="prelude-val">Some</span>(value);
         <span class="self">self
@@ -4289,7 +4343,10 @@
             }
         }
 
-        <span class="kw">let </span>uri = expect_uri(<span class="kw-2">&amp;</span>url);
+        <span class="kw">let </span>uri = <span class="kw">match </span>try_uri(<span class="kw-2">&amp;</span>url) {
+            <span class="prelude-val">Ok</span>(uri) =&gt; uri,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span>Pending::new_err(error::url_invalid_uri(url)),
+        };
 
         <span class="kw">let </span>(reusable, body) = <span class="kw">match </span>body {
             <span class="prelude-val">Some</span>(body) =&gt; {
@@ -4657,7 +4714,8 @@
         }
         <span class="self">self</span>.retry_count += <span class="number">1</span>;
 
-        <span class="kw">let </span>uri = expect_uri(<span class="kw-2">&amp;</span><span class="self">self</span>.url);
+        <span class="comment">// If it parsed once, it should parse again
+        </span><span class="kw">let </span>uri = try_uri(<span class="kw-2">&amp;</span><span class="self">self</span>.url).expect(<span class="string">&quot;URL was already validated as URI&quot;</span>);
 
         <span class="kw-2">*</span><span class="self">self</span>.as_mut().in_flight().get_mut() = <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.as_mut().in_flight().as_ref() {
             <span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
@@ -4704,9 +4762,16 @@
     <span class="kw">if let </span><span class="prelude-val">Some</span>(cause) = err.source() {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = cause.downcast_ref::&lt;h2::Error&gt;() {
             <span class="comment">// They sent us a graceful shutdown, try with a new connection!
-            </span><span class="kw">return </span>err.is_go_away()
-                &amp;&amp; err.is_remote()
-                &amp;&amp; err.reason() == <span class="prelude-val">Some</span>(h2::Reason::NO_ERROR);
+            </span><span class="kw">if </span>err.is_go_away() &amp;&amp; err.is_remote() &amp;&amp; err.reason() == <span class="prelude-val">Some</span>(h2::Reason::NO_ERROR) {
+                <span class="kw">return </span><span class="bool-val">true</span>;
+            }
+
+            <span class="comment">// REFUSED_STREAM was sent from the server, which is safe to retry.
+            // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.7-3.2
+            </span><span class="kw">if </span>err.is_reset() &amp;&amp; err.is_remote() &amp;&amp; err.reason() == <span class="prelude-val">Some</span>(h2::Reason::REFUSED_STREAM)
+            {
+                <span class="kw">return </span><span class="bool-val">true</span>;
+            }
         }
     }
     <span class="bool-val">false
@@ -4830,7 +4895,7 @@
                     //
                     // If not, just log it and skip the redirect.
                     </span><span class="kw">let </span>loc = loc.and_then(|url| {
-                        <span class="kw">if </span>try_uri(<span class="kw-2">&amp;</span>url).is_some() {
+                        <span class="kw">if </span>try_uri(<span class="kw-2">&amp;</span>url).is_ok() {
                             <span class="prelude-val">Some</span>(url)
                         } <span class="kw">else </span>{
                             <span class="prelude-val">None
@@ -4859,6 +4924,10 @@
                         redirect::ActionKind::Follow =&gt; {
                             <span class="macro">debug!</span>(<span class="string">&quot;redirecting &#39;{}&#39; to &#39;{}&#39;&quot;</span>, <span class="self">self</span>.url, loc);
 
+                            <span class="kw">if </span>loc.scheme() != <span class="string">&quot;http&quot; </span>&amp;&amp; loc.scheme() != <span class="string">&quot;https&quot; </span>{
+                                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(error::url_bad_scheme(loc)));
+                            }
+
                             <span class="kw">if </span><span class="self">self</span>.client.https_only &amp;&amp; loc.scheme() != <span class="string">&quot;https&quot; </span>{
                                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(error::redirect(
                                     error::url_bad_scheme(loc.clone()),
@@ -4871,7 +4940,7 @@
                                 std::mem::replace(<span class="self">self</span>.as_mut().headers(), HeaderMap::new());
 
                             remove_sensitive_headers(<span class="kw-2">&amp;mut </span>headers, <span class="kw-2">&amp;</span><span class="self">self</span>.url, <span class="kw-2">&amp;</span><span class="self">self</span>.urls);
-                            <span class="kw">let </span>uri = expect_uri(<span class="kw-2">&amp;</span><span class="self">self</span>.url);
+                            <span class="kw">let </span>uri = try_uri(<span class="kw-2">&amp;</span><span class="self">self</span>.url)<span class="question-mark">?</span>;
                             <span class="kw">let </span>body = <span class="kw">match </span><span class="self">self</span>.body {
                                 <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>body)) =&gt; Body::reusable(body.clone()),
                                 <span class="kw">_ </span>=&gt; Body::empty(),
@@ -4971,8 +5040,21 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="attr">#[tokio::test]
-    </span><span class="kw">async fn </span>execute_request_rejects_invald_urls() {
+    </span><span class="kw">async fn </span>execute_request_rejects_invalid_urls() {
         <span class="kw">let </span>url_str = <span class="string">&quot;hxxps://www.rust-lang.org/&quot;</span>;
+        <span class="kw">let </span>url = url::Url::parse(url_str).unwrap();
+        <span class="kw">let </span>result = <span class="kw">crate</span>::get(url.clone()).<span class="kw">await</span>;
+
+        <span class="macro">assert!</span>(result.is_err());
+        <span class="kw">let </span>err = result.err().unwrap();
+        <span class="macro">assert!</span>(err.is_builder());
+        <span class="macro">assert_eq!</span>(url_str, err.url().unwrap().as_str());
+    }
+
+    <span class="doccomment">/// https://github.com/seanmonstar/reqwest/issues/668
+    </span><span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>execute_request_rejects_invalid_hostname() {
+        <span class="kw">let </span>url_str = <span class="string">&quot;https://{{hostname}}/&quot;</span>;
         <span class="kw">let </span>url = url::Url::parse(url_str).unwrap();
         <span class="kw">let </span>result = <span class="kw">crate</span>::get(url.clone()).<span class="kw">await</span>;
 

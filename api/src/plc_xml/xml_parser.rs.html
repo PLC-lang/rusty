@@ -291,7 +291,7 @@
     <span class="comment">//Register the source file with the diagnostician
     </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); <span class="comment">// TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     </span><span class="kw">if </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors) == Severity::Error {
-        <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to parse errors&quot;</span>))
+        <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Compilation aborted due to parse errors&quot;</span>))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(unit)
     }

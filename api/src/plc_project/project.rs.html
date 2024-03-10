@@ -323,6 +323,11 @@
 <a href="#323" id="323">323</a>
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     path::{Path, PathBuf},
@@ -619,6 +624,11 @@
 
     <span class="kw">pub fn </span>get_output_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FormatOption {
         <span class="self">self</span>.format
+    }
+
+    <span class="doccomment">/// Returns the validation schema used for this project
+    </span><span class="kw">pub fn </span>get_validation_schema(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>AsRef&lt;str&gt; {
+        <span class="macro">include_str!</span>(<span class="string">&quot;../schema/plc-json.schema&quot;</span>)
     }
 }
 

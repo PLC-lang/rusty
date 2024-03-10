@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-4.0.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../event_listener/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="event_listener"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-5.2.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../event_listener/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="event_listener"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1352,6 +1352,130 @@
 <a href="#1352" id="1352">1352</a>
 <a href="#1353" id="1353">1353</a>
 <a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Notify async tasks or threads.
 //!
 //! This is a synchronization primitive similar to [eventcounts] invented by Dmitry Vyukov.
@@ -1373,7 +1497,7 @@
 //! use std::thread;
 //! use std::time::Duration;
 //! use std::usize;
-//! use event_listener::Event;
+//! use event_listener::{Event, Listener};
 //!
 //! let flag = Arc::new(AtomicBool::new(false));
 //! let event = Arc::new(Event::new());
@@ -1410,7 +1534,7 @@
 //!     }
 //!
 //!     // Wait for a notification and continue the loop.
-//!     listener.as_mut().wait();
+//!     listener.wait();
 //! }
 //! ```
 //!
@@ -1421,7 +1545,7 @@
 //!
 //! [`portable-atomic`]: https://crates.io/crates/portable-atomic
 
-</span><span class="attr">#![cfg_attr(all(not(feature = <span class="string">&quot;std&quot;</span>), not(test)), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
 #![doc(
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
@@ -1430,7 +1554,10 @@
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
 </span>)]
 
+#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
 </span><span class="kw">extern crate </span>alloc;
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">extern crate </span>std <span class="kw">as </span>alloc;
 
 <span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, path = <span class="string">&quot;std.rs&quot;</span>)]
 #[cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), path = <span class="string">&quot;no_std.rs&quot;</span>)]
@@ -1438,7 +1565,8 @@
 
 <span class="kw">mod </span>notify;
 
-<span class="kw">use </span>alloc::boxed::Box;
+<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="kw">use </span>alloc::boxed::Box;
 
 <span class="kw">use </span>core::borrow::Borrow;
 <span class="kw">use </span>core::fmt;
@@ -1459,11 +1587,6 @@
 
 <span class="kw">use </span>notify::{Internal, NotificationPrivate};
 <span class="kw">pub use </span>notify::{IntoNotification, Notification};
-
-<span class="doccomment">/// Useful traits for notifications.
-</span><span class="kw">pub mod </span>prelude {
-    <span class="kw">pub use crate</span>::{IntoNotification, Notification};
-}
 
 <span class="doccomment">/// Inner state of [`Event`].
 </span><span class="kw">struct </span>Inner&lt;T&gt; {
@@ -1528,9 +1651,9 @@
         <span class="kw">match </span><span class="self">self</span>.try_inner() {
             <span class="prelude-val">Some</span>(inner) =&gt; {
                 <span class="kw">let </span>notified_count = inner.notified.load(Ordering::Relaxed);
-                <span class="kw">let </span>total_count = <span class="kw">match </span>inner.list.total_listeners() {
-                    <span class="prelude-val">Ok</span>(total_count) =&gt; total_count,
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>total_count = <span class="kw">match </span>inner.list.try_total_listeners() {
+                    <span class="prelude-val">Some</span>(total_count) =&gt; total_count,
+                    <span class="prelude-val">None </span>=&gt; {
                         <span class="kw">return </span>f
                             .debug_tuple(<span class="string">&quot;Event&quot;</span>)
                             .field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;&lt;locked&gt;&quot;</span>))
@@ -1584,7 +1707,7 @@
     /// # Examples
     ///
     /// ```
-    /// use event_listener::Event;
+    /// use event_listener::{Event, Listener};
     ///
     /// let event = Event::new();
     /// let listener = event.listen();
@@ -1618,12 +1741,12 @@
     ///
     /// The above example is equivalent to this code:
     ///
-    /// ```
+    /// ```no_compile
     /// use event_listener::{Event, EventListener};
     ///
     /// let event = Event::new();
     /// let mut listener = Box::pin(EventListener::new());
-    /// listener.as_mut().listen(&amp;event);
+    /// listener.listen(&amp;event);
     /// ```
     ///
     /// It creates a new listener, pins it to the heap, and inserts it into the linked list
@@ -1633,10 +1756,18 @@
     /// allocated. However, users of this `new` method must be careful to ensure that the
     /// [`EventListener`] is `listen`ing before waiting on it; panics may occur otherwise.
     </span><span class="attr">#[cold]
-    </span><span class="kw">pub fn </span>listen(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pin&lt;Box&lt;EventListener&lt;T&gt;&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>listener = Box::pin(EventListener::new());
-        listener.as_mut().listen(<span class="self">self</span>);
-        listener
+    </span><span class="kw">pub fn </span>listen(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EventListener&lt;T&gt; {
+        <span class="kw">let </span>inner = ManuallyDrop::new(<span class="kw">unsafe </span>{ Arc::from_raw(<span class="self">self</span>.inner()) });
+
+        <span class="comment">// Allocate the listener on the heap and insert it.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>listener = Box::pin(InnerListener {
+            event: Arc::clone(<span class="kw-2">&amp;</span>inner),
+            listener: <span class="prelude-val">None</span>,
+        });
+        listener.as_mut().listen();
+
+        <span class="comment">// Return the listener.
+        </span>EventListener { listener }
     }
 
     <span class="doccomment">/// Notifies a number of active listeners.
@@ -1692,7 +1823,7 @@
     /// [`relaxed`]: IntoNotification::relaxed
     ///
     /// ```
-    /// use event_listener::{prelude::*, Event};
+    /// use event_listener::{IntoNotification, Event};
     /// use std::sync::atomic::{self, Ordering};
     ///
     /// let event = Event::new();
@@ -1721,7 +1852,7 @@
     /// [`additional`]: IntoNotification::additional
     ///
     /// ```
-    /// use event_listener::{prelude::*, Event};
+    /// use event_listener::{IntoNotification, Event};
     ///
     /// let event = Event::new();
     ///
@@ -1744,7 +1875,7 @@
     /// equivalent to calling [`Event::notify_additional_relaxed()`].
     ///
     /// ```
-    /// use event_listener::{prelude::*, Event};
+    /// use event_listener::{IntoNotification, Event};
     /// use std::sync::atomic::{self, Ordering};
     ///
     /// let event = Event::new();
@@ -1833,6 +1964,50 @@
 
         inner
     }
+
+    <span class="doccomment">/// Get the number of listeners currently listening to this [`Event`].
+    ///
+    /// This call returns the number of [`EventListener`]s that are currently listening to
+    /// this event. It does this by acquiring the internal event lock and reading the listener
+    /// count. Therefore it is only available for `std`-enabled platforms.
+    ///
+    /// # Caveats
+    ///
+    /// This function returns just a snapshot of the number of listeners at this point in time.
+    /// Due to the nature of multi-threaded CPUs, it is possible that this number will be
+    /// inaccurate by the time that this function returns.
+    ///
+    /// It is possible for the actual number to change at any point. Therefore, the number should
+    /// only ever be used as a hint.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use event_listener::Event;
+    ///
+    /// let event = Event::new();
+    ///
+    /// assert_eq!(event.total_listeners(), 0);
+    ///
+    /// let listener1 = event.listen();
+    /// assert_eq!(event.total_listeners(), 1);
+    ///
+    /// let listener2 = event.listen();
+    /// assert_eq!(event.total_listeners(), 2);
+    ///
+    /// drop(listener1);
+    /// drop(listener2);
+    /// assert_eq!(event.total_listeners(), 0);
+    /// ```
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    #[inline]
+    </span><span class="kw">pub fn </span>total_listeners(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.try_inner() {
+            inner.list.total_listeners()
+        } <span class="kw">else </span>{
+            <span class="number">0
+        </span>}
+    }
 }
 
 <span class="kw">impl </span>Event&lt;()&gt; {
@@ -1865,7 +2040,7 @@
     /// use [`Event::notify()`] like so:
     ///
     /// ```
-    /// use event_listener::{prelude::*, Event};
+    /// use event_listener::{IntoNotification, Event};
     /// let event = Event::new();
     ///
     /// // Old way:
@@ -1878,7 +2053,7 @@
     /// # Examples
     ///
     /// ```
-    /// use event_listener::Event;
+    /// use event_listener::{Event, IntoNotification};
     /// use std::sync::atomic::{self, Ordering};
     ///
     /// let event = Event::new();
@@ -1917,7 +2092,7 @@
     /// use [`Event::notify()`] like so:
     ///
     /// ```
-    /// use event_listener::{prelude::*, Event};
+    /// use event_listener::{IntoNotification, Event};
     /// let event = Event::new();
     ///
     /// // Old way:
@@ -1967,7 +2142,7 @@
     /// use [`Event::notify()`] like so:
     ///
     /// ```
-    /// use event_listener::{prelude::*, Event};
+    /// use event_listener::{IntoNotification, Event};
     /// let event = Event::new();
     ///
     /// // Old way:
@@ -2022,194 +2197,17 @@
     }
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
-    <span class="doccomment">/// A guard waiting for a notification from an [`Event`].
-    ///
-    /// There are two ways for a listener to wait for a notification:
-    ///
-    /// 1. In an asynchronous manner using `.await`.
-    /// 2. In a blocking manner by calling [`EventListener::wait()`] on it.
-    ///
-    /// If a notified listener is dropped without receiving a notification, dropping will notify
-    /// another active listener. Whether one *additional* listener will be notified depends on what
-    /// kind of notification was delivered.
-    ///
-    /// The listener is not registered into the linked list inside of the [`Event`] by default if
-    /// it is created via the `new()` method. It needs to be pinned first before being inserted
-    /// using the `listen()` method. After the listener has begun `listen`ing, the user can
-    /// `await` it like a future or call `wait()` to block the current thread until it is notified.
-    ///
-    /// ## Examples
-    ///
-    /// ```
-    /// use event_listener::{Event, EventListener};
-    /// use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
-    /// use std::thread;
-    /// use std::time::Duration;
-    ///
-    /// // Some flag to wait on.
-    /// let flag = Arc::new(AtomicBool::new(false));
-    ///
-    /// // Create an event to wait on.
-    /// let event = Arc::new(Event::new());
-    ///
-    /// thread::spawn({
-    ///     let flag = flag.clone();
-    ///     let event = event.clone();
-    ///     move || {
-    ///         thread::sleep(Duration::from_secs(2));
-    ///         flag.store(true, Ordering::SeqCst);
-    ///
-    ///         // Wake up the listener.
-    ///         event.notify_additional(std::usize::MAX);
-    ///     }
-    /// });
-    ///
-    /// let listener = EventListener::new();
-    ///
-    /// // Make sure that the event listener is pinned before doing anything else.
-    /// //
-    /// // We pin the listener to the stack here, as it lets us avoid a heap allocation.
-    /// futures_lite::pin!(listener);
-    ///
-    /// // Wait for the flag to become ready.
-    /// loop {
-    ///     if flag.load(Ordering::Acquire) {
-    ///         // We are done.
-    ///         break;
-    ///     }
-    ///
-    ///     if listener.is_listening() {
-    ///         // We are inserted into the linked list and we can now wait.
-    ///         listener.as_mut().wait();
-    ///     } else {
-    ///         // We need to insert ourselves into the list. Since this insertion is an atomic
-    ///         // operation, we should check the flag again before waiting.
-    ///         listener.as_mut().listen(&amp;event);
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// The above example is equivalent to the one provided in the crate level example. However,
-    /// it has some advantages. By directly creating the listener with `EventListener::new()`,
-    /// we have control over how the listener is handled in memory. We take advantage of this by
-    /// pinning the `listener` variable to the stack using the [`futures_lite::pin`] macro. In
-    /// contrast, `Event::listen` binds the listener to the heap.
-    ///
-    /// However, this additional power comes with additional responsibility. By default, the
-    /// event listener is created in an &quot;uninserted&quot; state. This property means that any
-    /// notifications delivered to the [`Event`] by default will not wake up this listener.
-    /// Before any notifications can be received, the `listen()` method must be called on
-    /// `EventListener` to insert it into the list of listeners. After a `.await` or a `wait()`
-    /// call has completed, `listen()` must be called again if the user is still interested in
-    /// any events.
-    ///
-    /// [`futures_lite::pin`]: https://docs.rs/futures-lite/latest/futures_lite/macro.pin.html
-    </span><span class="attr">#[project(!Unpin)] </span><span class="comment">// implied by Listener, but can generate better docs
-    </span><span class="kw">pub struct </span>EventListener&lt;T = ()&gt; {
-        <span class="attr">#[pin]
-        </span>listener: Listener&lt;T, Arc&lt;Inner&lt;T&gt;&gt;&gt;,
-    }
-}
-
-<span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>EventListener&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>EventListener&lt;T&gt; {}
-
-<span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>EventListener&lt;T&gt; {}
-<span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>EventListener&lt;T&gt; {}
-
-<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>EventListener&lt;T&gt; {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new()
-    }
-}
-
-<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>EventListener&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;EventListener&quot;</span>)
-            .field(<span class="string">&quot;listening&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_listening())
-            .finish()
-    }
-}
-
-<span class="kw">impl</span>&lt;T&gt; EventListener&lt;T&gt; {
-    <span class="doccomment">/// Create a new `EventListener` that will wait for a notification from the given [`Event`].
-    ///
-    /// This function does not register the `EventListener` into the linked list of listeners
-    /// contained within the [`Event`]. Make sure to call `listen` before `await`ing on
-    /// this future or calling `wait()`.
-    ///
-    /// ## Examples
-    ///
-    /// ```
-    /// use event_listener::{Event, EventListener};
-    ///
-    /// let event = Event::new();
-    /// let listener = EventListener::new();
-    ///
-    /// // Make sure that the listener is pinned and listening before doing anything else.
-    /// let mut listener = Box::pin(listener);
-    /// listener.as_mut().listen(&amp;event);
-    /// ```
-    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            listener: Listener {
-                event: <span class="prelude-val">None</span>,
-                listener: <span class="prelude-val">None</span>,
-            },
-        }
-    }
-
-    <span class="doccomment">/// Register this listener into the given [`Event`].
-    ///
-    /// This method can only be called after the listener has been pinned, and must be called before
-    /// the listener is polled.
-    </span><span class="kw">pub fn </span>listen(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, event: <span class="kw-2">&amp;</span>Event&lt;T&gt;) {
-        <span class="kw">let </span>inner = {
-            <span class="kw">let </span>inner = event.inner();
-            <span class="kw">unsafe </span>{ Arc::clone(<span class="kw-2">&amp;</span>ManuallyDrop::new(Arc::from_raw(inner))) }
-        };
-
-        <span class="kw">let </span>ListenerProject { event, listener } = <span class="self">self</span>.as_mut().project().listener.project();
-        <span class="kw">let </span>inner = event.insert(inner);
-        inner.insert(listener);
-
-        <span class="comment">// Make sure the listener is registered before whatever happens next.
-        </span>notify::full_fence();
-    }
-
-    <span class="doccomment">/// Tell if this [`EventListener`] is currently listening for a notification.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use event_listener::{Event, EventListener};
-    ///
-    /// let event = Event::new();
-    /// let mut listener = Box::pin(EventListener::new());
-    ///
-    /// // The listener starts off not listening.
-    /// assert!(!listener.is_listening());
-    ///
-    /// // After listen() is called, the listener is listening.
-    /// listener.as_mut().listen(&amp;event);
-    /// assert!(listener.is_listening());
-    ///
-    /// // Once the future is notified, the listener is no longer listening.
-    /// event.notify(1);
-    /// listener.as_mut().wait();
-    /// assert!(!listener.is_listening());
-    /// ```
-    </span><span class="kw">pub fn </span>is_listening(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.listener.listener.is_some()
-    }
-
+<span class="doccomment">/// A handle that is listening to an [`Event`].
+///
+/// This trait represents a type waiting for a notification from an [`Event`]. See the
+/// [`EventListener`] type for more documentation on this trait&#39;s usage.
+</span><span class="kw">pub trait </span>Listener&lt;T = ()&gt;: Future&lt;Output = T&gt; + __sealed::Sealed {
     <span class="doccomment">/// Blocks until a notification is received.
     ///
     /// # Examples
     ///
     /// ```
-    /// use event_listener::Event;
+    /// use event_listener::{Event, Listener};
     ///
     /// let event = Event::new();
     /// let mut listener = event.listen();
@@ -2218,12 +2216,10 @@
     /// event.notify(1);
     ///
     /// // Receive the notification.
-    /// listener.as_mut().wait();
+    /// listener.wait();
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
-    </span><span class="kw">pub fn </span>wait(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; T {
-        <span class="self">self</span>.listener().wait_internal(<span class="prelude-val">None</span>).unwrap()
-    }
+    </span><span class="kw">fn </span>wait(<span class="self">self</span>) -&gt; T;
 
     <span class="doccomment">/// Blocks until a notification is received or a timeout is reached.
     ///
@@ -2233,19 +2229,16 @@
     ///
     /// ```
     /// use std::time::Duration;
-    /// use event_listener::Event;
+    /// use event_listener::{Event, Listener};
     ///
     /// let event = Event::new();
     /// let mut listener = event.listen();
     ///
     /// // There are no notification so this times out.
-    /// assert!(listener.as_mut().wait_timeout(Duration::from_secs(1)).is_none());
+    /// assert!(listener.wait_timeout(Duration::from_secs(1)).is_none());
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
-    </span><span class="kw">pub fn </span>wait_timeout(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, timeout: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="self">self</span>.listener()
-            .wait_internal(Instant::now().checked_add(timeout))
-    }
+    </span><span class="kw">fn </span>wait_timeout(<span class="self">self</span>, timeout: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;;
 
     <span class="doccomment">/// Blocks until a notification is received or a deadline is reached.
     ///
@@ -2255,18 +2248,16 @@
     ///
     /// ```
     /// use std::time::{Duration, Instant};
-    /// use event_listener::Event;
+    /// use event_listener::{Event, Listener};
     ///
     /// let event = Event::new();
     /// let mut listener = event.listen();
     ///
     /// // There are no notification so this times out.
-    /// assert!(listener.as_mut().wait_deadline(Instant::now() + Duration::from_secs(1)).is_none());
+    /// assert!(listener.wait_deadline(Instant::now() + Duration::from_secs(1)).is_none());
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
-    </span><span class="kw">pub fn </span>wait_deadline(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: Instant) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="self">self</span>.listener().wait_internal(<span class="prelude-val">Some</span>(deadline))
-    }
+    </span><span class="kw">fn </span>wait_deadline(<span class="self">self</span>, deadline: Instant) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;;
 
     <span class="doccomment">/// Drops this listener and discards its notification (if any) without notifying another
     /// active listener.
@@ -2274,8 +2265,9 @@
     /// Returns `true` if a notification was discarded.
     ///
     /// # Examples
+    ///
     /// ```
-    /// use event_listener::Event;
+    /// use event_listener::{Event, Listener};
     ///
     /// let event = Event::new();
     /// let mut listener1 = event.listen();
@@ -2283,40 +2275,31 @@
     ///
     /// event.notify(1);
     ///
-    /// assert!(listener1.as_mut().discard());
-    /// assert!(!listener2.as_mut().discard());
+    /// assert!(listener1.discard());
+    /// assert!(!listener2.discard());
     /// ```
-    </span><span class="kw">pub fn </span>discard(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; bool {
-        <span class="self">self</span>.project().listener.discard()
-    }
+    </span><span class="kw">fn </span>discard(<span class="self">self</span>) -&gt; bool;
 
     <span class="doccomment">/// Returns `true` if this listener listens to the given `Event`.
     ///
     /// # Examples
     ///
     /// ```
-    /// use event_listener::Event;
+    /// use event_listener::{Event, Listener};
     ///
     /// let event = Event::new();
     /// let listener = event.listen();
     ///
     /// assert!(listener.listens_to(&amp;event));
     /// ```
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>listens_to(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;T&gt;) -&gt; bool {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="kw-2">&amp;</span><span class="self">self</span>.listener.event {
-            <span class="kw">return </span>ptr::eq::&lt;Inner&lt;T&gt;&gt;(<span class="kw-2">&amp;**</span>inner, event.inner.load(Ordering::Acquire));
-        }
-
-        <span class="bool-val">false
-    </span>}
+    </span><span class="kw">fn </span>listens_to(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;T&gt;) -&gt; bool;
 
     <span class="doccomment">/// Returns `true` if both listeners listen to the same `Event`.
     ///
     /// # Examples
     ///
     /// ```
-    /// use event_listener::Event;
+    /// use event_listener::{Event, Listener};
     ///
     /// let event = Event::new();
     /// let listener1 = event.listen();
@@ -2324,40 +2307,213 @@
     ///
     /// assert!(listener1.same_event(&amp;listener2));
     /// ```
-    </span><span class="kw">pub fn </span>same_event(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>EventListener&lt;T&gt;) -&gt; bool {
-        <span class="kw">if let </span>(<span class="prelude-val">Some</span>(inner1), <span class="prelude-val">Some</span>(inner2)) = (<span class="self">self</span>.inner(), other.inner()) {
-            <span class="kw">return </span>ptr::eq::&lt;Inner&lt;T&gt;&gt;(<span class="kw-2">&amp;**</span>inner1, <span class="kw-2">&amp;**</span>inner2);
+    </span><span class="kw">fn </span>same_event(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool;
+}
+
+<span class="doccomment">/// Implement the `Listener` trait using the underlying `InnerListener`.
+</span><span class="macro">macro_rules! </span>forward_impl_to_listener {
+    (<span class="macro-nonterminal">$gen</span>:ident =&gt; <span class="macro-nonterminal">$ty</span>:ty) =&gt; {
+        <span class="kw">impl</span>&lt;<span class="macro-nonterminal">$gen</span>&gt; <span class="kw">crate</span>::Listener&lt;<span class="macro-nonterminal">$gen</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
+            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            </span><span class="kw">fn </span>wait(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="macro-nonterminal">$gen </span>{
+                <span class="self">self</span>.listener_mut().wait_internal(<span class="prelude-val">None</span>).unwrap()
+            }
+
+            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            </span><span class="kw">fn </span>wait_timeout(<span class="kw-2">mut </span><span class="self">self</span>, timeout: std::time::Duration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$gen</span>&gt; {
+                <span class="self">self</span>.listener_mut()
+                    .wait_internal(std::time::Instant::now().checked_add(timeout))
+            }
+
+            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            </span><span class="kw">fn </span>wait_deadline(<span class="kw-2">mut </span><span class="self">self</span>, deadline: std::time::Instant) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$gen</span>&gt; {
+                <span class="self">self</span>.listener_mut().wait_internal(<span class="prelude-val">Some</span>(deadline))
+            }
+
+            <span class="kw">fn </span>discard(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; bool {
+                <span class="self">self</span>.listener_mut().discard()
+            }
+
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>listens_to(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="macro-nonterminal">$gen</span>&gt;) -&gt; bool {
+                core::ptr::eq::&lt;Inner&lt;<span class="macro-nonterminal">$gen</span>&gt;&gt;(
+                    <span class="kw-2">&amp;*</span><span class="self">self</span>.listener().event,
+                    event.inner.load(core::sync::atomic::Ordering::Acquire),
+                )
+            }
+
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>same_event(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$ty</span>) -&gt; bool {
+                core::ptr::eq::&lt;Inner&lt;<span class="macro-nonterminal">$gen</span>&gt;&gt;(<span class="kw-2">&amp;*</span><span class="self">self</span>.listener().event, <span class="kw-2">&amp;*</span>other.listener().event)
+            }
         }
 
-        <span class="bool-val">false
-    </span>}
+        <span class="kw">impl</span>&lt;<span class="macro-nonterminal">$gen</span>&gt; Future <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
+            <span class="kw">type </span>Output = <span class="macro-nonterminal">$gen</span>;
 
-    <span class="kw">fn </span>listener(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>Listener&lt;T, Arc&lt;Inner&lt;T&gt;&gt;&gt;&gt; {
-        <span class="self">self</span>.project().listener
-    }
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="macro-nonterminal">$gen</span>&gt; {
+                <span class="self">self</span>.listener_mut().poll_internal(cx)
+            }
+        }
+    };
+}
 
-    <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Arc&lt;Inner&lt;T&gt;&gt;&gt; {
-        <span class="self">self</span>.listener.event.as_ref()
+<span class="doccomment">/// A guard waiting for a notification from an [`Event`].
+///
+/// There are two ways for a listener to wait for a notification:
+///
+/// 1. In an asynchronous manner using `.await`.
+/// 2. In a blocking manner by calling [`EventListener::wait()`] on it.
+///
+/// If a notified listener is dropped without receiving a notification, dropping will notify
+/// another active listener. Whether one *additional* listener will be notified depends on what
+/// kind of notification was delivered.
+///
+/// See the [`Listener`] trait for the functionality exposed by this type.
+///
+/// This structure allocates the listener on the heap.
+</span><span class="kw">pub struct </span>EventListener&lt;T = ()&gt; {
+    listener: Pin&lt;Box&lt;InnerListener&lt;T, Arc&lt;Inner&lt;T&gt;&gt;&gt;&gt;&gt;,
+}
+
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>EventListener&lt;T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>EventListener&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>EventListener&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>EventListener&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; Unpin <span class="kw">for </span>EventListener&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>EventListener&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;EventListener&quot;</span>).finish_non_exhaustive()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>EventListener&lt;T&gt; {
-    <span class="kw">type </span>Output = T;
-
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="self">self</span>.listener().poll_internal(cx)
+<span class="kw">impl</span>&lt;T&gt; EventListener&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>listener(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerListener&lt;T, Arc&lt;Inner&lt;T&gt;&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.listener
     }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>listener_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>InnerListener&lt;T, Arc&lt;Inner&lt;T&gt;&gt;&gt;&gt; {
+        <span class="self">self</span>.listener.as_mut()
+    }
+}
+
+<span class="macro">forward_impl_to_listener! </span>{ T =&gt; EventListener&lt;T&gt; }
+
+<span class="doccomment">/// Create a stack-based event listener for an [`Event`].
+///
+/// [`EventListener`] allocates the listener on the heap. While this works for most use cases, in
+/// practice this heap allocation can be expensive for repeated uses. This method allows for
+/// allocating the listener on the stack instead.
+///
+/// There are limitations to using this macro instead of the [`EventListener`] type, however.
+/// Firstly, it is significantly less flexible. The listener is locked to the current stack
+/// frame, meaning that it can&#39;t be returned or put into a place where it would go out of
+/// scope. For instance, this will not work:
+///
+/// ```compile_fail
+/// use event_listener::{Event, Listener, listener};
+///
+/// fn get_listener(event: &amp;Event) -&gt; impl Listener {
+///     listener!(event =&gt; cant_return_this);
+///     cant_return_this
+/// }
+/// ```
+///
+/// In addition, the types involved in creating this listener are not able to be named. Therefore
+/// it cannot be used in hand-rolled futures or similar structures.
+///
+/// The type created by this macro implements [`Listener`], allowing it to be used in cases where
+/// [`EventListener`] would normally be used.
+///
+/// ## Example
+///
+/// To use this macro, replace cases where you would normally use this...
+///
+/// ```no_compile
+/// let listener = event.listen();
+/// ```
+///
+/// ...with this:
+///
+/// ```no_compile
+/// listener!(event =&gt; listener);
+/// ```
+///
+/// Here is the top level example from this crate&#39;s documentation, but using [`listener`] instead
+/// of [`EventListener`].
+///
+/// ```
+/// use std::sync::atomic::{AtomicBool, Ordering};
+/// use std::sync::Arc;
+/// use std::thread;
+/// use std::time::Duration;
+/// use std::usize;
+/// use event_listener::{Event, listener, IntoNotification, Listener};
+///
+/// let flag = Arc::new(AtomicBool::new(false));
+/// let event = Arc::new(Event::new());
+///
+/// // Spawn a thread that will set the flag after 1 second.
+/// thread::spawn({
+///     let flag = flag.clone();
+///     let event = event.clone();
+///     move || {
+///         // Wait for a second.
+///         thread::sleep(Duration::from_secs(1));
+///
+///         // Set the flag.
+///         flag.store(true, Ordering::SeqCst);
+///
+///         // Notify all listeners that the flag has been set.
+///         event.notify(usize::MAX);
+///     }
+/// });
+///
+/// // Wait until the flag is set.
+/// loop {
+///     // Check the flag.
+///     if flag.load(Ordering::SeqCst) {
+///         break;
+///     }
+///
+///     // Start listening for events.
+///     // NEW: Changed to a stack-based listener.
+///     listener!(event =&gt; listener);
+///
+///     // Check the flag again after creating the listener.
+///     if flag.load(Ordering::SeqCst) {
+///         break;
+///     }
+///
+///     // Wait for a notification and continue the loop.
+///     listener.wait();
+/// }
+/// ```
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules! </span>listener {
+    (<span class="macro-nonterminal">$event</span>:expr =&gt; <span class="macro-nonterminal">$listener</span>:ident) =&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$listener </span>= <span class="macro-nonterminal">$crate::__private::StackSlot::new</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$event</span>);
+        <span class="comment">// SAFETY: We shadow $listener so it can&#39;t be moved after.
+        </span><span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$listener </span>= <span class="kw">unsafe </span>{ <span class="macro-nonterminal">$crate::__private::Pin::new_unchecked</span>(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$listener</span>) };
+        <span class="attr">#[allow(unused_mut)]
+        </span><span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$listener </span>= <span class="macro-nonterminal">$listener</span>.listen();
+    };
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="attr">#[project(!Unpin)]
     #[project = ListenerProject]
-    </span><span class="kw">struct </span>Listener&lt;T, B: Borrow&lt;Inner&lt;T&gt;&gt;&gt;
+    </span><span class="kw">struct </span>InnerListener&lt;T, B: Borrow&lt;Inner&lt;T&gt;&gt;&gt;
     <span class="kw">where
         </span>B: Unpin,
     {
         <span class="comment">// The reference to the original event.
-        </span>event: <span class="prelude-ty">Option</span>&lt;B&gt;,
+        </span>event: B,
 
         <span class="comment">// The inner state of the listener.
         //
@@ -2367,55 +2523,55 @@
         </span>listener: <span class="prelude-ty">Option</span>&lt;sys::Listener&lt;T&gt;&gt;,
     }
 
-    <span class="kw">impl</span>&lt;T, B: Borrow&lt;Inner&lt;T&gt;&gt;&gt; PinnedDrop <span class="kw">for </span>Listener&lt;T, B&gt;
+    <span class="kw">impl</span>&lt;T, B: Borrow&lt;Inner&lt;T&gt;&gt;&gt; PinnedDrop <span class="kw">for </span>InnerListener&lt;T, B&gt;
     <span class="kw">where
         </span>B: Unpin,
     {
         <span class="kw">fn </span>drop(<span class="kw-2">mut </span>this: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
             <span class="comment">// If we&#39;re being dropped, we need to remove ourself from the list.
             </span><span class="kw">let </span>this = this.project();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = this.event {
-                (<span class="kw-2">*</span>inner).borrow().remove(this.listener, <span class="bool-val">true</span>);
-            }
+            (<span class="kw-2">*</span>this.event).borrow().remove(this.listener, <span class="bool-val">true</span>);
         }
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send, B: Borrow&lt;Inner&lt;T&gt;&gt; + Unpin + Send&gt; Send <span class="kw">for </span>Listener&lt;T, B&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Send, B: Borrow&lt;Inner&lt;T&gt;&gt; + Unpin + Sync&gt; Sync <span class="kw">for </span>Listener&lt;T, B&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send, B: Borrow&lt;Inner&lt;T&gt;&gt; + Unpin + Send&gt; Send <span class="kw">for </span>InnerListener&lt;T, B&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send, B: Borrow&lt;Inner&lt;T&gt;&gt; + Unpin + Sync&gt; Sync <span class="kw">for </span>InnerListener&lt;T, B&gt; {}
 
-<span class="kw">impl</span>&lt;T, B: Borrow&lt;Inner&lt;T&gt;&gt; + Unpin&gt; Listener&lt;T, B&gt; {
+<span class="kw">impl</span>&lt;T, B: Borrow&lt;Inner&lt;T&gt;&gt; + Unpin&gt; InnerListener&lt;T, B&gt; {
+    <span class="doccomment">/// Insert this listener into the linked list.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">fn </span>listen(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        (<span class="kw-2">*</span>this.event).borrow().insert(this.listener);
+    }
+
     <span class="doccomment">/// Wait until the provided deadline.
     </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
     </span><span class="kw">fn </span>wait_internal(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">use </span>std::cell::RefCell;
+        <span class="kw">fn </span>parker_and_task() -&gt; (Parker, Task) {
+            <span class="kw">let </span>parker = Parker::new();
+            <span class="kw">let </span>unparker = parker.unparker();
+            (parker, Task::Unparker(unparker))
+        }
 
         <span class="macro">std::thread_local! </span>{
             <span class="doccomment">/// Cached thread-local parker/unparker pair.
-            </span><span class="kw">static </span>PARKER: RefCell&lt;<span class="prelude-ty">Option</span>&lt;(Parker, Task)&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+            </span><span class="kw">static </span>PARKER: (Parker, Task) = parker_and_task();
         }
 
         <span class="comment">// Try to borrow the thread-local parker/unparker pair.
         </span>PARKER
             .try_with({
                 <span class="kw">let </span>this = <span class="self">self</span>.as_mut();
-                |parker| {
-                    <span class="kw">let </span><span class="kw-2">mut </span>pair = parker
-                        .try_borrow_mut()
-                        .expect(<span class="string">&quot;Shouldn&#39;t be able to borrow parker reentrantly&quot;</span>);
-                    <span class="kw">let </span>(parker, unparker) = pair.get_or_insert_with(|| {
-                        <span class="kw">let </span>(parker, unparker) = parking::pair();
-                        (parker, Task::Unparker(unparker))
-                    });
-
-                    this.wait_with_parker(deadline, parker, unparker.as_task_ref())
-                }
+                |(parker, unparker)| this.wait_with_parker(deadline, parker, unparker.as_task_ref())
             })
             .unwrap_or_else(|<span class="kw">_</span>| {
                 <span class="comment">// If the pair isn&#39;t accessible, we may be being called in a destructor.
                 // Just create a new pair.
                 </span><span class="kw">let </span>(parker, unparker) = parking::pair();
-                <span class="self">self</span>.wait_with_parker(deadline, <span class="kw-2">&amp;</span>parker, TaskRef::Unparker(<span class="kw-2">&amp;</span>unparker))
+                <span class="self">self</span>.as_mut()
+                    .wait_with_parker(deadline, <span class="kw-2">&amp;</span>parker, TaskRef::Unparker(<span class="kw-2">&amp;</span>unparker))
             })
     }
 
@@ -2428,11 +2584,7 @@
         unparker: TaskRef&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
-        <span class="kw">let </span>inner = (<span class="kw-2">*</span>this
-            .event
-            .as_ref()
-            .expect(<span class="string">&quot;must listen() on event listener before waiting&quot;</span>))
-        .borrow();
+        <span class="kw">let </span>inner = (<span class="kw-2">*</span>this.event).borrow();
 
         <span class="comment">// Set the listener&#39;s state to `Task`.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tag) = inner.register(this.listener.as_mut(), unparker).notified() {
@@ -2451,10 +2603,11 @@
                     <span class="kw">if </span>now &gt;= deadline {
                         <span class="comment">// Remove our entry and check if we were notified.
                         </span><span class="kw">return </span>inner
-                            .remove(this.listener, <span class="bool-val">false</span>)
+                            .remove(this.listener.as_mut(), <span class="bool-val">false</span>)
                             .expect(<span class="string">&quot;We never removed ourself from the list&quot;</span>)
                             .notified();
                     }
+                    parker.park_deadline(deadline);
                 }
             }
 
@@ -2469,28 +2622,20 @@
     /// active listener.
     </span><span class="kw">fn </span>discard(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; bool {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = this.event.as_ref() {
-            (<span class="kw-2">*</span>inner)
-                .borrow()
-                .remove(this.listener, <span class="bool-val">false</span>)
-                .map_or(<span class="bool-val">false</span>, |state| state.is_notified())
-        } <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}
+        (<span class="kw-2">*</span>this.event)
+            .borrow()
+            .remove(this.listener, <span class="bool-val">false</span>)
+            .map_or(<span class="bool-val">false</span>, |state| state.is_notified())
     }
 
     <span class="doccomment">/// Poll this listener for a notification.
     </span><span class="kw">fn </span>poll_internal(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
-        <span class="kw">let </span>inner = <span class="kw">match </span><span class="kw-2">&amp;</span>this.event {
-            <span class="prelude-val">Some</span>(inner) =&gt; (<span class="kw-2">*</span>inner).borrow(),
-            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;&quot;</span>),
-        };
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>inner = (<span class="kw-2">*</span>this.event).borrow();
 
         <span class="comment">// Try to register the listener.
         </span><span class="kw">match </span>inner
-            .register(this.listener.as_mut(), TaskRef::Waker(cx.waker()))
+            .register(this.listener, TaskRef::Waker(cx.waker()))
             .notified()
         {
             <span class="prelude-val">Some</span>(tag) =&gt; {
@@ -2701,9 +2846,112 @@
     <span class="kw">fn </span>_assert_send&lt;T: Send&gt;() {}
     <span class="kw">fn </span>_assert_sync&lt;T: Sync&gt;() {}
 
+    _assert_send::&lt;<span class="kw">crate</span>::__private::StackSlot&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt;();
+    _assert_sync::&lt;<span class="kw">crate</span>::__private::StackSlot&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt;();
+    _assert_send::&lt;<span class="kw">crate</span>::__private::StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, ()&gt;&gt;();
+    _assert_sync::&lt;<span class="kw">crate</span>::__private::StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, ()&gt;&gt;();
     _assert_send::&lt;Event&lt;()&gt;&gt;();
     _assert_sync::&lt;Event&lt;()&gt;&gt;();
     _assert_send::&lt;EventListener&lt;()&gt;&gt;();
     _assert_sync::&lt;EventListener&lt;()&gt;&gt;();
+}
+
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">mod </span>__sealed {
+    <span class="kw">use super</span>::{EventListener, __private::StackListener};
+
+    <span class="kw">pub trait </span>Sealed {}
+    <span class="kw">impl</span>&lt;T&gt; Sealed <span class="kw">for </span>EventListener&lt;T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; Sealed <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
+}
+
+<span class="doccomment">/// Semver exempt module.
+</span><span class="attr">#[doc(hidden)]
+</span><span class="kw">pub mod </span>__private {
+    <span class="kw">pub use </span>core::pin::Pin;
+
+    <span class="kw">use super</span>::{Event, Inner, InnerListener};
+    <span class="kw">use </span>core::fmt;
+    <span class="kw">use </span>core::future::Future;
+    <span class="kw">use </span>core::task::{Context, Poll};
+
+    <span class="macro">pin_project_lite::pin_project! </span>{
+        <span class="doccomment">/// Space on the stack where a stack-based listener can be allocated.
+        </span><span class="attr">#[doc(hidden)]
+        #[project(!Unpin)]
+        </span><span class="kw">pub struct </span>StackSlot&lt;<span class="lifetime">&#39;ev</span>, T&gt; {
+            <span class="attr">#[pin]
+            </span>listener: InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Inner&lt;T&gt;&gt;
+        }
+    }
+
+    <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            f.debug_struct(<span class="string">&quot;StackSlot&quot;</span>).finish_non_exhaustive()
+        }
+    }
+
+    <span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ev</span>, T&gt; StackSlot&lt;<span class="lifetime">&#39;ev</span>, T&gt; {
+        <span class="doccomment">/// Create a new `StackSlot` on the stack.
+        </span><span class="attr">#[inline]
+        #[doc(hidden)]
+        </span><span class="kw">pub fn </span>new(event: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Event&lt;T&gt;) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>inner = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>event.inner() };
+            <span class="self">Self </span>{
+                listener: InnerListener {
+                    event: inner,
+                    listener: <span class="prelude-val">None</span>,
+                },
+            }
+        }
+
+        <span class="doccomment">/// Start listening on this `StackSlot`.
+        </span><span class="attr">#[inline]
+        #[doc(hidden)]
+        </span><span class="kw">pub fn </span>listen(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; StackListener&lt;<span class="lifetime">&#39;ev</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+            <span class="comment">// Insert ourselves into the list.
+            </span><span class="self">self</span>.as_mut().project().listener.listen();
+
+            <span class="comment">// We are now listening.
+            </span>StackListener { slot: <span class="self">self </span>}
+        }
+    }
+
+    <span class="doccomment">/// A stack-based `EventListener`.
+    </span><span class="attr">#[doc(hidden)]
+    </span><span class="kw">pub struct </span>StackListener&lt;<span class="lifetime">&#39;ev</span>, <span class="lifetime">&#39;stack</span>, T&gt; {
+        slot: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;stack </span><span class="kw-2">mut </span>StackSlot&lt;<span class="lifetime">&#39;ev</span>, T&gt;&gt;,
+    }
+
+    <span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; Unpin <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
+
+    <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            f.debug_struct(<span class="string">&quot;StackListener&quot;</span>).finish_non_exhaustive()
+        }
+    }
+
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ev</span>, T&gt; StackListener&lt;<span class="lifetime">&#39;ev</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>listener(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Inner&lt;T&gt;&gt; {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.slot.listener
+        }
+
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>listener_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Inner&lt;T&gt;&gt;&gt; {
+            <span class="self">self</span>.slot.as_mut().project().listener
+        }
+    }
+
+    <span class="macro">forward_impl_to_listener! </span>{ T =&gt; StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; }
 }
 </code></pre></div></section></main></body></html>

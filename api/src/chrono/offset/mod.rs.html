@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.31/src/offset/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/offset/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -599,6 +599,49 @@
 <a href="#599" id="599">599</a>
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
 </pre></div><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
@@ -627,15 +670,15 @@
 <span class="attr">#[allow(deprecated)]
 </span><span class="kw">use crate</span>::{Date, DateTime};
 
-<span class="kw">mod </span>fixed;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>fixed;
 <span class="kw">pub use </span><span class="self">self</span>::fixed::FixedOffset;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;clock&quot;</span>)]
-</span><span class="kw">mod </span>local;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>local;
 <span class="attr">#[cfg(feature = <span class="string">&quot;clock&quot;</span>)]
 </span><span class="kw">pub use </span><span class="self">self</span>::local::Local;
 
-<span class="kw">mod </span>utc;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>utc;
 <span class="kw">pub use </span><span class="self">self</span>::utc::Utc;
 
 <span class="doccomment">/// The conversion result from the local time to the timezone-aware datetime types.
@@ -648,7 +691,7 @@
     </span>Single(T),
     <span class="doccomment">/// Given local time representation has multiple results and thus ambiguous.
     /// This can occur when, for example, the negative timezone transition.
-    </span>Ambiguous(T <span class="comment">/*min*/</span>, T <span class="comment">/*max*/</span>),
+    </span>Ambiguous(T <span class="comment">/* min */</span>, T <span class="comment">/* max */</span>),
 }
 
 <span class="kw">impl</span>&lt;T&gt; LocalResult&lt;T&gt; {
@@ -812,8 +855,7 @@
 
 <span class="doccomment">/// The time zone.
 ///
-/// The methods here are the primarily constructors for [`Date`](../struct.Date.html) and
-/// [`DateTime`](../struct.DateTime.html) types.
+/// The methods here are the primary constructors for the [`DateTime`] type.
 </span><span class="kw">pub trait </span>TimeZone: Sized + Clone {
     <span class="doccomment">/// An associated offset type.
     /// This type is used to store the actual offset in date and time types.
@@ -949,7 +991,7 @@
     /// and the number of nanoseconds since the last whole non-leap second.
     ///
     /// The nanosecond part can exceed 1,000,000,000 in order to represent a
-    /// [leap second](NaiveTime#leap-second-handling), but only when `secs % 60 == 59`.
+    /// [leap second](crate::NaiveTime#leap-second-handling), but only when `secs % 60 == 59`.
     /// (The true &quot;UNIX timestamp&quot; cannot represent a leap second unambiguously.)
     ///
     /// # Panics
@@ -966,7 +1008,7 @@
     /// and the number of nanoseconds since the last whole non-leap second.
     ///
     /// The nanosecond part can exceed 1,000,000,000 in order to represent a
-    /// [leap second](NaiveTime#leap-second-handling), but only when `secs % 60 == 59`.
+    /// [leap second](crate::NaiveTime#leap-second-handling), but only when `secs % 60 == 59`.
     /// (The true &quot;UNIX timestamp&quot; cannot represent a leap second unambiguously.)
     ///
     /// # Errors
@@ -977,13 +1019,13 @@
     /// # Example
     ///
     /// ```
-    /// use chrono::{Utc, TimeZone};
+    /// use chrono::{TimeZone, Utc};
     ///
     /// assert_eq!(Utc.timestamp_opt(1431648000, 0).unwrap().to_string(), &quot;2015-05-15 00:00:00 UTC&quot;);
     /// ```
     </span><span class="kw">fn </span>timestamp_opt(<span class="kw-2">&amp;</span><span class="self">self</span>, secs: i64, nsecs: u32) -&gt; LocalResult&lt;DateTime&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">match </span>NaiveDateTime::from_timestamp_opt(secs, nsecs) {
-            <span class="prelude-val">Some</span>(dt) =&gt; LocalResult::Single(<span class="self">self</span>.from_utc_datetime(<span class="kw-2">&amp;</span>dt)),
+        <span class="kw">match </span>DateTime::from_timestamp(secs, nsecs) {
+            <span class="prelude-val">Some</span>(dt) =&gt; LocalResult::Single(<span class="self">self</span>.from_utc_datetime(<span class="kw-2">&amp;</span>dt.naive_utc())),
             <span class="prelude-val">None </span>=&gt; LocalResult::None,
         }
     }
@@ -1009,15 +1051,15 @@
     /// # Example
     ///
     /// ```
-    /// use chrono::{Utc, TimeZone, LocalResult};
+    /// use chrono::{LocalResult, TimeZone, Utc};
     /// match Utc.timestamp_millis_opt(1431648000) {
     ///     LocalResult::Single(dt) =&gt; assert_eq!(dt.timestamp(), 1431648),
     ///     _ =&gt; panic!(&quot;Incorrect timestamp_millis&quot;),
     /// };
     /// ```
     </span><span class="kw">fn </span>timestamp_millis_opt(<span class="kw-2">&amp;</span><span class="self">self</span>, millis: i64) -&gt; LocalResult&lt;DateTime&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">match </span>NaiveDateTime::from_timestamp_millis(millis) {
-            <span class="prelude-val">Some</span>(dt) =&gt; LocalResult::Single(<span class="self">self</span>.from_utc_datetime(<span class="kw-2">&amp;</span>dt)),
+        <span class="kw">match </span>DateTime::from_timestamp_millis(millis) {
+            <span class="prelude-val">Some</span>(dt) =&gt; LocalResult::Single(<span class="self">self</span>.from_utc_datetime(<span class="kw-2">&amp;</span>dt.naive_utc())),
             <span class="prelude-val">None </span>=&gt; LocalResult::None,
         }
     }
@@ -1025,37 +1067,32 @@
     <span class="doccomment">/// Makes a new `DateTime` from the number of non-leap nanoseconds
     /// since January 1, 1970 0:00:00 UTC (aka &quot;UNIX timestamp&quot;).
     ///
-    /// Unlike [`timestamp_millis`](#method.timestamp_millis), this never
-    /// panics.
+    /// Unlike [`timestamp_millis_opt`](#method.timestamp_millis_opt), this never fails.
     ///
     /// # Example
     ///
     /// ```
-    /// use chrono::{Utc, TimeZone};
+    /// use chrono::{TimeZone, Utc};
     ///
     /// assert_eq!(Utc.timestamp_nanos(1431648000000000).timestamp(), 1431648);
     /// ```
     </span><span class="kw">fn </span>timestamp_nanos(<span class="kw-2">&amp;</span><span class="self">self</span>, nanos: i64) -&gt; DateTime&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>secs, <span class="kw-2">mut </span>nanos) = (nanos / <span class="number">1_000_000_000</span>, nanos % <span class="number">1_000_000_000</span>);
-        <span class="kw">if </span>nanos &lt; <span class="number">0 </span>{
-            secs -= <span class="number">1</span>;
-            nanos += <span class="number">1_000_000_000</span>;
-        }
-        <span class="self">self</span>.timestamp_opt(secs, nanos <span class="kw">as </span>u32).unwrap()
+        <span class="self">self</span>.from_utc_datetime(<span class="kw-2">&amp;</span>DateTime::from_timestamp_nanos(nanos).naive_utc())
     }
 
     <span class="doccomment">/// Makes a new `DateTime` from the number of non-leap microseconds
     /// since January 1, 1970 0:00:00 UTC (aka &quot;UNIX timestamp&quot;).
     ///
-    /// #Example
+    /// # Example
+    ///
     /// ```
-    /// use chrono::{Utc, TimeZone};
+    /// use chrono::{TimeZone, Utc};
     ///
     /// assert_eq!(Utc.timestamp_micros(1431648000000).unwrap().timestamp(), 1431648);
     /// ```
     </span><span class="kw">fn </span>timestamp_micros(<span class="kw-2">&amp;</span><span class="self">self</span>, micros: i64) -&gt; LocalResult&lt;DateTime&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">match </span>NaiveDateTime::from_timestamp_micros(micros) {
-            <span class="prelude-val">Some</span>(dt) =&gt; LocalResult::Single(<span class="self">self</span>.from_utc_datetime(<span class="kw-2">&amp;</span>dt)),
+        <span class="kw">match </span>DateTime::from_timestamp_micros(micros) {
+            <span class="prelude-val">Some</span>(dt) =&gt; LocalResult::Single(<span class="self">self</span>.from_utc_datetime(<span class="kw-2">&amp;</span>dt.naive_utc())),
             <span class="prelude-val">None </span>=&gt; LocalResult::None,
         }
     }
@@ -1071,7 +1108,14 @@
     ///
     /// See also [`DateTime::parse_from_str`] which gives a [`DateTime`] with
     /// parsed [`FixedOffset`].
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;0.4.29&quot;</span>, note = <span class="string">&quot;use `DateTime::parse_from_str` instead&quot;</span>)]
+    ///
+    /// See also [`NaiveDateTime::parse_from_str`] which gives a [`NaiveDateTime`] without
+    /// an offset, but can be converted to a [`DateTime`] with [`NaiveDateTime::and_utc`] or
+    /// [`NaiveDateTime::and_local_timezone`].
+    </span><span class="attr">#[deprecated(
+        since = <span class="string">&quot;0.4.29&quot;</span>,
+        note = <span class="string">&quot;use `DateTime::parse_from_str` or `NaiveDateTime::parse_from_str` with `and_utc()` or `and_local_timezone()` instead&quot;
+    </span>)]
     </span><span class="kw">fn </span>datetime_from_str(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str, fmt: <span class="kw-2">&amp;</span>str) -&gt; ParseResult&lt;DateTime&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>parsed = Parsed::new();
         parse(<span class="kw-2">&amp;mut </span>parsed, s, StrftimeItems::new(fmt))<span class="question-mark">?</span>;
@@ -1101,8 +1145,24 @@
     <span class="doccomment">/// Converts the local `NaiveDateTime` to the timezone-aware `DateTime` if possible.
     </span><span class="attr">#[allow(clippy::wrong_self_convention)]
     </span><span class="kw">fn </span>from_local_datetime(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <span class="kw-2">&amp;</span>NaiveDateTime) -&gt; LocalResult&lt;DateTime&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="self">self</span>.offset_from_local_datetime(local)
-            .map(|offset| DateTime::from_naive_utc_and_offset(<span class="kw-2">*</span>local - offset.fix(), offset))
+        <span class="comment">// Return `LocalResult::None` when the offset pushes a value out of range, instead of
+        // panicking.
+        </span><span class="kw">match </span><span class="self">self</span>.offset_from_local_datetime(local) {
+            LocalResult::None =&gt; LocalResult::None,
+            LocalResult::Single(offset) =&gt; <span class="kw">match </span>local.checked_sub_offset(offset.fix()) {
+                <span class="prelude-val">Some</span>(dt) =&gt; LocalResult::Single(DateTime::from_naive_utc_and_offset(dt, offset)),
+                <span class="prelude-val">None </span>=&gt; LocalResult::None,
+            },
+            LocalResult::Ambiguous(o1, o2) =&gt; {
+                <span class="kw">match </span>(local.checked_sub_offset(o1.fix()), local.checked_sub_offset(o2.fix())) {
+                    (<span class="prelude-val">Some</span>(d1), <span class="prelude-val">Some</span>(d2)) =&gt; LocalResult::Ambiguous(
+                        DateTime::from_naive_utc_and_offset(d1, o1),
+                        DateTime::from_naive_utc_and_offset(d2, o2),
+                    ),
+                    <span class="kw">_ </span>=&gt; LocalResult::None,
+                }
+            }
+        }
     }
 
     <span class="doccomment">/// Creates the offset for given UTC `NaiveDate`. This cannot fail.
@@ -1131,6 +1191,32 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_fixed_offset_min_max_dates() {
+        <span class="kw">for </span>offset_hour <span class="kw">in </span>-<span class="number">23</span>..=<span class="number">23 </span>{
+            <span class="macro">dbg!</span>(offset_hour);
+            <span class="kw">let </span>offset = FixedOffset::east_opt(offset_hour * <span class="number">60 </span>* <span class="number">60</span>).unwrap();
+
+            <span class="kw">let </span>local_max = offset.from_utc_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::MAX);
+            <span class="macro">assert_eq!</span>(local_max.naive_utc(), NaiveDateTime::MAX);
+            <span class="kw">let </span>local_min = offset.from_utc_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::MIN);
+            <span class="macro">assert_eq!</span>(local_min.naive_utc(), NaiveDateTime::MIN);
+
+            <span class="kw">let </span>local_max = offset.from_local_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::MAX);
+            <span class="kw">if </span>offset_hour &gt;= <span class="number">0 </span>{
+                <span class="macro">assert_eq!</span>(local_max.unwrap().naive_local(), NaiveDateTime::MAX);
+            } <span class="kw">else </span>{
+                <span class="macro">assert_eq!</span>(local_max, LocalResult::None);
+            }
+            <span class="kw">let </span>local_min = offset.from_local_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::MIN);
+            <span class="kw">if </span>offset_hour &lt;= <span class="number">0 </span>{
+                <span class="macro">assert_eq!</span>(local_min.unwrap().naive_local(), NaiveDateTime::MIN);
+            } <span class="kw">else </span>{
+                <span class="macro">assert_eq!</span>(local_min, LocalResult::None);
+            }
+        }
+    }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_negative_millis() {

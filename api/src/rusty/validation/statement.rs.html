@@ -1421,6 +1421,7 @@
 <a href="#1421" id="1421">1421</a>
 <a href="#1422" id="1422">1422</a>
 <a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::control_statements::ForLoopStatement;
@@ -1535,7 +1536,7 @@
             // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
             // see `control_parser` `parse_case_statement()`
             </span>validator.push_diagnostic(
-                Diagnostic::error(<span class="string">&quot;Case condition used outside of case statement! Did you mean to use &#39;;&#39;?&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Case condition used outside of case statement! Did you mean to use &#39;;&#39;?&quot;</span>)
                     .with_error_code(<span class="string">&quot;E079&quot;</span>)
                     .with_location(condition.get_location()),
             );
@@ -1588,7 +1589,7 @@
                 visit_array_access(validator, base, i, context)
             } <span class="kw">else </span>{
                 validator.push_diagnostic(
-                    Diagnostic::error(<span class="string">&quot;Index-Access requires an array-value.&quot;</span>)
+                    Diagnostic::new(<span class="string">&quot;Index-Access requires an array-value.&quot;</span>)
                         .with_error_code(<span class="string">&quot;E069&quot;</span>)
                         .with_location(statement.get_location()),
                 );
@@ -1614,7 +1615,7 @@
         ReferenceAccess::Deref =&gt; {
             <span class="kw">if </span>base.is_none() {
                 validator.diagnostics.push(
-                    Diagnostic::error(<span class="string">&quot;Dereferencing requires a pointer-value.&quot;</span>)
+                    Diagnostic::new(<span class="string">&quot;Dereferencing requires a pointer-value.&quot;</span>)
                         .with_error_code(<span class="string">&quot;E068&quot;</span>)
                         .with_location(statement.get_location()),
                 );
@@ -1625,7 +1626,7 @@
                 validate_address_of_expression(validator, base, statement.get_location(), context);
             } <span class="kw">else </span>{
                 validator.diagnostics.push(
-                    Diagnostic::error(<span class="string">&quot;Address-of requires a value.&quot;</span>)
+                    Diagnostic::new(<span class="string">&quot;Address-of requires a value.&quot;</span>)
                         .with_error_code(<span class="string">&quot;E070&quot;</span>)
                         .with_location(statement.get_location()),
                 );
@@ -1649,7 +1650,7 @@
 
     <span class="kw">if </span>!<span class="macro">matches!</span>(a, <span class="prelude-val">Some</span>(StatementAnnotation::Variable { .. })) &amp;&amp; !target.is_array_access() {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;Invalid address-of operation&quot;</span>).with_error_code(<span class="string">&quot;E066&quot;</span>).with_location(location),
+            Diagnostic::new(<span class="string">&quot;Invalid address-of operation&quot;</span>).with_error_code(<span class="string">&quot;E066&quot;</span>).with_location(location),
         );
     }
 }
@@ -1674,7 +1675,7 @@
             validate_access_index(validator, context, index, access, base_type, <span class="kw-2">&amp;</span>m.get_location());
         } <span class="kw">else </span>{
             validator.push_diagnostic(
-                Diagnostic::error(<span class="macro">format!</span>(
+                Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">&quot;{access:?}-Wise access requires a Numerical type larger than {} bits&quot;</span>,
                     access.get_bit_width()
                 ))
@@ -1697,7 +1698,7 @@
             <span class="kw">let </span>slice = get_datatype_name_or_slice(validator.context, kind);
             <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Expected an integer value, got `{slice}`&quot;</span>);
             validator.push_diagnostic(
-                Diagnostic::error(message).with_location(node.get_location()).with_error_code(<span class="string">&quot;E093&quot;</span>),
+                Diagnostic::new(message).with_location(node.get_location()).with_error_code(<span class="string">&quot;E094&quot;</span>),
             );
         }
     })
@@ -1757,13 +1758,13 @@
         literal_type: <span class="kw-2">&amp;</span>str,
         location: SourceLocation,
     ) -&gt; Diagnostic {
-        Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Literal {literal_type} is not compatible to {cast_type}&quot;</span>))
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Literal {literal_type} is not compatible to {cast_type}&quot;</span>))
             .with_error_code(<span class="string">&quot;E054&quot;</span>)
             .with_location(location)
     }
 
     <span class="kw">fn </span>literal_out_of_range(literal: <span class="kw-2">&amp;</span>str, range_hint: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Literal {literal} out of range ({range_hint})&quot;</span>))
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Literal {literal} out of range ({range_hint})&quot;</span>))
             .with_error_code(<span class="string">&quot;E053&quot;</span>)
             .with_location(location)
     }
@@ -1777,7 +1778,7 @@
 
     <span class="kw">if </span>!literal.is_cast_prefix_eligible() {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="macro">format!</span>(
+            Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;Cannot cast into {}, only elementary types are allowed&quot;</span>,
                 validator.context.slice(<span class="kw-2">&amp;</span>statement.get_location())
             ))
@@ -1841,7 +1842,7 @@
             ) {
                 <span class="kw">let </span>range = helper::get_range(access_type, target_type, context.index);
                 validator.push_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;{access_type:?}-Wise access for type {} must be in range {}..{}&quot;</span>,
                         target_type.get_name(),
                         <span class="kw-2">&amp;</span>range.start,
@@ -1856,7 +1857,7 @@
             <span class="kw">let </span>ref_type = context.annotations.get_type_or_void(access_index, context.index);
             <span class="kw">if </span>!ref_type.get_type_information().is_int() {
                 validator.push_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Invalid type {} for direct variable access. Only variables of Integer types are allowed&quot;</span>, ref_type.get_name()))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Invalid type {} for direct variable access. Only variables of Integer types are allowed&quot;</span>, ref_type.get_name()))
                     .with_error_code(<span class="string">&quot;E056&quot;</span>)
                     .with_location(location.clone())
                 )
@@ -1889,7 +1890,7 @@
             {
                 <span class="comment">// we accessed a member that does not exist, but we could find a global/local variable that fits
                 </span>validator.push_diagnostic(
-                    Diagnostic::info(<span class="macro">format!</span>(<span class="string">&quot;If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead.&quot;</span>))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead.&quot;</span>))
                     .with_error_code(<span class="string">&quot;E060&quot;</span>)
                     .with_location(location.clone())
                 );
@@ -1911,7 +1912,7 @@
         {
             validator.push_diagnostic(
                 <span class="comment">//TODO: maybe default to warning?
-                </span>Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Illegal access to private member {qualified_name}&quot;</span>))
+                </span>Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Illegal access to private member {qualified_name}&quot;</span>))
                     .with_error_code(<span class="string">&quot;E049&quot;</span>)
                     .with_location(location.clone()),
             );
@@ -1956,7 +1957,7 @@
         }
 
         <span class="kw">_ </span>=&gt; validator.push_diagnostic(
-            Diagnostic::error(<span class="macro">format!</span>(
+            Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;Invalid type {} for array access. Only variables of Array types are allowed&quot;</span>,
                 target_type.get_name()
             ))
@@ -1969,7 +1970,7 @@
 <span class="kw">fn </span>validate_array_access_dimensions(ndims: usize, dims: usize, validator: <span class="kw-2">&amp;mut </span>Validator, access: <span class="kw-2">&amp;</span>AstNode) {
     <span class="kw">if </span>ndims != dims {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Expected array access with {ndims} dimensions, found {dims}&quot;</span>))
+            Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Expected array access with {ndims} dimensions, found {dims}&quot;</span>))
                 .with_error_code(<span class="string">&quot;E045&quot;</span>)
                 .with_location(access.get_location()),
         )
@@ -1988,7 +1989,7 @@
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(range) = dimension.get_range(context.index) {
                 <span class="kw">if </span>!(range.start <span class="kw">as </span>i128 &lt;= <span class="kw-2">*</span>value &amp;&amp; range.end <span class="kw">as </span>i128 &gt;= <span class="kw-2">*</span>value) {
                     validator.push_diagnostic(
-                        Diagnostic::error(<span class="macro">format!</span>(
+                        Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">&quot;Array access must be in the range {}..{}&quot;</span>,
                             range.start, range.end
                         ))
@@ -2002,7 +2003,7 @@
         <span class="kw">let </span>type_info = context.annotations.get_type_or_void(access, context.index).get_type_information();
         <span class="kw">if </span>!type_info.is_int() {
             validator.push_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">&quot;Invalid type {} for array access. Only variables of Integer types are allowed to access an array&quot;</span>,
                             type_info.get_name()
                     ))
@@ -2028,7 +2029,7 @@
                 <span class="kw">let </span>rhs = validator.context.slice(<span class="kw-2">&amp;</span>right.location);
 
                 validator.push_diagnostic(
-                    Diagnostic::warning(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;This equal statement has no effect, did you mean `{lhs} := {rhs}`?&quot;
                     </span>))
                     .with_error_code(<span class="string">&quot;E023&quot;</span>)
@@ -2079,7 +2080,7 @@
             &amp;&amp; !compare_function_exists(left_type.get_name(), operator, context)
         {
             validator.push_diagnostic(
-                Diagnostic::error(<span class="macro">format!</span>(
+                Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">&quot;Missing compare function &#39;FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...&#39;.&quot;</span>,
                     <span class="kw">crate</span>::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
                         .unwrap_or_default()
@@ -2161,7 +2162,7 @@
         }
 
         <span class="kw">_ </span>=&gt; validator.push_diagnostic(
-            Diagnostic::error(<span class="macro">format!</span>(
+            Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;Expected a reference for parameter {} because their type is {}&quot;</span>,
                 param.get_name(),
                 param.get_variable_type()
@@ -2187,7 +2188,7 @@
             <span class="comment">// ...constant variable
             </span><span class="kw">if </span><span class="kw-2">*</span>constant {
                 validator.push_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Cannot assign to CONSTANT &#39;{qualified_name}&#39;&quot;</span>))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Cannot assign to CONSTANT &#39;{qualified_name}&#39;&quot;</span>))
                         .with_error_code(<span class="string">&quot;E036&quot;</span>)
                         .with_location(left.get_location()),
                 );
@@ -2205,7 +2206,7 @@
             <span class="comment">// ...VAR_INPUT {ref} variable
             </span><span class="kw">if </span><span class="macro">matches!</span>(argument_type, ArgumentType::ByRef(VariableType::Input)) {
                 validator.push_diagnostic(
-                    Diagnostic::warning(<span class="string">&quot;VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.&quot;</span>)
+                    Diagnostic::new(<span class="string">&quot;VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.&quot;</span>)
                     .with_error_code(<span class="string">&quot;E042&quot;</span>)
                     .with_location(location.to_owned())
                     );
@@ -2216,7 +2217,7 @@
         </span><span class="kw">if </span>!left.can_be_assigned_to() {
             <span class="kw">let </span>expression = validator.context.slice(<span class="kw-2">&amp;</span>left.get_location());
             validator.push_diagnostic(
-                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Expression {expression} is not assignable.&quot;</span>))
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Expression {expression} is not assignable.&quot;</span>))
                     .with_error_code(<span class="string">&quot;E050&quot;</span>)
                     .with_location(left.get_location()),
             );
@@ -2224,9 +2225,9 @@
 
         <span class="kw">if </span>has_return_assignment_in_void_function(context, left) {
             validator.push_diagnostic(
-                Diagnostic::warning(<span class="string">&quot;Function declared as VOID, but trying to assign a return value&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Function declared as VOID, but trying to assign a return value&quot;</span>)
                     .with_location(location.to_owned())
-                    .with_error_code(<span class="string">&quot;E092&quot;</span>),
+                    .with_error_code(<span class="string">&quot;E093&quot;</span>),
             )
         }
     }
@@ -2257,7 +2258,7 @@
         {
             <span class="kw">if </span>left_type.is_pointer() &amp;&amp; right_type.is_pointer() {
                 validator.push_diagnostic(
-                    Diagnostic::warning(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;Pointers {} and {} have different types&quot;</span>,
                         get_datatype_name_or_slice(validator.context, left_type),
                         get_datatype_name_or_slice(validator.context, right_type)
@@ -2281,7 +2282,7 @@
 
 <span class="doccomment">/// Returns true if an assignment statement exists such that a return value is assigned to a void
 /// function. For example the following will return true
-/// ```norun
+/// ```iecst
 /// FUNCTION foo
 /// foo := 1; // Doesn&#39;t make sense, foo is of type VOID
 /// END_FUNCTION
@@ -2322,7 +2323,7 @@
         <span class="comment">// ...however function calls for example are no const-expr hence only report if datatypes also differ
         </span><span class="kw">if </span>left_dt.get_name() != right_dt.get_name() {
             validator.push_diagnostic(
-                Diagnostic::warning(<span class="macro">format!</span>(
+                Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">&quot;Value evaluated at run-time, use an enum variant from `{}`&quot;</span>,
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
@@ -2342,11 +2343,12 @@
         <span class="prelude-val">Some</span>((variant, <span class="kw">_</span>)) =&gt; {
             <span class="kw">if </span>left_dt.get_name() != right_dt.get_name() {
                 validator.push_diagnostic(
-                    Diagnostic::info(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;Replace `{}` with `{}`&quot;</span>,
                         validator.context.slice(<span class="kw-2">&amp;</span>right.location),
                         variant.get_name()
                     ))
+                    .with_error_code(<span class="string">&quot;E092&quot;</span>)
                     .with_location(right.get_location())
                     .with_secondary_location(left_dt.location.clone()),
                 );
@@ -2354,7 +2356,7 @@
         }
         <span class="prelude-val">None </span>=&gt; {
             validator.push_diagnostic(
-                Diagnostic::error(<span class="macro">format!</span>(
+                Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">&quot;Invalid enum value `{}` for `{}`&quot;</span>,
                     validator.context.slice(<span class="kw-2">&amp;</span>right.location),
                     get_datatype_name_or_slice(validator.context, left_dt)
@@ -2440,7 +2442,7 @@
                 <span class="kw">return </span><span class="bool-val">true</span>;
             } <span class="kw">else </span>{
                 validator.push_diagnostic(
-                    Diagnostic::error(
+                    Diagnostic::new(
                         <span class="macro">format!</span>(<span class="string">&quot;Value: &#39;{value}&#39; exceeds length for type: {}&quot;</span>, left_type.get_name())
                             .as_str(),
                     )
@@ -2470,7 +2472,7 @@
         &amp;&amp; left_type.get_size_in_bits(index) &lt; POINTER_SIZE
     {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="macro">format!</span>(
+            Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;The type {} {} is too small to hold a Pointer&quot;</span>,
                 left_type.get_name(),
                 left_type.get_size_in_bits(index)
@@ -2486,7 +2488,7 @@
         &amp;&amp; right_type.get_size_in_bits(index) &lt; POINTER_SIZE
     {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="macro">format!</span>(
+            Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;The type {} {} is too small to be stored in a Pointer&quot;</span>,
                 right_type.get_name(),
                 right_type.get_size_in_bits(index)
@@ -2571,7 +2573,7 @@
                         are_implicit_parameters = is_implicit;
                     } <span class="kw">else if </span>are_implicit_parameters != is_implicit {
                         validator.push_diagnostic(
-                            Diagnostic::error(<span class="string">&quot;Cannot mix implicit and explicit call parameters!&quot;</span>)
+                            Diagnostic::new(<span class="string">&quot;Cannot mix implicit and explicit call parameters!&quot;</span>)
                                 .with_error_code(<span class="string">&quot;E031&quot;</span>)
                                 .with_location(param.get_location()),
                         );
@@ -2579,7 +2581,7 @@
                 }
                 <span class="prelude-val">Err</span>(err) =&gt; {
                     validator.push_diagnostic(
-                        Diagnostic::error(<span class="string">&quot;Invalid call parameters&quot;</span>)
+                        Diagnostic::new(<span class="string">&quot;Invalid call parameters&quot;</span>)
                             .with_error_code(<span class="string">&quot;E089&quot;</span>)
                             .with_location(param.get_location())
                             .with_sub_diagnostic(err),
@@ -2608,7 +2610,7 @@
                 </span>declared_in_out_params.into_iter().for_each(|p| {
                     <span class="kw">if </span>!variable_location_in_parent.contains(<span class="kw-2">&amp;</span>p.get_location_in_parent()) {
                         validator.push_diagnostic(
-                            Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Missing inout parameter: {}&quot;</span>, p.get_name()))
+                            Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Missing inout parameter: {}&quot;</span>, p.get_name()))
                                 .with_error_code(<span class="string">&quot;E030&quot;</span>)
                                 .with_location(operator.get_location()),
                         );
@@ -2665,7 +2667,7 @@
         <span class="comment">// invalid case conditions
         </span><span class="kw">if </span><span class="macro">matches!</span>(condition.get_stmt(), AstStatement::Assignment(<span class="kw">_</span>) | AstStatement::CallStatement(<span class="kw">_</span>)) {
             validator.push_diagnostic(
-                Diagnostic::error(<span class="string">&quot;Invalid case condition!&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Invalid case condition!&quot;</span>)
                     .with_error_code(<span class="string">&quot;E079&quot;</span>)
                     .with_location(condition.get_location()),
             );
@@ -2677,7 +2679,7 @@
             .map_err(|err| {
                 <span class="comment">// value evaluation and validation not possible with non constants
                 </span>validator.push_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;{}. Non constant variables are not supported in case conditions&quot;</span>,
                         err.get_reason()
                     ))
@@ -2690,7 +2692,7 @@
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(value)), .. }) = v {
                     <span class="kw">if </span>!cases.insert(value) {
                         validator.push_diagnostic(
-                            Diagnostic::error(<span class="macro">format!</span>(
+                            Diagnostic::new(<span class="macro">format!</span>(
                                 <span class="string">&quot;Duplicate condition value: {value}. Occurred more than once!&quot;
                             </span>))
                             .with_error_code(<span class="string">&quot;E078&quot;</span>)
@@ -2727,7 +2729,7 @@
                 <span class="kw">return</span>;
             }
             validator.push_diagnostic(
-                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Could not resolve generic type {generic_symbol} with {nature}&quot;</span>))
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Could not resolve generic type {generic_symbol} with {nature}&quot;</span>))
                     .with_error_code(<span class="string">&quot;E064&quot;</span>)
                     .with_location(statement.get_location()),
             );
@@ -2743,7 +2745,7 @@
                 </span>| (type_hint.is_real() &amp; actual_type.is_numerical()))
             {
                 validator.push_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;Invalid type nature for generic argument. {} is no {}&quot;</span>,
                         actual_type.get_name(),
                         generic_nature
@@ -2767,7 +2769,7 @@
         &lt; right.get_type_information().get_size(context.index)
     {
         validator.push_diagnostic(
-            Diagnostic::info(<span class="macro">format!</span>(
+            Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">&quot;Potential loss of information due to assigning &#39;{}&#39; to variable of type &#39;{}&#39;.&quot;</span>,
                 left.get_name(),
                 right.get_name()

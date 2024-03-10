@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-strategy-0.4.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener_strategy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../event_listener_strategy/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="event_listener_strategy"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-strategy-0.5.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener_strategy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../event_listener_strategy/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="event_listener_strategy"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -508,6 +508,38 @@
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
 </pre></div><pre class="rust"><code><span class="comment">// SPDX-Licenser-Identifier: MIT OR Apache-2.0
 </span><span class="doccomment">//! A strategy for using the [`event-listener`] crate in both blocking and non-blocking contexts.
 //!
@@ -537,11 +569,11 @@
 //!         event.notify(1);
 //!     });
 //!
-//!     WaitThreeSeconds { listener }
+//!     WaitThreeSeconds { listener: Some(listener) }
 //! }
 //!
 //! struct WaitThreeSeconds {
-//!     listener: Pin&lt;Box&lt;EventListener&gt;&gt;,
+//!     listener: Option&lt;EventListener&gt;,
 //! }
 //!
 //! impl EventListenerFuture for WaitThreeSeconds {
@@ -552,7 +584,7 @@
 //!         strategy: &amp;mut S,
 //!         context: &amp;mut S::Context,
 //!     ) -&gt; Poll&lt;Self::Output&gt; {
-//!         strategy.poll(self.listener.as_mut(), context)
+//!         strategy.poll(&amp;mut self.listener, context)
 //!     }
 //! }
 //!
@@ -582,7 +614,7 @@
 <span class="kw">use </span>core::pin::Pin;
 <span class="kw">use </span>core::task::{Context, Poll};
 
-<span class="kw">use </span>event_listener::EventListener;
+<span class="kw">use </span>event_listener::{EventListener, Listener};
 
 <span class="attr">#[doc(hidden)]
 </span><span class="kw">pub use </span>pin_project_lite::pin_project;
@@ -910,23 +942,23 @@
 /// use event_listener_strategy::{EventListenerFuture, Strategy, Blocking, NonBlocking};
 /// use std::pin::Pin;
 ///
-/// async fn wait_on&lt;&#39;a, S: Strategy&lt;&#39;a&gt;&gt;(evl: Pin&lt;&amp;&#39;a mut EventListener&gt;, strategy: &amp;mut S) {
+/// async fn wait_on&lt;&#39;a, S: Strategy&lt;&#39;a&gt;&gt;(evl: EventListener, strategy: &amp;mut S) {
 ///     strategy.wait(evl).await;
 /// }
 ///
 /// # futures_lite::future::block_on(async {
 /// // Block on the future.
 /// let ev = Event::new();
-/// let mut listener = ev.listen();
+/// let listener = ev.listen();
 /// ev.notify(1);
 ///
-/// wait_on(listener.as_mut(), &amp;mut Blocking::default()).await;
+/// wait_on(listener, &amp;mut Blocking::default()).await;
 ///
 /// // Poll the future.
-/// listener.as_mut().listen(&amp;ev);
+/// let listener = ev.listen();
 /// ev.notify(1);
 ///
-/// wait_on(listener.as_mut(), &amp;mut NonBlocking::default()).await;
+/// wait_on(listener, &amp;mut NonBlocking::default()).await;
 /// # });
 /// ```
 </span><span class="kw">pub trait </span>Strategy&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -937,38 +969,53 @@
     </span><span class="kw">type </span>Future: Future + <span class="lifetime">&#39;a</span>;
 
     <span class="doccomment">/// Poll the event listener until it is ready.
-    </span><span class="kw">fn </span>poll&lt;T&gt;(
+    </span><span class="kw">fn </span>poll&lt;T, L: Listener&lt;T&gt; + Unpin&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        event_listener: Pin&lt;<span class="kw-2">&amp;mut </span>EventListener&lt;T&gt;&gt;,
+        event_listener: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;L&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; Poll&lt;T&gt;;
 
     <span class="doccomment">/// Wait for the event listener to become ready.
-    </span><span class="kw">fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>EventListener&gt;) -&gt; <span class="self">Self</span>::Future;
+    </span><span class="kw">fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: EventListener) -&gt; <span class="self">Self</span>::Future;
 }
 
 <span class="doccomment">/// A strategy that uses polling to efficiently wait for an event.
 </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 </span><span class="kw">pub struct </span>NonBlocking&lt;<span class="lifetime">&#39;a</span>&gt; {
-    _marker: PhantomData&lt;Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    <span class="doccomment">/// The type `&amp;&#39;a mut &amp;&#39;a T` is invariant over `&#39;a`, like `Context` is.
+    ///
+    /// We used to just use `Context` here, but then `Context` became `!Send`
+    /// and `!Sync`, making all of the futures that use this type `!Send` and
+    /// `!Sync` as well. So we just take the lifetime invariance and none of
+    /// the downsides.
+    </span>_marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut &amp;</span><span class="lifetime">&#39;a </span>()&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;evl</span>&gt; Strategy&lt;<span class="lifetime">&#39;evl</span>&gt; <span class="kw">for </span>NonBlocking&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">type </span>Context = Context&lt;<span class="lifetime">&#39;a</span>&gt;;
-    <span class="kw">type </span>Future = Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;evl </span><span class="kw-2">mut </span>EventListener&gt;;
+    <span class="kw">type </span>Future = EventListener;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;evl </span><span class="kw-2">mut </span>EventListener&gt;) -&gt; <span class="self">Self</span>::Future {
+    </span><span class="kw">fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: EventListener) -&gt; <span class="self">Self</span>::Future {
         evl
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll&lt;T&gt;(
+    </span><span class="kw">fn </span>poll&lt;T, L: Listener&lt;T&gt; + Unpin&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        event_listener: Pin&lt;<span class="kw-2">&amp;mut </span>EventListener&lt;T&gt;&gt;,
+        event_listener: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;L&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; Poll&lt;T&gt; {
-        event_listener.poll(context)
+        <span class="kw">let </span>poll = Pin::new(
+            event_listener
+                .as_mut()
+                .expect(<span class="string">&quot;`event_listener` should never be `None`&quot;</span>),
+        )
+        .poll(context);
+        <span class="kw">if </span>poll.is_ready() {
+            <span class="kw-2">*</span>event_listener = <span class="prelude-val">None</span>;
+        }
+        poll
     }
 }
 
@@ -985,18 +1032,21 @@
     <span class="kw">type </span>Future = Ready;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;evl </span><span class="kw-2">mut </span>EventListener&gt;) -&gt; <span class="self">Self</span>::Future {
+    </span><span class="kw">fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>, evl: EventListener) -&gt; <span class="self">Self</span>::Future {
         evl.wait();
         Ready { _private: () }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll&lt;T&gt;(
+    </span><span class="kw">fn </span>poll&lt;T, L: Listener&lt;T&gt; + Unpin&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        event_listener: Pin&lt;<span class="kw-2">&amp;mut </span>EventListener&lt;T&gt;&gt;,
+        event_listener: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;L&gt;,
         _context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; Poll&lt;T&gt; {
-        <span class="kw">let </span>result = event_listener.wait();
+        <span class="kw">let </span>result = event_listener
+            .take()
+            .expect(<span class="string">&quot;`event_listener` should never be `None`&quot;</span>)
+            .wait();
         Poll::Ready(result)
     }
 }
@@ -1017,5 +1067,19 @@
     </span><span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         Poll::Ready(())
     }
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>send_and_sync() {
+    <span class="kw">fn </span>assert_send_and_sync&lt;T: Send + Sync&gt;() {}
+
+    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span>{
+        assert_send_and_sync::&lt;Blocking&gt;();
+        assert_send_and_sync::&lt;Ready&gt;();
+    }
+
+    assert_send_and_sync::&lt;NonBlocking&lt;<span class="lifetime">&#39;static</span>&gt;&gt;();
+    assert_send_and_sync::&lt;FutureWrapper&lt;()&gt;&gt;();
 }
 </code></pre></div></section></main></body></html>

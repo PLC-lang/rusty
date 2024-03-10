@@ -1188,7 +1188,7 @@
                 )
             } <span class="kw">else </span>{
                 <span class="comment">//TODO: using the global context we could get a slice here
-                </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>))
+                </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>))
                     .with_error_code(<span class="string">&quot;E055&quot;</span>)
                     .with_location(element.get_location()))
             }<span class="question-mark">?</span>;
@@ -1202,7 +1202,7 @@
                     )
                 } <span class="kw">else </span>{
                     <span class="comment">//TODO: using the global context we could get a slice here
-                    </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>))
+                    </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{element:?} not a direct access&quot;</span>))
                         .with_error_code(<span class="string">&quot;E055&quot;</span>)
                         .with_location(element.get_location()))
                 }<span class="question-mark">?</span>;

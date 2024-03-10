@@ -310,6 +310,7 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::{Debug, Formatter};
 
 <span class="kw">use </span>chrono::NaiveDate;
@@ -415,6 +416,7 @@
         .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}&quot;</span>))
         .and_then(|date_time| {
             date_time
+                .and_utc()
                 .timestamp_nanos_opt()
                 .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}&quot;</span>))
         })

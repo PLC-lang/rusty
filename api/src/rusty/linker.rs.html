@@ -575,14 +575,14 @@
     <span class="kw">fn </span>from(error: LinkerError) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>error {
             LinkerError::Link(e) =&gt; {
-                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;An error occurred during linking: {e}&quot;</span>)).with_error_code(<span class="string">&quot;E077&quot;</span>)
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;An error occurred during linking: {e}&quot;</span>)).with_error_code(<span class="string">&quot;E077&quot;</span>)
             }
             LinkerError::Path(path) =&gt; {
-                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>, path.display()))
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>, path.display()))
                     .with_error_code(<span class="string">&quot;E077&quot;</span>)
             }
             LinkerError::Target(tgt) =&gt; {
-                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;linker not available for target platform: {tgt}&quot;</span>))
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;linker not available for target platform: {tgt}&quot;</span>))
                     .with_error_code(<span class="string">&quot;E077&quot;</span>)
             }
         }

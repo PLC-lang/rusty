@@ -99,6 +99,8 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>codespan_reporting::files::{Files, Location, SimpleFile, SimpleFiles};
 
 <span class="kw">use </span><span class="kw">crate</span>::diagnostics::Severity;
@@ -125,7 +127,7 @@
 
 <span class="kw">impl </span>DiagnosticReporter <span class="kw">for </span>ClangFormatDiagnosticReporter {
     <span class="kw">fn </span>report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostics: <span class="kw-2">&amp;</span>[ResolvedDiagnostics]) {
-        <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
+        <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics.iter().filter(|it| it.severity &gt; Severity::Ignore) {
             <span class="kw">let </span>file_id = diagnostic.main_location.file_handle;
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span>diagnostic.main_location;
 
@@ -139,6 +141,7 @@
                 file,
                 start.as_ref(),
                 end.as_ref(),
+                <span class="kw-2">&amp;</span>diagnostic.code,
                 <span class="kw-2">&amp;</span>diagnostic.severity,
                 <span class="kw-2">&amp;</span>diagnostic.message,
             );
@@ -160,6 +163,7 @@
         file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SimpleFile&lt;String, String&gt;&gt;,
         start: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Location&gt;,
         end: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Location&gt;,
+        code: <span class="kw-2">&amp;</span>str,
         severity: <span class="kw-2">&amp;</span>Severity,
         msg: <span class="kw-2">&amp;</span>str,
     ) -&gt; String {
@@ -193,7 +197,7 @@
             }
         }
         <span class="comment">// severity
-        </span>str.push_str(<span class="macro">format!</span>(<span class="string">&quot;{severity}: &quot;</span>).as_str());
+        </span>str.push_str(<span class="macro">format!</span>(<span class="string">&quot;{severity}[{code}]: &quot;</span>).as_str());
         <span class="comment">// msg
         </span>str.push_str(msg);
 

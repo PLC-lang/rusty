@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/home-0.5.5/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="home" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/home-0.5.9/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="home" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -144,19 +144,7 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Canonical definitions of `home_dir`, `cargo_home`, and `rustup_home`.
-//!
-//! This provides the definition of `home_dir` used by Cargo and
-//! rustup, as well functions to find the correct value of
-//! `CARGO_HOME` and `RUSTUP_HOME`.
-//!
-//! See also the [`dirs`](https://docs.rs/dirs) crate.
-//!
-//! _Note that as of 2019/08/06 it appears that cargo uses this crate. And
-//! rustup has used this crate since 2019/08/21._
 //!
 //! The definition of `home_dir` provided by the standard library is
 //! incorrect because it considers the `HOME` environment variable on
@@ -166,16 +154,17 @@
 //! rustup use the standard libraries definition - they use the
 //! definition here.
 //!
-//! This crate further provides two functions, `cargo_home` and
+//! This crate provides two additional functions, `cargo_home` and
 //! `rustup_home`, which are the canonical way to determine the
-//! location that Cargo and rustup store their data.
+//! location that Cargo and rustup use to store their data.
+//! The `env` module contains utilities for mocking the process environment
+//! by Cargo and rustup.
 //!
 //! See also this [discussion].
 //!
 //! [discussion]: https://github.com/rust-lang/rust/pull/46799#issuecomment-361156935
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/home/0.5.5&quot;</span>)]
-#![deny(rust_2018_idioms)]
+</span><span class="attr">#![allow(clippy::disallowed_methods)]
 
 </span><span class="kw">pub mod </span>env;
 
@@ -185,29 +174,34 @@
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::path::{Path, PathBuf};
 
-<span class="doccomment">/// Returns the path of the current user&#39;s home directory if known.
+<span class="doccomment">/// Returns the path of the current user&#39;s home directory using environment
+/// variables or OS-specific APIs.
 ///
 /// # Unix
 ///
 /// Returns the value of the `HOME` environment variable if it is set
-/// and not equal to the empty string. Otherwise, it tries to determine the
-/// home directory by invoking the `getpwuid_r` function on the UID of the
-/// current user.
+/// **even** if it is an empty string. Otherwise, it tries to determine the
+/// home directory by invoking the [`getpwuid_r`][getpwuid] function with
+/// the UID of the current user.
+///
+/// [getpwuid]: https://linux.die.net/man/3/getpwuid_r
 ///
 /// # Windows
 ///
-/// Returns the value of the `USERPROFILE` environment variable if it
-/// is set and not equal to the empty string. If both do not exist,
-/// [`SHGetFolderPathW`][msdn] is used to return the appropriate path.
+/// Returns the value of the `USERPROFILE` environment variable if it is set
+/// **and** it is not an empty string. Otherwise, it tries to determine the
+/// home directory by invoking the [`SHGetKnownFolderPath`][shgkfp] function with
+/// [`FOLDERID_Profile`][knownfolderid].
 ///
-/// [msdn]: https://docs.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetfolderpathw
+/// [shgkfp]: https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath
+/// [knownfolderid]: https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
 ///
 /// # Examples
 ///
 /// ```
 /// match home::home_dir() {
-///     Some(path) =&gt; println!(&quot;{}&quot;, path.display()),
-///     None =&gt; println!(&quot;Impossible to get your home dir!&quot;),
+///     Some(path) if !path.as_os_str().is_empty() =&gt; println!(&quot;{}&quot;, path.display()),
+///     _ =&gt; println!(&quot;Unable to get your home dir!&quot;),
 /// }
 /// ```
 </span><span class="kw">pub fn </span>home_dir() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {

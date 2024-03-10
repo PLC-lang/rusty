@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-integer-0.1.45/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_integer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-integer-0.1.46/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_integer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1398,27 +1398,23 @@
 //!
 //! ## Compatibility
 //!
-//! The `num-integer` crate is tested for rustc 1.8 and greater.
+//! The `num-integer` crate is tested for rustc 1.31 and greater.
 
 </span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/num-integer/0.1&quot;</span>)]
 #![no_std]
-#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">extern crate </span>std;
 
-<span class="kw">extern crate </span>num_traits <span class="kw">as </span>traits;
-
-<span class="kw">use </span>core::mem;
+</span><span class="kw">use </span>core::mem;
 <span class="kw">use </span>core::ops::Add;
 
-<span class="kw">use </span>traits::{Num, Signed, Zero};
+<span class="kw">use </span>num_traits::{Num, Signed, Zero};
 
 <span class="kw">mod </span>roots;
-<span class="kw">pub use </span>roots::Roots;
-<span class="kw">pub use </span>roots::{cbrt, nth_root, sqrt};
+<span class="kw">pub use </span><span class="kw">crate</span>::roots::Roots;
+<span class="kw">pub use </span><span class="kw">crate</span>::roots::{cbrt, nth_root, sqrt};
 
 <span class="kw">mod </span>average;
-<span class="kw">pub use </span>average::Average;
-<span class="kw">pub use </span>average::{average_ceil, average_floor};
+<span class="kw">pub use </span><span class="kw">crate</span>::average::Average;
+<span class="kw">pub use </span><span class="kw">crate</span>::average::{average_ceil, average_floor};
 
 <span class="kw">pub trait </span>Integer: Sized + Num + PartialOrd + Ord + Eq {
     <span class="doccomment">/// Floored integer division.
@@ -1534,8 +1530,6 @@
     /// # Examples
     ///
     /// ~~~
-    /// # extern crate num_integer;
-    /// # extern crate num_traits;
     /// # fn main() {
     /// # use num_integer::{ExtendedGcd, Integer};
     /// # use num_traits::NumAssign;
@@ -1593,7 +1587,11 @@
     }
 
     <span class="doccomment">/// Deprecated, use `is_multiple_of` instead.
-    </span><span class="kw">fn </span>divides(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool;
+    </span><span class="attr">#[deprecated(note = <span class="string">&quot;Please use is_multiple_of instead&quot;</span>)]
+    #[inline]
+    </span><span class="kw">fn </span>divides(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.is_multiple_of(other)
+    }
 
     <span class="doccomment">/// Returns `true` if `self` is a multiple of `other`.
     ///
@@ -1726,6 +1724,40 @@
         </span><span class="self">Self</span>: Clone,
     {
         <span class="self">self</span>.clone() - <span class="self">self</span>.mod_floor(other)
+    }
+
+    <span class="doccomment">/// Decrements self by one.
+    ///
+    /// # Examples
+    ///
+    /// ~~~
+    /// # use num_integer::Integer;
+    /// let mut x: i32 = 43;
+    /// x.dec();
+    /// assert_eq!(x, 42);
+    /// ~~~
+    </span><span class="kw">fn </span>dec(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+    <span class="kw">where
+        </span><span class="self">Self</span>: Clone,
+    {
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="self">self</span>.clone() - <span class="self">Self</span>::one()
+    }
+
+    <span class="doccomment">/// Increments self by one.
+    ///
+    /// # Examples
+    ///
+    /// ~~~
+    /// # use num_integer::Integer;
+    /// let mut x: i32 = 41;
+    /// x.inc();
+    /// assert_eq!(x, 42);
+    /// ~~~
+    </span><span class="kw">fn </span>inc(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+    <span class="kw">where
+        </span><span class="self">Self</span>: Clone,
+    {
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="self">self</span>.clone() + <span class="self">Self</span>::one()
     }
 }
 
@@ -1917,12 +1949,6 @@
                 (gcd, lcm)
             }
 
-            <span class="doccomment">/// Deprecated, use `is_multiple_of` instead.
-            </span><span class="attr">#[inline]
-            </span><span class="kw">fn </span>divides(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-                <span class="self">self</span>.is_multiple_of(other)
-            }
-
             <span class="doccomment">/// Returns `true` if the number is a multiple of `other`.
             </span><span class="attr">#[inline]
             </span><span class="kw">fn </span>is_multiple_of(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
@@ -1976,8 +2002,8 @@
 
         <span class="attr">#[cfg(test)]
         </span><span class="kw">mod </span><span class="macro-nonterminal">$test_mod </span>{
+            <span class="kw">use </span><span class="kw">crate</span>::Integer;
             <span class="kw">use </span>core::mem;
-            <span class="kw">use </span>Integer;
 
             <span class="doccomment">/// Checks that the division rule holds for:
             ///
@@ -1996,11 +2022,10 @@
                     <span class="kw">let </span>separate_div_rem = (n / d, n % d);
                     <span class="kw">let </span>combined_div_rem = n.div_rem(<span class="kw-2">&amp;</span>d);
 
+                    test_division_rule(nd, qr);
+
                     <span class="macro">assert_eq!</span>(separate_div_rem, qr);
                     <span class="macro">assert_eq!</span>(combined_div_rem, qr);
-
-                    test_division_rule(nd, separate_div_rem);
-                    test_division_rule(nd, combined_div_rem);
                 }
 
                 test_nd_dr((<span class="number">8</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">2</span>));
@@ -2022,11 +2047,10 @@
                         (Integer::div_floor(<span class="kw-2">&amp;</span>n, <span class="kw-2">&amp;</span>d), Integer::mod_floor(<span class="kw-2">&amp;</span>n, <span class="kw-2">&amp;</span>d));
                     <span class="kw">let </span>combined_div_mod_floor = Integer::div_mod_floor(<span class="kw-2">&amp;</span>n, <span class="kw-2">&amp;</span>d);
 
+                    test_division_rule(nd, dm);
+
                     <span class="macro">assert_eq!</span>(separate_div_mod_floor, dm);
                     <span class="macro">assert_eq!</span>(combined_div_mod_floor, dm);
-
-                    test_division_rule(nd, separate_div_mod_floor);
-                    test_division_rule(nd, combined_div_mod_floor);
                 }
 
                 test_nd_dm((<span class="number">8</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">2</span>));
@@ -2065,19 +2089,11 @@
 
                 <span class="comment">// gcd(-128, b) = 128 is not representable as positive value
                 // for i8
-                </span><span class="kw">for </span>i <span class="kw">in </span>-<span class="number">127</span>..<span class="number">127 </span>{
-                    <span class="kw">for </span>j <span class="kw">in </span>-<span class="number">127</span>..<span class="number">127 </span>{
+                </span><span class="kw">for </span>i <span class="kw">in </span>-<span class="number">127</span>..=<span class="number">127 </span>{
+                    <span class="kw">for </span>j <span class="kw">in </span>-<span class="number">127</span>..=<span class="number">127 </span>{
                         <span class="macro">assert_eq!</span>(euclidean_gcd(i, j), i.gcd(<span class="kw-2">&amp;</span>j));
                     }
                 }
-
-                <span class="comment">// last value
-                // FIXME: Use inclusive ranges for above loop when implemented
-                </span><span class="kw">let </span>i = <span class="number">127</span>;
-                <span class="kw">for </span>j <span class="kw">in </span>-<span class="number">127</span>..<span class="number">127 </span>{
-                    <span class="macro">assert_eq!</span>(euclidean_gcd(i, j), i.gcd(<span class="kw-2">&amp;</span>j));
-                }
-                <span class="macro">assert_eq!</span>(<span class="number">127</span>.gcd(<span class="kw-2">&amp;</span><span class="number">127</span>), <span class="number">127</span>);
             }
 
             <span class="attr">#[test]
@@ -2144,9 +2160,9 @@
 
             <span class="attr">#[test]
             </span><span class="kw">fn </span>test_extended_gcd_lcm() {
+                <span class="kw">use </span><span class="kw">crate</span>::ExtendedGcd;
                 <span class="kw">use </span>core::fmt::Debug;
-                <span class="kw">use </span>traits::NumAssign;
-                <span class="kw">use </span>ExtendedGcd;
+                <span class="kw">use </span>num_traits::NumAssign;
 
                 <span class="kw">fn </span>check&lt;A: Copy + Debug + Integer + NumAssign&gt;(a: A, b: A) {
                     <span class="kw">let </span>ExtendedGcd { gcd, x, y, .. } = a.extended_gcd(<span class="kw-2">&amp;</span>b);
@@ -2212,9 +2228,8 @@
 <span class="macro">impl_integer_for_isize!</span>(i16, test_integer_i16);
 <span class="macro">impl_integer_for_isize!</span>(i32, test_integer_i32);
 <span class="macro">impl_integer_for_isize!</span>(i64, test_integer_i64);
+<span class="macro">impl_integer_for_isize!</span>(i128, test_integer_i128);
 <span class="macro">impl_integer_for_isize!</span>(isize, test_integer_isize);
-<span class="attr">#[cfg(has_i128)]
-</span><span class="macro">impl_integer_for_isize!</span>(i128, test_integer_i128);
 
 <span class="macro">macro_rules! </span>impl_integer_for_usize {
     (<span class="macro-nonterminal">$T</span>:ty, <span class="macro-nonterminal">$test_mod</span>:ident) =&gt; {
@@ -2295,12 +2310,6 @@
                 (gcd, lcm)
             }
 
-            <span class="doccomment">/// Deprecated, use `is_multiple_of` instead.
-            </span><span class="attr">#[inline]
-            </span><span class="kw">fn </span>divides(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-                <span class="self">self</span>.is_multiple_of(other)
-            }
-
             <span class="doccomment">/// Returns `true` if the number is a multiple of `other`.
             </span><span class="attr">#[inline]
             </span><span class="kw">fn </span>is_multiple_of(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
@@ -2331,8 +2340,8 @@
 
         <span class="attr">#[cfg(test)]
         </span><span class="kw">mod </span><span class="macro-nonterminal">$test_mod </span>{
+            <span class="kw">use </span><span class="kw">crate</span>::Integer;
             <span class="kw">use </span>core::mem;
-            <span class="kw">use </span>Integer;
 
             <span class="attr">#[test]
             </span><span class="kw">fn </span>test_div_mod_floor() {
@@ -2367,19 +2376,11 @@
                     n
                 }
 
-                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">255 </span>{
-                    <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="number">255 </span>{
+                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
+                    <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..=<span class="number">255 </span>{
                         <span class="macro">assert_eq!</span>(euclidean_gcd(i, j), i.gcd(<span class="kw-2">&amp;</span>j));
                     }
                 }
-
-                <span class="comment">// last value
-                // FIXME: Use inclusive ranges for above loop when implemented
-                </span><span class="kw">let </span>i = <span class="number">255</span>;
-                <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="number">255 </span>{
-                    <span class="macro">assert_eq!</span>(euclidean_gcd(i, j), i.gcd(<span class="kw-2">&amp;</span>j));
-                }
-                <span class="macro">assert_eq!</span>(<span class="number">255</span>.gcd(<span class="kw-2">&amp;</span><span class="number">255</span>), <span class="number">255</span>);
             }
 
             <span class="attr">#[test]
@@ -2438,9 +2439,8 @@
 <span class="macro">impl_integer_for_usize!</span>(u16, test_integer_u16);
 <span class="macro">impl_integer_for_usize!</span>(u32, test_integer_u32);
 <span class="macro">impl_integer_for_usize!</span>(u64, test_integer_u64);
+<span class="macro">impl_integer_for_usize!</span>(u128, test_integer_u128);
 <span class="macro">impl_integer_for_usize!</span>(usize, test_integer_usize);
-<span class="attr">#[cfg(has_i128)]
-</span><span class="macro">impl_integer_for_usize!</span>(u128, test_integer_u128);
 
 <span class="doccomment">/// An iterator over binomial coefficients.
 </span><span class="kw">pub struct </span>IterBinomial&lt;T&gt; {
@@ -2475,7 +2475,7 @@
         IterBinomial {
             k: T::zero(),
             a: T::one(),
-            n: n,
+            n,
         }
     }
 }

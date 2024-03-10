@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.8.0/src/iter/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3529,6 +3529,131 @@
 <a href="#3529" id="3529">3529</a>
 <a href="#3530" id="3530">3530</a>
 <a href="#3531" id="3531">3531</a>
+<a href="#3532" id="3532">3532</a>
+<a href="#3533" id="3533">3533</a>
+<a href="#3534" id="3534">3534</a>
+<a href="#3535" id="3535">3535</a>
+<a href="#3536" id="3536">3536</a>
+<a href="#3537" id="3537">3537</a>
+<a href="#3538" id="3538">3538</a>
+<a href="#3539" id="3539">3539</a>
+<a href="#3540" id="3540">3540</a>
+<a href="#3541" id="3541">3541</a>
+<a href="#3542" id="3542">3542</a>
+<a href="#3543" id="3543">3543</a>
+<a href="#3544" id="3544">3544</a>
+<a href="#3545" id="3545">3545</a>
+<a href="#3546" id="3546">3546</a>
+<a href="#3547" id="3547">3547</a>
+<a href="#3548" id="3548">3548</a>
+<a href="#3549" id="3549">3549</a>
+<a href="#3550" id="3550">3550</a>
+<a href="#3551" id="3551">3551</a>
+<a href="#3552" id="3552">3552</a>
+<a href="#3553" id="3553">3553</a>
+<a href="#3554" id="3554">3554</a>
+<a href="#3555" id="3555">3555</a>
+<a href="#3556" id="3556">3556</a>
+<a href="#3557" id="3557">3557</a>
+<a href="#3558" id="3558">3558</a>
+<a href="#3559" id="3559">3559</a>
+<a href="#3560" id="3560">3560</a>
+<a href="#3561" id="3561">3561</a>
+<a href="#3562" id="3562">3562</a>
+<a href="#3563" id="3563">3563</a>
+<a href="#3564" id="3564">3564</a>
+<a href="#3565" id="3565">3565</a>
+<a href="#3566" id="3566">3566</a>
+<a href="#3567" id="3567">3567</a>
+<a href="#3568" id="3568">3568</a>
+<a href="#3569" id="3569">3569</a>
+<a href="#3570" id="3570">3570</a>
+<a href="#3571" id="3571">3571</a>
+<a href="#3572" id="3572">3572</a>
+<a href="#3573" id="3573">3573</a>
+<a href="#3574" id="3574">3574</a>
+<a href="#3575" id="3575">3575</a>
+<a href="#3576" id="3576">3576</a>
+<a href="#3577" id="3577">3577</a>
+<a href="#3578" id="3578">3578</a>
+<a href="#3579" id="3579">3579</a>
+<a href="#3580" id="3580">3580</a>
+<a href="#3581" id="3581">3581</a>
+<a href="#3582" id="3582">3582</a>
+<a href="#3583" id="3583">3583</a>
+<a href="#3584" id="3584">3584</a>
+<a href="#3585" id="3585">3585</a>
+<a href="#3586" id="3586">3586</a>
+<a href="#3587" id="3587">3587</a>
+<a href="#3588" id="3588">3588</a>
+<a href="#3589" id="3589">3589</a>
+<a href="#3590" id="3590">3590</a>
+<a href="#3591" id="3591">3591</a>
+<a href="#3592" id="3592">3592</a>
+<a href="#3593" id="3593">3593</a>
+<a href="#3594" id="3594">3594</a>
+<a href="#3595" id="3595">3595</a>
+<a href="#3596" id="3596">3596</a>
+<a href="#3597" id="3597">3597</a>
+<a href="#3598" id="3598">3598</a>
+<a href="#3599" id="3599">3599</a>
+<a href="#3600" id="3600">3600</a>
+<a href="#3601" id="3601">3601</a>
+<a href="#3602" id="3602">3602</a>
+<a href="#3603" id="3603">3603</a>
+<a href="#3604" id="3604">3604</a>
+<a href="#3605" id="3605">3605</a>
+<a href="#3606" id="3606">3606</a>
+<a href="#3607" id="3607">3607</a>
+<a href="#3608" id="3608">3608</a>
+<a href="#3609" id="3609">3609</a>
+<a href="#3610" id="3610">3610</a>
+<a href="#3611" id="3611">3611</a>
+<a href="#3612" id="3612">3612</a>
+<a href="#3613" id="3613">3613</a>
+<a href="#3614" id="3614">3614</a>
+<a href="#3615" id="3615">3615</a>
+<a href="#3616" id="3616">3616</a>
+<a href="#3617" id="3617">3617</a>
+<a href="#3618" id="3618">3618</a>
+<a href="#3619" id="3619">3619</a>
+<a href="#3620" id="3620">3620</a>
+<a href="#3621" id="3621">3621</a>
+<a href="#3622" id="3622">3622</a>
+<a href="#3623" id="3623">3623</a>
+<a href="#3624" id="3624">3624</a>
+<a href="#3625" id="3625">3625</a>
+<a href="#3626" id="3626">3626</a>
+<a href="#3627" id="3627">3627</a>
+<a href="#3628" id="3628">3628</a>
+<a href="#3629" id="3629">3629</a>
+<a href="#3630" id="3630">3630</a>
+<a href="#3631" id="3631">3631</a>
+<a href="#3632" id="3632">3632</a>
+<a href="#3633" id="3633">3633</a>
+<a href="#3634" id="3634">3634</a>
+<a href="#3635" id="3635">3635</a>
+<a href="#3636" id="3636">3636</a>
+<a href="#3637" id="3637">3637</a>
+<a href="#3638" id="3638">3638</a>
+<a href="#3639" id="3639">3639</a>
+<a href="#3640" id="3640">3640</a>
+<a href="#3641" id="3641">3641</a>
+<a href="#3642" id="3642">3642</a>
+<a href="#3643" id="3643">3643</a>
+<a href="#3644" id="3644">3644</a>
+<a href="#3645" id="3645">3645</a>
+<a href="#3646" id="3646">3646</a>
+<a href="#3647" id="3647">3647</a>
+<a href="#3648" id="3648">3648</a>
+<a href="#3649" id="3649">3649</a>
+<a href="#3650" id="3650">3650</a>
+<a href="#3651" id="3651">3651</a>
+<a href="#3652" id="3652">3652</a>
+<a href="#3653" id="3653">3653</a>
+<a href="#3654" id="3654">3654</a>
+<a href="#3655" id="3655">3655</a>
+<a href="#3656" id="3656">3656</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Traits for writing parallel programs using an iterator-style interface
 //!
 //! You will rarely need to interact with this module directly unless you have
@@ -3614,6 +3739,7 @@
 <span class="kw">use </span><span class="self">self</span>::private::Try;
 <span class="kw">pub use </span>either::Either;
 <span class="kw">use </span>std::cmp::{<span class="self">self</span>, Ordering};
+<span class="kw">use </span>std::collections::LinkedList;
 <span class="kw">use </span>std::iter::{Product, Sum};
 <span class="kw">use </span>std::ops::{Fn, RangeBounds};
 
@@ -3633,7 +3759,8 @@
 //   e.g. `find::find()`, are always used **prefixed**, so that they
 //   can be readily distinguished.
 
-</span><span class="kw">mod </span>chain;
+</span><span class="kw">mod </span>blocks;
+<span class="kw">mod </span>chain;
 <span class="kw">mod </span>chunks;
 <span class="kw">mod </span>cloned;
 <span class="kw">mod </span>collect;
@@ -3685,11 +3812,13 @@
 <span class="kw">mod </span>try_reduce_with;
 <span class="kw">mod </span>unzip;
 <span class="kw">mod </span>update;
+<span class="kw">mod </span>walk_tree;
 <span class="kw">mod </span>while_some;
 <span class="kw">mod </span>zip;
 <span class="kw">mod </span>zip_eq;
 
 <span class="kw">pub use </span><span class="self">self</span>::{
+    blocks::{ExponentialBlocks, UniformBlocks},
     chain::Chain,
     chunks::Chunks,
     cloned::Cloned,
@@ -3729,6 +3858,9 @@
     take_any_while::TakeAnyWhile,
     try_fold::{TryFold, TryFoldWith},
     update::Update,
+    walk_tree::{
+        walk_tree, walk_tree_postfix, walk_tree_prefix, WalkTree, WalkTreePostfix, WalkTreePrefix,
+    },
     while_some::WhileSome,
     zip::Zip,
     zip_eq::ZipEq,
@@ -5204,6 +5336,9 @@
     /// will be stopped, while attempts to the left must continue in case
     /// an earlier match is found.
     ///
+    /// For added performance, you might consider using `find_first` in conjunction with
+    /// [`by_exponential_blocks()`][IndexedParallelIterator::by_exponential_blocks].
+    ///
     /// Note that not all parallel iterators have a useful order, much like
     /// sequential `HashMap` iteration, so &quot;first&quot; may be nebulous.  If you
     /// just want the first match that discovered anywhere in the iterator,
@@ -5491,6 +5626,9 @@
     /// it. [`collect_into_vec()`] allocates efficiently with precise knowledge
     /// of how many elements the iterator contains, and even allows you to reuse
     /// an existing vector&#39;s backing store rather than allocating a fresh vector.
+    ///
+    /// See also [`collect_vec_list()`][Self::collect_vec_list] for collecting
+    /// into a `LinkedList&lt;Vec&lt;T&gt;&gt;`.
     ///
     /// [`IndexedParallelIterator`]: trait.IndexedParallelIterator.html
     /// [`collect_into_vec()`]:
@@ -5870,6 +6008,51 @@
         SkipAnyWhile::new(<span class="self">self</span>, predicate)
     }
 
+    <span class="doccomment">/// Collects this iterator into a linked list of vectors.
+    ///
+    /// This is useful when you need to condense a parallel iterator into a collection,
+    /// but have no specific requirements for what that collection should be. If you
+    /// plan to store the collection longer-term, `Vec&lt;T&gt;` is, as always, likely the
+    /// best default choice, despite the overhead that comes from concatenating each
+    /// vector. Or, if this is an `IndexedParallelIterator`, you should also prefer to
+    /// just collect to a `Vec&lt;T&gt;`.
+    ///
+    /// Internally, most [`FromParallelIterator`]/[`ParallelExtend`] implementations
+    /// use this strategy; each job collecting their chunk of the iterator to a `Vec&lt;T&gt;`
+    /// and those chunks getting merged into a `LinkedList`, before then extending the
+    /// collection with each vector. This is a very efficient way to collect an
+    /// unindexed parallel iterator, without much intermediate data movement.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::collections::LinkedList;
+    /// use rayon::prelude::*;
+    ///
+    /// let result: LinkedList&lt;Vec&lt;_&gt;&gt; = (0..=100)
+    ///     .into_par_iter()
+    ///     .filter(|x| x % 2 == 0)
+    ///     .flat_map(|x| 0..x)
+    ///     .collect_vec_list();
+    ///
+    /// // `par_iter.collect_vec_list().into_iter().flatten()` turns
+    /// // a parallel iterator into a serial one
+    /// let total_len = result.into_iter().flatten().count();
+    /// assert_eq!(total_len, 2550);
+    /// ```
+    </span><span class="kw">fn </span>collect_vec_list(<span class="self">self</span>) -&gt; LinkedList&lt;Vec&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">match </span>extend::fast_collect(<span class="self">self</span>) {
+            Either::Left(vec) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>list = LinkedList::new();
+                <span class="kw">if </span>!vec.is_empty() {
+                    list.push_back(vec);
+                }
+                list
+            }
+            Either::Right(list) =&gt; list,
+        }
+    }
+
     <span class="doccomment">/// Internal method used to define the behavior of this parallel
     /// iterator. You should not need to call this directly.
     ///
@@ -5881,7 +6064,7 @@
     /// See the [README] for more details on the internals of parallel
     /// iterators.
     ///
-    /// [README]: https://github.com/rayon-rs/rayon/blob/master/src/iter/plumbing/README.md
+    /// [README]: https://github.com/rayon-rs/rayon/blob/main/src/iter/plumbing/README.md
     </span><span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
         </span>C: UnindexedConsumer&lt;<span class="self">Self</span>::Item&gt;;
@@ -5922,6 +6105,70 @@
 </span><span class="comment">// Waiting for `ExactSizeIterator::is_empty` to be stabilized. See rust-lang/rust#35428
 </span><span class="attr">#[allow(clippy::len_without_is_empty)]
 </span><span class="kw">pub trait </span>IndexedParallelIterator: ParallelIterator {
+    <span class="doccomment">/// Divides an iterator into sequential blocks of exponentially-increasing size.
+    ///
+    /// Normally, parallel iterators are recursively divided into tasks in parallel.
+    /// This adaptor changes the default behavior by splitting the iterator into a **sequence**
+    /// of parallel iterators of increasing sizes.
+    /// Sizes grow exponentially in order to avoid creating
+    /// too many blocks. This also allows to balance the current block with all previous ones.
+    ///
+    /// This can have many applications but the most notable ones are:
+    /// - better performance with [`find_first()`][ParallelIterator::find_first]
+    /// - more predictable performance with [`find_any()`][ParallelIterator::find_any]
+    ///   or any interruptible computation
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rayon::prelude::*;
+    /// assert_eq!((0..10_000).into_par_iter()
+    ///                       .by_exponential_blocks()
+    ///                       .find_first(|&amp;e| e==4_999), Some(4_999))
+    /// ```
+    ///
+    /// In this example, without blocks, rayon will split the initial range into two but all work
+    /// on the right hand side (from 5,000 onwards) is **useless** since the sequential algorithm
+    /// never goes there. This means that if two threads are used there will be **no** speedup **at
+    /// all**.
+    ///
+    /// `by_exponential_blocks` on the other hand will start with the leftmost range from 0
+    /// to `p` (threads number), continue with p to 3p, the 3p to 7p...
+    ///
+    /// Each subrange is treated in parallel, while all subranges are treated sequentially.
+    /// We therefore ensure a logarithmic number of blocks (and overhead) while guaranteeing
+    /// we stop at the first block containing the searched data.
+    </span><span class="kw">fn </span>by_exponential_blocks(<span class="self">self</span>) -&gt; ExponentialBlocks&lt;<span class="self">Self</span>&gt; {
+        ExponentialBlocks::new(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Divides an iterator into sequential blocks of the given size.
+    ///
+    /// Normally, parallel iterators are recursively divided into tasks in parallel.
+    /// This adaptor changes the default behavior by splitting the iterator into a **sequence**
+    /// of parallel iterators of given `block_size`.
+    /// The main application is to obtain better
+    /// memory locality (especially if the reduce operation re-use folded data).
+    ///
+    /// **Panics** if `block_size` is 0.
+    ///
+    /// # Example
+    /// ```
+    /// use rayon::prelude::*;
+    /// // during most reductions v1 and v2 fit the cache
+    /// let v = (0u32..10_000_000)
+    ///     .into_par_iter()
+    ///     .by_uniform_blocks(1_000_000)
+    ///     .fold(Vec::new, |mut v, e| { v.push(e); v})
+    ///     .reduce(Vec::new, |mut v1, mut v2| { v1.append(&amp;mut v2); v1});
+    /// assert_eq!(v, (0u32..10_000_000).collect::&lt;Vec&lt;u32&gt;&gt;());
+    /// ```
+    </span><span class="attr">#[track_caller]
+    </span><span class="kw">fn </span>by_uniform_blocks(<span class="self">self</span>, block_size: usize) -&gt; UniformBlocks&lt;<span class="self">Self</span>&gt; {
+        <span class="macro">assert!</span>(block_size != <span class="number">0</span>, <span class="string">&quot;block_size must not be zero&quot;</span>);
+        UniformBlocks::new(<span class="self">self</span>, block_size)
+    }
+
     <span class="doccomment">/// Collects the results of the iterator into the specified
     /// vector. The vector is always cleared before execution
     /// begins. If possible, reusing the vector across calls can lead
@@ -6086,6 +6333,8 @@
     ///
     /// [`par_chunks()`]: ../slice/trait.ParallelSlice.html#method.par_chunks
     /// [`par_chunks_mut()`]: ../slice/trait.ParallelSliceMut.html#method.par_chunks_mut
+    ///
+    /// **Panics** if `chunk_size` is 0.
     ///
     /// # Examples
     ///
@@ -6654,7 +6903,7 @@
     /// See the [README] for more details on the internals of parallel
     /// iterators.
     ///
-    /// [README]: https://github.com/rayon-rs/rayon/blob/master/src/iter/plumbing/README.md
+    /// [README]: https://github.com/rayon-rs/rayon/blob/main/src/iter/plumbing/README.md
     </span><span class="kw">fn </span>drive&lt;C: Consumer&lt;<span class="self">Self</span>::Item&gt;&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result;
 
     <span class="doccomment">/// Internal method used to define the behavior of this parallel
@@ -6671,7 +6920,7 @@
     /// See the [README] for more details on the internals of parallel
     /// iterators.
     ///
-    /// [README]: https://github.com/rayon-rs/rayon/blob/master/src/iter/plumbing/README.md
+    /// [README]: https://github.com/rayon-rs/rayon/blob/main/src/iter/plumbing/README.md
     </span><span class="kw">fn </span>with_producer&lt;CB: ProducerCallback&lt;<span class="self">Self</span>::Item&gt;&gt;(<span class="self">self</span>, callback: CB) -&gt; CB::Output;
 }
 
@@ -6719,14 +6968,15 @@
     ///
     /// If your collection is not naturally parallel, the easiest (and
     /// fastest) way to do this is often to collect `par_iter` into a
-    /// [`LinkedList`] or other intermediate data structure and then
-    /// sequentially extend your collection. However, a more &#39;native&#39;
-    /// technique is to use the [`par_iter.fold`] or
+    /// [`LinkedList`] (via [`collect_vec_list`]) or another intermediate
+    /// data structure and then sequentially extend your collection. However,
+    /// a more &#39;native&#39; technique is to use the [`par_iter.fold`] or
     /// [`par_iter.fold_with`] methods to create the collection.
     /// Alternatively, if your collection is &#39;natively&#39; parallel, you
     /// can use `par_iter.for_each` to process each element in turn.
     ///
     /// [`LinkedList`]: https://doc.rust-lang.org/std/collections/struct.LinkedList.html
+    /// [`collect_vec_list`]: ParallelIterator::collect_vec_list
     /// [`par_iter.fold`]: trait.ParallelIterator.html#method.fold
     /// [`par_iter.fold_with`]: trait.ParallelIterator.html#method.fold_with
     /// [`par_iter.for_each`]: trait.ParallelIterator.html#method.for_each

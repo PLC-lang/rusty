@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.2.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_io"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_io"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2195,6 +2195,48 @@
 <a href="#2195" id="2195">2195</a>
 <a href="#2196" id="2196">2196</a>
 <a href="#2197" id="2197">2197</a>
+<a href="#2198" id="2198">2198</a>
+<a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
+<a href="#2215" id="2215">2215</a>
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a>
+<a href="#2223" id="2223">2223</a>
+<a href="#2224" id="2224">2224</a>
+<a href="#2225" id="2225">2225</a>
+<a href="#2226" id="2226">2226</a>
+<a href="#2227" id="2227">2227</a>
+<a href="#2228" id="2228">2228</a>
+<a href="#2229" id="2229">2229</a>
+<a href="#2230" id="2230">2230</a>
+<a href="#2231" id="2231">2231</a>
+<a href="#2232" id="2232">2232</a>
+<a href="#2233" id="2233">2233</a>
+<a href="#2234" id="2234">2234</a>
+<a href="#2235" id="2235">2235</a>
+<a href="#2236" id="2236">2236</a>
+<a href="#2237" id="2237">2237</a>
+<a href="#2238" id="2238">2238</a>
+<a href="#2239" id="2239">2239</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Async I/O and timers.
 //!
 //! This crate provides two tools:
@@ -4044,12 +4086,10 @@
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub async fn </span>connect&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;Async&lt;UnixStream&gt;&gt; {
+        <span class="kw">let </span>address = convert_path_to_socket_address(path.as_ref())<span class="question-mark">?</span>;
+
         <span class="comment">// Begin async connect.
-        </span><span class="kw">let </span>socket = connect(
-            rn::SocketAddrUnix::new(path.as_ref())<span class="question-mark">?</span>.into(),
-            rn::AddressFamily::UNIX,
-            <span class="prelude-val">None</span>,
-        )<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>socket = connect(address.into(), rn::AddressFamily::UNIX, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="comment">// Use new_nonblocking because connect already sets socket to non-blocking mode.
         </span><span class="kw">let </span>stream = Async::new_nonblocking(UnixStream::from(socket))<span class="question-mark">?</span>;
 
@@ -4268,6 +4308,8 @@
     <span class="attr">#[cfg(windows)]
     </span><span class="kw">use </span>rustix::fd::AsFd;
 
+    setup_networking();
+
     <span class="attr">#[cfg(any(
         target_os = <span class="string">&quot;android&quot;</span>,
         target_os = <span class="string">&quot;dragonfly&quot;</span>,
@@ -4368,6 +4410,20 @@
 }
 
 <span class="attr">#[inline]
+</span><span class="kw">fn </span>setup_networking() {
+    <span class="attr">#[cfg(windows)]
+    </span>{
+        <span class="comment">// On Windows, we need to call WSAStartup before calling any networking code.
+        // Make sure to call it at least once.
+        </span><span class="kw">static </span>INIT: std::sync::Once = std::sync::Once::new();
+
+        INIT.call_once(|| {
+            <span class="kw">let _ </span>= rustix::net::wsa_startup();
+        });
+    }
+}
+
+<span class="attr">#[inline]
 </span><span class="kw">fn </span>set_nonblocking(
     <span class="attr">#[cfg(unix)] </span>fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
     <span class="attr">#[cfg(windows)] </span>fd: BorrowedSocket&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -4391,5 +4447,33 @@
     }
 
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="doccomment">/// Converts a `Path` to its socket address representation.
+///
+/// This function is abstract socket-aware.
+</span><span class="attr">#[cfg(unix)]
+#[inline]
+</span><span class="kw">fn </span>convert_path_to_socket_address(path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;rn::SocketAddrUnix&gt; {
+    <span class="comment">// SocketAddrUnix::new() will throw EINVAL when a path with a zero in it is passed in.
+    // However, some users expect to be able to pass in paths to abstract sockets, which
+    // triggers this error as it has a zero in it. Therefore, if a path starts with a zero,
+    // make it an abstract socket.
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span><span class="kw">let </span>address = {
+        <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
+
+        <span class="kw">let </span>path = path.as_os_str();
+        <span class="kw">match </span>path.as_bytes().first() {
+            <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; rn::SocketAddrUnix::new_abstract_name(path.as_bytes().get(<span class="number">1</span>..).unwrap())<span class="question-mark">?</span>,
+            <span class="kw">_ </span>=&gt; rn::SocketAddrUnix::new(path)<span class="question-mark">?</span>,
+        }
+    };
+
+    <span class="comment">// Only Linux and Android support abstract sockets.
+    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>)))]
+    </span><span class="kw">let </span>address = rn::SocketAddrUnix::new(path)<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(address)
 }
 </code></pre></div></section></main></body></html>

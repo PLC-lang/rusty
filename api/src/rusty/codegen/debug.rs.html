@@ -1336,7 +1336,7 @@
         <span class="self">self</span>.types
             .get(<span class="kw-2">&amp;</span>dt_name)
             .ok_or_else(|| {
-                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Cannot find debug information for type {dt_name}&quot;</span>))
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Cannot find debug information for type {dt_name}&quot;</span>))
                     .with_error_code(<span class="string">&quot;E076&quot;</span>)
             })
             .map(|it| it.to_owned())

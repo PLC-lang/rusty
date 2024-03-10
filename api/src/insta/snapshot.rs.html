@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.34.0/src/snapshot.rs`."><title>snapshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/snapshot.rs`."><title>snapshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -878,6 +878,55 @@
 <a href="#878" id="878">878</a>
 <a href="#879" id="879">879</a>
 <a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::env;
 <span class="kw">use </span>std::error::Error;
@@ -919,12 +968,13 @@
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;_cargo_insta_internal&quot;</span>)]
     </span><span class="kw">pub fn </span>load_batch(p: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;PendingInlineSnapshot&gt;, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
-        <span class="kw">let </span>contents = fs::read_to_string(p)<span class="question-mark">?</span>;
+        <span class="kw">let </span>contents =
+            fs::read_to_string(p).map_err(|e| content::Error::FileIo(e, p.to_path_buf()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>rv: Vec&lt;<span class="self">Self</span>&gt; = contents
             .lines()
             .map(|line| {
-                <span class="kw">let </span>value = yaml::parse_str(line)<span class="question-mark">?</span>;
+                <span class="kw">let </span>value = yaml::parse_str(line, p)<span class="question-mark">?</span>;
                 <span class="self">Self</span>::from_content(value)
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, Box&lt;<span class="kw">dyn </span>Error&gt;&gt;&gt;()<span class="question-mark">?</span>;
@@ -1008,7 +1058,7 @@
 }
 
 <span class="doccomment">/// Snapshot metadata information.
-</span><span class="attr">#[derive(Debug, Default, Clone)]
+</span><span class="attr">#[derive(Debug, Default, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>MetaData {
     <span class="doccomment">/// The source file (relative to workspace root).
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) source: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -1166,7 +1216,7 @@
                     <span class="kw">break</span>;
                 }
             }
-            <span class="kw">let </span>content = yaml::parse_str(<span class="kw-2">&amp;</span>buf)<span class="question-mark">?</span>;
+            <span class="kw">let </span>content = yaml::parse_str(<span class="kw-2">&amp;</span>buf, p)<span class="question-mark">?</span>;
             MetaData::from_content(content)<span class="question-mark">?
         </span><span class="comment">// legacy format
         </span>} <span class="kw">else </span>{
@@ -1314,10 +1364,20 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.snapshot
     }
 
+    <span class="doccomment">/// Snapshot contents match another snapshot&#39;s.
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Snapshot) -&gt; bool {
+        <span class="self">self</span>.contents() == other.contents()
+    }
+
+    <span class="doccomment">/// Snapshot contents _and_ metadata match another snapshot&#39;s.
+    </span><span class="kw">pub fn </span>matches_fully(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Snapshot) -&gt; bool {
+        <span class="self">self</span>.matches(other) &amp;&amp; <span class="self">self</span>.metadata == other.metadata
+    }
+
     <span class="doccomment">/// The snapshot contents as a &amp;str
     </span><span class="kw">pub fn </span>contents_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.snapshot.<span class="number">0
-    </span>}
+        <span class="self">self</span>.snapshot.as_str()
+    }
 
     <span class="kw">fn </span>serialize_snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>, md: <span class="kw-2">&amp;</span>MetaData) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = yaml::to_string(<span class="kw-2">&amp;</span>md.as_content());
@@ -1390,6 +1450,13 @@
         SnapshotContents(get_inline_snapshot_value(value))
     }
 
+    <span class="doccomment">/// Returns the snapshot contents as string with surrounding whitespace removed.
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.<span class="number">0
+            </span>.trim_start_matches(|x| x == <span class="string">&#39;\r&#39; </span>|| x == <span class="string">&#39;\n&#39;</span>)
+            .trim_end()
+    }
+
     <span class="kw">pub fn </span>to_inline(<span class="kw-2">&amp;</span><span class="self">self</span>, indentation: usize) -&gt; String {
         <span class="kw">let </span>contents = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = String::new();
@@ -1456,7 +1523,7 @@
 
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>SnapshotContents {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        <span class="self">self</span>.<span class="number">0</span>.trim_end() == other.<span class="number">0</span>.trim_end()
+        <span class="self">self</span>.as_str() == other.as_str()
     }
 }
 
@@ -1757,5 +1824,36 @@ a
 </span><span class="kw">fn </span>test_inline_snapshot_value_newline() {
     <span class="comment">// https://github.com/mitsuhiko/insta/issues/39
     </span><span class="macro">assert_eq!</span>(get_inline_snapshot_value(<span class="string">&quot;\n&quot;</span>), <span class="string">&quot;&quot;</span>);
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>test_parse_yaml_error() {
+    <span class="kw">use </span>std::env::temp_dir;
+    <span class="kw">let </span><span class="kw-2">mut </span>temp = temp_dir();
+    temp.push(<span class="string">&quot;bad.yaml&quot;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>f = fs::File::create(temp.clone()).unwrap();
+
+    <span class="kw">let </span>invalid = <span class="string">r#&quot;---
+    This is invalid yaml:
+     {
+        {
+    ---
+    &quot;#</span>;
+
+    f.write_all(invalid.as_bytes()).unwrap();
+
+    <span class="kw">let </span>error = <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, Snapshot::from_file(temp.as_path()).unwrap_err());
+    <span class="macro">assert!</span>(error.contains(<span class="string">&quot;Failed parsing the YAML from&quot;</span>));
+    <span class="macro">assert!</span>(error.contains(<span class="string">&quot;/bad.yaml&quot;</span>));
+}
+
+<span class="doccomment">/// Check that snapshots don&#39;t take ownership of the value
+</span><span class="attr">#[test]
+</span><span class="kw">fn </span>test_ownership() {
+    <span class="comment">// Range is non-copy
+    </span><span class="kw">use </span>std::ops::Range;
+    <span class="kw">let </span>r = Range { start: <span class="number">0</span>, end: <span class="number">10 </span>};
+    <span class="macro">assert_debug_snapshot!</span>(r, @<span class="string">&quot;0..10&quot;</span>);
+    <span class="macro">assert_debug_snapshot!</span>(r, @<span class="string">&quot;0..10&quot;</span>);
 }
 </code></pre></div></section></main></body></html>

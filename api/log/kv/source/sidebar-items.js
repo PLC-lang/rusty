@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["as_list","as_map"],"struct":["AsList","AsMap"],"trait":["Source","Visitor"]};
+window.SIDEBAR_ITEMS = {"trait":["Source","VisitSource"]};

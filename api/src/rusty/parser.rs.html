@@ -1155,9 +1155,6 @@
 <a href="#1155" id="1155">1155</a>
 <a href="#1156" id="1156">1156</a>
 <a href="#1157" id="1157">1157</a>
-<a href="#1158" id="1158">1158</a>
-<a href="#1159" id="1159">1159</a>
-<a href="#1160" id="1160">1160</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1215,8 +1212,7 @@
     //TODO: We should reduce the clone here
     </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); <span class="comment">// TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     </span><span class="kw">if </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors) == Severity::Error {
-        <span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to critical parse errors&quot;</span>)
-            .with_sub_diagnostics(errors))
+        <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Compilation aborted due to critical parse errors&quot;</span>).with_sub_diagnostics(errors))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(unit)
     }
@@ -1470,7 +1466,7 @@
         <span class="string">&quot;__ANY_VLA&quot; </span>=&gt; TypeNature::__VLA,
         <span class="kw">_ </span>=&gt; {
             lexer.accept_diagnostic(
-                Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Unkown type nature `{nature}`&quot;</span>))
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Unkown type nature `{nature}`&quot;</span>))
                     .with_location(lexer.location())
                     .with_error_code(<span class="string">&quot;E063&quot;</span>),
             );
@@ -1512,17 +1508,15 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>((declaration, initializer)) = parse_data_type_definition(lexer, <span class="prelude-val">None</span>) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = initializer {
                 lexer.accept_diagnostic(
-                    Diagnostic::warning(
-                        <span class="string">&quot;Return types cannot have a default value, the value will be ignored&quot;</span>,
-                    )
-                    .with_location(init.get_location())
-                    .with_error_code(<span class="string">&quot;E016&quot;</span>),
+                    Diagnostic::new(<span class="string">&quot;Return types cannot have a default value, the value will be ignored&quot;</span>)
+                        .with_location(init.get_location())
+                        .with_error_code(<span class="string">&quot;E016&quot;</span>),
                 );
             }
 
             <span class="kw">if </span>!<span class="macro">matches!</span>(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(
+                    Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">&quot;POU Type {pou_type:?} does not support a return type. Did you mean Function?&quot;
                     </span>))
                     .with_error_code(<span class="string">&quot;E026&quot;</span>)
@@ -1541,7 +1535,7 @@
                         .expect(<span class="string">&quot;Expecing location to be a range during parsing&quot;</span>);
                     lexer.accept_diagnostic(
                         <span class="comment">////TODO: This prints a debug version of the datatype, it should have a user readable version instead
-                        </span>Diagnostic::error(<span class="macro">format!</span>(
+                        </span>Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">&quot;Data Type {datatype_name} not supported as a function return type!&quot;
                         </span>))
                         .with_error_code(<span class="string">&quot;E027&quot;</span>)
@@ -1828,7 +1822,7 @@
         <span class="kw">let </span>start_pos = lexer.last_range.start;
         <span class="comment">//Report wrong keyword
         </span>lexer.accept_diagnostic(
-            Diagnostic::warning(<span class="string">&quot;`POINTER TO` is not a standard keyword, use `REF_TO` instead&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;`POINTER TO` is not a standard keyword, use `REF_TO` instead&quot;</span>)
                 .with_location(lexer.last_location())
                 .with_error_code(<span class="string">&quot;E015&quot;</span>),
         );
@@ -1958,12 +1952,12 @@
                 || (opening_token == KeywordSquareParensOpen &amp;&amp; lexer.token == KeywordParensClose)
             {
                 lexer.accept_diagnostic(
-                    Diagnostic::error(<span class="string">&quot;Mismatched types of parentheses around string size expression&quot;</span>)
+                    Diagnostic::new(<span class="string">&quot;Mismatched types of parentheses around string size expression&quot;</span>)
                         .with_location(error_range)
                         .with_error_code(<span class="string">&quot;E009&quot;</span>),
                 );
             } <span class="kw">else if </span>opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
-                lexer.accept_diagnostic(Diagnostic::warning(
+                lexer.accept_diagnostic(Diagnostic::new(
                     <span class="string">&quot;Unusual type of parentheses around string size expression, consider using square parentheses &#39;[]&#39;&quot;</span>).
                     with_location(error_range)
                     .with_error_code(<span class="string">&quot;E014&quot;</span>)
@@ -2074,7 +2068,7 @@
             <span class="prelude-val">Some</span>(val) =&gt; val,
             <span class="prelude-val">None </span>=&gt; {
                 lexer.accept_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Expected a range statement, got {range:?} instead&quot;</span>))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Expected a range statement, got {range:?} instead&quot;</span>))
                         .with_location(range.get_location())
                         .with_error_code(<span class="string">&quot;E008&quot;</span>),
                 );
@@ -2172,7 +2166,7 @@
         <span class="comment">//Report a diagnostic if blocktype is incompatible
         </span><span class="kw">if </span>!<span class="macro">matches!</span>(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(
-                Diagnostic::warning(<span class="string">&quot;Invalid pragma location: Only VAR_INPUT support by ref properties&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Invalid pragma location: Only VAR_INPUT support by ref properties&quot;</span>)
                     .with_error_code(<span class="string">&quot;E024&quot;</span>)
                     .with_location(lexer.location()),
             )

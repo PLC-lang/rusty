@@ -737,8 +737,8 @@
         </span>{
             <span class="self">self</span>.module
                 .verify()
-                .map_err(|it| Diagnostic::GeneralError { message: it.to_string(), err_no: <span class="string">&quot;E071&quot; </span>})
-                .map(|<span class="kw">_</span>| GeneratedModule { module: <span class="self">self</span>.module, debug: <span class="self">self</span>.debug })
+                .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))
+                .map(|<span class="kw">_</span>| GeneratedModule { module: <span class="self">self</span>.module, engine: RefCell::new(<span class="prelude-val">None</span>) })
         }
 
         <span class="attr">#[cfg(not(feature = <span class="string">&quot;verify&quot;</span>))]
@@ -749,16 +749,16 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>&gt; GeneratedModule&lt;<span class="lifetime">&#39;ink</span>&gt; {
     <span class="kw">pub fn </span>try_from_bitcode(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>CodegenContext, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="kw">let </span>module = Module::parse_bitcode_from_path(path, context.deref())
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(GeneratedModule { module, engine: RefCell::new(<span class="prelude-val">None</span>) })
     }
 
     <span class="kw">pub fn </span>try_from_ir(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>CodegenContext, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="kw">let </span>buffer = MemoryBuffer::create_from_file(path)
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>module = context
             .create_module_from_ir(buffer)
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, module.to_string());
 
@@ -768,7 +768,7 @@
     <span class="kw">pub fn </span>merge(<span class="self">self</span>, other: GeneratedModule&lt;<span class="lifetime">&#39;ink</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="self">self</span>.module
             .link_in_module(other.module)
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
         <span class="macro">log::debug!</span>(<span class="string">&quot;Merged: {}&quot;</span>, <span class="self">self</span>.module.to_string());
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
@@ -947,7 +947,7 @@
         <span class="self">self</span>.module
             .print_to_file(<span class="kw-2">&amp;</span>output)
             .map_err(|err| {
-                Diagnostic::error(<span class="macro">format!</span>(
+                Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">&quot;Cannot write file {} {}&quot;</span>,
                     output.to_str().unwrap_or_default(),
                     err.to_string()

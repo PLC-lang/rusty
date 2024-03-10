@@ -40,6 +40,7 @@
 <a href="#40" id="40">40</a>
 <a href="#41" id="41">41</a>
 <a href="#42" id="42">42</a>
+<a href="#43" id="43">43</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_source::source_location::CodeSpan;
 
 <span class="kw">use </span><span class="kw">crate</span>::diagnostics::Severity;
@@ -77,6 +78,7 @@
 
 <span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ResolvedDiagnostics {
+    <span class="kw">pub </span>code: String,
     <span class="kw">pub </span>message: String,
     <span class="kw">pub </span>severity: Severity,
     <span class="kw">pub </span>main_location: ResolvedLocation,

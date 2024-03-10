@@ -151,7 +151,7 @@
 ) {
     <span class="kw">if </span>implementation.pou_type == PouType::Class &amp;&amp; !implementation.statements.is_empty() {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;A class cannot have an implementation&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;A class cannot have an implementation&quot;</span>)
                 .with_error_code(<span class="string">&quot;E017&quot;</span>)
                 .with_location(implementation.location.to_owned()),
         );
@@ -170,7 +170,7 @@
                         locations.push(first.location.clone());
                         locations.push(second.location.clone());
                         validator.push_diagnostic(
-                            Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;{}: Duplicate label.&quot;</span>, <span class="kw-2">&amp;</span>first.name))
+                            Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;{}: Duplicate label.&quot;</span>, <span class="kw-2">&amp;</span>first.name))
                                 .with_error_code(<span class="string">&quot;E018&quot;</span>)
                                 .with_location(first.location.clone())
                                 .with_secondary_locations(locations),
@@ -207,7 +207,7 @@
         )
     }) {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;A class cannot have a var in/out/inout blocks&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks&quot;</span>)
                 .with_error_code(<span class="string">&quot;E019&quot;</span>)
                 .with_location(pou.name_location.to_owned()),
         );
@@ -216,7 +216,7 @@
     <span class="comment">// classes cannot have a return type
     </span><span class="kw">if </span>context.index.find_return_type(<span class="kw-2">&amp;</span>pou.name).is_some() {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;A class cannot have a return type&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;A class cannot have a return type&quot;</span>)
                 .with_error_code(<span class="string">&quot;E020&quot;</span>)
                 .with_location(pou.name_location.clone()),
         );
@@ -227,7 +227,7 @@
     <span class="comment">// functions cannot use EXTENDS
     </span><span class="kw">if </span>pou.super_class.is_some() {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;A function cannot use `EXTEND`&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;A function cannot use `EXTEND`&quot;</span>)
                 .with_error_code(<span class="string">&quot;E021&quot;</span>)
                 .with_location(pou.name_location.to_owned()),
         );
@@ -238,7 +238,7 @@
     <span class="comment">// programs cannot use EXTENDS
     </span><span class="kw">if </span>pou.super_class.is_some() {
         validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;A program cannot use `EXTEND`&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;A program cannot use `EXTEND`&quot;</span>)
                 .with_error_code(<span class="string">&quot;E021&quot;</span>)
                 .with_location(pou.name_location.to_owned()),
         );
@@ -248,7 +248,7 @@
 <span class="kw">pub fn </span>validate_action_container(validator: <span class="kw-2">&amp;mut </span>Validator, implementation: <span class="kw-2">&amp;</span>Implementation) {
     <span class="kw">if </span>implementation.pou_type == PouType::Action &amp;&amp; implementation.type_name == <span class="string">&quot;__unknown__&quot; </span>{
         validator.push_diagnostic(
-            Diagnostic::warning(<span class="string">&quot;Missing Actions Container Name&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;Missing Actions Container Name&quot;</span>)
                 .with_error_code(<span class="string">&quot;E022&quot;</span>)
                 .with_location(implementation.location.clone()),
         );

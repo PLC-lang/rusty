@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.8.0/src/split_producer.rs`."><title>split_producer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/split_producer.rs`."><title>split_producer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -130,6 +130,26 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Common splitter for strings and slices
 //!
 //! This module is private, so these items are effectively `pub(super)`
@@ -137,7 +157,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::iter::plumbing::{Folder, UnindexedProducer};
 
 <span class="doccomment">/// Common producer for splitting on a predicate.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>SplitProducer&lt;<span class="lifetime">&#39;p</span>, P, V&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>SplitProducer&lt;<span class="lifetime">&#39;p</span>, P, V, <span class="kw">const </span>INCL: bool = <span class="bool-val">false</span>&gt; {
     data: V,
     separator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>P,
 
@@ -145,14 +165,16 @@
     </span>tail: usize,
 }
 
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>SplitInclusiveProducer&lt;<span class="lifetime">&#39;p</span>, P, V&gt; = SplitProducer&lt;<span class="lifetime">&#39;p</span>, P, V, <span class="bool-val">true</span>&gt;;
+
 <span class="doccomment">/// Helper trait so `&amp;str`, `&amp;[T]`, and `&amp;mut [T]` can share `SplitProducer`.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Fissile&lt;P&gt;: Sized {
     <span class="kw">fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
     <span class="kw">fn </span>midpoint(<span class="kw-2">&amp;</span><span class="self">self</span>, end: usize) -&gt; usize;
     <span class="kw">fn </span>find(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: <span class="kw-2">&amp;</span>P, start: usize, end: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;;
     <span class="kw">fn </span>rfind(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: <span class="kw-2">&amp;</span>P, end: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;;
-    <span class="kw">fn </span>split_once(<span class="self">self</span>, index: usize) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>);
-    <span class="kw">fn </span>fold_splits&lt;F&gt;(<span class="self">self</span>, separator: <span class="kw-2">&amp;</span>P, folder: F, skip_last: bool) -&gt; F
+    <span class="kw">fn </span>split_once&lt;<span class="kw">const </span>INCL: bool&gt;(<span class="self">self</span>, index: usize) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>);
+    <span class="kw">fn </span>fold_splits&lt;F, <span class="kw">const </span>INCL: bool&gt;(<span class="self">self</span>, separator: <span class="kw-2">&amp;</span>P, folder: F, skip_last: bool) -&gt; F
     <span class="kw">where
         </span>F: Folder&lt;<span class="self">Self</span>&gt;,
         <span class="self">Self</span>: Send;
@@ -169,7 +191,25 @@
             separator,
         }
     }
+}
 
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, P, V&gt; SplitInclusiveProducer&lt;<span class="lifetime">&#39;p</span>, P, V&gt;
+<span class="kw">where
+    </span>V: Fissile&lt;P&gt; + Send,
+{
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_incl(data: V, separator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>P) -&gt; <span class="self">Self </span>{
+        SplitProducer {
+            tail: data.length(),
+            data,
+            separator,
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, P, V, <span class="kw">const </span>INCL: bool&gt; SplitProducer&lt;<span class="lifetime">&#39;p</span>, P, V, INCL&gt;
+<span class="kw">where
+    </span>V: Fissile&lt;P&gt; + Send,
+{
     <span class="doccomment">/// Common `fold_with` implementation, integrating `SplitTerminator`&#39;s
     /// need to sometimes skip its final empty item.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>fold_with&lt;F&gt;(<span class="self">self</span>, folder: F, skip_last: bool) -&gt; F
@@ -184,12 +224,12 @@
 
         <span class="kw">if </span>tail == data.length() {
             <span class="comment">// No tail section, so just let `fold_splits` handle it.
-            </span>data.fold_splits(separator, folder, skip_last)
+            </span>data.fold_splits::&lt;F, INCL&gt;(separator, folder, skip_last)
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(index) = data.rfind(separator, tail) {
             <span class="comment">// We found the last separator to complete the tail, so
             // end with that slice after `fold_splits` finds the rest.
-            </span><span class="kw">let </span>(left, right) = data.split_once(index);
-            <span class="kw">let </span>folder = left.fold_splits(separator, folder, <span class="bool-val">false</span>);
+            </span><span class="kw">let </span>(left, right) = data.split_once::&lt;INCL&gt;(index);
+            <span class="kw">let </span>folder = left.fold_splits::&lt;F, INCL&gt;(separator, folder, <span class="bool-val">false</span>);
             <span class="kw">if </span>skip_last || folder.full() {
                 folder
             } <span class="kw">else </span>{
@@ -206,7 +246,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, P, V&gt; UnindexedProducer <span class="kw">for </span>SplitProducer&lt;<span class="lifetime">&#39;p</span>, P, V&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, P, V, <span class="kw">const </span>INCL: bool&gt; UnindexedProducer <span class="kw">for </span>SplitProducer&lt;<span class="lifetime">&#39;p</span>, P, V, INCL&gt;
 <span class="kw">where
     </span>V: Fissile&lt;P&gt; + Send,
     P: Sync,
@@ -223,7 +263,7 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = index {
             <span class="kw">let </span>len = <span class="self">self</span>.data.length();
-            <span class="kw">let </span>(left, right) = <span class="self">self</span>.data.split_once(index);
+            <span class="kw">let </span>(left, right) = <span class="self">self</span>.data.split_once::&lt;INCL&gt;(index);
 
             <span class="kw">let </span>(left_tail, right_tail) = <span class="kw">if </span>index &lt; mid {
                 <span class="comment">// If we scanned backwards to find the separator, everything in

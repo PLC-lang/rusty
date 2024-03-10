@@ -163,7 +163,7 @@
         DataType::StructType { variables, .. } =&gt; {
             <span class="kw">if </span>variables.is_empty() {
                 validator.push_diagnostic(
-                    Diagnostic::error(<span class="string">&quot;Variable block is empty&quot;</span>)
+                    Diagnostic::new(<span class="string">&quot;Variable block is empty&quot;</span>)
                         .with_error_code(<span class="string">&quot;E028&quot;</span>)
                         .with_location(location.clone()),
                 );
@@ -174,13 +174,13 @@
             ..
         } <span class="kw">if </span>expressions.is_empty() =&gt; {
             validator.push_diagnostic(
-                Diagnostic::error(<span class="string">&quot;Variable block is empty&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Variable block is empty&quot;</span>)
                     .with_error_code(<span class="string">&quot;E028&quot;</span>)
                     .with_location(location.clone()),
             );
         }
         DataType::VarArgs { referenced_type: <span class="prelude-val">None</span>, sized: <span class="bool-val">true </span>} =&gt; validator.push_diagnostic(
-            Diagnostic::error(<span class="string">&quot;Missing datatype: Sized Variadics require a known datatype.&quot;</span>)
+            Diagnostic::new(<span class="string">&quot;Missing datatype: Sized Variadics require a known datatype.&quot;</span>)
                 .with_error_code(<span class="string">&quot;E038&quot;</span>)
                 .with_location(location.clone()),
         ),

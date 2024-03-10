@@ -1407,7 +1407,7 @@
     } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
         <span class="kw">let </span>start = location.start;
         <span class="kw">let </span>multiplier = result.parse::&lt;u32&gt;().map_err(|e| {
-            Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Failed parsing number {result}&quot;</span>))
+            Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {result}&quot;</span>))
                 .with_error_code(<span class="string">&quot;E011&quot;</span>)
                 .with_location(lexer.source_range_factory.create_range(location))
                 .with_internal_error(e.into())
@@ -1454,7 +1454,7 @@
 
 <span class="kw">fn </span>parse_number&lt;F: FromStr&gt;(text: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="prelude-ty">Result</span>&lt;F, Diagnostic&gt; {
     text.parse::&lt;F&gt;().map_err(|<span class="kw">_</span>| {
-        Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Failed parsing number {text}&quot;</span>))
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {text}&quot;</span>))
             .with_error_code(<span class="string">&quot;E011&quot;</span>)
             .with_location(location.clone())
     })
@@ -1579,7 +1579,7 @@
             <span class="comment">//just eat all the digits
             </span>char = chars.find(|(<span class="kw">_</span>, ch)| !ch.is_ascii_digit() &amp;&amp; !ch.eq(<span class="kw-2">&amp;</span><span class="string">&#39;.&#39;</span>));
             char.ok_or_else(|| {
-                Diagnostic::error(<span class="string">&quot;Invalid TIME Literal: Cannot parse segment.&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Cannot parse segment.&quot;</span>)
                     .with_error_code(<span class="string">&quot;E010&quot;</span>)
                     .with_location(location.clone())
             })
@@ -1589,7 +1589,7 @@
         <span class="comment">//expect a unit
         </span><span class="kw">let </span>unit = {
             <span class="kw">let </span>start = char.map(|(index, <span class="kw">_</span>)| index).ok_or_else(|| {
-                Diagnostic::error(<span class="string">&quot;Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)&quot;</span>)
+                Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)&quot;</span>)
                     .with_error_code(<span class="string">&quot;E010&quot;</span>)
                     .with_location(location.clone())
             })<span class="question-mark">?</span>;
@@ -1614,20 +1614,20 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = position {
             <span class="comment">//check if we assign out of order - every assignment before must have been a smaller position
             </span><span class="kw">if </span>prev_pos &gt; position {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Invalid TIME Literal: segments out of order, use d-h-m-s-ms&quot;</span>)
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments out of order, use d-h-m-s-ms&quot;</span>)
                     .with_error_code(<span class="string">&quot;E010&quot;</span>)
                     .with_location(location));
             }
             prev_pos = position; <span class="comment">//remember that we wrote this position
 
             </span><span class="kw">if </span>values[position].is_some() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Invalid TIME Literal: segments must be unique&quot;</span>)
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments must be unique&quot;</span>)
                     .with_error_code(<span class="string">&quot;E010&quot;</span>)
                     .with_location(location));
             }
             values[position] = <span class="prelude-val">Some</span>(number); <span class="comment">//store the number
         </span>} <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;Invalid TIME Literal: illegal unit &#39;{unit}&#39;&quot;</span>))
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Invalid TIME Literal: illegal unit &#39;{unit}&#39;&quot;</span>))
                 .with_error_code(<span class="string">&quot;E010&quot;</span>)
                 .with_location(location));
         }

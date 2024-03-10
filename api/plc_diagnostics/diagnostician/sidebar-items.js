@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["DefaultDiagnosticAssessor","Diagnostician"],"trait":["DiagnosticAssessor"]};
+window.SIDEBAR_ITEMS = {"struct":["Diagnostician"],"trait":["DiagnosticAssessor"]};

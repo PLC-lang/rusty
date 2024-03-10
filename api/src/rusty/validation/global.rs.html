@@ -265,7 +265,7 @@
             </span><span class="kw">if </span>v.is_undefined() {
                 <span class="kw">for </span>other <span class="kw">in </span>others {
                     <span class="self">self</span>.diagnostics.push(
-                        Diagnostic::error(<span class="macro">format!</span>(
+                        Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">&quot;{name} can not be used as a name because it is a built-in datatype&quot;
                         </span>))
                         .with_location((other).clone())
@@ -275,7 +275,7 @@
             } <span class="kw">else </span>{
                 <span class="kw">let </span>additional_text = additional_text.unwrap_or(<span class="string">&quot;Duplicate symbol.&quot;</span>);
                 <span class="self">self</span>.push_diagnostic(
-                    Diagnostic::error(<span class="macro">format!</span>(<span class="string">&quot;{name}: {additional_text}&quot;</span>))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;{name}: {additional_text}&quot;</span>))
                         .with_error_code(<span class="string">&quot;E004&quot;</span>)
                         .with_location((<span class="kw-2">*</span>v).clone())
                         .with_secondary_locations(others),

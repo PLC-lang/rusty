@@ -416,6 +416,19 @@
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -426,7 +439,7 @@
 //!  - Shared Objects
 //!  - Executables
 
-</span><span class="kw">use </span>anyhow::Result;
+</span><span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>std::{
     env,
     ffi::OsStr,
@@ -434,7 +447,7 @@
     path::{Path, PathBuf},
 };
 
-<span class="kw">use </span>cli::{CompileParameters, ParameterError};
+<span class="kw">use </span>cli::{CompileParameters, ParameterError, SubCommands};
 <span class="kw">use </span>pipelines::AnnotatedProject;
 <span class="kw">use </span>plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
@@ -571,10 +584,18 @@
         <span class="macro">log::debug!</span>(<span class="string">&quot;LIB_LOCATION={}&quot;</span>, location.to_string_lossy());
         env::set_var(<span class="string">&quot;LIB_LOCATION&quot;</span>, location);
     }
-    <span class="kw">let </span>diagnostician = <span class="kw">match </span>compile_parameters.error_format {
+    <span class="comment">//Create diagnostics registry
+    //Create a diagnostican with the specified registry
+    //Use diagnostican
+    </span><span class="kw">let </span>diagnostician = <span class="kw">match </span>compile_parameters.error_format {
         ErrorFormat::Rich =&gt; Diagnostician::default(),
         ErrorFormat::Clang =&gt; Diagnostician::clang_format_diagnostician(),
         ErrorFormat::None =&gt; Diagnostician::null_diagnostician(),
+    };
+    <span class="kw">let </span>diagnostician = <span class="kw">if let </span><span class="prelude-val">Some</span>(configuration) = compile_parameters.get_error_configuration()<span class="question-mark">? </span>{
+        diagnostician.with_configuration(configuration)
+    } <span class="kw">else </span>{
+        diagnostician
     };
 
     <span class="kw">let </span>compile_options = CompileOptions {
@@ -613,8 +634,14 @@
 <span class="kw">pub fn </span>compile_with_options(compile_options: CompilationContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>CompilationContext { compile_parameters, project, <span class="kw-2">mut </span>diagnostician, compile_options, link_options } =
         compile_options;
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((options, format)) = compile_parameters.get_config_options() {
-        <span class="kw">return </span>print_config_options(options, format);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((options, _format)) = compile_parameters.get_config_options() {
+        <span class="kw">return </span>print_config_options(<span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;</span>diagnostician, options);
+    }
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(SubCommands::Explain { error }) = <span class="kw-2">&amp;</span>compile_parameters.commands {
+        <span class="comment">//Explain the given error
+        </span><span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, diagnostician.explain(error));
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
     <span class="comment">//Set the global thread count
@@ -666,7 +693,7 @@
             .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         <span class="kw">if let </span><span class="prelude-val">Err</span>(res) = res {
             diagnostician.handle(<span class="kw-2">&amp;</span>[res]);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::error(<span class="string">&quot;Compilation aborted due to previous errors&quot;</span>)
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Compilation aborted due to previous errors&quot;</span>)
                 .with_error_code(<span class="string">&quot;E071&quot;</span>)
                 .into());
         }
@@ -677,17 +704,31 @@
 <span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="comment">//Parse the arguments
     </span><span class="kw">let </span>compile_context = get_compilation_context(args)<span class="question-mark">?</span>;
-    compile_with_options(compile_context)
+    <span class="kw">let </span>format = compile_context.compile_parameters.error_format;
+    compile_with_options(compile_context).map_err(|err| {
+        <span class="comment">//Only report the hint if we are using rich error reporting
+        </span><span class="kw">if </span><span class="macro">matches!</span>(format, ErrorFormat::Rich) {
+            <span class="macro">anyhow!</span>(
+                <span class="string">&quot;{err}.
+Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information&quot;
+            </span>)
+        } <span class="kw">else </span>{
+            err
+        }
+    })
 }
 
-<span class="kw">fn </span>print_config_options(
+<span class="kw">fn </span>print_config_options&lt;T: AsRef&lt;Path&gt; + Sync&gt;(
+    project: <span class="kw-2">&amp;</span>Project&lt;T&gt;,
+    diagnostician: <span class="kw-2">&amp;</span>Diagnostician,
     option: cli::ConfigOption,
-    _format: plc::ConfigFormat,
 ) -&gt; std::result::Result&lt;(), anyhow::Error&gt; {
     <span class="kw">match </span>option {
         cli::ConfigOption::Schema =&gt; {
-            <span class="kw">let </span>schema = <span class="macro">include_str!</span>(<span class="string">&quot;../../plc_project/schema/plc-json.schema&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;{schema}&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, project.get_validation_schema().as_ref())
+        }
+        cli::ConfigOption::Diagnostics =&gt; {
+            <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, diagnostician.get_diagnostic_configuration())
         }
     };
 
@@ -739,7 +780,7 @@
     }
     <span class="kw">let </span>module = project.generate_single_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>options)<span class="question-mark">?</span>;
 
-    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::error(<span class="string">&quot;Cannot generate module&quot;</span>))
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new(<span class="string">&quot;Cannot generate module&quot;</span>))
 }
 
 <span class="kw">fn </span>generate(
@@ -784,41 +825,26 @@
 }
 
 <span class="kw">fn </span>get_project(compile_parameters: <span class="kw-2">&amp;</span>CompileParameters) -&gt; <span class="prelude-ty">Result</span>&lt;Project&lt;PathBuf&gt;&gt; {
-    <span class="kw">let </span>current_dir = env::current_dir()<span class="question-mark">?</span>;
     <span class="comment">//Create a project from either the subcommand or single params
-    </span><span class="kw">let </span>project = <span class="kw">if let </span><span class="prelude-val">Some</span>(command) = <span class="kw-2">&amp;</span>compile_parameters.commands {
-        <span class="comment">//Build with subcommand
-        </span><span class="kw">let </span>config = command
-            .get_build_configuration()
-            .map(PathBuf::from)
-            .map(|it| {
-                <span class="kw">if </span>it.is_relative() {
-                    <span class="comment">//Make the build path absolute
-                    </span>current_dir.join(it)
-                } <span class="kw">else </span>{
-                    it
-                }
-            })
-            .or_else(|| get_config(<span class="kw-2">&amp;</span>current_dir))
-            .ok_or_else(|| Diagnostic::error(<span class="string">&quot;Could not find &#39;plc.json&#39;&quot;</span>).with_error_code(<span class="string">&quot;E003&quot;</span>))<span class="question-mark">?</span>;
-        Project::from_config(<span class="kw-2">&amp;</span>config)
-    } <span class="kw">else </span>{
-        <span class="comment">//Build with parameters
-        </span><span class="kw">let </span>name = compile_parameters
-            .input
-            .first()
-            .and_then(|it| it.get_location())
-            .and_then(|it| it.file_name())
-            .and_then(|it| it.to_str())
-            .unwrap_or(DEFAULT_OUTPUT_NAME);
-        <span class="kw">let </span>project = Project::new(name.to_string())
-            .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
-            .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
-            .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
-            .with_libraries(compile_parameters.libraries.clone());
-        <span class="prelude-val">Ok</span>(project)
-    };
-
+    </span><span class="kw">let </span>project = compile_parameters
+        .get_build_configuration()<span class="question-mark">?
+        </span>.map(|it| Project::from_config(<span class="kw-2">&amp;</span>it))
+        .unwrap_or_else(|| {
+            <span class="comment">//Build with parameters
+            </span><span class="kw">let </span>name = compile_parameters
+                .input
+                .first()
+                .and_then(|it| it.get_location())
+                .and_then(|it| it.file_name())
+                .and_then(|it| it.to_str())
+                .unwrap_or(DEFAULT_OUTPUT_NAME);
+            <span class="kw">let </span>project = Project::new(name.to_string())
+                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
+                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+                .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
+                .with_libraries(compile_parameters.libraries.clone());
+            <span class="prelude-val">Ok</span>(project)
+        });
     <span class="comment">//Override default settings with compile options
     </span>project
         .map(|proj| {
@@ -831,7 +857,7 @@
         .map(|proj| proj.with_output_name(compile_parameters.output.clone()))
 }
 
-<span class="kw">fn </span>get_config(root: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    <span class="prelude-val">Some</span>(root.join(<span class="string">&quot;plc.json&quot;</span>))
+<span class="kw">fn </span>get_config(root: <span class="kw-2">&amp;</span>Path) -&gt; PathBuf {
+    root.join(<span class="string">&quot;plc.json&quot;</span>)
 }
 </code></pre></div></section></main></body></html>
