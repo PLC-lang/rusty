@@ -2,37 +2,37 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: "&diagnostics"
 ---
-error: Could not resolve reference to fb3
+error[E048]: Could not resolve reference to fb3
    ┌─ <internal>:25:30
    │
 25 │                 s.fb1(a := s.fb3.a, b := s.fb3.b, c := s.fb3.c);
    │                              ^^^ Could not resolve reference to fb3
 
-error: Could not resolve reference to a
+error[E048]: Could not resolve reference to a
    ┌─ <internal>:25:34
    │
 25 │                 s.fb1(a := s.fb3.a, b := s.fb3.b, c := s.fb3.c);
    │                                  ^ Could not resolve reference to a
 
-error: Could not resolve reference to fb3
+error[E048]: Could not resolve reference to fb3
    ┌─ <internal>:25:44
    │
 25 │                 s.fb1(a := s.fb3.a, b := s.fb3.b, c := s.fb3.c);
    │                                            ^^^ Could not resolve reference to fb3
 
-error: Could not resolve reference to b
+error[E048]: Could not resolve reference to b
    ┌─ <internal>:25:48
    │
 25 │                 s.fb1(a := s.fb3.a, b := s.fb3.b, c := s.fb3.c);
    │                                                ^ Could not resolve reference to b
 
-error: Could not resolve reference to fb3
+error[E048]: Could not resolve reference to fb3
    ┌─ <internal>:25:58
    │
 25 │                 s.fb1(a := s.fb3.a, b := s.fb3.b, c := s.fb3.c);
    │                                                          ^^^ Could not resolve reference to fb3
 
-error: Could not resolve reference to c
+error[E048]: Could not resolve reference to c
    ┌─ <internal>:25:62
    │
 25 │                 s.fb1(a := s.fb3.a, b := s.fb3.b, c := s.fb3.c);

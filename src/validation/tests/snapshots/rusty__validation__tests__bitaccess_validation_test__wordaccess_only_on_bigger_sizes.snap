@@ -2,19 +2,19 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: "&diagnostics"
 ---
-error: Word-Wise access requires a Numerical type larger than 16 bits
+error[E055]: Word-Wise access requires a Numerical type larger than 16 bits
    ┌─ <internal>:10:21
    │
 10 │             invalid.%W1;
    │                     ^^^ Word-Wise access requires a Numerical type larger than 16 bits
 
-error: Word-Wise access requires a Numerical type larger than 16 bits
+error[E055]: Word-Wise access requires a Numerical type larger than 16 bits
    ┌─ <internal>:11:22
    │
 11 │             invalid2.%W1;
    │                      ^^^ Word-Wise access requires a Numerical type larger than 16 bits
 
-error: Word-Wise access requires a Numerical type larger than 16 bits
+error[E055]: Word-Wise access requires a Numerical type larger than 16 bits
    ┌─ <internal>:12:22
    │
 12 │             invalid3.%W1;

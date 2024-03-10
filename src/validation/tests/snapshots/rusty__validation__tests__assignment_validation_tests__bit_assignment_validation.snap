@@ -2,43 +2,43 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:39:5
    │
 39 │     v_byte := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:40:5
    │
 40 │     v_byte := STRING#'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:41:5
    │
 41 │     v_byte := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
    ┌─ <internal>:42:5
    │
 42 │     v_byte := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'BYTE'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'BYTE'
    ┌─ <internal>:43:5
    │
 43 │     v_byte := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'BYTE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:47:5
    │
 47 │     v_byte := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BYTE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:49:5
    │
 49 │     v_byte := v_arr_string_3[0]; // INVALID

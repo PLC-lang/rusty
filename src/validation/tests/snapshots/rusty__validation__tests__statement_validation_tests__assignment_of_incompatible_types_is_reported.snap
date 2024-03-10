@@ -2,25 +2,25 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'DINT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
   ┌─ <internal>:8:9
   │
 8 │         string_ := dint_;           // invalid
   │         ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'STRING'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..3] OF LWORD' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..3] OF LWORD' to 'STRING'
   ┌─ <internal>:9:9
   │
 9 │         string_ := array_;          // invalid
   │         ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..3] OF LWORD' to 'STRING'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:10:9
    │
 10 │         dint_ := string_;           // invalid
    │         ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'ARRAY[0..3] OF LWORD'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'ARRAY[0..3] OF LWORD'
    ┌─ <internal>:11:9
    │
 11 │         array_ := string_;          // invalid

@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: LDATE_AND_TIME can not be used as a name because it is a built-in datatype
+error[E004]: LDATE_AND_TIME can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE LDATE_AND_TIME : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^^^^^^^^^^^^^ LDATE_AND_TIME can not be used as a name because it is a built-in datatype
 
-error: LDATE_AND_TIME: Ambiguous datatype.
+error[E004]: LDATE_AND_TIME: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE LDATE_AND_TIME : STRUCT x : DINT; END_STRUCT END_TYPE

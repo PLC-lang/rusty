@@ -2,7 +2,7 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: "&diagnostics"
 ---
-error: Illegal access to private member prg.s
+error[E049]: Illegal access to private member prg.s
   ┌─ <internal>:9:21
   │
 9 │                 prg.s := 7;

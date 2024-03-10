@@ -985,19 +985,19 @@ fn void_assignment_validation() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error: Invalid assignment: cannot assign 'VOID' to 'LINT'
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
        ┌─ <internal>:13:13
        │
     13 │             x := foo(x);
        │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
 
-    error: Invalid assignment: cannot assign 'VOID' to 'LINT'
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
        ┌─ <internal>:14:22
        │
     14 │             x := foo(foo(x));
        │                      ^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
 
-    error: Invalid assignment: cannot assign 'VOID' to 'LINT'
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
        ┌─ <internal>:14:13
        │
     14 │             x := foo(foo(x));

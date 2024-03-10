@@ -2,25 +2,25 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'CHAR' to 'USINT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'USINT'
   ┌─ <internal>:3:58
   │
 3 │         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'CHAR' to 'USINT'
 
-error: Invalid type nature for generic argument. CHAR is no ANY_UNSIGNED
+error[E062]: Invalid type nature for generic argument. CHAR is no ANY_UNSIGNED
   ┌─ <internal>:3:58
   │
 3 │         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. CHAR is no ANY_UNSIGNED
 
-error: Invalid assignment: cannot assign 'WCHAR' to 'USINT'
+error[E037]: Invalid assignment: cannot assign 'WCHAR' to 'USINT'
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'WCHAR' to 'USINT'
 
-error: Invalid type nature for generic argument. WCHAR is no ANY_UNSIGNED
+error[E062]: Invalid type nature for generic argument. WCHAR is no ANY_UNSIGNED
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION

@@ -2,7 +2,7 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: A class cannot have an implementation
+error[E017]: A class cannot have an implementation
   ┌─ <internal>:6:13
   │  
 6 │ ╭             LIGHT := TRUE;

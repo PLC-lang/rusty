@@ -260,14 +260,14 @@ impl From<LinkerError> for Diagnostic {
     fn from(error: LinkerError) -> Self {
         match error {
             LinkerError::Link(e) => {
-                Diagnostic::error(format!("An error occurred during linking: {e}")).with_error_code("E077")
+                Diagnostic::new(format!("An error occurred during linking: {e}")).with_error_code("E077")
             }
             LinkerError::Path(path) => {
-                Diagnostic::error(format!("path contains invalid UTF-8 characters: {}", path.display()))
+                Diagnostic::new(format!("path contains invalid UTF-8 characters: {}", path.display()))
                     .with_error_code("E077")
             }
             LinkerError::Target(tgt) => {
-                Diagnostic::error(format!("linker not available for target platform: {tgt}"))
+                Diagnostic::new(format!("linker not available for target platform: {tgt}"))
                     .with_error_code("E077")
             }
         }

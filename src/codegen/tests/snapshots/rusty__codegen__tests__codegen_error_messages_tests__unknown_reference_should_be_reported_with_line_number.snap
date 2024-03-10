@@ -2,7 +2,7 @@
 source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
-error: Could not resolve reference to y
+error[E048]: Could not resolve reference to y
   ┌─ <internal>:6:18
   │
 6 │             x := y;

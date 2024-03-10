@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:5:13
   │
 5 │             'a' =  'b'; // missing compare function :-(
