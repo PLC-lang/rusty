@@ -114,7 +114,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(&ctx, s);
+                    self.visit_statement(ctx, s);
                     self.update_generic_function_parameters(s, implementation_name, generic_map);
                 }
             }
