@@ -16,7 +16,6 @@ fn wstring_to_string_conversion() {
     PROGRAM main
     VAR
         res : STRING[5];
-        ptr : REF_TO STRING;
     END_VAR
         res := WSTRING_TO_STRING(WSTRING#"hello");
     END_PROGRAM
@@ -38,7 +37,6 @@ fn empty_wstring_to_string_conversion() {
     PROGRAM main
     VAR
         res : STRING;
-        ptr : REF_TO STRING;
     END_VAR
         res := WSTRING_TO_STRING("");
     END_PROGRAM
@@ -82,7 +80,6 @@ fn wstring_to_string_conversion_long() {
     PROGRAM main
     VAR
         res : STRING;
-        ptr : REF_TO STRING;
     END_VAR
         res := WSTRING_TO_STRING("111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999");
     END_PROGRAM
