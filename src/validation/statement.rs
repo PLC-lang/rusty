@@ -1418,7 +1418,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
 
     get_expression_types_and_locations(right, context.clone(), lhs.is_signed_int())
         .into_iter()
-        .filter(|(dt, _)| results_in_truncation(dt) && !dt.is_aggregate_type())
+        .filter(|(dt, _)| !dt.is_aggregate_type() && results_in_truncation(dt))
         .for_each(|(dt, location)| {
             location.into_iter().for_each(|loc| {
                 validator.push_diagnostic(
