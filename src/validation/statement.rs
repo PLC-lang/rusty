@@ -855,7 +855,6 @@ fn validate_assignment<T: AnnotationMap>(
     }
 }
 
-
 /// Returns true if an assignment statement exists such that a return value is assigned to a void
 /// function. For example the following will return true
 /// ```iecst
@@ -1423,7 +1422,8 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     Diagnostic::new(format!(
                         "Implicit downcast from '{}' to '{}'.",
                         get_datatype_name_or_slice(validator.context, dt),
-                        left.get_name()))
+                        left.get_name()
+                    ))
                     .with_error_code("E067")
                     .with_location(loc),
                 );
