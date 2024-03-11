@@ -16,7 +16,6 @@ expression: diagnostics
             ),
         },
         secondary_locations: None,
-        severity: Error,
         error_code: "E084",
         sub_diagnostics: [],
         internal_error: None,

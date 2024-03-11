@@ -2,49 +2,49 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid type nature for generic argument. USINT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. USINT is no ANY_DURATION
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. USINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. UINT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. UINT is no ANY_DURATION
   ┌─ <internal>:5:58
   │
 5 │         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. UINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. UDINT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. UDINT is no ANY_DURATION
   ┌─ <internal>:6:59
   │
 6 │         FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. UDINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. ULINT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. ULINT is no ANY_DURATION
   ┌─ <internal>:7:59
   │
 7 │         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. ULINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. SINT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. SINT is no ANY_DURATION
   ┌─ <internal>:9:58
   │
 9 │         FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. SINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. INT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. INT is no ANY_DURATION
    ┌─ <internal>:10:57
    │
 10 │         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
    │                                                         ^ Invalid type nature for generic argument. INT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. DINT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. DINT is no ANY_DURATION
    ┌─ <internal>:11:58
    │
 11 │         FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
    │                                                          ^ Invalid type nature for generic argument. DINT is no ANY_DURATION
 
-error: Invalid type nature for generic argument. LINT is no ANY_DURATION
+error[E062]: Invalid type nature for generic argument. LINT is no ANY_DURATION
    ┌─ <internal>:12:58
    │
 12 │         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION

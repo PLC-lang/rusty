@@ -2,7 +2,7 @@
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
 ---
-note: Replace `Dog` with `red`
+note[E092]: Replace `Dog` with `red`
    ┌─ <internal>:11:22
    │
  6 │             color: (red, green, blue);
@@ -11,7 +11,7 @@ note: Replace `Dog` with `red`
 11 │             color := Dog;       // warning
    │                      ^^^ Replace `Dog` with `red`
 
-note: Replace `blue` with `sparkling`
+note[E092]: Replace `blue` with `sparkling`
    ┌─ <internal>:12:22
    │
  7 │             water: (still, medium, sparkling);
@@ -20,7 +20,7 @@ note: Replace `blue` with `sparkling`
 12 │             water := blue;      // warning
    │                      ^^^^ Replace `blue` with `sparkling`
 
-note: Replace `sparkling` with `blue`
+note[E092]: Replace `sparkling` with `blue`
    ┌─ <internal>:13:22
    │
  6 │             color: (red, green, blue);
@@ -29,7 +29,7 @@ note: Replace `sparkling` with `blue`
 13 │             color := sparkling; // warning
    │                      ^^^^^^^^^ Replace `sparkling` with `blue`
 
-note: Replace `2` with `blue`
+note[E092]: Replace `2` with `blue`
    ┌─ <internal>:14:22
    │
  6 │             color: (red, green, blue);

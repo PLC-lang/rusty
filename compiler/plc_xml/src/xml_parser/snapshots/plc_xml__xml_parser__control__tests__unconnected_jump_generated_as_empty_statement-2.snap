@@ -15,7 +15,6 @@ expression: diagnostics
             },
         },
         secondary_locations: None,
-        severity: Error,
         error_code: "E081",
         sub_diagnostics: [],
         internal_error: None,

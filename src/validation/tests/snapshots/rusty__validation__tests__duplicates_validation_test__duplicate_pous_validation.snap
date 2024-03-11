@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
 ---
-error: foo: Ambiguous callable symbol.
+error[E004]: foo: Ambiguous callable symbol.
   ┌─ <internal>:4:25
   │
 2 │         FUNCTION        foo : INT  END_FUNCTION
@@ -11,7 +11,7 @@ error: foo: Ambiguous callable symbol.
 4 │         PROGRAM         foo  END_PROGRAM
   │                         ^^^ foo: Ambiguous callable symbol.
 
-error: foo: Ambiguous callable symbol.
+error[E004]: foo: Ambiguous callable symbol.
   ┌─ <internal>:2:25
   │
 2 │         FUNCTION        foo : INT  END_FUNCTION
@@ -20,7 +20,7 @@ error: foo: Ambiguous callable symbol.
 4 │         PROGRAM         foo  END_PROGRAM
   │                         --- see also
 
-error: foo: Duplicate symbol.
+error[E004]: foo: Duplicate symbol.
   ┌─ <internal>:2:25
   │
 2 │         FUNCTION        foo : INT  END_FUNCTION
@@ -32,7 +32,7 @@ error: foo: Duplicate symbol.
 6 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
   │                         --- see also
 
-error: foo: Duplicate symbol.
+error[E004]: foo: Duplicate symbol.
   ┌─ <internal>:4:25
   │
 2 │         FUNCTION        foo : INT  END_FUNCTION
@@ -44,7 +44,7 @@ error: foo: Duplicate symbol.
 6 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
   │                         --- see also
 
-error: foo: Duplicate symbol.
+error[E004]: foo: Duplicate symbol.
   ┌─ <internal>:6:25
   │
 2 │         FUNCTION        foo : INT  END_FUNCTION

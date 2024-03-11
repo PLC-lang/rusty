@@ -2,25 +2,25 @@
 source: src/validation/variable.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected Literal but found )
+error[E007]: Unexpected token: expected Literal but found )
   ┌─ <internal>:2:25
   │
 2 │         TYPE my_enum : (); END_TYPE
   │                         ^ Unexpected token: expected Literal but found )
 
-error: Unexpected token: expected Literal but found )
+error[E007]: Unexpected token: expected Literal but found )
   ┌─ <internal>:6:28
   │
 6 │                 my_enum : ();
   │                            ^ Unexpected token: expected Literal but found )
 
-error: Variable block is empty
+error[E028]: Variable block is empty
   ┌─ <internal>:2:14
   │
 2 │         TYPE my_enum : (); END_TYPE
   │              ^^^^^^^ Variable block is empty
 
-error: Variable block is empty
+error[E028]: Variable block is empty
   ┌─ <internal>:6:27
   │
 6 │                 my_enum : ();

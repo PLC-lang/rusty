@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
    ┌─ <internal>:17:17
    │
 17 │                 var_in_out_wstr, // invalid

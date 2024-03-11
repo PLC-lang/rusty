@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: The type DWORD 32 is too small to hold a Pointer
+error[E065]: The type DWORD 32 is too small to hold a Pointer
   ┌─ <internal>:9:13
   │
 9 │             address := ptr;         //should throw error as address is too small to store full pointer
   │             ^^^^^^^^^^^^^^ The type DWORD 32 is too small to hold a Pointer
 
-error: Invalid assignment: cannot assign 'REF_TO INT' to 'DWORD'
+error[E037]: Invalid assignment: cannot assign 'REF_TO INT' to 'DWORD'
   ┌─ <internal>:9:13
   │
 9 │             address := ptr;         //should throw error as address is too small to store full pointer

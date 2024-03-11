@@ -2,7 +2,7 @@
 source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
-error: Invalid array access
+error[E071]: Invalid array access
   ┌─ <internal>:6:15
   │
 6 │             x[3] := 3;

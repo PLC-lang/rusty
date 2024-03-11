@@ -2,7 +2,7 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-warning: Missing Actions Container Name
+warning[E022]: Missing Actions Container Name
   ┌─ <internal>:1:25
   │
 1 │ ACTIONS ACTION myAction END_ACTION END_ACTIONS

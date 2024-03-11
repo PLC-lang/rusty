@@ -349,7 +349,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 Ok(reference)
             }
         } else {
-            Err(Diagnostic::error(format!("Cannot cast from {} to Integer Type", access_type.get_name()))
+            Err(Diagnostic::new(format!("Cannot cast from {} to Integer Type", access_type.get_name()))
                 .with_error_code("E051")
                 .with_location(index.get_location()))
         }
@@ -1908,7 +1908,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             DataTypeInformation::Integer { size: 16, .. } if expected_type.is_character() => {
                 self.llvm.create_llvm_const_i16_char(value, location).map(ExpressionValue::RValue)
             }
-            _ => Err(Diagnostic::error(format!(
+            _ => Err(Diagnostic::new(format!(
                 "Cannot generate String-Literal for type {}",
                 expected_type.get_name()
             ))
@@ -2593,7 +2593,7 @@ pub fn get_implicit_call_parameter<'a>(
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
                 return Err(
                     //TODO: use global context to get an expression slice
-                    Diagnostic::error("Expression is not assignable")
+                    Diagnostic::new("Expression is not assignable")
                         .with_error_code("E050")
                         .with_location(param_statement.get_location()),
                 );

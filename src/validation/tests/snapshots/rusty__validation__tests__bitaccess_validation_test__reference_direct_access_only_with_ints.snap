@@ -2,13 +2,13 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: "&diagnostics"
 ---
-error: Invalid type LREAL for direct variable access. Only variables of Integer types are allowed
+error[E056]: Invalid type LREAL for direct variable access. Only variables of Integer types are allowed
   ┌─ <internal>:7:19
   │
 7 │                 c.%Xe;
   │                   ^^^ Invalid type LREAL for direct variable access. Only variables of Integer types are allowed
 
-error: Invalid type REAL for direct variable access. Only variables of Integer types are allowed
+error[E056]: Invalid type REAL for direct variable access. Only variables of Integer types are allowed
   ┌─ <internal>:8:19
   │
 8 │                 c.%Xf;
