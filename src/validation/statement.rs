@@ -1354,11 +1354,12 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     .into_iter()
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
                 // the RHS type in a MOD expression has no impact on the resulting value type
-                if !matches!(operator, Operator::Modulo) {
-                    get_expression_types_and_locations(right, context, lhs_is_signed_int)
-                        .into_iter()
-                        .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-                }
+                if matches!(operator, Operator::Modulo) {
+                    return map
+                };
+                get_expression_types_and_locations(right, context, lhs_is_signed_int)
+                    .into_iter()
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
             }
             AstStatement::UnaryExpression(UnaryExpression { operator, value })
                 if !operator.is_comparison_operator() =>
@@ -1369,33 +1370,36 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
             }
             // `get_literal_actual_signed_type_name` will always return `LREAL` for FP literals, so they will be handled by the fall-through case according to their annotated type
             AstStatement::Literal(lit) if !matches!(lit, &AstLiteral::Real(_)) => {
-                if lit.is_numerical() {
-                    if let Some(dt) = get_literal_actual_signed_type_name(lit, lhs_is_signed_int)
-                        .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
-                    {
-                        map.entry(dt).or_default().push(expression.get_location());
-                    }
+                if !lit.is_numerical() {
+                    return map
+                }
+                if let Some(dt) = get_literal_actual_signed_type_name(lit, lhs_is_signed_int)
+                    .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
+                {
+                    map.entry(dt).or_default().push(expression.get_location());
                 }
             }
             AstStatement::CallStatement(CallStatement { operator, parameters })
                 // special handling for builtin selector functions MUX and SEL
                 if matches!(operator.get_flat_reference_name().unwrap_or_default(), "MUX" | "SEL") =>
             {
-                if let Some(args) = parameters {
-                    if let AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
-                        // skip the selector argument since it will never be assigned to the target type
-                        list.iter().skip(1).flat_map(|arg| {
-                            get_expression_types_and_locations(arg, context.set_is_builtin_call(), lhs_is_signed_int)
-                        })
-                        .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-                    };
+                let Some(args) = parameters else {
+                    return map
+                };
+                if let AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
+                    // skip the selector argument since it will never be assigned to the target type
+                    list.iter().skip(1).flat_map(|arg| {
+                        get_expression_types_and_locations(arg, context.set_is_builtin_call(), lhs_is_signed_int)
+                    })
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
                 };
             }
             _ => {
-                if context.annotations.get_generic_nature(expression).is_none() || context.is_builtin_call {
-                    if let Some(dt) = context.annotations.get_type(expression, context.index) {
-                        map.entry(dt).or_default().push(expression.get_location());
-                    }
+                if !(context.annotations.get_generic_nature(expression).is_none() || context.is_builtin_call) {
+                    return map
+                };
+                if let Some(dt) = context.annotations.get_type(expression, context.index) {
+                    map.entry(dt).or_default().push(expression.get_location());
                 }
             }
         };
