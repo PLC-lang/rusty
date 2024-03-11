@@ -631,8 +631,10 @@ fn string_returned_from_generic_wrapper_function_does_not_truncate() {
 
         PROGRAM main
         VAR
+        x : STRING[100];
+        END_VAR
+        VAR_TEMP
             param : STRING[100];
-            x : STRING[100];
         END_VAR
             param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
             x := foo(param);
@@ -647,10 +649,8 @@ fn string_returned_from_generic_wrapper_function_does_not_truncate() {
     let mut main_type = MainType { x: [0; 101] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!(
-        format!("{:?}", "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()),
-        format!("{:?}", &main_type.x)
-    );
+    let expected = "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes();
+    assert_eq!(format!("{:?}", main_type.x), format!("{:?}", expected))
 }
 
 #[test]

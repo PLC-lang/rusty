@@ -919,7 +919,7 @@ fn mux_string_ref() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[5];
     END_VAR
     VAR_TEMP
         str2 : STRING := 'str2 ';
@@ -948,7 +948,7 @@ fn mux_string_literal() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[3];
     END_VAR
         str1 := MUX(3, 'hello', 'world', 'foo', 'baz'); // baz
     END_PROGRAM
@@ -1098,7 +1098,7 @@ fn sel_string_ref() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[5];
     END_VAR
     VAR_TEMP
         str2 : STRING := 'hello';
@@ -1124,7 +1124,7 @@ fn sel_string_literal() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[5];
     END_VAR
         str1 := SEL(TRUE, 'hello', 'world'); // world
     END_PROGRAM

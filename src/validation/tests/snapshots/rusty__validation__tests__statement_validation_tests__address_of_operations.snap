@@ -2,19 +2,19 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid address-of operation
+error[E066]: Invalid address-of operation
    ┌─ <internal>:25:13
    │
 25 │             &&a;
    │             ^^^ Invalid address-of operation
 
-error: Invalid address-of operation
+error[E066]: Invalid address-of operation
    ┌─ <internal>:26:13
    │
 26 │             &100;
    │             ^^^^ Invalid address-of operation
 
-error: Invalid address-of operation
+error[E066]: Invalid address-of operation
    ┌─ <internal>:27:13
    │
 27 │             &(a+3);

@@ -87,6 +87,7 @@ pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
+pub const VOID_INTERNAL_NAME: &str = "__VOID";
 pub const __VLA_TYPE: &str = "__VLA";
 
 #[cfg(test)]
@@ -134,6 +135,10 @@ impl DataType {
     pub fn has_nature(&self, nature: TypeNature, index: &Index) -> bool {
         let type_nature = index.get_intrinsic_type_by_name(self.get_name()).nature;
         type_nature.derives_from(nature)
+    }
+
+    pub fn is_void(&self) -> bool {
+        self.information.is_void()
     }
 
     pub fn is_numerical(&self) -> bool {
@@ -425,6 +430,10 @@ impl DataTypeInformation {
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => "WSTRING",
             DataTypeInformation::Void => "VOID",
         }
+    }
+
+    pub fn is_void(&self) -> bool {
+        matches!(self, DataTypeInformation::Void)
     }
 
     pub fn is_string(&self) -> bool {
@@ -774,7 +783,7 @@ impl<'a> DataTypeInformationProvider<'a> for &'a DataType {
 pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {
-            name: "__VOID".into(),
+            name: VOID_INTERNAL_NAME.into(),
             initial_value: None,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,

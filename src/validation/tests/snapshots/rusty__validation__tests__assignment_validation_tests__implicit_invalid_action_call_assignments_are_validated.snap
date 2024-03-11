@@ -2,13 +2,13 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
    ┌─ <internal>:24:20
    │
 24 │             fb.foo(arr, arr); // invalid
    │                    ^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
    ┌─ <internal>:24:25
    │
 24 │             fb.foo(arr, arr); // invalid

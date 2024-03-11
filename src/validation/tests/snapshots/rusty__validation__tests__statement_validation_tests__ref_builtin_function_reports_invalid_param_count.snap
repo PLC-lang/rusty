@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-error: Invalid parameter count. Received 0 parameters while 1 parameters were expected.
+error[E032]: Invalid parameter count. Received 0 parameters while 1 parameters were expected.
   ┌─ <internal>:7:13
   │
 7 │             REF();
   │             ^^^ Invalid parameter count. Received 0 parameters while 1 parameters were expected.
 
-error: Invalid parameter count. Received 4 parameters while 1 parameters were expected.
+error[E032]: Invalid parameter count. Received 4 parameters while 1 parameters were expected.
   ┌─ <internal>:8:13
   │
 8 │             REF(x, 1, 2, 'abc');

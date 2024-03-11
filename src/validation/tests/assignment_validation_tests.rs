@@ -1179,3 +1179,46 @@ fn call_results_are_validated_for_downcasts() {
     //THEN we expect a downcast validation
     assert_snapshot!(diagnostics)
 }
+
+#[test]
+fn void_assignment_validation() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo
+            VAR_INPUT
+                x: LINT;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                x : LINT;
+            END_VAR
+
+            x := foo(x);
+            x := foo(foo(x));
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:13:13
+       │
+    13 │             x := foo(x);
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:14:22
+       │
+    14 │             x := foo(foo(x));
+       │                      ^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:14:13
+       │
+    14 │             x := foo(foo(x));
+       │             ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    "###)
+}

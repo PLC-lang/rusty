@@ -8,7 +8,7 @@
 //!  - Shared Objects
 //!  - Executables
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::{
     env,
     ffi::OsStr,
@@ -16,7 +16,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use cli::{CompileParameters, ParameterError};
+use cli::{CompileParameters, ParameterError, SubCommands};
 use pipelines::AnnotatedProject;
 use plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
@@ -153,10 +153,18 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         log::debug!("LIB_LOCATION={}", location.to_string_lossy());
         env::set_var("LIB_LOCATION", location);
     }
+    //Create diagnostics registry
+    //Create a diagnostican with the specified registry
+    //Use diagnostican
     let diagnostician = match compile_parameters.error_format {
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
         ErrorFormat::None => Diagnostician::null_diagnostician(),
+    };
+    let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
+        diagnostician.with_configuration(configuration)
+    } else {
+        diagnostician
     };
 
     let compile_options = CompileOptions {
@@ -195,8 +203,14 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
 pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     let CompilationContext { compile_parameters, project, mut diagnostician, compile_options, link_options } =
         compile_options;
-    if let Some((options, format)) = compile_parameters.get_config_options() {
-        return print_config_options(options, format);
+    if let Some((options, _format)) = compile_parameters.get_config_options() {
+        return print_config_options(&project, &diagnostician, options);
+    }
+
+    if let Some(SubCommands::Explain { error }) = &compile_parameters.commands {
+        //Explain the given error
+        println!("{}", diagnostician.explain(error));
+        return Ok(());
     }
 
     //Set the global thread count
@@ -248,7 +262,7 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
             .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         if let Err(res) = res {
             diagnostician.handle(&[res]);
-            return Err(Diagnostic::error("Compilation aborted due to previous errors")
+            return Err(Diagnostic::new("Compilation aborted due to previous errors")
                 .with_error_code("E071")
                 .into());
         }
@@ -259,17 +273,31 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
     let compile_context = get_compilation_context(args)?;
-    compile_with_options(compile_context)
+    let format = compile_context.compile_parameters.error_format;
+    compile_with_options(compile_context).map_err(|err| {
+        //Only report the hint if we are using rich error reporting
+        if matches!(format, ErrorFormat::Rich) {
+            anyhow!(
+                "{err}.
+Hint: You can use `plc explain <ErrorCode>` for more information"
+            )
+        } else {
+            err
+        }
+    })
 }
 
-fn print_config_options(
+fn print_config_options<T: AsRef<Path> + Sync>(
+    project: &Project<T>,
+    diagnostician: &Diagnostician,
     option: cli::ConfigOption,
-    _format: plc::ConfigFormat,
 ) -> std::result::Result<(), anyhow::Error> {
     match option {
         cli::ConfigOption::Schema => {
-            let schema = include_str!("../../plc_project/schema/plc-json.schema");
-            println!("{schema}");
+            println!("{}", project.get_validation_schema().as_ref())
+        }
+        cli::ConfigOption::Diagnostics => {
+            println!("{}", diagnostician.get_diagnostic_configuration())
         }
     };
 
@@ -321,7 +349,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     }
     let module = project.generate_single_module(&context, &options)?;
 
-    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::error("Cannot generate module"))
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new("Cannot generate module"))
 }
 
 fn generate(
@@ -366,41 +394,26 @@ fn generate(
 }
 
 fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf>> {
-    let current_dir = env::current_dir()?;
     //Create a project from either the subcommand or single params
-    let project = if let Some(command) = &compile_parameters.commands {
-        //Build with subcommand
-        let config = command
-            .get_build_configuration()
-            .map(PathBuf::from)
-            .map(|it| {
-                if it.is_relative() {
-                    //Make the build path absolute
-                    current_dir.join(it)
-                } else {
-                    it
-                }
-            })
-            .or_else(|| get_config(&current_dir))
-            .ok_or_else(|| Diagnostic::error("Could not find 'plc.json'").with_error_code("E003"))?;
-        Project::from_config(&config)
-    } else {
-        //Build with parameters
-        let name = compile_parameters
-            .input
-            .first()
-            .and_then(|it| it.get_location())
-            .and_then(|it| it.file_name())
-            .and_then(|it| it.to_str())
-            .unwrap_or(DEFAULT_OUTPUT_NAME);
-        let project = Project::new(name.to_string())
-            .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
-            .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
-            .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
-            .with_libraries(compile_parameters.libraries.clone());
-        Ok(project)
-    };
-
+    let project = compile_parameters
+        .get_build_configuration()?
+        .map(|it| Project::from_config(&it))
+        .unwrap_or_else(|| {
+            //Build with parameters
+            let name = compile_parameters
+                .input
+                .first()
+                .and_then(|it| it.get_location())
+                .and_then(|it| it.file_name())
+                .and_then(|it| it.to_str())
+                .unwrap_or(DEFAULT_OUTPUT_NAME);
+            let project = Project::new(name.to_string())
+                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
+                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+                .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
+                .with_libraries(compile_parameters.libraries.clone());
+            Ok(project)
+        });
     //Override default settings with compile options
     project
         .map(|proj| {
@@ -413,6 +426,6 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
         .map(|proj| proj.with_output_name(compile_parameters.output.clone()))
 }
 
-fn get_config(root: &Path) -> Option<PathBuf> {
-    Some(root.join("plc.json"))
+fn get_config(root: &Path) -> PathBuf {
+    root.join("plc.json")
 }

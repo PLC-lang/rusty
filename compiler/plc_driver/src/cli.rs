@@ -1,7 +1,9 @@
+use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 use encoding_rs::Encoding;
-use std::{ffi::OsStr, num::ParseIntError, path::PathBuf};
+use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
 use plc::{output::FormatOption, ConfigFormat, DebugLevel, ErrorFormat, Target, Threads};
 
@@ -177,6 +179,9 @@ pub struct CompileParameters {
     )]
     pub threads: Option<Threads>,
 
+    #[clap(name = "error-config", long, help = "A diagnostics configuration in JSON format", global = true)]
+    pub error_config: Option<String>,
+
     #[clap(
         name = "single-module",
         long,
@@ -228,6 +233,7 @@ pub enum SubCommands {
     Config {
         #[clap(
             name = "config-format",
+            long = "format",
             group = "config",
             default_value = "json",
             help = "Format of the configuration file, if supported"
@@ -236,18 +242,34 @@ pub enum SubCommands {
 
         #[clap(subcommand)]
         option: ConfigOption,
+
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
+        build_config: Option<String>,
+    },
+
+    /// Explains an error code
+    Explain {
+        #[clap(help = "Error code to explain, for example `E001`")]
+        error: String,
     },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
 pub enum ConfigOption {
-    #[clap(help = "Prints the plc.json schema used for validation")]
+    #[clap(help = "Prints the plc.json's schema used for validation")]
     Schema,
+    #[clap(help = "Prints the configuration for the project")]
+    Diagnostics,
 }
 
 impl SubCommands {
     pub fn get_build_configuration(&self) -> Option<&str> {
-        let (SubCommands::Build { build_config, .. } | SubCommands::Check { build_config }) = self else {
+        let (SubCommands::Build { build_config, .. }
+        | SubCommands::Check { build_config }
+        | SubCommands::Config { build_config, .. }) = self
+        else {
             return None;
         };
         build_config.as_deref()
@@ -377,13 +399,63 @@ impl CompileParameters {
     }
 
     pub fn get_config_options(&self) -> Option<(ConfigOption, ConfigFormat)> {
-        let Some(SubCommands::Config { format, option }) = &self.commands else { return None };
+        let Some(SubCommands::Config { format, option, .. }) = &self.commands else { return None };
         Some((*option, *format))
+    }
+
+    pub(crate) fn get_build_configuration(&self) -> Result<Option<PathBuf>, Diagnostic> {
+        if !self.has_config()? {
+            return Ok(None);
+        }
+        let current_dir = env::current_dir()?;
+        let result = self
+            .commands
+            .as_ref()
+            .and_then(|it| it.get_build_configuration())
+            .map(PathBuf::from)
+            .map(|it| {
+                if it.is_relative() {
+                    //Make the build path absolute
+                    current_dir.join(it)
+                } else {
+                    it
+                }
+            })
+            .or_else(|| Some(super::get_config(&current_dir)));
+        Ok(result.clone())
+    }
+
+    fn has_config(&self) -> Result<bool, Diagnostic> {
+        let res = match &self.commands {
+            None | Some(SubCommands::Explain { .. }) => false,
+            Some(SubCommands::Build { .. }) | Some(SubCommands::Check { .. }) => true,
+            Some(SubCommands::Config { build_config, .. }) => {
+                let current_dir = env::current_dir()?;
+                build_config.is_some() || super::get_config(&current_dir).exists()
+            }
+        };
+        Ok(res)
+    }
+
+    pub fn get_error_configuration(&self) -> Result<Option<DiagnosticsConfiguration>> {
+        let Some(config) = &self.error_config else {
+            return Ok(None);
+        };
+        let config_path: PathBuf = config.into();
+        if config_path.exists() {
+            let error_config = std::fs::read_to_string(config_path)?;
+            let configuration: DiagnosticsConfiguration = serde_json::de::from_str(&error_config)?;
+            Ok(Some(configuration))
+        } else {
+            bail!("{} does not exist", config_path.to_string_lossy())
+        }
     }
 }
 
 #[cfg(test)]
 mod cli_tests {
+    use crate::cli::ConfigOption;
+
     use super::{CompileParameters, SubCommands};
     use clap::{CommandFactory, ErrorKind};
     use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
@@ -702,6 +774,36 @@ mod cli_tests {
             match commands {
                 SubCommands::Check { build_config } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+    }
+
+    #[test]
+    fn config_subcommand() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("config", "src/ProjectPlc.json", "diagnostics"))
+                .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Config { format, option, build_config } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    assert_eq!(option, ConfigOption::Diagnostics);
+                    assert_eq!(format, ConfigFormat::JSON)
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("config", "--format=toml", "schema")).unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Config { format, option, build_config } => {
+                    assert_eq!(build_config, None);
+                    assert_eq!(option, ConfigOption::Schema);
+                    assert_eq!(format, ConfigFormat::TOML)
                 }
                 _ => panic!("Unexpected command"),
             };

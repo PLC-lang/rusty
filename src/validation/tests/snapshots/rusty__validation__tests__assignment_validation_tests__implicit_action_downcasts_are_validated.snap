@@ -2,19 +2,19 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-warning: Implicit downcast from 'LINT' to 'DINT'.
+note[E067]: Implicit downcast from 'LINT' to 'DINT'.
    ┌─ <internal>:26:20
    │
 26 │             fb.foo(var1, var2, var3);
    │                    ^^^^ Implicit downcast from 'LINT' to 'DINT'.
 
-warning: Implicit downcast from 'LWORD' to 'DWORD'.
+note[E067]: Implicit downcast from 'LWORD' to 'DWORD'.
    ┌─ <internal>:26:26
    │
 26 │             fb.foo(var1, var2, var3);
    │                          ^^^^ Implicit downcast from 'LWORD' to 'DWORD'.
 
-error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:26:32
    │
 26 │             fb.foo(var1, var2, var3);

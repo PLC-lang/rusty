@@ -2,49 +2,49 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:3:13
   │
 3 │             'a' =  'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
 
-error: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:4:13
   │
 4 │             'a' <> 'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
 
-error: Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:5:13
   │
 5 │             'a' <  'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
 
-error: Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:6:13
   │
 6 │             'a' >  'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
 
-error: Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:7:13
   │
 7 │             'a' <= 'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
 
-error: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:7:13
   │
 7 │             'a' <= 'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
 
-error: Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:8:13
   │
 8 │             'a' >= 'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
 
-error: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
+error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
   ┌─ <internal>:8:13
   │
 8 │             'a' >= 'b'; // missing compare function :-(

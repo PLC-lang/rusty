@@ -2,7 +2,7 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Could not resolve generic type T with ANY_STRING
+error[E064]: Could not resolve generic type T with ANY_STRING
   ┌─ <internal>:3:31
   │
 3 │         FUNCTION func  : INT  test(); END_FUNCTION

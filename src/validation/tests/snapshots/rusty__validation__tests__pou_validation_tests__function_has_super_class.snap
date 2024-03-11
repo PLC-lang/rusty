@@ -2,16 +2,8 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: A function cannot use `EXTEND`
+error[E021]: A function cannot use `EXTEND`
   ┌─ <internal>:5:18
   │
 5 │         FUNCTION func EXTENDS cls
   │                  ^^^^ A function cannot use `EXTEND`
-
-error: Function Return type missing
-  ┌─ <internal>:5:18
-  │
-5 │         FUNCTION func EXTENDS cls
-  │                  ^^^^ Function Return type missing
-
-

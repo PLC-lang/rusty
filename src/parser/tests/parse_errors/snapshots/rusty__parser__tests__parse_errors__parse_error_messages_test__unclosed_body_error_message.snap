@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_messages_test.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected KeywordEndProgram but found ''
+error[E007]: Unexpected token: expected KeywordEndProgram but found ''
   ┌─ <internal>:5:5
   │
 5 │     

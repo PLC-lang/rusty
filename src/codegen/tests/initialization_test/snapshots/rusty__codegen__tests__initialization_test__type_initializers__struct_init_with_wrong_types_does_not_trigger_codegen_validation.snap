@@ -2,9 +2,9 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: msg
 ---
-error: Some initial values were not generated
+error[E075]: Some initial values were not generated
 
-error: Cannot generate literal initializer for 'MyType': Value cannot be derived
+error[E041]: Cannot generate literal initializer for 'MyType': Value cannot be derived
   ┌─ <internal>:7:30
   │
 7 │         TYPE MyType : INT := 'hello'; END_TYPE
@@ -12,7 +12,7 @@ error: Cannot generate literal initializer for 'MyType': Value cannot be derived
   │              │                
   │              see also
 
-error: Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived
+error[E041]: Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived
    ┌─ <internal>:10:22
    │
  9 │         TYPE MyStruct: STRUCT
