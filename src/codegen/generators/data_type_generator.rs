@@ -159,7 +159,7 @@ pub fn generate_data_types<'ink>(
             })
             .collect::<Vec<_>>();
         //Report the operation failure
-        return Err(Diagnostic::error("Some initial values were not generated")
+        return Err(Diagnostic::new("Some initial values were not generated")
             .with_error_code("E075")
             .with_sub_diagnostics(diags));
     }
@@ -227,7 +227,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 if let DataTypeInformation::Integer { .. } = effective_type.get_type_information() {
                     self.create_type(name, effective_type)
                 } else {
-                    Err(Diagnostic::error(format!(
+                    Err(Diagnostic::new(format!(
                         "Invalid type nature for generic argument. {} is no `ANY_INT`.",
                         effective_type.get_name()
                     ))

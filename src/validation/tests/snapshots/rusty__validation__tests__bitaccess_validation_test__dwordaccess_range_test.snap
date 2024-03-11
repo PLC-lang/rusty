@@ -2,7 +2,7 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: "&diagnostics"
 ---
-error: DWord-Wise access for type LWORD must be in range 0..1
+error[E057]: DWord-Wise access for type LWORD must be in range 0..1
   ┌─ <internal>:6:19
   │
 6 │                 d.%D2;

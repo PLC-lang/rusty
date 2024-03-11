@@ -2,7 +2,7 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-error: Cannot assign to CONSTANT 'v_global'
+error[E036]: Cannot assign to CONSTANT 'v_global'
   ┌─ <internal>:8:5
   │
 8 │     v_global := TRUE; // INVALID

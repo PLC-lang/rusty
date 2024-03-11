@@ -2,49 +2,49 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Expected a reference for parameter byRefInOut because their type is InOut
+error[E031]: Expected a reference for parameter byRefInOut because their type is InOut
    ┌─ <internal>:23:21
    │
 23 │             func(1, 2, 3);
    │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
 
-error: Expected a reference for parameter byRefOutput because their type is Output
+error[E031]: Expected a reference for parameter byRefOutput because their type is Output
    ┌─ <internal>:23:24
    │
 23 │             func(1, 2, 3);
    │                        ^ Expected a reference for parameter byRefOutput because their type is Output
 
-error: Expected a reference for parameter byRefInOut because their type is InOut
+error[E031]: Expected a reference for parameter byRefInOut because their type is InOut
    ┌─ <internal>:24:21
    │
 24 │             func(1, 2, x);
    │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
 
-error: Expected a reference for parameter byRefOutput because their type is Output
+error[E031]: Expected a reference for parameter byRefOutput because their type is Output
    ┌─ <internal>:25:24
    │
 25 │             func(1, x, 3);
    │                        ^ Expected a reference for parameter byRefOutput because their type is Output
 
-error: Expected a reference for parameter byRefInOut because their type is InOut
+error[E031]: Expected a reference for parameter byRefInOut because their type is InOut
    ┌─ <internal>:27:21
    │
 27 │             func(x, 2, 3);
    │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
 
-error: Expected a reference for parameter byRefOutput because their type is Output
+error[E031]: Expected a reference for parameter byRefOutput because their type is Output
    ┌─ <internal>:27:24
    │
 27 │             func(x, 2, 3);
    │                        ^ Expected a reference for parameter byRefOutput because their type is Output
 
-error: Expected a reference for parameter byRefInOut because their type is InOut
+error[E031]: Expected a reference for parameter byRefInOut because their type is InOut
    ┌─ <internal>:28:21
    │
 28 │             func(x, 2, x);
    │                     ^ Expected a reference for parameter byRefInOut because their type is InOut
 
-error: Expected a reference for parameter byRefOutput because their type is Output
+error[E031]: Expected a reference for parameter byRefOutput because their type is Output
    ┌─ <internal>:29:24
    │
 29 │             func(x, x, 3);

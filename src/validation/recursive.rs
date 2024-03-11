@@ -108,7 +108,7 @@ impl RecursiveValidator {
                 slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
                 let error = slice.iter().map(|it| it.get_name()).join(" -> ");
                 let diagnostic =
-                    Diagnostic::error(format!("Recursive data structure `{}` has infinite size", error))
+                    Diagnostic::new(format!("Recursive data structure `{}` has infinite size", error))
                         .with_error_code("E029");
 
                 let diagnostic = if let Some(first) = ranges.first() {

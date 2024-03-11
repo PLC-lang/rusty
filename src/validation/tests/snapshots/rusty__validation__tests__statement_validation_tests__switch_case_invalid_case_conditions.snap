@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid case condition!
+error[E079]: Invalid case condition!
    ┌─ <internal>:11:17
    │
 11 │                 foo():
    │                 ^^^^^^ Invalid case condition!
 
-error: Cannot resolve constant: CallStatement {
+error[E080]: Cannot resolve constant: CallStatement {
     operator: ReferenceExpr {
         kind: Member(
             Identifier {
@@ -34,7 +34,7 @@ error: Cannot resolve constant: CallStatement {
     parameters: None,
 }. Non constant variables are not supported in case conditions
 
-error: Invalid case condition!
+error[E079]: Invalid case condition!
    ┌─ <internal>:13:17
    │
 13 │                 res := 2:

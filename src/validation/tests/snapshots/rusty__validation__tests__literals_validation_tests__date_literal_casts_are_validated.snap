@@ -2,73 +2,73 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Literal DATE_AND_TIME is not compatible to LINT
+error[E054]: Literal DATE_AND_TIME is not compatible to LINT
   ┌─ <internal>:3:13
   │
 3 │             LINT#DT#1989-06-15-13:56:14.77;
   │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Literal DATE_AND_TIME is not compatible to LINT
 
-error: Literal TIME_OF_DAY is not compatible to LINT
+error[E054]: Literal TIME_OF_DAY is not compatible to LINT
   ┌─ <internal>:4:13
   │
 4 │             LINT#TIME_OF_DAY#15:36:30.123;
   │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Literal TIME_OF_DAY is not compatible to LINT
 
-error: Literal TIME is not compatible to LINT
+error[E054]: Literal TIME is not compatible to LINT
   ┌─ <internal>:5:13
   │
 5 │             LINT#T#12h34m15s;
   │             ^^^^^^^^^^^^^^^^ Literal TIME is not compatible to LINT
 
-error: Literal DATE is not compatible to LINT
+error[E054]: Literal DATE is not compatible to LINT
   ┌─ <internal>:6:13
   │
 6 │             LINT#DATE#1996-05-06;
   │             ^^^^^^^^^^^^^^^^^^^^ Literal DATE is not compatible to LINT
 
-error: Literal DATE_AND_TIME is not compatible to ULINT
+error[E054]: Literal DATE_AND_TIME is not compatible to ULINT
   ┌─ <internal>:8:13
   │
 8 │             ULINT#DT#1989-06-15-13:56:14.77;
   │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Literal DATE_AND_TIME is not compatible to ULINT
 
-error: Literal TIME_OF_DAY is not compatible to ULINT
+error[E054]: Literal TIME_OF_DAY is not compatible to ULINT
   ┌─ <internal>:9:13
   │
 9 │             ULINT#TIME_OF_DAY#15:36:30.123;
   │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Literal TIME_OF_DAY is not compatible to ULINT
 
-error: Literal TIME is not compatible to ULINT
+error[E054]: Literal TIME is not compatible to ULINT
    ┌─ <internal>:10:13
    │
 10 │             ULINT#T#12h34m15s;
    │             ^^^^^^^^^^^^^^^^^ Literal TIME is not compatible to ULINT
 
-error: Literal DATE is not compatible to ULINT
+error[E054]: Literal DATE is not compatible to ULINT
    ┌─ <internal>:11:13
    │
 11 │             ULINT#DATE#1996-05-06;
    │             ^^^^^^^^^^^^^^^^^^^^^ Literal DATE is not compatible to ULINT
 
-error: Literal DATE_AND_TIME is not compatible to INT
+error[E054]: Literal DATE_AND_TIME is not compatible to INT
    ┌─ <internal>:13:13
    │
 13 │             INT#DT#1989-06-15-13:56:14.77;
    │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Literal DATE_AND_TIME is not compatible to INT
 
-error: Literal TIME_OF_DAY is not compatible to INT
+error[E054]: Literal TIME_OF_DAY is not compatible to INT
    ┌─ <internal>:14:13
    │
 14 │             INT#TIME_OF_DAY#15:36:30.123;
    │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Literal TIME_OF_DAY is not compatible to INT
 
-error: Literal TIME is not compatible to INT
+error[E054]: Literal TIME is not compatible to INT
    ┌─ <internal>:15:13
    │
 15 │             INT#T#12h34m15s;
    │             ^^^^^^^^^^^^^^^ Literal TIME is not compatible to INT
 
-error: Literal DATE is not compatible to INT
+error[E054]: Literal DATE is not compatible to INT
    ┌─ <internal>:16:13
    │
 16 │             INT#DATE#1996-05-06;

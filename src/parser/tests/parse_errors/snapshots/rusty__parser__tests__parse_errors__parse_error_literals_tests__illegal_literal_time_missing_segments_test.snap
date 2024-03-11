@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_literals_tests.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected Literal but found ;
+error[E007]: Unexpected token: expected Literal but found ;
   ┌─ <internal>:3:15
   │
 3 │             T#;

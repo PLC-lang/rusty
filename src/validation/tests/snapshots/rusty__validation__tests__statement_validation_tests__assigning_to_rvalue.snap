@@ -2,25 +2,25 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Expression 1 is not assignable.
+error[E050]: Expression 1 is not assignable.
    ┌─ <internal>:12:13
    │
 12 │             1 := 1;
    │             ^ Expression 1 is not assignable.
 
-error: Expression 1 is not assignable.
+error[E050]: Expression 1 is not assignable.
    ┌─ <internal>:13:13
    │
 13 │             1 := i;
    │             ^ Expression 1 is not assignable.
 
-error: Invalid call parameters
+error[E089]: Invalid call parameters
    ┌─ <internal>:14:18
    │
 14 │             func(1 := 1);
    │                  ^^^^^^ Invalid call parameters
 
-error: Expression is not assignable
+error[E050]: Expression is not assignable
    ┌─ <internal>:14:18
    │
 14 │             func(1 := 1);

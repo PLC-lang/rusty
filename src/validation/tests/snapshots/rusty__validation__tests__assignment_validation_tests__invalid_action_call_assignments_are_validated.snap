@@ -2,25 +2,25 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'WSTRING'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'WSTRING'
    ┌─ <internal>:31:20
    │
 31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
    │                    ^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'WSTRING'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
    ┌─ <internal>:31:33
    │
 31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
    │                                 ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
    ┌─ <internal>:31:45
    │
 31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
    │                                             ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
 
-error: Invalid assignment: cannot assign 'WSTRING' to 'ARRAY[0..10] OF WSTRING'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'ARRAY[0..10] OF WSTRING'
    ┌─ <internal>:31:57
    │
 31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid

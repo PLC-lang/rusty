@@ -2,13 +2,13 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-error: Missing expected Token [KeywordEndVar]
+error[E006]: Missing expected Token [KeywordEndVar]
   ┌─ <internal>:1:17
   │
 1 │ PROGRAM buz VAR END_PROGRAM 
   │                 ^^^^^^^^^^^ Missing expected Token [KeywordEndVar]
 
-error: Unexpected token: expected KeywordEndVar but found 'END_PROGRAM'
+error[E007]: Unexpected token: expected KeywordEndVar but found 'END_PROGRAM'
   ┌─ <internal>:1:17
   │
 1 │ PROGRAM buz VAR END_PROGRAM 
