@@ -55,8 +55,7 @@ pub fn parse_file(
     //TODO: We should reduce the clone here
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     if diagnostician.handle(&errors) == Severity::Error {
-        Err(Diagnostic::error("Compilation aborted due to critical parse errors")
-            .with_sub_diagnostics(errors))
+        Err(Diagnostic::new("Compilation aborted due to critical parse errors").with_sub_diagnostics(errors))
     } else {
         Ok(unit)
     }
@@ -310,7 +309,7 @@ fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
         "__ANY_VLA" => TypeNature::__VLA,
         _ => {
             lexer.accept_diagnostic(
-                Diagnostic::error(format!("Unkown type nature `{nature}`"))
+                Diagnostic::new(format!("Unkown type nature `{nature}`"))
                     .with_location(lexer.location())
                     .with_error_code("E063"),
             );
@@ -352,17 +351,15 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
         if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
             if let Some(init) = initializer {
                 lexer.accept_diagnostic(
-                    Diagnostic::warning(
-                        "Return types cannot have a default value, the value will be ignored",
-                    )
-                    .with_location(init.get_location())
-                    .with_error_code("E016"),
+                    Diagnostic::new("Return types cannot have a default value, the value will be ignored")
+                        .with_location(init.get_location())
+                        .with_error_code("E016"),
                 );
             }
 
             if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "POU Type {pou_type:?} does not support a return type. Did you mean Function?"
                     ))
                     .with_error_code("E026")
@@ -381,7 +378,7 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
                         .expect("Expecing location to be a range during parsing");
                     lexer.accept_diagnostic(
                         ////TODO: This prints a debug version of the datatype, it should have a user readable version instead
-                        Diagnostic::error(format!(
+                        Diagnostic::new(format!(
                             "Data Type {datatype_name} not supported as a function return type!"
                         ))
                         .with_error_code("E027")
@@ -668,7 +665,7 @@ fn parse_data_type_definition(
         let start_pos = lexer.last_range.start;
         //Report wrong keyword
         lexer.accept_diagnostic(
-            Diagnostic::warning("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
+            Diagnostic::new("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
                 .with_location(lexer.last_location())
                 .with_error_code("E015"),
         );
@@ -798,12 +795,12 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
                 || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
             {
                 lexer.accept_diagnostic(
-                    Diagnostic::error("Mismatched types of parentheses around string size expression")
+                    Diagnostic::new("Mismatched types of parentheses around string size expression")
                         .with_location(error_range)
                         .with_error_code("E009"),
                 );
             } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
-                lexer.accept_diagnostic(Diagnostic::warning(
+                lexer.accept_diagnostic(Diagnostic::new(
                     "Unusual type of parentheses around string size expression, consider using square parentheses '[]'").
                     with_location(error_range)
                     .with_error_code("E014")
@@ -914,7 +911,7 @@ fn parse_array_type_definition(
             Some(val) => val,
             None => {
                 lexer.accept_diagnostic(
-                    Diagnostic::error(format!("Expected a range statement, got {range:?} instead"))
+                    Diagnostic::new(format!("Expected a range statement, got {range:?} instead"))
                         .with_location(range.get_location())
                         .with_error_code("E008"),
                 );
@@ -1012,7 +1009,7 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
         //Report a diagnostic if blocktype is incompatible
         if !matches!(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(
-                Diagnostic::warning("Invalid pragma location: Only VAR_INPUT support by ref properties")
+                Diagnostic::new("Invalid pragma location: Only VAR_INPUT support by ref properties")
                     .with_error_code("E024")
                     .with_location(lexer.location()),
             )

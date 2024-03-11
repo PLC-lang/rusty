@@ -2,13 +2,13 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected DataTypeDefinition but found KeywordProgram
+error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordProgram
   ┌─ <internal>:2:17
   │
 2 │                 PROGRAM
   │                 ^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordProgram
 
-error: Unexpected token: expected KeywordSemicolon but found 'PROGRAM
+error[E007]: Unexpected token: expected KeywordSemicolon but found 'PROGRAM
                 END_PROGRAM'
   ┌─ <internal>:2:17
   │  
@@ -17,13 +17,13 @@ error: Unexpected token: expected KeywordSemicolon but found 'PROGRAM
   │ ╰───────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'PROGRAM
                 END_PROGRAM'
 
-error: Missing expected Token [KeywordSemicolon]
+error[E006]: Missing expected Token [KeywordSemicolon]
   ┌─ <internal>:4:13
   │
 4 │             END_TYPE
   │             ^^^^^^^^ Missing expected Token [KeywordSemicolon]
 
-error: Unexpected token: expected KeywordSemicolon but found 'END_TYPE'
+error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_TYPE'
   ┌─ <internal>:4:13
   │
 4 │             END_TYPE

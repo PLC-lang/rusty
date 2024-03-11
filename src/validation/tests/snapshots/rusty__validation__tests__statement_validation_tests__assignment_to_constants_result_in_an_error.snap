@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Cannot assign to CONSTANT 'prg.cl'
+error[E036]: Cannot assign to CONSTANT 'prg.cl'
    ┌─ <internal>:20:13
    │
 20 │             cl  := 4;
    │             ^^ Cannot assign to CONSTANT 'prg.cl'
 
-error: Cannot assign to CONSTANT 'ci'
+error[E036]: Cannot assign to CONSTANT 'ci'
    ┌─ <internal>:22:13
    │
 22 │             ci  := 4;

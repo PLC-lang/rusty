@@ -2,13 +2,13 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error: Missing expected Token [KeywordEndFor]
+error[E006]: Missing expected Token [KeywordEndFor]
   ┌─ <internal>:7:9
   │
 7 │         END_PROGRAM
   │         ^^^^^^^^^^^ Missing expected Token [KeywordEndFor]
 
-error: Unexpected token: expected KeywordEndFor but found 'END_PROGRAM'
+error[E007]: Unexpected token: expected KeywordEndFor but found 'END_PROGRAM'
   ┌─ <internal>:7:9
   │
 7 │         END_PROGRAM

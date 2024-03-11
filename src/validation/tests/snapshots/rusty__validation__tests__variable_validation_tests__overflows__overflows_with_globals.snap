@@ -2,13 +2,13 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning: This will overflow for type INT
+warning[E039]: This will overflow for type INT
   ┌─ <internal>:3:24
   │
 3 │             a : INT := 32768;
   │                        ^^^^^ This will overflow for type INT
 
-warning: This will overflow for type INT
+warning[E039]: This will overflow for type INT
   ┌─ <internal>:4:24
   │
 4 │             b : INT := 32767 + 1;

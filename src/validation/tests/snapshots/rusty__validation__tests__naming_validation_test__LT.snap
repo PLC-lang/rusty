@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: LT can not be used as a name because it is a built-in datatype
+error[E004]: LT can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE LT : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^ LT can not be used as a name because it is a built-in datatype
 
-error: LT: Ambiguous datatype.
+error[E004]: LT: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE LT : STRUCT x : DINT; END_STRUCT END_TYPE

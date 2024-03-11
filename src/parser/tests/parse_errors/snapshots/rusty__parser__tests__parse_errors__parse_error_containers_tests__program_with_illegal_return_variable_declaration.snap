@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-error: POU Type Program does not support a return type. Did you mean Function?
+error[E026]: POU Type Program does not support a return type. Did you mean Function?
   ┌─ <internal>:2:29
   │
 2 │                 PROGRAM foo : INT

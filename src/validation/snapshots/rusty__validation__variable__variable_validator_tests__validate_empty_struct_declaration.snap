@@ -2,13 +2,13 @@
 source: src/validation/variable.rs
 expression: diagnostics
 ---
-error: Variable block is empty
+error[E028]: Variable block is empty
   ┌─ <internal>:2:14
   │
 2 │         TYPE the_struct : STRUCT END_STRUCT END_TYPE
   │              ^^^^^^^^^^ Variable block is empty
 
-error: Variable block is empty
+error[E028]: Variable block is empty
   ┌─ <internal>:6:29
   │  
 6 │                   my_struct : STRUCT

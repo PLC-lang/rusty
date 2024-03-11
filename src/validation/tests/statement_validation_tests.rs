@@ -1408,13 +1408,13 @@ fn for_loop_conditions_are_numerical() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error: Expected an integer value, got `STRING`
+    error[E094]: Expected an integer value, got `STRING`
       ┌─ <internal>:9:13
       │
     9 │         FOR i := 100000 TO x BY y DO
       │             ^ Expected an integer value, got `STRING`
 
-    error: Expected an integer value, got `BOOL`
+    error[E094]: Expected an integer value, got `BOOL`
       ┌─ <internal>:9:28
       │
     9 │         FOR i := 100000 TO x BY y DO
@@ -1442,25 +1442,25 @@ fn for_loop_conditions_are_real_and_trigger_error() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error: Expected an integer value, got `STRING`
+    error[E094]: Expected an integer value, got `STRING`
       ┌─ <internal>:9:13
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │             ^ Expected an integer value, got `STRING`
 
-    error: Expected an integer value, got `REAL`
+    error[E094]: Expected an integer value, got `REAL`
       ┌─ <internal>:9:18
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │                  ^^^^ Expected an integer value, got `REAL`
 
-    error: Expected an integer value, got `REAL`
+    error[E094]: Expected an integer value, got `REAL`
       ┌─ <internal>:9:26
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │                          ^ Expected an integer value, got `REAL`
 
-    error: Expected an integer value, got `REAL`
+    error[E094]: Expected an integer value, got `REAL`
       ┌─ <internal>:9:31
       │
     9 │         FOR i := 10.0 TO x BY y DO

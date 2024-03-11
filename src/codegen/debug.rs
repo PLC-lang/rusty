@@ -385,7 +385,7 @@ impl<'ink> DebugBuilder<'ink> {
         self.types
             .get(&dt_name)
             .ok_or_else(|| {
-                Diagnostic::error(format!("Cannot find debug information for type {dt_name}"))
+                Diagnostic::new(format!("Cannot find debug information for type {dt_name}"))
                     .with_error_code("E076")
             })
             .map(|it| it.to_owned())

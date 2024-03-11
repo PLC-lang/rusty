@@ -2,19 +2,19 @@
 source: src/validation/tests/builtin_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+error[E032]: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
   ┌─ <internal>:7:13
   │
 7 │             EQ();
   │             ^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
 
-error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+error[E032]: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
   ┌─ <internal>:8:13
   │
 8 │             GT(x1);
   │             ^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
 
-error: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+error[E032]: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
    ┌─ <internal>:10:13
    │
 10 │             NE(x2, x2, x1, x2); // NE is not extensible

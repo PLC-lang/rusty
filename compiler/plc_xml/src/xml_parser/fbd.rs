@@ -18,7 +18,7 @@ impl<'xml> FunctionBlockDiagram<'xml> {
             let (insert, remove_id) = self.transform_node(*id, session, &ast_association);
 
             if let Some(id) = remove_id {
-                ast_association.remove(&id);
+                ast_association.shift_remove(&id);
             };
 
             ast_association.insert(*id, insert);
