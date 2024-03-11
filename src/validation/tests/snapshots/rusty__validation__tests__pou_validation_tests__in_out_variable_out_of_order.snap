@@ -2,19 +2,19 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: diagnostics
 ---
-error: Missing inout parameter: myOtherInOut
+error[E030]: Missing inout parameter: myOtherInOut
   ┌─ <internal>:9:9
   │
 9 │         fb(myInOut := out2); // invalid: missing in-out param
   │         ^^ Missing inout parameter: myOtherInOut
 
-error: Expected a reference for parameter myInOut because their type is InOut
+error[E031]: Expected a reference for parameter myInOut because their type is InOut
    ┌─ <internal>:10:15
    │
 10 │         fb(0, TRUE);  // invalid: one in-out is a literal, the other is missing
    │               ^^^^ Expected a reference for parameter myInOut because their type is InOut
 
-error: Missing inout parameter: myOtherInOut
+error[E030]: Missing inout parameter: myOtherInOut
    ┌─ <internal>:10:9
    │
 10 │         fb(0, TRUE);  // invalid: one in-out is a literal, the other is missing

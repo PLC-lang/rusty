@@ -2,55 +2,55 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: The type DINT 32 is too small to hold a Pointer
+error[E065]: The type DINT 32 is too small to hold a Pointer
    ┌─ <internal>:28:5
    │
 28 │     v_dint := v_ptr_int; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ The type DINT 32 is too small to hold a Pointer
 
-error: Invalid assignment: cannot assign 'REF_TO INT' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'REF_TO INT' to 'DINT'
    ┌─ <internal>:28:5
    │
 28 │     v_dint := v_ptr_int; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO INT' to 'DINT'
 
-error: The type WORD 16 is too small to hold a Pointer
+error[E065]: The type WORD 16 is too small to hold a Pointer
    ┌─ <internal>:29:5
    │
 29 │     v_word := v_ptr_int; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ The type WORD 16 is too small to hold a Pointer
 
-error: Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
+error[E037]: Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
    ┌─ <internal>:29:5
    │
 29 │     v_word := v_ptr_int; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
 
-warning: Pointers REF_TO INT and __POINTER_TO_REAL have different types
+warning[E090]: Pointers REF_TO INT and __POINTER_TO_REAL have different types
    ┌─ <internal>:31:5
    │
 31 │     v_ptr_int := &v_real; // INVALID -> TODO: should be valid
    │     ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_REAL have different types
 
-warning: Pointers REF_TO INT and __POINTER_TO_STRING have different types
+warning[E090]: Pointers REF_TO INT and __POINTER_TO_STRING have different types
    ┌─ <internal>:41:5
    │
 41 │     v_ptr_int := &v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_STRING have different types
 
-error: Invalid assignment: cannot assign 'STRING' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:42:5
    │
 42 │     v_ptr_int^ := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'INT'
    ┌─ <internal>:44:5
    │
 44 │     v_ptr_int^ := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'INT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:48:5
    │
 48 │     v_ptr_int^ := v_arr_string_3[0]; // INVALID

@@ -2,37 +2,37 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Literal true is not compatible to STRING
+error[E054]: Literal true is not compatible to STRING
   ┌─ <internal>:7:13
   │
 7 │             STRING#TRUE;
   │             ^^^^^^^^^^^ Literal true is not compatible to STRING
 
-error: Literal false is not compatible to WSTRING
+error[E054]: Literal false is not compatible to WSTRING
   ┌─ <internal>:8:13
   │
 8 │             WSTRING#FALSE;
   │             ^^^^^^^^^^^^^ Literal false is not compatible to WSTRING
 
-error: Literal 22 is not compatible to STRING
+error[E054]: Literal 22 is not compatible to STRING
    ┌─ <internal>:10:13
    │
 10 │             STRING#22;
    │             ^^^^^^^^^ Literal 22 is not compatible to STRING
 
-error: Literal 33 is not compatible to WSTRING
+error[E054]: Literal 33 is not compatible to WSTRING
    ┌─ <internal>:11:13
    │
 11 │             WSTRING#33;
    │             ^^^^^^^^^^ Literal 33 is not compatible to WSTRING
 
-error: Literal 3.14 is not compatible to STRING
+error[E054]: Literal 3.14 is not compatible to STRING
    ┌─ <internal>:13:13
    │
 13 │             STRING#3.14;
    │             ^^^^^^^^^^^ Literal 3.14 is not compatible to STRING
 
-error: Literal 1.0 is not compatible to WSTRING
+error[E054]: Literal 1.0 is not compatible to WSTRING
    ┌─ <internal>:14:13
    │
 14 │             WSTRING#1.0;

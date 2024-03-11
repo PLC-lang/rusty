@@ -2,4 +2,4 @@
 source: compiler/plc_project/src/build_config.rs
 expression: diag.to_string()
 ---
-E088: missing field `path`  at: :16:13:{16:13-16:391}: 
+missing field `path`  at: :16:13:{16:13-16:391}: 

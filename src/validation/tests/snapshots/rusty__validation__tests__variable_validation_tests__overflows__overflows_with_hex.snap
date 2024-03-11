@@ -2,13 +2,13 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning: This will overflow for type WORD
+warning[E039]: This will overflow for type WORD
   ┌─ <internal>:4:30
   │
 4 │             y : UINT := WORD#16#fffff;  // Not OK, should have been `ffff` not `ffff_f_`
   │                              ^^^^^^^^ This will overflow for type WORD
 
-error: Literal 1048575 out of range (WORD)
+error[E053]: Literal 1048575 out of range (WORD)
   ┌─ <internal>:4:25
   │
 4 │             y : UINT := WORD#16#fffff;  // Not OK, should have been `ffff` not `ffff_f_`

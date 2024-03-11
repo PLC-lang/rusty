@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_classes_tests.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected Identifier but found END_CLASS
+error[E007]: Unexpected token: expected Identifier but found END_CLASS
   ┌─ <internal>:1:7
   │
 1 │ CLASS END_CLASS

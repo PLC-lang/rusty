@@ -2,49 +2,49 @@
 source: src/validation/tests/array_validation_test.rs
 expression: "&diagnostics"
 ---
-error: Array access must be in the range 2..3
+error[E058]: Array access must be in the range 2..3
    ┌─ <internal>:29:21
    │
 29 │             multi[1,4]; // out of range
    │                     ^ Array access must be in the range 2..3
 
-error: Array access must be in the range 2..3
+error[E058]: Array access must be in the range 2..3
    ┌─ <internal>:30:23
    │
 30 │             nested[1][4]; // out of range
    │                       ^ Array access must be in the range 2..3
 
-error: Array access must be in the range 0..1
+error[E058]: Array access must be in the range 0..1
    ┌─ <internal>:31:17
    │
 31 │             arr[3]; // out of range
    │                 ^ Array access must be in the range 0..1
 
-error: Array access must be in the range -2..2
+error[E058]: Array access must be in the range -2..2
    ┌─ <internal>:32:28
    │
 32 │             negative_start[-4]; // out of range
    │                            ^^ Array access must be in the range -2..2
 
-error: Array access must be in the range -3..-1
+error[E058]: Array access must be in the range -3..-1
    ┌─ <internal>:33:22
    │
 33 │             negative[-4]; // out of range
    │                      ^^ Array access must be in the range -3..-1
 
-error: Array access must be in the range 1..2
+error[E058]: Array access must be in the range 1..2
    ┌─ <internal>:34:19
    │
 34 │             const[3]; // out of range
    │                   ^ Array access must be in the range 1..2
 
-error: Invalid type STRING for array access. Only variables of Integer types are allowed to access an array
+error[E059]: Invalid type STRING for array access. Only variables of Integer types are allowed to access an array
    ┌─ <internal>:35:17
    │
 35 │             arr[string_ref]; // invalid type for array access
    │                 ^^^^^^^^^^ Invalid type STRING for array access. Only variables of Integer types are allowed to access an array
 
-error: Invalid type INT for array access. Only variables of Array types are allowed
+error[E059]: Invalid type INT for array access. Only variables of Array types are allowed
    ┌─ <internal>:36:21
    │
 36 │             int_ref[1]; // not an array

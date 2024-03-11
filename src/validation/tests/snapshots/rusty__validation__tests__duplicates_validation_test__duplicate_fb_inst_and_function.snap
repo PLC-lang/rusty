@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
 ---
-error: foo: Ambiguous callable symbol.
+error[E004]: foo: Ambiguous callable symbol.
    ┌─ <internal>:7:17
    │
  7 │                 foo: FooFB;
@@ -11,7 +11,7 @@ error: foo: Ambiguous callable symbol.
 10 │             FUNCTION foo: INT
    │                      --- see also
 
-error: foo: Ambiguous callable symbol.
+error[E004]: foo: Ambiguous callable symbol.
    ┌─ <internal>:10:22
    │
  7 │                 foo: FooFB;

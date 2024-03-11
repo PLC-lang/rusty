@@ -2,19 +2,19 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Cannot assign to CONSTANT '__prg_state.OPEN'
+error[E036]: Cannot assign to CONSTANT '__prg_state.OPEN'
    ┌─ <internal>:13:13
    │
 13 │             OPEN := 3;
    │             ^^^^ Cannot assign to CONSTANT '__prg_state.OPEN'
 
-error: Cannot assign to CONSTANT '__global_g_enum.B'
+error[E036]: Cannot assign to CONSTANT '__global_g_enum.B'
    ┌─ <internal>:14:13
    │
 14 │             B := A;
    │             ^ Cannot assign to CONSTANT '__global_g_enum.B'
 
-error: Cannot assign to CONSTANT 'Color.red'
+error[E036]: Cannot assign to CONSTANT 'Color.red'
    ┌─ <internal>:15:13
    │
 15 │             red := green;

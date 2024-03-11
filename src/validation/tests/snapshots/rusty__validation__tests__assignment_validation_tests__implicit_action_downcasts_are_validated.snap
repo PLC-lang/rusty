@@ -2,7 +2,7 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'STRING' to 'BYTE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:26:32
    │
 26 │             fb.foo(var1, var2, var3);

@@ -2,7 +2,7 @@
 source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
-error: Cannot generate WCHAR from empty literal
+error[E071]: Cannot generate WCHAR from empty literal
   ┌─ <internal>:6:14
   │
 6 │         x := "";

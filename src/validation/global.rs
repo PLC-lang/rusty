@@ -42,7 +42,7 @@ impl GlobalValidator {
             if v.is_undefined() {
                 for other in others {
                     self.diagnostics.push(
-                        Diagnostic::error(format!(
+                        Diagnostic::new(format!(
                             "{name} can not be used as a name because it is a built-in datatype"
                         ))
                         .with_location((other).clone())
@@ -52,7 +52,7 @@ impl GlobalValidator {
             } else {
                 let additional_text = additional_text.unwrap_or("Duplicate symbol.");
                 self.push_diagnostic(
-                    Diagnostic::error(format!("{name}: {additional_text}"))
+                    Diagnostic::new(format!("{name}: {additional_text}"))
                         .with_error_code("E004")
                         .with_location((*v).clone())
                         .with_secondary_locations(others),

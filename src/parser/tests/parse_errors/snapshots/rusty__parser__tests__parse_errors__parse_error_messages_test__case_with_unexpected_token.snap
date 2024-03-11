@@ -2,55 +2,55 @@
 source: src/parser/tests/parse_errors/parse_error_messages_test.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected KeywordOf but found DELTA
+error[E007]: Unexpected token: expected KeywordOf but found DELTA
   ┌─ <internal>:3:27
   │
 3 │         CASE StateMachine DELTA
   │                           ^^^^^ Unexpected token: expected KeywordOf but found DELTA
 
-error: Unexpected token: expected KeywordSemicolon but found '1'
+error[E007]: Unexpected token: expected KeywordSemicolon but found '1'
   ┌─ <internal>:4:9
   │
 4 │         1: x;
   │         ^ Unexpected token: expected KeywordSemicolon but found '1'
 
-error: Unexpected token: expected Literal but found END_CASE
+error[E007]: Unexpected token: expected Literal but found END_CASE
   ┌─ <internal>:5:9
   │
 5 │         END_CASE
   │         ^^^^^^^^ Unexpected token: expected Literal but found END_CASE
 
-error: Unexpected token: expected KeywordSemicolon but found 'END_CASE'
+error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_CASE'
   ┌─ <internal>:5:9
   │
 5 │         END_CASE
   │         ^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_CASE'
 
-error: Missing expected Token [KeywordSemicolon, KeywordColon]
+error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
   ┌─ <internal>:6:9
   │
 6 │         END_PROGRAM
   │         ^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
 
-error: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
   ┌─ <internal>:6:9
   │
 6 │         END_PROGRAM
   │         ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
 
-error: Case condition used outside of case statement! Did you mean to use ';'?
+error[E079]: Case condition used outside of case statement! Did you mean to use ';'?
   ┌─ <internal>:3:27
   │
 3 │         CASE StateMachine DELTA
   │                           ^^^^^ Case condition used outside of case statement! Did you mean to use ';'?
 
-error: Could not resolve reference to DELTA
+error[E048]: Could not resolve reference to DELTA
   ┌─ <internal>:3:27
   │
 3 │         CASE StateMachine DELTA
   │                           ^^^^^ Could not resolve reference to DELTA
 
-error: Could not resolve reference to x
+error[E048]: Could not resolve reference to x
   ┌─ <internal>:4:12
   │
 4 │         1: x;

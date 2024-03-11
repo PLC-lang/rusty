@@ -2,25 +2,25 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'REAL' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'REAL' to 'CHAR'
   ┌─ <internal>:3:57
   │
 3 │         FUNCTION func  : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid assignment: cannot assign 'REAL' to 'CHAR'
 
-error: Invalid type nature for generic argument. REAL is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. REAL is no ANY_CHAR
   ┌─ <internal>:3:57
   │
 3 │         FUNCTION func  : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid type nature for generic argument. REAL is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'LREAL' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'LREAL' to 'CHAR'
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'LREAL' to 'CHAR'
 
-error: Invalid type nature for generic argument. LREAL is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. LREAL is no ANY_CHAR
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION

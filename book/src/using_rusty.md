@@ -112,13 +112,42 @@ It is considered to be the root directory for the purpose of locating headers an
 
 By default, `plc` uses parallel compilation.
 
-This option could be controlled with the `-j` or `--threads` flag. A value above `0` will indicate the number of threads to use for the compilation
-Leaving the value unset, setting it to `0` or simply specifying `-j` sets the value to the maximum threads that could run for the current machine.
+This option can be controlled with the `-j` or `--threads` flag. A value above `0` will indicate the number of threads to use for the compilation
+Leaving the value unset, setting it to `0` or simply specifying `-j` sets the value to the maximum threads that can run for the current machine.
 This is determined by the underlying parallelisation library [Rayon](https://crates.io/crates/rayon)
 
 ### Single module Compilation
 
 With the introducton of parallel compilation, every unit is compiled into an object file independently and then linked together in a single module.
-This behaviour might not always be desired and could be disabled using the `--single-module` flag.
+This behaviour might not always be desired and can be disabled using the `--single-module` flag.
 
 > Note that the single module flag is currently much slower to produce as it requires first generating all modules and then merging them together.
+
+## Configuration Options
+
+`plc` supports different configuration options, these can be printed using the `config` subcommand
+
+### `config schema`
+
+Outputs the json schema used for the validation of the `plc.json` file
+
+### `config diagnostics`
+
+Ouputs a json file with the default error severity configuration for the project.
+
+
+## Error Configuration
+
+Errors in a `plc` project can be configured by providing a json configuration file.
+A diagnostics severity can be changed for example from `warning` to `error` or `info` and vice-versa or `ignore`d completely.
+To see a default error configuration use `plc config diagnostics`.
+To provide a custom error configuration use `plc --error-config <custom.json>`.
+Note that the `--error-config` command can be used with all subcommands such as `build` and `check`.
+Running `plc config diagnostics --error-config <custom.json>` will print out the full diagnostics configuration taking the provided overrides into account.
+
+## Error Description
+
+Errors produced by `plc` can be explained using the `plc explain <ErrorCode>` command.
+Error codes are usually provided in the diagnostic report.
+
+

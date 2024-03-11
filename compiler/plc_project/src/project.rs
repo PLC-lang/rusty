@@ -295,6 +295,11 @@ impl<S: SourceContainer> Project<S> {
     pub fn get_output_format(&self) -> FormatOption {
         self.format
     }
+
+    /// Returns the validation schema used for this project
+    pub fn get_validation_schema(&self) -> impl AsRef<str> {
+        include_str!("../schema/plc-json.schema")
+    }
 }
 
 fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>> {

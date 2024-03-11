@@ -13,7 +13,6 @@ expression: err
             },
         },
         secondary_locations: None,
-        severity: Error,
         error_code: "E086",
         sub_diagnostics: [],
         internal_error: None,

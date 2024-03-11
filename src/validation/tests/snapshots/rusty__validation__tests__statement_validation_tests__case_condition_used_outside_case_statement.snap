@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Case condition used outside of case statement! Did you mean to use ';'?
+error[E079]: Case condition used outside of case statement! Did you mean to use ';'?
   ┌─ <internal>:6:13
   │
 6 │             var1 := TOD#20:15:30:123;
   │             ^^^^^^^^^^^^^^^^^^^^ Case condition used outside of case statement! Did you mean to use ';'?
 
-error: Case condition used outside of case statement! Did you mean to use ';'?
+error[E079]: Case condition used outside of case statement! Did you mean to use ';'?
   ┌─ <internal>:7:13
   │
 7 │             23:
