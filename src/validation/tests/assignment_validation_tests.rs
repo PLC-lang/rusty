@@ -1115,7 +1115,7 @@ fn builtin_sel_does_not_report_false_positive_downcasts_for_literals() {
         ",
     );
     //THEN we expect no validation problems, since all arguments to SEL fit into the target type
-    assert_snapshot!(diagnostics)
+    assert!(diagnostics.is_empty())
 }
 
 #[test]
@@ -1135,5 +1135,47 @@ fn builtin_mux_does_not_report_false_positive_downcasts() {
         ",
     );
     //THEN we expect no validation problems, since all arguments to MUX fit into the target type
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn builtins_report_downcasts_depending_on_parameters() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            b : DINT;
+        END_VAR
+            a := SEL(TRUE, a, b); // b: DINT => INT
+            a := MUX(0, a, b); // b: DINT => INT
+            a := MUX(b, a, 1000); // selector arg is ignored
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect individual parameters to be validated and the selector argument to be ignored
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn call_results_are_validated_for_downcasts() {
+    // GIVEN a call-result assignment DINT to INT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo : DINT
+            foo := 9;
+        END_FUNCTION
+        FUNCTION main : INT
+        VAR
+            a : INT;
+        END_VAR
+            a := FOO();
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect a downcast validation
     assert_snapshot!(diagnostics)
 }

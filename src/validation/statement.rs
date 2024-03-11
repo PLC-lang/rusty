@@ -2,8 +2,8 @@ use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, BinaryExpression, DirectAccess, DirectAccessType,
-        JumpStatement, Operator, ReferenceAccess, UnaryExpression,
+        flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
+        DirectAccessType, JumpStatement, Operator, ReferenceAccess, UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -1280,7 +1280,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     use std::collections::HashMap;
     fn get_expression_types_and_locations<'b, T: AnnotationMap>(
         expression: &AstNode,
-        context: &'b ValidationContext<T>,
+        context: ValidationContext<'b, T>,
         lhs_is_signed_int: bool,
     ) -> HashMap<&'b DataType, Vec<SourceLocation>> {
         let mut map: HashMap<&DataType, Vec<SourceLocation>> = HashMap::new();
@@ -1288,9 +1288,10 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
                 if !operator.is_comparison_operator() =>
             {
-                get_expression_types_and_locations(left, context, lhs_is_signed_int)
+                get_expression_types_and_locations(left, context.clone(), lhs_is_signed_int)
                     .into_iter()
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                // the RHS type in a MOD expression has no impact on the resulting value type
                 if !matches!(operator, Operator::Modulo) {
                     get_expression_types_and_locations(right, context, lhs_is_signed_int)
                         .into_iter()
@@ -1314,8 +1315,24 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     }
                 }
             }
+            AstStatement::CallStatement(CallStatement { operator, parameters })
+                // special handling for builtin selector functions MUX and SEL
+                if matches!(operator.get_flat_reference_name().unwrap_or_default(), "MUX" | "SEL") =>
+            {
+                if let Some(args) = parameters {
+                    if let AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
+                        // skip the selector argument since it will never be assigned to the target type
+                        let args = list.iter().skip(1).collect::<Vec<_>>();
+                        args.iter().for_each(|arg| {
+                            get_expression_types_and_locations(arg, context.set_is_builtin_call(), lhs_is_signed_int)
+                            .into_iter()
+                            .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                        });
+                    };
+                };
+            }
             _ => {
-                if context.annotations.get_generic_nature(expression).is_none() {
+                if context.annotations.get_generic_nature(expression).is_none() || context.is_builtin_call {
                     if let Some(dt) = context.annotations.get_type(expression, context.index) {
                         map.entry(dt).or_default().push(expression.get_location());
                     }
@@ -1335,7 +1352,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
     };
 
-    get_expression_types_and_locations(right, context, lhs.is_signed_int())
+    get_expression_types_and_locations(right, context.clone(), lhs.is_signed_int())
         .into_iter()
         .filter(|(dt, _)| results_in_truncation(dt))
         .for_each(|(dt, location)| {

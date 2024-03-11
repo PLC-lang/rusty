@@ -30,13 +30,13 @@ mod variable;
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone)]
 pub struct ValidationContext<'s, T: AnnotationMap> {
     annotations: &'s T,
     index: &'s Index,
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<&'s str>,
     is_call: bool,
+    is_builtin_call: bool,
 }
 
 impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
@@ -46,6 +46,7 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
             index: self.index,
             qualifier: Some(qualifier),
             is_call: self.is_call,
+            is_builtin_call: self.is_builtin_call,
         }
     }
 
@@ -55,6 +56,7 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
             index: self.index,
             qualifier,
             is_call: self.is_call,
+            is_builtin_call: self.is_builtin_call,
         }
     }
 
@@ -78,11 +80,32 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
             index: self.index,
             qualifier: self.qualifier,
             is_call: true,
+            is_builtin_call: self.is_builtin_call,
         }
     }
 
     fn is_call(&self) -> bool {
         self.is_call
+    }
+
+    fn set_is_builtin_call(&self) -> Self {
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: self.qualifier,
+            is_call: self.is_call,
+            is_builtin_call: true,
+        }
+    }
+
+    fn clone(&self) -> Self {
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: self.qualifier,
+            is_call: self.is_call,
+            is_builtin_call: self.is_builtin_call,
+        }
     }
 }
 
@@ -150,7 +173,8 @@ impl<'a> Validator<'a> {
     }
 
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
-        let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
+        let context =
+            ValidationContext { annotations, index, qualifier: None, is_call: false, is_builtin_call: false };
         // validate POU and declared Variables
         for pou in &unit.units {
             visit_pou(self, pou, &context.with_qualifier(pou.name.as_str()));
