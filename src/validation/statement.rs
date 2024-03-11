@@ -625,7 +625,9 @@ fn validate_binary_expression<T: AnnotationMap>(
         && !(is_numerical || left_type.is_pointer())
     {
         // see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
-        if operator.is_comparison_operator() && !compare_function_exists(left_type.get_name(), operator, context) {
+        if operator.is_comparison_operator()
+            && !compare_function_exists(left_type.get_name(), operator, context)
+        {
             validator.push_diagnostic(
                 Diagnostic::error(format!(
                     "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
@@ -1289,9 +1291,11 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 get_expression_types_and_locations(left, context, lhs_is_signed_int)
                     .into_iter()
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-                get_expression_types_and_locations(right, context, lhs_is_signed_int)
-                    .into_iter()
-                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                if !matches!(operator, Operator::Modulo) {
+                    get_expression_types_and_locations(right, context, lhs_is_signed_int)
+                        .into_iter()
+                        .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                }
             }
             AstStatement::UnaryExpression(UnaryExpression { operator, value })
                 if !operator.is_comparison_operator() =>

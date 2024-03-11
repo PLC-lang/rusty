@@ -1048,12 +1048,92 @@ fn literals_out_of_range_in_a_modulo_operation_cannot_exceed_the_left_operand() 
         FUNCTION main : INT
         VAR
             a : INT;
-            d : DINT := 9;
         END_VAR
-            a := a + (a MOD d);  // I know this is bullshit - lets ignore it
+            a := a + (a MOD 40000);
         END_FUNCTION
         ",
     );
     //THEN we expect no validation problems, since a mod d should remain in a's datatype
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn modulo_operation_validates_if_the_left_hand_type_fits_into_the_target_type() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            d : DINT := 9;
+        END_VAR
+            a := a + (d MOD a);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect a downcast warning, since d mod a might overflow INT
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn rhs_of_a_mod_operation_is_ignored_in_downcast_validation() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            d : DINT := 9;
+            l : LINT;
+        END_VAR
+            a := a + (a MOD d);
+            a := a + (a MOD LINT#10);
+            a := a + (a MOD l);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect a downcast warning, since d mod a might overflow INT
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn builtin_sel_does_not_report_false_positive_downcasts_for_literals() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            b : INT;
+        END_VAR
+            a := SEL(TRUE, a, b);
+            a := SEL(FALSE, a, 1000);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect no validation problems, since all arguments to SEL fit into the target type
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn builtin_mux_does_not_report_false_positive_downcasts() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            b : INT;
+        END_VAR
+            a := MUX(0, a, b);
+            a := MUX(2, a, b, 1000);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect no validation problems, since all arguments to MUX fit into the target type
     assert_snapshot!(diagnostics)
 }
