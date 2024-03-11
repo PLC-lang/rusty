@@ -1386,11 +1386,10 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     if let AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
                         // skip the selector argument since it will never be assigned to the target type
                         let args = list.iter().skip(1).collect::<Vec<_>>();
-                        args.iter().for_each(|arg| {
+                        args.iter().flat_map(|arg| {
                             get_expression_types_and_locations(arg, context.set_is_builtin_call(), lhs_is_signed_int)
-                            .into_iter()
-                            .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-                        });
+                        })
+                        .for_each(|(k, v)| map.entry(k).or_default().extend(v));
                     };
                 };
             }
