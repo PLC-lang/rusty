@@ -70,18 +70,7 @@
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{
-    fmt::Debug,
-    ops::{BitAnd, Shr},
-};
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::{BitAnd, Shr};
 
 <span class="doccomment">/// .
 /// Check if input is a valid REAL
@@ -105,18 +94,13 @@
 
 <span class="kw">const </span>BITS_PER_BCD_DIGIT: usize = <span class="number">4</span>;
 
-<span class="kw">fn </span>is_valid_bcd&lt;T, U&gt;(input: T) -&gt; bool
+<span class="kw">fn </span>is_valid_bcd&lt;T&gt;(input: T) -&gt; bool
 <span class="kw">where
-    </span>T: Shr&lt;usize, Output = T&gt; + BitAnd&lt;Output = T&gt; + Copy + From&lt;u8&gt; + TryInto&lt;u8, Error = U&gt;,
-    U: Debug,
+    </span>T: Shr&lt;usize, Output = T&gt; + BitAnd&lt;Output = T&gt; + Copy + From&lt;u8&gt; + PartialOrd,
 {
     <span class="kw">let </span>iterations = std::mem::size_of::&lt;T&gt;() * u8::BITS <span class="kw">as </span>usize / BITS_PER_BCD_DIGIT;
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..iterations {
-        <span class="kw">if </span>((input &gt;&gt; (BITS_PER_BCD_DIGIT * i)) &amp; <span class="number">0b1111</span>.into())
-            .try_into()
-            .expect(<span class="string">&quot;The bitwise and operation is guaranteed to return a u8&quot;</span>)
-            &gt; <span class="number">9u8
-        </span>{
+        <span class="kw">if </span>((input &gt;&gt; (BITS_PER_BCD_DIGIT * i)) &amp; <span class="number">0b1111</span>.into()) &gt; <span class="number">9</span>.into() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
     }
