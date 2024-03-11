@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-note[E067]: Implicit downcast from 'DWORD' to 'BOOL'.
+warning[E067]: Implicit downcast from 'DWORD' to 'BOOL'.
    ┌─ <internal>:11:43
    │
 11 │             Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK

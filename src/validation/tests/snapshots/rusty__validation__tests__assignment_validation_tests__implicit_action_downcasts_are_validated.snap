@@ -2,13 +2,13 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-note[E067]: Implicit downcast from 'LINT' to 'DINT'.
+warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
    ┌─ <internal>:26:20
    │
 26 │             fb.foo(var1, var2, var3);
    │                    ^^^^ Implicit downcast from 'LINT' to 'DINT'.
 
-note[E067]: Implicit downcast from 'LWORD' to 'DWORD'.
+warning[E067]: Implicit downcast from 'LWORD' to 'DWORD'.
    ┌─ <internal>:26:26
    │
 26 │             fb.foo(var1, var2, var3);

@@ -300,7 +300,7 @@ lazy_static! {
     Error,
     include_str!("./error_codes/E066.md"),
     E067,
-    Info,
+    Warning,
     include_str!("./error_codes/E067.md"), //Implicit typecast
     E068,
     Error,

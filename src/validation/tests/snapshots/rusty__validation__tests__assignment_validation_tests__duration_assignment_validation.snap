@@ -2,7 +2,7 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-note[E067]: Implicit downcast from 'LREAL' to 'TIME'.
+warning[E067]: Implicit downcast from 'LREAL' to 'TIME'.
    ┌─ <internal>:29:15
    │
 29 │     v_time := v_lreal; // valid

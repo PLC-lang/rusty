@@ -32,31 +32,31 @@ warning[E090]: Pointers REF_TO INT and __POINTER_TO_REAL have different types
 31 │     v_ptr_int := &v_real; // INVALID -> TODO: should be valid
    │     ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_REAL have different types
 
-note[E067]: Implicit downcast from 'REAL' to 'INT'.
+warning[E067]: Implicit downcast from 'REAL' to 'INT'.
    ┌─ <internal>:32:19
    │
 32 │     v_ptr_int^ := v_real; // valid
    │                   ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
 
-note[E067]: Implicit downcast from 'UDINT' to 'INT'.
+warning[E067]: Implicit downcast from 'UDINT' to 'INT'.
    ┌─ <internal>:34:19
    │
 34 │     v_ptr_int^ := v_udint; // valid
    │                   ^^^^^^^ Implicit downcast from 'UDINT' to 'INT'.
 
-note[E067]: Implicit downcast from 'DINT' to 'INT'.
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
    ┌─ <internal>:36:19
    │
 36 │     v_ptr_int^ := v_dint; // valid
    │                   ^^^^^^ Implicit downcast from 'DINT' to 'INT'.
 
-note[E067]: Implicit downcast from 'TIME' to 'INT'.
+warning[E067]: Implicit downcast from 'TIME' to 'INT'.
    ┌─ <internal>:38:19
    │
 38 │     v_ptr_int^ := v_time; // valid
    │                   ^^^^^^ Implicit downcast from 'TIME' to 'INT'.
 
-note[E067]: Implicit downcast from 'WORD' to 'INT'.
+warning[E067]: Implicit downcast from 'WORD' to 'INT'.
    ┌─ <internal>:40:19
    │
 40 │     v_ptr_int^ := v_word; // valid
@@ -80,7 +80,7 @@ error[E037]: Invalid assignment: cannot assign 'CHAR' to 'INT'
 44 │     v_ptr_int^ := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'INT'
 
-note[E067]: Implicit downcast from 'DATE' to 'INT'.
+warning[E067]: Implicit downcast from 'DATE' to 'INT'.
    ┌─ <internal>:46:19
    │
 46 │     v_ptr_int^ := v_date; // valid

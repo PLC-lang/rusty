@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-note[E067]: Implicit downcast from 'LINT' to 'INT'.
+warning[E067]: Implicit downcast from 'LINT' to 'INT'.
   ┌─ <internal>:8:23
   │
 8 │         cl.testMethod(var_lint, var_arr, ADR(var_arr)); // downcast, invalid, ok
