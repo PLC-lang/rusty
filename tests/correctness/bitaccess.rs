@@ -9,8 +9,8 @@ use pretty_assertions::assert_eq;
 struct MainType {
     variable: u64,
     access_var: i16,
-    bit_target: u8,  //bool
-    bit_target2: u8, //bool
+    bit_target: bool,
+    bit_target2: bool,
     byte_target: u8,
     word_target: u16,
     dword_target: u32,
@@ -125,8 +125,8 @@ fn bitaccess_test() {
         MainType {
             variable: 0xAB_CD_EF_12_34_56_78_90,
             access_var: 0,
-            bit_target: 1,
-            bit_target2: 85, //variable >> 32 >> 16 >> 8 >> 1 = 85
+            bit_target: true,
+            bit_target2: true, //variable >> 32 >> 16 >> 8 >> 1 = 85 = 0b01010101, LSB is 1
             byte_target: 0xAB,
             word_target: 0xAB_CD,
             dword_target: 0xAB_CD_EF_12,
@@ -168,8 +168,8 @@ fn bitaccess_with_var_test() {
         MainType {
             variable: 0xAB_CD_EF_12_34_56_78_90,
             access_var: 1,
-            bit_target: 1,
-            bit_target2: 85, //variable >> 32 >> 16 >> 8 >> 1 = 85
+            bit_target: true,
+            bit_target2: true, //variable >> 32 >> 16 >> 8 >> 1 = 85 = 0b01010101, LSB is set => true
             byte_target: 0xAB,
             word_target: 0xAB_CD,
             dword_target: 0xAB_CD_EF_12,
