@@ -2737,6 +2737,15 @@
 <a href="#2737" id="2737">2737</a>
 <a href="#2738" id="2738">2738</a>
 <a href="#2739" id="2739">2739</a>
+<a href="#2740" id="2740">2740</a>
+<a href="#2741" id="2741">2741</a>
+<a href="#2742" id="2742">2742</a>
+<a href="#2743" id="2743">2743</a>
+<a href="#2744" id="2744">2744</a>
+<a href="#2745" id="2745">2745</a>
+<a href="#2746" id="2746">2746</a>
+<a href="#2747" id="2747">2747</a>
+<a href="#2748" id="2748">2748</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -5287,6 +5296,7 @@
         <span class="kw">let </span>loaded_base_value = qualifier_value.as_r_value(<span class="self">self</span>.llvm, <span class="self">self</span>.get_load_name(qualifier));
         <span class="kw">let </span>datatype = <span class="self">self</span>.get_type_hint_info_for(member)<span class="question-mark">?</span>;
         <span class="kw">let </span>base_type = <span class="self">self</span>.get_type_hint_for(qualifier)<span class="question-mark">?</span>;
+
         <span class="comment">//Generate and load the index value
         </span><span class="kw">let </span>rhs = <span class="self">self</span>.generate_direct_access_index(access, index, datatype, base_type)<span class="question-mark">?</span>;
         <span class="comment">//Shift the qualifer value right by the index value
@@ -5297,11 +5307,19 @@
             <span class="string">&quot;shift&quot;</span>,
         );
         <span class="comment">//Trunc the result to the get only the target size
-        </span><span class="kw">let </span>result = <span class="self">self</span>.llvm.builder.build_int_truncate_or_bit_cast(
+        </span><span class="kw">let </span>value = <span class="self">self</span>.llvm.builder.build_int_truncate_or_bit_cast(
             shift,
             <span class="self">self</span>.llvm_index.get_associated_type(datatype.get_name())<span class="question-mark">?</span>.into_int_type(),
             <span class="string">&quot;&quot;</span>,
         );
+
+        <span class="kw">let </span>result = <span class="kw">if </span>datatype.get_type_information().is_bool() {
+            <span class="comment">// since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
+            </span><span class="self">self</span>.llvm.builder.build_and(value, <span class="self">self</span>.llvm.context.i8_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>), <span class="string">&quot;&quot;</span>)
+        } <span class="kw">else </span>{
+            value
+        };
+
         <span class="prelude-val">Ok</span>(ExpressionValue::RValue(result.as_basic_value_enum()))
     }
 }
