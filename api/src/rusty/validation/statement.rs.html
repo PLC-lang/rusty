@@ -1422,6 +1422,15 @@
 <a href="#1422" id="1422">1422</a>
 <a href="#1423" id="1423">1423</a>
 <a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::control_statements::ForLoopStatement;
@@ -1686,38 +1695,26 @@
     }
 }
 
-<span class="kw">fn </span>validate_for_loop&lt;T: AnnotationMap&gt;(
-    validator: <span class="kw-2">&amp;mut </span>Validator,
-    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-    statement: <span class="kw-2">&amp;</span>ForLoopStatement,
-) {
-    statement.get_conditionals().iter().for_each(|node| {
-        <span class="kw">let </span>kind = context.annotations.get_type_or_void(node, context.index);
-
-        <span class="kw">if </span>kind.is_real() || !kind.is_numerical() {
-            <span class="kw">let </span>slice = get_datatype_name_or_slice(validator.context, kind);
-            <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Expected an integer value, got `{slice}`&quot;</span>);
-            validator.push_diagnostic(
-                Diagnostic::new(message).with_location(node.get_location()).with_error_code(<span class="string">&quot;E094&quot;</span>),
-            );
-        }
-    })
-
-    <span class="comment">// TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
-    // TODO: Check if the body doesn&#39;t modify the conditional values
-    //       NOTE: This requires some analysis feature which we currently lack.
-    //       While it might be possible to check if the left-hand side of an assignment is a
-    //       conditional value, we currently can not guarantee these values will not be mutated
-    //       by a VAR_INPUT {ref} function call.
-</span>}
-
 <span class="kw">fn </span>validate_control_statement&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     control_statement: <span class="kw-2">&amp;</span>AstControlStatement,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
+    <span class="kw">let </span><span class="kw-2">mut </span>validate_if_condition_is_bool = |node: <span class="kw-2">&amp;</span>AstNode| {
+        <span class="kw">let </span>kind = context.annotations.get_type_or_void(node, context.index);
+
+        <span class="kw">if </span>!kind.get_type_information().is_bool() {
+            <span class="kw">let </span>slice = get_datatype_name_or_slice(validator.context, kind);
+            <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Expected a boolean, got `{slice}`&quot;</span>);
+            validator.push_diagnostic(
+                Diagnostic::new(message).with_location(node.get_location()).with_error_code(<span class="string">&quot;E094&quot;</span>),
+            )
+        }
+    };
+
     <span class="kw">match </span>control_statement {
         AstControlStatement::If(stmt) =&gt; {
+            stmt.blocks.iter().map(|it| it.condition.as_ref()).for_each(validate_if_condition_is_bool);
             stmt.blocks.iter().for_each(|b| {
                 visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
@@ -1733,7 +1730,7 @@
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) =&gt; {
-            visit_statement(validator, <span class="kw-2">&amp;</span>stmt.condition, context);
+            validate_if_condition_is_bool(<span class="kw-2">&amp;</span>stmt.condition);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::Case(stmt) =&gt; {
@@ -2072,9 +2069,7 @@
     <span class="comment">// if the type is a subrange, check if the intrinsic type is numerical
     </span><span class="kw">let </span>is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
 
-    <span class="kw">if </span>std::mem::discriminant(left_type) == std::mem::discriminant(right_type)
-        &amp;&amp; !(is_numerical || left_type.is_pointer())
-    {
+    <span class="kw">if </span>discriminant(left_type) == discriminant(right_type) &amp;&amp; !(is_numerical || left_type.is_pointer()) {
         <span class="comment">// see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
         </span><span class="kw">if </span>operator.is_comparison_operator()
             &amp;&amp; !compare_function_exists(left_type.get_name(), operator, context)
@@ -2082,9 +2077,7 @@
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">&quot;Missing compare function &#39;FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...&#39;.&quot;</span>,
-                    <span class="kw">crate</span>::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
-                        .unwrap_or_default()
-                        .as_str(),
+                    get_equals_function_name_for(left_type.get_name(), operator).unwrap_or_default().as_str(),
                     left_type.get_name(),
                 ))
                 .with_error_code(<span class="string">&quot;E073&quot;</span>)
@@ -2709,6 +2702,31 @@
 
     else_block.iter().for_each(|s| visit_statement(validator, s, context));
 }
+
+<span class="kw">fn </span>validate_for_loop&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    statement: <span class="kw-2">&amp;</span>ForLoopStatement,
+) {
+    statement.get_conditionals().iter().for_each(|node| {
+        <span class="kw">let </span>kind = context.annotations.get_type_or_void(node, context.index);
+
+        <span class="kw">if </span>kind.is_real() || !kind.is_numerical() {
+            <span class="kw">let </span>slice = get_datatype_name_or_slice(validator.context, kind);
+            <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Expected an integer value, got `{slice}`&quot;</span>);
+            validator.push_diagnostic(
+                Diagnostic::new(message).with_location(node.get_location()).with_error_code(<span class="string">&quot;E094&quot;</span>),
+            );
+        }
+    })
+
+    <span class="comment">// TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
+    // TODO: Check if the body doesn&#39;t modify the conditional values
+    //       NOTE: This requires some analysis feature which we currently lack.
+    //       While it might be possible to check if the left-hand side of an assignment is a
+    //       conditional value, we currently can not guarantee these values will not be mutated
+    //       by a VAR_INPUT {ref} function call.
+</span>}
 
 <span class="doccomment">/// Validates that the assigned type and type hint are compatible with the nature for this
 /// statement
