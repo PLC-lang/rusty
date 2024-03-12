@@ -1402,7 +1402,7 @@ fn for_loop_conditions_are_numerical() {
 
         FOR i := 100000 TO x BY y DO
         END_FOR
-            
+
         END_PROGRAM
         ",
     );
@@ -1436,7 +1436,7 @@ fn for_loop_conditions_are_real_and_trigger_error() {
 
         FOR i := 10.0 TO x BY y DO
         END_FOR
-            
+
         END_PROGRAM
         ",
     );
@@ -1465,6 +1465,115 @@ fn for_loop_conditions_are_real_and_trigger_error() {
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │                               ^ Expected an integer value, got `REAL`
+
+    "###);
+}
+
+#[test]
+fn if_statement_triggers_error_if_condition_is_not_boolean() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : BOOL;
+                y : DINT;
+                z : STRING;
+            END_VAR
+
+            // These are not OK
+            IF      y THEN
+            ELSIF   z THEN
+            ELSIF   0 THEN
+            ELSIF   1 THEN
+
+            // These are OK
+            ELSIF   x               THEN
+            ELSIF   (0 < 1)         THEN
+            ELSIF   (y < 0)         THEN
+            ELSIF   ((1 = 2) = 3)   THEN
+            END_IF
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error[E094]: Expected a boolean, got `DINT`
+       ┌─ <internal>:10:21
+       │
+    10 │             IF      y THEN
+       │                     ^ Expected a boolean, got `DINT`
+
+    error[E094]: Expected a boolean, got `STRING`
+       ┌─ <internal>:11:21
+       │
+    11 │             ELSIF   z THEN
+       │                     ^ Expected a boolean, got `STRING`
+
+    error[E094]: Expected a boolean, got `DINT`
+       ┌─ <internal>:12:21
+       │
+    12 │             ELSIF   0 THEN
+       │                     ^ Expected a boolean, got `DINT`
+
+    error[E094]: Expected a boolean, got `DINT`
+       ┌─ <internal>:13:21
+       │
+    13 │             ELSIF   1 THEN
+       │                     ^ Expected a boolean, got `DINT`
+
+    "###);
+}
+
+#[test]
+fn while_loop_triggers_error_if_condition_is_not_boolean() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : BOOL;
+                y : DINT;
+                z : STRING;
+            END_VAR
+
+            // These are not OK
+            WHILE y DO END_WHILE
+            WHILE z DO END_WHILE
+            WHILE 0 DO END_WHILE
+            WHILE 1 DO END_WHILE
+
+            // These are OK
+            WHILE x             DO END_WHILE
+            WHILE (0 < 1)       DO END_WHILE
+            WHILE (y < 0)       DO END_WHILE
+            WHILE ((1 = 2) = 3) DO END_WHILE
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error[E094]: Expected a boolean, got `DINT`
+       ┌─ <internal>:10:19
+       │
+    10 │             WHILE y DO END_WHILE
+       │                   ^ Expected a boolean, got `DINT`
+
+    error[E094]: Expected a boolean, got `STRING`
+       ┌─ <internal>:11:19
+       │
+    11 │             WHILE z DO END_WHILE
+       │                   ^ Expected a boolean, got `STRING`
+
+    error[E094]: Expected a boolean, got `DINT`
+       ┌─ <internal>:12:19
+       │
+    12 │             WHILE 0 DO END_WHILE
+       │                   ^ Expected a boolean, got `DINT`
+
+    error[E094]: Expected a boolean, got `DINT`
+       ┌─ <internal>:13:19
+       │
+    13 │             WHILE 1 DO END_WHILE
+       │                   ^ Expected a boolean, got `DINT`
 
     "###);
 }

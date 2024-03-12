@@ -262,38 +262,26 @@ fn validate_direct_access<T: AnnotationMap>(
     }
 }
 
-fn validate_for_loop<T: AnnotationMap>(
-    validator: &mut Validator,
-    context: &ValidationContext<T>,
-    statement: &ForLoopStatement,
-) {
-    statement.get_conditionals().iter().for_each(|node| {
-        let kind = context.annotations.get_type_or_void(node, context.index);
-
-        if kind.is_real() || !kind.is_numerical() {
-            let slice = get_datatype_name_or_slice(validator.context, kind);
-            let message = format!("Expected an integer value, got `{slice}`");
-            validator.push_diagnostic(
-                Diagnostic::new(message).with_location(node.get_location()).with_error_code("E094"),
-            );
-        }
-    })
-
-    // TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
-    // TODO: Check if the body doesn't modify the conditional values
-    //       NOTE: This requires some analysis feature which we currently lack.
-    //       While it might be possible to check if the left-hand side of an assignment is a
-    //       conditional value, we currently can not guarantee these values will not be mutated
-    //       by a VAR_INPUT {ref} function call.
-}
-
 fn validate_control_statement<T: AnnotationMap>(
     validator: &mut Validator,
     control_statement: &AstControlStatement,
     context: &ValidationContext<T>,
 ) {
+    let mut validate_if_condition_is_bool = |node: &AstNode| {
+        let kind = context.annotations.get_type_or_void(node, context.index);
+
+        if !kind.get_type_information().is_bool() {
+            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let message = format!("Expected a boolean, got `{slice}`");
+            validator.push_diagnostic(
+                Diagnostic::new(message).with_location(node.get_location()).with_error_code("E094"),
+            )
+        }
+    };
+
     match control_statement {
         AstControlStatement::If(stmt) => {
+            stmt.blocks.iter().map(|it| it.condition.as_ref()).for_each(validate_if_condition_is_bool);
             stmt.blocks.iter().for_each(|b| {
                 visit_statement(validator, b.condition.as_ref(), context);
                 b.body.iter().for_each(|s| visit_statement(validator, s, context));
@@ -309,7 +297,7 @@ fn validate_control_statement<T: AnnotationMap>(
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-            visit_statement(validator, &stmt.condition, context);
+            validate_if_condition_is_bool(&stmt.condition);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::Case(stmt) => {
@@ -648,9 +636,7 @@ fn validate_binary_expression<T: AnnotationMap>(
     // if the type is a subrange, check if the intrinsic type is numerical
     let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
 
-    if std::mem::discriminant(left_type) == std::mem::discriminant(right_type)
-        && !(is_numerical || left_type.is_pointer())
-    {
+    if discriminant(left_type) == discriminant(right_type) && !(is_numerical || left_type.is_pointer()) {
         // see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
         if operator.is_comparison_operator()
             && !compare_function_exists(left_type.get_name(), operator, context)
@@ -658,9 +644,7 @@ fn validate_binary_expression<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
-                    crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
-                        .unwrap_or_default()
-                        .as_str(),
+                    get_equals_function_name_for(left_type.get_name(), operator).unwrap_or_default().as_str(),
                     left_type.get_name(),
                 ))
                 .with_error_code("E073")
@@ -1283,6 +1267,31 @@ fn validate_case_statement<T: AnnotationMap>(
     });
 
     else_block.iter().for_each(|s| visit_statement(validator, s, context));
+}
+
+fn validate_for_loop<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    statement: &ForLoopStatement,
+) {
+    statement.get_conditionals().iter().for_each(|node| {
+        let kind = context.annotations.get_type_or_void(node, context.index);
+
+        if kind.is_real() || !kind.is_numerical() {
+            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let message = format!("Expected an integer value, got `{slice}`");
+            validator.push_diagnostic(
+                Diagnostic::new(message).with_location(node.get_location()).with_error_code("E094"),
+            );
+        }
+    })
+
+    // TODO: Check if start, end, counter and the step values have the same type, e.g. all of them have to be DINT
+    // TODO: Check if the body doesn't modify the conditional values
+    //       NOTE: This requires some analysis feature which we currently lack.
+    //       While it might be possible to check if the left-hand side of an assignment is a
+    //       conditional value, we currently can not guarantee these values will not be mutated
+    //       by a VAR_INPUT {ref} function call.
 }
 
 /// Validates that the assigned type and type hint are compatible with the nature for this

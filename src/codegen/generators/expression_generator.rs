@@ -2548,6 +2548,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let loaded_base_value = qualifier_value.as_r_value(self.llvm, self.get_load_name(qualifier));
         let datatype = self.get_type_hint_info_for(member)?;
         let base_type = self.get_type_hint_for(qualifier)?;
+
         //Generate and load the index value
         let rhs = self.generate_direct_access_index(access, index, datatype, base_type)?;
         //Shift the qualifer value right by the index value
@@ -2558,11 +2559,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             "shift",
         );
         //Trunc the result to the get only the target size
-        let result = self.llvm.builder.build_int_truncate_or_bit_cast(
+        let value = self.llvm.builder.build_int_truncate_or_bit_cast(
             shift,
             self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
             "",
         );
+
+        let result = if datatype.get_type_information().is_bool() {
+            // since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
+            self.llvm.builder.build_and(value, self.llvm.context.i8_type().const_int(1, false), "")
+        } else {
+            value
+        };
+
         Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
     }
 }
