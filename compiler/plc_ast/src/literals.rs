@@ -103,6 +103,7 @@ fn calculate_date_time(
         .ok_or_else(|| format!("Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
         .and_then(|date_time| {
             date_time
+                .and_utc()
                 .timestamp_nanos_opt()
                 .ok_or_else(|| format!("Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
         })

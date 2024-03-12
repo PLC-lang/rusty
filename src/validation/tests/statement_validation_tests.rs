@@ -1408,13 +1408,13 @@ fn for_loop_conditions_are_numerical() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error: Expected an integer value, got `STRING`
+    error[E094]: Expected an integer value, got `STRING`
       ┌─ <internal>:9:13
       │
     9 │         FOR i := 100000 TO x BY y DO
       │             ^ Expected an integer value, got `STRING`
 
-    error: Expected an integer value, got `BOOL`
+    error[E094]: Expected an integer value, got `BOOL`
       ┌─ <internal>:9:28
       │
     9 │         FOR i := 100000 TO x BY y DO
@@ -1442,25 +1442,25 @@ fn for_loop_conditions_are_real_and_trigger_error() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error: Expected an integer value, got `STRING`
+    error[E094]: Expected an integer value, got `STRING`
       ┌─ <internal>:9:13
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │             ^ Expected an integer value, got `STRING`
 
-    error: Expected an integer value, got `REAL`
+    error[E094]: Expected an integer value, got `REAL`
       ┌─ <internal>:9:18
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │                  ^^^^ Expected an integer value, got `REAL`
 
-    error: Expected an integer value, got `REAL`
+    error[E094]: Expected an integer value, got `REAL`
       ┌─ <internal>:9:26
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │                          ^ Expected an integer value, got `REAL`
 
-    error: Expected an integer value, got `REAL`
+    error[E094]: Expected an integer value, got `REAL`
       ┌─ <internal>:9:31
       │
     9 │         FOR i := 10.0 TO x BY y DO
@@ -1497,25 +1497,25 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
     );
 
     assert_snapshot!(diagnostic, @r###"
-    error: Expected a boolean, got `DINT`
+    error[E094]: Expected a boolean, got `DINT`
        ┌─ <internal>:10:21
        │
     10 │             IF      y THEN
        │                     ^ Expected a boolean, got `DINT`
 
-    error: Expected a boolean, got `STRING`
+    error[E094]: Expected a boolean, got `STRING`
        ┌─ <internal>:11:21
        │
     11 │             ELSIF   z THEN
        │                     ^ Expected a boolean, got `STRING`
 
-    error: Expected a boolean, got `DINT`
+    error[E094]: Expected a boolean, got `DINT`
        ┌─ <internal>:12:21
        │
     12 │             ELSIF   0 THEN
        │                     ^ Expected a boolean, got `DINT`
 
-    error: Expected a boolean, got `DINT`
+    error[E094]: Expected a boolean, got `DINT`
        ┌─ <internal>:13:21
        │
     13 │             ELSIF   1 THEN
@@ -1551,25 +1551,25 @@ fn while_loop_triggers_error_if_condition_is_not_boolean() {
     );
 
     assert_snapshot!(diagnostic, @r###"
-    error: Expected a boolean, got `DINT`
+    error[E094]: Expected a boolean, got `DINT`
        ┌─ <internal>:10:19
        │
     10 │             WHILE y DO END_WHILE
        │                   ^ Expected a boolean, got `DINT`
 
-    error: Expected a boolean, got `STRING`
+    error[E094]: Expected a boolean, got `STRING`
        ┌─ <internal>:11:19
        │
     11 │             WHILE z DO END_WHILE
        │                   ^ Expected a boolean, got `STRING`
 
-    error: Expected a boolean, got `DINT`
+    error[E094]: Expected a boolean, got `DINT`
        ┌─ <internal>:12:19
        │
     12 │             WHILE 0 DO END_WHILE
        │                   ^ Expected a boolean, got `DINT`
 
-    error: Expected a boolean, got `DINT`
+    error[E094]: Expected a boolean, got `DINT`
        ┌─ <internal>:13:19
        │
     13 │             WHILE 1 DO END_WHILE

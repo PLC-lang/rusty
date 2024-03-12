@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: diagnostics
 ---
-error: main.x: Duplicate symbol.
+error[E004]: main.x: Duplicate symbol.
   ┌─ <internal>:4:17
   │
 4 │                 x : DINT;
@@ -10,12 +10,10 @@ error: main.x: Duplicate symbol.
 5 │                 position : (x, y);
   │                             - see also
 
-error: main.x: Duplicate symbol.
+error[E004]: main.x: Duplicate symbol.
   ┌─ <internal>:5:29
   │
 4 │                 x : DINT;
   │                 - see also
 5 │                 position : (x, y);
   │                             ^ main.x: Duplicate symbol.
-
-

@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
 ---
-error: prg: Ambiguous global variable.
+error[E004]: prg: Ambiguous global variable.
   ┌─ <internal>:4:17
   │
 4 │                 prg: INT;
@@ -11,7 +11,7 @@ error: prg: Ambiguous global variable.
 8 │             PROGRAM prg
   │                     --- see also
 
-error: prg: Ambiguous global variable.
+error[E004]: prg: Ambiguous global variable.
   ┌─ <internal>:8:21
   │
 4 │                 prg: INT;

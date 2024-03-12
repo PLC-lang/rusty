@@ -2,97 +2,97 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'USINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'USINT' to 'CHAR'
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'USINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. USINT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. USINT is no ANY_CHAR
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func1  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. USINT is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'UINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'UINT' to 'CHAR'
   ┌─ <internal>:5:58
   │
 5 │         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'UINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. UINT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. UINT is no ANY_CHAR
   ┌─ <internal>:5:58
   │
 5 │         FUNCTION func2  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. UINT is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'UDINT' to 'CHAR'
   ┌─ <internal>:6:59
   │
 6 │         FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'UDINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. UDINT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. UDINT is no ANY_CHAR
   ┌─ <internal>:6:59
   │
 6 │         FUNCTION func3  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. UDINT is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'ULINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'ULINT' to 'CHAR'
   ┌─ <internal>:7:59
   │
 7 │         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'ULINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. ULINT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. ULINT is no ANY_CHAR
   ┌─ <internal>:7:59
   │
 7 │         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. ULINT is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'SINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'SINT' to 'CHAR'
   ┌─ <internal>:9:58
   │
 9 │         FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'SINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. SINT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. SINT is no ANY_CHAR
   ┌─ <internal>:9:58
   │
 9 │         FUNCTION func5  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. SINT is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'INT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'CHAR'
    ┌─ <internal>:10:57
    │
 10 │         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
    │                                                         ^ Invalid assignment: cannot assign 'INT' to 'CHAR'
 
-error: Invalid type nature for generic argument. INT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. INT is no ANY_CHAR
    ┌─ <internal>:10:57
    │
 10 │         FUNCTION func6  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
    │                                                         ^ Invalid type nature for generic argument. INT is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'CHAR'
    ┌─ <internal>:11:58
    │
 11 │         FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
    │                                                          ^ Invalid assignment: cannot assign 'DINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. DINT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. DINT is no ANY_CHAR
    ┌─ <internal>:11:58
    │
 11 │         FUNCTION func7  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
    │                                                          ^ Invalid type nature for generic argument. DINT is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'LINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'LINT' to 'CHAR'
    ┌─ <internal>:12:58
    │
 12 │         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
    │                                                          ^ Invalid assignment: cannot assign 'LINT' to 'CHAR'
 
-error: Invalid type nature for generic argument. LINT is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. LINT is no ANY_CHAR
    ┌─ <internal>:12:58
    │
 12 │         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION

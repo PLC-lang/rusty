@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: diag
 ---
-error: VLAs can not be defined as global variables
+error[E044]: VLAs can not be defined as global variables
   ┌─ <internal>:3:13
   │
 3 │             vla : ARRAY[*, *] OF DINT;

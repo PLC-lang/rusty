@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-warning: Return types cannot have a default value, the value will be ignored
+warning[E016]: Return types cannot have a default value, the value will be ignored
   ┌─ <internal>:2:35
   │
 2 │             FUNCTION foo : INT := 3

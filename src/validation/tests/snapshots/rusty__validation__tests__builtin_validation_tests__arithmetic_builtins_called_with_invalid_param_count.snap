@@ -2,31 +2,31 @@
 source: src/validation/tests/builtin_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+error[E032]: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
   ┌─ <internal>:7:13
   │
 7 │             ADD();
   │             ^^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
 
-error: Could not resolve generic type T with ANY_NUMBER
+error[E064]: Could not resolve generic type T with ANY_NUMBER
   ┌─ <internal>:7:13
   │
 7 │             ADD();
   │             ^^^^^^ Could not resolve generic type T with ANY_NUMBER
 
-error: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+error[E032]: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
   ┌─ <internal>:8:13
   │
 8 │             MUL(x1);
   │             ^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
 
-error: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+error[E032]: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
   ┌─ <internal>:9:13
   │
 9 │             DIV(x2, x2, x1, x2); // DIV and SUB are not extensible
   │             ^^^ Invalid parameter count. Received 4 parameters while 2 parameters were expected.
 
-error: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+error[E032]: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
    ┌─ <internal>:10:13
    │
 10 │             SUB(x2, x2, x1, x2);

@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
 ---
-error: foo: Ambiguous datatype.
+error[E004]: foo: Ambiguous datatype.
   ┌─ <internal>:3:14
   │
 2 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
@@ -10,7 +10,7 @@ error: foo: Ambiguous datatype.
 3 │         TYPE foo : INT; END_TYPE
   │              ^^^ foo: Ambiguous datatype.
 
-error: foo: Ambiguous datatype.
+error[E004]: foo: Ambiguous datatype.
   ┌─ <internal>:2:25
   │
 2 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK

@@ -2,79 +2,79 @@
 source: src/validation/tests/array_validation_test.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected KeywordSquareParensClose but found )
+error[E007]: Unexpected token: expected KeywordSquareParensClose but found )
    ┌─ <internal>:15:34
    │
 15 │             arr := [1, 2, 3, 4, 5);
    │                                  ^ Unexpected token: expected KeywordSquareParensClose but found )
 
-error: Unexpected token: expected KeywordSemicolon but found ')'
+error[E007]: Unexpected token: expected KeywordSemicolon but found ')'
    ┌─ <internal>:15:34
    │
 15 │             arr := [1, 2, 3, 4, 5);
    │                                  ^ Unexpected token: expected KeywordSemicolon but found ')'
 
-error: Unexpected token: expected KeywordParensClose but found ']'
+error[E007]: Unexpected token: expected KeywordParensClose but found ']'
    ┌─ <internal>:16:34
    │
 16 │             arr := (1, 2, 3, 4, 5];
    │                                  ^ Unexpected token: expected KeywordParensClose but found ']'
 
-error: Missing expected Token [KeywordParensClose]
+error[E006]: Missing expected Token [KeywordParensClose]
    ┌─ <internal>:16:35
    │
 16 │             arr := (1, 2, 3, 4, 5];
    │                                   ^ Missing expected Token [KeywordParensClose]
 
-error: Unexpected token: expected KeywordParensClose but found ';'
+error[E007]: Unexpected token: expected KeywordParensClose but found ';'
    ┌─ <internal>:16:35
    │
 16 │             arr := (1, 2, 3, 4, 5];
    │                                   ^ Unexpected token: expected KeywordParensClose but found ';'
 
-error: Array `arr` has a size of 5, but 6 elements were provided
+error[E043]: Array `arr` has a size of 5, but 6 elements were provided
   ┌─ <internal>:4:54
   │
 4 │                 arr         : ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
   │                                                      ^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 5, but 6 elements were provided
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
   ┌─ <internal>:5:55
   │
 5 │                 arr_alt     : ARRAY[1..5] OF DINT := (1, 2, 3, 4, 5, 6);
   │                                                       ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:11:21
    │
 11 │             arr := (1, 2, 3, 4);
    │                     ^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:12:21
    │
 12 │             arr := (1, 2, 3, 4, 5);
    │                     ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:13:21
    │
 13 │             arr := (1, 2, 3, 4, 5, 6);
    │                     ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error: Array `arr` has a size of 5, but 6 elements were provided
+error[E043]: Array `arr` has a size of 5, but 6 elements were provided
    ┌─ <internal>:14:20
    │
 14 │             arr := [1, 2, 3, 4, 5, 6];
    │                    ^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 5, but 6 elements were provided
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:15:34
    │
 15 │             arr := [1, 2, 3, 4, 5);
    │                                  ^ Array assignments must be surrounded with `[]`
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:16:21
    │
 16 │             arr := (1, 2, 3, 4, 5];
