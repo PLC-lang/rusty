@@ -1145,14 +1145,20 @@ impl Index {
 
     /// Returns all enum variants of the given variable.
     pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
-        let qualified_name = variable.data_type_name.to_lowercase();
+        if let Some(ty) = self.find_type(&variable.data_type_name).map(|it| it.get_type_information()) {
+            if let DataTypeInformation::Enum { elements, .. } = &ty {
+                return elements.iter().collect::<Vec<_>>();
+            }
+        }
 
-        // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
-        self.enum_qualified_variables
-            .keys()
-            .filter(|key| key.split('.').next().is_some_and(|prefix| prefix == qualified_name))
-            .filter_map(|key| self.enum_qualified_variables.get(key))
-            .collect()
+        // // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
+        // self.enum_qualified_variables
+        //     .keys()
+        //     .filter(|key| key.split('.').next().is_some_and(|prefix| prefix == qualified_name))
+        //     .filter_map(|key| self.enum_qualified_variables.get(key))
+        //     .collect()
+
+        vec![] // TODO: This is wrong, return an option?
     }
 
     /// Returns all enum variants and their respective constant value for the given variable.
@@ -1182,6 +1188,8 @@ impl Index {
 
     /// Tries to return an enum variant defined within a POU
     pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
+        qualified_name(pou, variant);
+        // self.find_effective_type_by_name(pou)
         self.get_enum_variants_in_pou(pou)
             .into_iter()
             .find(|it| it.name == variant)
@@ -1478,7 +1486,7 @@ impl Index {
         enum_type_name: &str,
         initial_value: Option<ConstId>,
         source_location: SourceLocation,
-    ) {
+    ) -> VariableIndexEntry {
         let qualified_name = qualified_name(enum_type_name, element_name);
         let entry =
             VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
@@ -1486,7 +1494,8 @@ impl Index {
                 .set_initial_value(initial_value);
         self.enum_global_variables.insert(element_name.to_lowercase(), entry.clone());
 
-        self.enum_qualified_variables.insert(qualified_name.to_lowercase(), entry);
+        self.enum_qualified_variables.insert(qualified_name.to_lowercase(), entry.clone());
+        entry
     }
 
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {

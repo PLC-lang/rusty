@@ -192,7 +192,7 @@ fn get_default_initializer(
             }
             DataTypeInformation::Enum { name, elements, .. } => elements
                 .first()
-                .and_then(|default_enum| index.find_enum_element(name, default_enum))
+                .and_then(|default_enum| index.find_enum_element(dbg!(name), dbg!(default_enum.get_name())))
                 .and_then(|enum_element| enum_element.initial_value)
                 .and_then(|initial_val| {
                     index.get_const_expressions().get_resolved_constant_statement(&initial_val)
