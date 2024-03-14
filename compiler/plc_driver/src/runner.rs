@@ -46,7 +46,6 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
 pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
-    module.print_to_stderr();
     module.run::<T, U>("main", params)
 }
 
