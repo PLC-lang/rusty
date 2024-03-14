@@ -97,7 +97,9 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
             is_builtin_call: true,
         }
     }
+}
 
+impl<'s, T: AnnotationMap> Clone for ValidationContext<'s, T> {
     fn clone(&self) -> Self {
         ValidationContext {
             annotations: self.annotations,
