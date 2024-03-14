@@ -59,7 +59,6 @@
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pipelines::ParsedProject, CompileOptions};
 
 <span class="kw">use </span>plc::codegen::{CodegenContext, GeneratedModule};
@@ -108,7 +107,6 @@
 </span><span class="kw">pub fn </span>compile_and_run&lt;T, U, S: Compilable&gt;(source: S, params: <span class="kw-2">&amp;mut </span>T) -&gt; U {
     <span class="kw">let </span>context: CodegenContext = CodegenContext::create();
     <span class="kw">let </span>module = compile(<span class="kw-2">&amp;</span>context, source);
-    module.print_to_stderr();
     module.run::&lt;T, U&gt;(<span class="string">&quot;main&quot;</span>, params)
 }
 
