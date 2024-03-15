@@ -350,8 +350,8 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                                 .with_internal_error(it.into())
                             })?
                         } else if unit_location.has_root() {
-                            let root = Path::new("/").canonicalize()?;
-                            unit_location.strip_prefix(root).expect("Name has root")
+                            let root = unit_location.ancestors().last().expect("Should exist?");
+                            unit_location.strip_prefix(root).expect("The root directory should exist")
                         } else {
                             unit_location.as_path()
                         };

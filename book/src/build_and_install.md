@@ -24,6 +24,7 @@ sudo apt install                \
     build-essential             \
     llvm-14-dev liblld-14-dev   \
     libz-dev                    \
+    lld                         \
     libclang-common-14-dev
 ```
 Additionally you _might_ need `libffi7`, which can be installed with `sudo apt install libffi7`.
