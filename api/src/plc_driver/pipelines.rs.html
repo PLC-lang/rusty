@@ -874,8 +874,8 @@
                                 .with_internal_error(it.into())
                             })<span class="question-mark">?
                         </span>} <span class="kw">else if </span>unit_location.has_root() {
-                            <span class="kw">let </span>root = Path::new(<span class="string">&quot;/&quot;</span>).canonicalize()<span class="question-mark">?</span>;
-                            unit_location.strip_prefix(root).expect(<span class="string">&quot;Name has root&quot;</span>)
+                            <span class="kw">let </span>root = unit_location.ancestors().last().expect(<span class="string">&quot;Should exist?&quot;</span>);
+                            unit_location.strip_prefix(root).expect(<span class="string">&quot;The root directory should exist&quot;</span>)
                         } <span class="kw">else </span>{
                             unit_location.as_path()
                         };
