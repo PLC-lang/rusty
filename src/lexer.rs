@@ -70,19 +70,6 @@ impl<'a> ParseSession<'a> {
         self.id_provider.next_id()
     }
 
-    /// this function will be removed soon:
-    pub fn expect(&self, token: Token) -> Result<(), Diagnostic> {
-        if self.token != token {
-            Err(Diagnostic::unexpected_token_found(
-                format!("{token:?}").as_str(),
-                self.slice(),
-                self.location(),
-            ))
-        } else {
-            Ok(())
-        }
-    }
-
     /// Tries to consume the given token, returning false if it failed.
     pub fn try_consume(&mut self, token: &Token) -> bool {
         if self.token == *token {
