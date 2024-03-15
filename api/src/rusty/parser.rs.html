@@ -1153,8 +1153,6 @@
 <a href="#1153" id="1153">1153</a>
 <a href="#1154" id="1154">1154</a>
 <a href="#1155" id="1155">1155</a>
-<a href="#1156" id="1156">1156</a>
-<a href="#1157" id="1157">1157</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1826,9 +1824,11 @@
                 .with_location(lexer.last_location())
                 .with_error_code(<span class="string">&quot;E015&quot;</span>),
         );
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(diag) = lexer.expect(KeywordTo) {
-            lexer.accept_diagnostic(diag);
-        } <span class="kw">else </span>{
+        <span class="kw">let </span>expect_keyword_to = |lexer: <span class="kw-2">&amp;mut </span>ParseSession| {
+            <span class="macro">expect_token!</span>(lexer, KeywordTo, <span class="prelude-val">None</span>);
+            <span class="prelude-val">Some</span>(())
+        };
+        <span class="kw">if </span>expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
         parse_pointer_definition(lexer, name, start_pos)
@@ -2144,13 +2144,14 @@
 }
 
 <span class="kw">fn </span>parse_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
-    <span class="kw">match </span>expressions_parser::parse_call_statement(lexer) {
-        <span class="prelude-val">Ok</span>(statement) =&gt; statement,
-        <span class="prelude-val">Err</span>(diagnostic) =&gt; {
-            <span class="kw">let </span>statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
-            lexer.accept_diagnostic(diagnostic);
-            statement
-        }
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(statement) = expressions_parser::parse_call_statement(lexer) {
+        statement
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>statement = AstFactory::create_empty_statement(
+            lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
+            lexer.next_id(),
+        );
+        statement
     }
 }
 
@@ -2243,13 +2244,7 @@
     </span><span class="kw">let </span>address = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAt) {
         <span class="comment">//Look for a hardware address
         </span><span class="kw">if let </span>HardwareAccess((direction, access_type)) = lexer.token {
-            <span class="kw">match </span>parse_hardware_access(lexer, direction, access_type) {
-                <span class="prelude-val">Ok</span>(it) =&gt; <span class="prelude-val">Some</span>(it),
-                <span class="prelude-val">Err</span>(err) =&gt; {
-                    lexer.accept_diagnostic(err);
-                    <span class="prelude-val">None
-                </span>}
-            }
+            parse_hardware_access(lexer, direction, access_type)
         } <span class="kw">else </span>{
             lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">&quot;Hardware Access&quot;</span>, lexer.location()));
             <span class="prelude-val">None
@@ -2286,7 +2281,7 @@
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     hardware_access_type: HardwareAccessType,
     access_type: DirectAccessType,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>start_location = lexer.last_location();
     lexer.advance();
     <span class="comment">//Folowed by an integer
@@ -2301,7 +2296,7 @@
                 }
             }
         }
-        <span class="prelude-val">Ok</span>(AstFactory::create_hardware_access(
+        <span class="prelude-val">Some</span>(AstFactory::create_hardware_access(
             access_type,
             hardware_access_type,
             address,
@@ -2309,7 +2304,8 @@
             lexer.next_id(),
         ))
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(Diagnostic::missing_token(<span class="string">&quot;LiteralInteger&quot;</span>, lexer.location()))
-    }
+        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">&quot;LiteralInteger&quot;</span>, lexer.location()));
+        <span class="prelude-val">None
+    </span>}
 }
 </code></pre></div></section></main></body></html>

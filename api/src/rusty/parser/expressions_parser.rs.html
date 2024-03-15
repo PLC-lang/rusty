@@ -882,9 +882,77 @@
 <a href="#882" id="882">882</a>
 <a href="#883" id="883">883</a>
 <a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
+    expect_token,
     lexer::Token::<span class="kw-2">*</span>,
     lexer::{ParseSession, Token},
     parser::parse_any_in_region,
@@ -1096,7 +1164,7 @@
     };
 
     <span class="kw">match </span>literal_parse_result {
-        <span class="prelude-val">Ok</span>(statement) =&gt; {
+        <span class="prelude-val">Some</span>(statement) =&gt; {
             <span class="kw">if </span>lexer.token == KeywordAssignment {
                 lexer.advance();
                 AstFactory::create_assignment(statement, parse_range_statement(lexer), lexer.next_id())
@@ -1107,9 +1175,11 @@
                 statement
             }
         }
-        <span class="prelude-val">Err</span>(diagnostic) =&gt; {
-            <span class="kw">let </span>statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
-            lexer.accept_diagnostic(diagnostic);
+        <span class="prelude-val">None </span>=&gt; {
+            <span class="kw">let </span>statement = AstFactory::create_empty_statement(
+                lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
+                lexer.next_id(),
+            );
             statement
         }
     }
@@ -1118,7 +1188,7 @@
 <span class="doccomment">/// parse an expression at the bottom of the parse-tree.
 /// leaf-expressions are literals, identifier, direct-access and parenthesized expressions
 /// (since the parentheses change the parse-priority)
-</span><span class="kw">fn </span>parse_atomic_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+</span><span class="kw">fn </span>parse_atomic_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="comment">// Check if we&#39;re dealing with a number that has an explicit &#39;+&#39; or &#39;-&#39; sign...
 
     </span><span class="kw">match </span>lexer.token {
@@ -1131,11 +1201,14 @@
                 LiteralIntegerBin =&gt; parse_literal_number_with_modifier(lexer, <span class="number">2</span>, is_negative),
                 LiteralIntegerOct =&gt; parse_literal_number_with_modifier(lexer, <span class="number">8</span>, is_negative),
                 LiteralIntegerHex =&gt; parse_literal_number_with_modifier(lexer, <span class="number">16</span>, is_negative),
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(
-                    <span class="string">&quot;Numeric Literal&quot;</span>,
-                    lexer.slice(),
-                    lexer.location(),
-                )),
+                <span class="kw">_ </span>=&gt; {
+                    lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                        <span class="string">&quot;Numeric Literal&quot;</span>,
+                        lexer.slice(),
+                        lexer.location(),
+                    ));
+                    <span class="prelude-val">None
+                </span>}
             }
         }
         KeywordParensOpen =&gt; {
@@ -1145,10 +1218,14 @@
                 </span><span class="kw">let </span>start = lexer.last_location();
                 <span class="kw">let </span>expr = parse_expression(lexer);
 
-                <span class="prelude-val">Ok</span>(AstFactory::create_paren_expression(expr, start.span(<span class="kw-2">&amp;</span>lexer.location()), lexer.next_id()))
+                <span class="prelude-val">Some</span>(AstFactory::create_paren_expression(
+                    expr,
+                    start.span(<span class="kw-2">&amp;</span>lexer.location()),
+                    lexer.next_id(),
+                ))
             })
         }
-        Identifier =&gt; <span class="prelude-val">Ok</span>(parse_identifier(lexer)),
+        Identifier =&gt; <span class="prelude-val">Some</span>(parse_identifier(lexer)),
         HardwareAccess((hw_type, access_type)) =&gt; parse_hardware_access(lexer, hw_type, access_type),
         LiteralInteger =&gt; parse_literal_number(lexer, <span class="bool-val">false</span>),
         LiteralIntegerBin =&gt; parse_literal_number_with_modifier(lexer, <span class="number">2</span>, <span class="bool-val">false</span>),
@@ -1172,10 +1249,15 @@
                 <span class="comment">// due to closing keyword &#39;)&#39; and last_token &#39;=&gt;&#39; / &#39;:=&#39;
                 // we are probably in a call statement missing a parameter assignment &#39;foo(param := );
                 // optional parameter assignments are allowed, validation should handle any unwanted cases
-                </span><span class="prelude-val">Ok</span>(AstFactory::create_empty_statement(lexer.location(), lexer.next_id()))
+                </span><span class="prelude-val">Some</span>(AstFactory::create_empty_statement(lexer.location(), lexer.next_id()))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Literal&quot;</span>, lexer.slice(), lexer.location()))
-            }
+                lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                    <span class="string">&quot;Literal&quot;</span>,
+                    lexer.slice(),
+                    lexer.location(),
+                ));
+                <span class="prelude-val">None
+            </span>}
         }
     }
 }
@@ -1184,21 +1266,21 @@
     AstFactory::create_identifier(<span class="kw-2">&amp;</span>lexer.slice_and_advance(), <span class="kw-2">&amp;</span>lexer.last_location(), lexer.next_id())
 }
 
-<span class="kw">fn </span>parse_vla_range(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_vla_range(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     lexer.advance();
-    <span class="prelude-val">Ok</span>(AstFactory::create_vla_range_statement(lexer.last_location(), lexer.next_id()))
+    <span class="prelude-val">Some</span>(AstFactory::create_vla_range_statement(lexer.last_location(), lexer.next_id()))
 }
 
-<span class="kw">fn </span>parse_array_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_array_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>start = lexer.range().start;
-    lexer.expect(KeywordSquareParensOpen)<span class="question-mark">?</span>;
+    <span class="macro">expect_token!</span>(lexer, KeywordSquareParensOpen, <span class="prelude-val">None</span>);
     lexer.advance();
     <span class="kw">let </span>elements = <span class="prelude-val">Some</span>(Box::new(parse_expression(lexer)));
     <span class="kw">let </span>end = lexer.range().end;
-    lexer.expect(KeywordSquareParensClose)<span class="question-mark">?</span>;
+    <span class="macro">expect_token!</span>(lexer, KeywordSquareParensClose, <span class="prelude-val">None</span>);
     lexer.advance();
 
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(
+    <span class="prelude-val">Some</span>(AstNode::new_literal(
         AstLiteral::new_array(elements),
         lexer.next_id(),
         lexer.source_range_factory.create_range(start..end),
@@ -1207,22 +1289,22 @@
 
 <span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="comment">//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
-</span><span class="kw">fn </span>parse_bool_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+</span><span class="kw">fn </span>parse_bool_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession, value: bool) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_bool(value), lexer.next_id(), location))
+    <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_bool(value), lexer.next_id(), location))
 }
 
 <span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="comment">//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
-</span><span class="kw">fn </span>parse_null_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+</span><span class="kw">fn </span>parse_null_literal(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>location = lexer.location();
     lexer.advance();
 
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
+    <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_null(), lexer.next_id(), location))
 }
 
-<span class="kw">pub fn </span>parse_call_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">pub fn </span>parse_call_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>reference = parse_qualified_reference(lexer)<span class="question-mark">?</span>;
 
     <span class="comment">// is this a callstatement?
@@ -1241,13 +1323,13 @@
                 )
             })
         };
-        <span class="prelude-val">Ok</span>(call_statement)
+        <span class="prelude-val">Some</span>(call_statement)
     } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(reference)
+        <span class="prelude-val">Some</span>(reference)
     }
 }
 
-<span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>pos = lexer.parse_progress - <span class="number">1</span>; <span class="comment">// force an initial loop
 
@@ -1340,14 +1422,13 @@
             </span>}
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(current) = current {
-        <span class="prelude-val">Ok</span>(current)
-    } <span class="kw">else </span>{
-        parse_atomic_leaf_expression(lexer)
+    <span class="kw">match </span>current {
+        <span class="prelude-val">Some</span>(current) =&gt; <span class="prelude-val">Some</span>(current),
+        <span class="prelude-val">None </span>=&gt; parse_atomic_leaf_expression(lexer),
     }
 }
 
-<span class="kw">fn </span>parse_direct_access(lexer: <span class="kw-2">&amp;mut </span>ParseSession, access: DirectAccessType) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_direct_access(lexer: <span class="kw-2">&amp;mut </span>ParseSession, access: DirectAccessType) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="comment">//Consume the direct access
     </span><span class="kw">let </span>location = lexer.location();
     lexer.advance();
@@ -1356,23 +1437,30 @@
         LiteralInteger =&gt; parse_strict_literal_integer(lexer),
         Identifier =&gt; {
             <span class="kw">let </span>location = lexer.location();
-            <span class="prelude-val">Ok</span>(AstFactory::create_member_reference(
+            <span class="prelude-val">Some</span>(AstFactory::create_member_reference(
                 AstFactory::create_identifier(lexer.slice_and_advance().as_str(), <span class="kw-2">&amp;</span>location, lexer.next_id()),
                 <span class="prelude-val">None</span>,
                 lexer.next_id(),
             ))
         }
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Integer or Reference&quot;</span>, lexer.slice(), lexer.location())),
+        <span class="kw">_ </span>=&gt; {
+            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                <span class="string">&quot;Integer or Reference&quot;</span>,
+                lexer.slice(),
+                lexer.location(),
+            ));
+            <span class="prelude-val">None
+        </span>}
     }<span class="question-mark">?</span>;
     <span class="kw">let </span>location = location.span(<span class="kw-2">&amp;</span>lexer.last_location());
-    <span class="prelude-val">Ok</span>(AstFactory::create_direct_access(access, index, lexer.next_id(), location))
+    <span class="prelude-val">Some</span>(AstFactory::create_direct_access(access, index, lexer.next_id(), location))
 }
 
 <span class="kw">fn </span>parse_literal_number_with_modifier(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     radix: u32,
     is_negative: bool,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="comment">// we can safely unwrap the number string, since the token has
     // been matched using regular expressions
     </span><span class="kw">let </span>location = lexer.location();
@@ -1383,10 +1471,10 @@
     <span class="comment">// again, the parsed number can be safely unwrapped.
     </span><span class="kw">let </span>value = i128::from_str_radix(number_str.as_str(), radix).expect(<span class="string">&quot;valid i128&quot;</span>);
     <span class="kw">let </span>value = <span class="kw">if </span>is_negative { -value } <span class="kw">else </span>{ value };
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
+    <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
 }
 
-<span class="kw">fn </span>parse_literal_number(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_negative: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_number(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>location = <span class="kw">if </span>is_negative {
         <span class="comment">//correct the location if we just parsed a minus before
         </span>lexer.last_range.start..lexer.range().end
@@ -1397,7 +1485,7 @@
     <span class="kw">if </span>result.to_lowercase().contains(<span class="string">&#39;e&#39;</span>) {
         <span class="kw">let </span>value = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
         <span class="comment">//Treat exponents as reals
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AstNode::new_literal(
+        </span><span class="kw">return </span><span class="prelude-val">Some</span>(AstNode::new_literal(
             AstLiteral::new_real(value),
             lexer.next_id(),
             lexer.source_range_factory.create_range(location),
@@ -1406,17 +1494,23 @@
         <span class="kw">return </span>parse_literal_real(lexer, result, location, is_negative);
     } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
         <span class="kw">let </span>start = location.start;
-        <span class="kw">let </span>multiplier = result.parse::&lt;u32&gt;().map_err(|e| {
-            Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {result}&quot;</span>))
-                .with_error_code(<span class="string">&quot;E011&quot;</span>)
-                .with_location(lexer.source_range_factory.create_range(location))
-                .with_internal_error(e.into())
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>multiplier = <span class="kw">match </span>result.parse::&lt;u32&gt;() {
+            <span class="prelude-val">Ok</span>(v) =&gt; <span class="prelude-val">Some</span>(v),
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                lexer.accept_diagnostic(
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {result}&quot;</span>))
+                        .with_error_code(<span class="string">&quot;E011&quot;</span>)
+                        .with_location(lexer.source_range_factory.create_range(location))
+                        .with_internal_error(e.into()),
+                );
+                <span class="prelude-val">None
+            </span>}
+        }<span class="question-mark">?</span>;
         <span class="kw">let </span>element = parse_expression(lexer);
-        lexer.expect(KeywordParensClose)<span class="question-mark">?</span>;
+        <span class="macro">expect_token!</span>(lexer, KeywordParensClose, <span class="prelude-val">None</span>);
         <span class="kw">let </span>end = lexer.range().end;
         lexer.advance();
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(AstFactory::create_multiplied_statement(
+        <span class="kw">return </span><span class="prelude-val">Some</span>(AstFactory::create_multiplied_statement(
             multiplier,
             element,
             lexer.source_range_factory.create_range(start..end),
@@ -1430,7 +1524,7 @@
     <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">&quot;valid i128&quot;</span>);
     <span class="kw">let </span>value = <span class="kw">if </span>is_negative { -value } <span class="kw">else </span>{ value };
 
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(
+    <span class="prelude-val">Some</span>(AstNode::new_literal(
         AstLiteral::new_integer(value),
         lexer.next_id(),
         lexer.source_range_factory.create_range(location),
@@ -1438,49 +1532,65 @@
 }
 
 <span class="doccomment">/// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
-</span><span class="kw">pub fn </span>parse_strict_literal_integer(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+</span><span class="kw">pub fn </span>parse_strict_literal_integer(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="comment">//correct the location if we just parsed a minus before
     </span><span class="kw">let </span>location = lexer.location();
     <span class="kw">let </span>result = lexer.slice_and_advance();
     <span class="comment">// parsed number value can be safely unwrapped
     </span><span class="kw">let </span>result = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
     <span class="kw">if </span>result.to_lowercase().contains(<span class="string">&#39;e&#39;</span>) {
-        <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(<span class="string">&quot;Integer&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Exponent value: {result}&quot;</span>), location))
-    } <span class="kw">else </span>{
+        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+            <span class="string">&quot;Integer&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Exponent value: {result}&quot;</span>),
+            location,
+        ));
+        <span class="prelude-val">None
+    </span>} <span class="kw">else </span>{
         <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">&quot;valid i128&quot;</span>);
-        <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
+        <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
     }
 }
 
-<span class="kw">fn </span>parse_number&lt;F: FromStr&gt;(text: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="prelude-ty">Result</span>&lt;F, Diagnostic&gt; {
-    text.parse::&lt;F&gt;().map_err(|<span class="kw">_</span>| {
-        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {text}&quot;</span>))
-            .with_error_code(<span class="string">&quot;E011&quot;</span>)
-            .with_location(location.clone())
-    })
+<span class="kw">fn </span>parse_number&lt;F: FromStr&gt;(lexer: <span class="kw-2">&amp;mut </span>ParseSession, text: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; <span class="prelude-ty">Option</span>&lt;F&gt; {
+    <span class="kw">match </span>text.parse::&lt;F&gt;() {
+        <span class="prelude-val">Ok</span>(v) =&gt; <span class="prelude-val">Some</span>(v),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+            lexer.accept_diagnostic(
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {text}&quot;</span>))
+                    .with_error_code(<span class="string">&quot;E011&quot;</span>)
+                    .with_location(location.clone()),
+            );
+            <span class="prelude-val">None
+        </span>}
+    }
 }
 
-<span class="kw">fn </span>parse_date_from_string(text: <span class="kw-2">&amp;</span>str, location: SourceLocation, id: AstId) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_date_from_string(
+    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+    text: <span class="kw-2">&amp;</span>str,
+    location: SourceLocation,
+    id: AstId,
+) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>segments = text.split(<span class="string">&#39;-&#39;</span>);
 
     <span class="comment">//we can safely expect 3 numbers
     </span><span class="kw">let </span>year = segments
         .next()
-        .map(|s| parse_number::&lt;i32&gt;(s, <span class="kw-2">&amp;</span>location))
+        .map(|s| parse_number::&lt;i32&gt;(lexer, s, <span class="kw-2">&amp;</span>location))
         .expect(<span class="string">&quot;year-segment - tokenizer broken?&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>month = segments
         .next()
-        .map(|s| parse_number::&lt;u32&gt;(s, <span class="kw-2">&amp;</span>location))
+        .map(|s| parse_number::&lt;u32&gt;(lexer, s, <span class="kw-2">&amp;</span>location))
         .expect(<span class="string">&quot;month-segment - tokenizer broken?&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>day = segments
         .next()
-        .map(|s| parse_number::&lt;u32&gt;(s, <span class="kw-2">&amp;</span>location))
+        .map(|s| parse_number::&lt;u32&gt;(lexer, s, <span class="kw-2">&amp;</span>location))
         .expect(<span class="string">&quot;day-segment - tokenizer broken?&quot;</span>)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_date(year, month, day), id, location))
+    <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_date(year, month, day), id, location))
 }
 
-<span class="kw">fn </span>parse_literal_date_and_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_date_and_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of D# or DATE#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
@@ -1492,32 +1602,34 @@
 
     <span class="comment">//we can safely expect 3 numbers
     </span><span class="kw">let </span><span class="kw-2">mut </span>segments = date.split(<span class="string">&#39;-&#39;</span>);
-    <span class="kw">let </span>year = parse_number::&lt;i32&gt;(segments.next().expect(<span class="string">&quot;unexpected date-and-time syntax&quot;</span>), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
-    <span class="kw">let </span>month = parse_number::&lt;u32&gt;(segments.next().expect(<span class="string">&quot;unexpected date-and-time syntax&quot;</span>), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
-    <span class="kw">let </span>day = parse_number::&lt;u32&gt;(segments.next().expect(<span class="string">&quot;unexpected date-and-time syntax&quot;</span>), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>msg = <span class="string">&quot;unexpected date-and-time syntax&quot;</span>;
+    <span class="kw">let </span>year = parse_number::&lt;i32&gt;(lexer, segments.next().expect(msg), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>month = parse_number::&lt;u32&gt;(lexer, segments.next().expect(msg), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>day = parse_number::&lt;u32&gt;(lexer, segments.next().expect(msg), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
     <span class="comment">//we can safely expect 3 numbers
     </span><span class="kw">let </span><span class="kw-2">mut </span>segments = time.split(<span class="string">&#39;:&#39;</span>);
-    <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(<span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(lexer, <span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(
+    <span class="prelude-val">Some</span>(AstNode::new_literal(
         AstLiteral::new_date_and_time(year, month, day, hour, min, sec, nano),
         lexer.next_id(),
         location,
     ))
 }
 
-<span class="kw">fn </span>parse_literal_date(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_date(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of D# or DATE#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
     <span class="kw">let </span>hash_location = slice.find(<span class="string">&#39;#&#39;</span>).unwrap_or_default();
     <span class="kw">let </span>(<span class="kw">_</span>, slice) = slice.split_at(hash_location + <span class="number">1</span>); <span class="comment">//get rid of the prefix
 
-    </span>parse_date_from_string(slice, location, lexer.next_id())
+    </span><span class="kw">let </span>next_id = lexer.next_id();
+    parse_date_from_string(lexer, slice, location, next_id)
 }
 
-<span class="kw">fn </span>parse_literal_time_of_day(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_time_of_day(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of TOD# or TIME_OF_DAY#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
@@ -1525,30 +1637,31 @@
     <span class="kw">let </span>(<span class="kw">_</span>, slice) = slice.split_at(hash_location + <span class="number">1</span>); <span class="comment">//get rid of the prefix
 
     </span><span class="kw">let </span><span class="kw-2">mut </span>segments = slice.split(<span class="string">&#39;:&#39;</span>);
-    <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(<span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(lexer, <span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_time_of_day(hour, min, sec, nano), lexer.next_id(), location))
+    <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_time_of_day(hour, min, sec, nano), lexer.next_id(), location))
 }
 
 <span class="kw">fn </span>parse_time_of_day(
+    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     time: <span class="kw-2">&amp;mut </span>Split&lt;char&gt;,
     location: <span class="kw-2">&amp;</span>SourceLocation,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(u32, u32, u32, u32), Diagnostic&gt; {
-    <span class="kw">let </span>hour = parse_number::&lt;u32&gt;(time.next().expect(<span class="string">&quot;expected hours&quot;</span>), location)<span class="question-mark">?</span>;
-    <span class="kw">let </span>min = parse_number::&lt;u32&gt;(time.next().expect(<span class="string">&quot;expected minutes&quot;</span>), location)<span class="question-mark">?</span>;
+) -&gt; <span class="prelude-ty">Option</span>&lt;(u32, u32, u32, u32)&gt; {
+    <span class="kw">let </span>hour = parse_number::&lt;u32&gt;(lexer, time.next().expect(<span class="string">&quot;expected hours&quot;</span>), location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>min = parse_number::&lt;u32&gt;(lexer, time.next().expect(<span class="string">&quot;expected minutes&quot;</span>), location)<span class="question-mark">?</span>;
 
     <span class="comment">// doesn&#39;t necessarily have to have seconds, e.g [12:00] is also valid
     </span><span class="kw">let </span>sec = <span class="kw">match </span>time.next() {
-        <span class="prelude-val">Some</span>(v) =&gt; parse_number::&lt;f64&gt;(v, location)<span class="question-mark">?</span>,
+        <span class="prelude-val">Some</span>(v) =&gt; parse_number::&lt;f64&gt;(lexer, v, location)<span class="question-mark">?</span>,
         <span class="prelude-val">None </span>=&gt; <span class="number">0.0</span>,
     };
 
     <span class="kw">let </span>nano = (sec.fract() * <span class="number">1e+9_f64</span>).round() <span class="kw">as </span>u32;
 
-    <span class="prelude-val">Ok</span>((hour, min, sec.floor() <span class="kw">as </span>u32, nano))
+    <span class="prelude-val">Some</span>((hour, min, sec.floor() <span class="kw">as </span>u32, nano))
 }
 
-<span class="kw">fn </span>parse_literal_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_time(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">const </span>POS_D: usize = <span class="number">0</span>;
     <span class="kw">const </span>POS_H: usize = <span class="number">1</span>;
     <span class="kw">const </span>POS_M: usize = <span class="number">2</span>;
@@ -1578,21 +1691,32 @@
             <span class="kw">let </span>start = char.expect(<span class="string">&quot;char&quot;</span>).<span class="number">0</span>;
             <span class="comment">//just eat all the digits
             </span>char = chars.find(|(<span class="kw">_</span>, ch)| !ch.is_ascii_digit() &amp;&amp; !ch.eq(<span class="kw-2">&amp;</span><span class="string">&#39;.&#39;</span>));
-            char.ok_or_else(|| {
-                Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Cannot parse segment.&quot;</span>)
-                    .with_error_code(<span class="string">&quot;E010&quot;</span>)
-                    .with_location(location.clone())
-            })
-            .and_then(|(index, <span class="kw">_</span>)| parse_number::&lt;f64&gt;(<span class="kw-2">&amp;</span>slice[start..index], <span class="kw-2">&amp;</span>location))<span class="question-mark">?
-        </span>};
+            <span class="kw">match </span>char {
+                <span class="prelude-val">None </span>=&gt; {
+                    lexer.accept_diagnostic(
+                        Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Cannot parse segment.&quot;</span>)
+                            .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                            .with_location(location.clone()),
+                    );
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
+                }
+                <span class="prelude-val">Some</span>((index, <span class="kw">_</span>)) =&gt; parse_number::&lt;f64&gt;(lexer, <span class="kw-2">&amp;</span>slice[start..index], <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>,
+            }
+        };
 
         <span class="comment">//expect a unit
         </span><span class="kw">let </span>unit = {
-            <span class="kw">let </span>start = char.map(|(index, <span class="kw">_</span>)| index).ok_or_else(|| {
-                Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)&quot;</span>)
-                    .with_error_code(<span class="string">&quot;E010&quot;</span>)
-                    .with_location(location.clone())
-            })<span class="question-mark">?</span>;
+            <span class="kw">let </span>start = <span class="kw">match </span>char {
+                <span class="prelude-val">Some</span>((index, <span class="kw">_</span>)) =&gt; index,
+                <span class="prelude-val">None </span>=&gt; {
+                    lexer.accept_diagnostic(
+                        Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)&quot;</span>)
+                            .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                            .with_location(location.clone()),
+                    );
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
+                }
+            };
 
             <span class="comment">//just eat all the characters
             </span>char = chars.find(|(<span class="kw">_</span>, ch)| !ch.is_ascii_alphabetic());
@@ -1614,26 +1738,35 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = position {
             <span class="comment">//check if we assign out of order - every assignment before must have been a smaller position
             </span><span class="kw">if </span>prev_pos &gt; position {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments out of order, use d-h-m-s-ms&quot;</span>)
-                    .with_error_code(<span class="string">&quot;E010&quot;</span>)
-                    .with_location(location));
+                lexer.accept_diagnostic(
+                    Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments out of order, use d-h-m-s-ms&quot;</span>)
+                        .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                        .with_location(location),
+                );
+                <span class="kw">return </span><span class="prelude-val">None</span>;
             }
             prev_pos = position; <span class="comment">//remember that we wrote this position
 
             </span><span class="kw">if </span>values[position].is_some() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments must be unique&quot;</span>)
-                    .with_error_code(<span class="string">&quot;E010&quot;</span>)
-                    .with_location(location));
+                lexer.accept_diagnostic(
+                    Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments must be unique&quot;</span>)
+                        .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                        .with_location(location),
+                );
+                <span class="kw">return </span><span class="prelude-val">None</span>;
             }
             values[position] = <span class="prelude-val">Some</span>(number); <span class="comment">//store the number
         </span>} <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Invalid TIME Literal: illegal unit &#39;{unit}&#39;&quot;</span>))
-                .with_error_code(<span class="string">&quot;E010&quot;</span>)
-                .with_location(location));
+            lexer.accept_diagnostic(
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Invalid TIME Literal: illegal unit &#39;{unit}&#39;&quot;</span>))
+                    .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                    .with_location(location),
+            );
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
     }
 
-    <span class="prelude-val">Ok</span>(AstNode::new_literal(
+    <span class="prelude-val">Some</span>(AstNode::new_literal(
         AstLiteral::Time(Time {
             day: values[POS_D].unwrap_or_default(),
             hour: values[POS_H].unwrap_or_default(),
@@ -1700,11 +1833,11 @@
         .into()
 }
 
-<span class="kw">fn </span>parse_literal_string(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_wide: bool) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+<span class="kw">fn </span>parse_literal_string(lexer: <span class="kw-2">&amp;mut </span>ParseSession, is_wide: bool) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>result = lexer.slice();
     <span class="kw">let </span>location = lexer.location();
 
-    <span class="kw">let </span>string_literal = <span class="prelude-val">Ok</span>(AstNode::new_literal(
+    <span class="kw">let </span>string_literal = <span class="prelude-val">Some</span>(AstNode::new_literal(
         AstLiteral::new_string(handle_special_chars(<span class="kw-2">&amp;</span>trim_quotes(result), is_wide), is_wide),
         lexer.next_id(),
         location,
@@ -1718,7 +1851,7 @@
     integer: String,
     integer_range: Range&lt;usize&gt;,
     is_negative: bool,
-) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">if </span>lexer.token == LiteralInteger {
         <span class="kw">let </span>start = integer_range.start;
         <span class="kw">let </span>end = lexer.range().end;
@@ -1726,14 +1859,15 @@
         <span class="kw">let </span>value = <span class="macro">format!</span>(<span class="string">&quot;{}{}.{}&quot;</span>, <span class="kw">if </span>is_negative { <span class="string">&quot;-&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}, integer, fractional);
         <span class="kw">let </span>new_location = lexer.source_range_factory.create_range(start..end);
 
-        <span class="prelude-val">Ok</span>(AstNode::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
+        <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(Diagnostic::unexpected_token_found(
+        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
             <span class="string">&quot;LiteralInteger or LiteralExponent&quot;</span>,
             lexer.slice(),
             lexer.location(),
-        ))
-    }
+        ));
+        <span class="prelude-val">None
+    </span>}
 }
 
 <span class="attr">#[cfg(test)]
