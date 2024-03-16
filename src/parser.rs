@@ -669,9 +669,11 @@ fn parse_data_type_definition(
                 .with_location(lexer.last_location())
                 .with_error_code("E015"),
         );
-        if let Err(diag) = lexer.expect(KeywordTo) {
-            lexer.accept_diagnostic(diag);
-        } else {
+        let expect_keyword_to = |lexer: &mut ParseSession| {
+            expect_token!(lexer, KeywordTo, None);
+            Some(())
+        };
+        if expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
         parse_pointer_definition(lexer, name, start_pos)
@@ -987,13 +989,14 @@ pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> T>(
 }
 
 fn parse_reference(lexer: &mut ParseSession) -> AstNode {
-    match expressions_parser::parse_call_statement(lexer) {
-        Ok(statement) => statement,
-        Err(diagnostic) => {
-            let statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
-            lexer.accept_diagnostic(diagnostic);
-            statement
-        }
+    if let Some(statement) = expressions_parser::parse_call_statement(lexer) {
+        statement
+    } else {
+        let statement = AstFactory::create_empty_statement(
+            lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
+            lexer.next_id(),
+        );
+        statement
     }
 }
 
@@ -1086,13 +1089,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let address = if lexer.try_consume(&KeywordAt) {
         //Look for a hardware address
         if let HardwareAccess((direction, access_type)) = lexer.token {
-            match parse_hardware_access(lexer, direction, access_type) {
-                Ok(it) => Some(it),
-                Err(err) => {
-                    lexer.accept_diagnostic(err);
-                    None
-                }
-            }
+            parse_hardware_access(lexer, direction, access_type)
         } else {
             lexer.accept_diagnostic(Diagnostic::missing_token("Hardware Access", lexer.location()));
             None
@@ -1129,7 +1126,7 @@ fn parse_hardware_access(
     lexer: &mut ParseSession,
     hardware_access_type: HardwareAccessType,
     access_type: DirectAccessType,
-) -> Result<AstNode, Diagnostic> {
+) -> Option<AstNode> {
     let start_location = lexer.last_location();
     lexer.advance();
     //Folowed by an integer
@@ -1144,7 +1141,7 @@ fn parse_hardware_access(
                 }
             }
         }
-        Ok(AstFactory::create_hardware_access(
+        Some(AstFactory::create_hardware_access(
             access_type,
             hardware_access_type,
             address,
@@ -1152,6 +1149,7 @@ fn parse_hardware_access(
             lexer.next_id(),
         ))
     } else {
-        Err(Diagnostic::missing_token("LiteralInteger", lexer.location()))
+        lexer.accept_diagnostic(Diagnostic::missing_token("LiteralInteger", lexer.location()));
+        None
     }
 }
