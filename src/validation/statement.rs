@@ -1351,29 +1351,30 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     use std::collections::HashMap;
     fn get_expression_types_and_locations<'b, T: AnnotationMap>(
         expression: &AstNode,
-        context: ValidationContext<'b, T>,
+        context: &'b ValidationContext<T>,
         lhs_is_signed_int: bool,
+        is_builtin_call: bool,
     ) -> HashMap<&'b DataType, Vec<SourceLocation>> {
         let mut map: HashMap<&DataType, Vec<SourceLocation>> = HashMap::new();
         match expression.get_stmt_peeled() {
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
                 if !operator.is_comparison_operator() =>
             {
-                get_expression_types_and_locations(left, context.clone(), lhs_is_signed_int)
+                get_expression_types_and_locations(left, context, lhs_is_signed_int, false)
                     .into_iter()
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
                 // the RHS type in a MOD expression has no impact on the resulting value type
                 if matches!(operator, Operator::Modulo) {
                     return map
                 };
-                get_expression_types_and_locations(right, context, lhs_is_signed_int)
+                get_expression_types_and_locations(right, context, lhs_is_signed_int, false)
                     .into_iter()
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
             }
             AstStatement::UnaryExpression(UnaryExpression { operator, value })
                 if !operator.is_comparison_operator() =>
             {
-                get_expression_types_and_locations(value, context, lhs_is_signed_int)
+                get_expression_types_and_locations(value, context, lhs_is_signed_int, false)
                     .into_iter()
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
             }
@@ -1398,13 +1399,13 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 if let AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
                     // skip the selector argument since it will never be assigned to the target type
                     list.iter().skip(1).flat_map(|arg| {
-                        get_expression_types_and_locations(arg, context.set_is_builtin_call(), lhs_is_signed_int)
+                        get_expression_types_and_locations(arg, context, lhs_is_signed_int, true)
                     })
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
                 };
             }
             _ => {
-                if !(context.annotations.get_generic_nature(expression).is_none() || context.is_builtin_call) {
+                if !(context.annotations.get_generic_nature(expression).is_none() || is_builtin_call) {
                     return map
                 };
                 if let Some(dt) = context.annotations.get_type(expression, context.index) {
@@ -1425,7 +1426,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
     };
 
-    get_expression_types_and_locations(right, context.clone(), lhs.is_signed_int())
+    get_expression_types_and_locations(right, context, lhs.is_signed_int(), false)
         .into_iter()
         .filter(|(dt, _)| !dt.is_aggregate_type() && results_in_truncation(dt))
         .for_each(|(dt, location)| {
