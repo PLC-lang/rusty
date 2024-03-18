@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: diagnostics
+---
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+  ┌─ <internal>:7:23
+  │
+7 │             a := a + (d MOD a);
+  │                       ^ Implicit downcast from 'DINT' to 'INT'.

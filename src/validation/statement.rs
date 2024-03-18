@@ -3,8 +3,8 @@ use std::{collections::HashSet, mem::discriminant};
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
-        Operator, ReferenceAccess,
+        flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
+        DirectAccessType, JumpStatement, Operator, ReferenceAccess, UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -833,9 +833,8 @@ fn validate_assignment<T: AnnotationMap>(
                     location.clone(),
                 ));
             }
-        } else if right.is_literal() {
-            // TODO: See https://github.com/PLC-lang/rusty/issues/857
-            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
+        } else {
+            validate_assignment_type_sizes(validator, left_type, right, context)
         }
     }
 }
@@ -1343,26 +1342,106 @@ fn validate_type_nature<T: AnnotationMap>(
     }
 }
 
-fn _validate_assignment_type_sizes<T: AnnotationMap>(
+fn validate_assignment_type_sizes<T: AnnotationMap>(
     validator: &mut Validator,
     left: &DataType,
-    right: &DataType,
-    location: &SourceLocation,
+    right: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    if left.get_type_information().get_size(context.index)
-        < right.get_type_information().get_size(context.index)
-    {
-        validator.push_diagnostic(
-            Diagnostic::new(format!(
-                "Potential loss of information due to assigning '{}' to variable of type '{}'.",
-                left.get_name(),
-                right.get_name()
-            ))
-            .with_error_code("E067")
-            .with_location(location.clone()),
-        )
+    use std::collections::HashMap;
+    fn get_expression_types_and_locations<'b, T: AnnotationMap>(
+        expression: &AstNode,
+        context: &'b ValidationContext<T>,
+        lhs_is_signed_int: bool,
+        is_builtin_call: bool,
+    ) -> HashMap<&'b DataType, Vec<SourceLocation>> {
+        let mut map: HashMap<&DataType, Vec<SourceLocation>> = HashMap::new();
+        match expression.get_stmt_peeled() {
+            AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
+                if !operator.is_comparison_operator() =>
+            {
+                get_expression_types_and_locations(left, context, lhs_is_signed_int, false)
+                    .into_iter()
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                // the RHS type in a MOD expression has no impact on the resulting value type
+                if matches!(operator, Operator::Modulo) {
+                    return map
+                };
+                get_expression_types_and_locations(right, context, lhs_is_signed_int, false)
+                    .into_iter()
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+            }
+            AstStatement::UnaryExpression(UnaryExpression { operator, value })
+                if !operator.is_comparison_operator() =>
+            {
+                get_expression_types_and_locations(value, context, lhs_is_signed_int, false)
+                    .into_iter()
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+            }
+            // `get_literal_actual_signed_type_name` will always return `LREAL` for FP literals, so they will be handled by the fall-through case according to their annotated type
+            AstStatement::Literal(lit) if !matches!(lit, &AstLiteral::Real(_)) => {
+                if !lit.is_numerical() {
+                    return map
+                }
+                if let Some(dt) = get_literal_actual_signed_type_name(lit, lhs_is_signed_int)
+                    .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
+                {
+                    map.entry(dt).or_default().push(expression.get_location());
+                }
+            }
+            AstStatement::CallStatement(CallStatement { operator, parameters })
+                // special handling for builtin selector functions MUX and SEL
+                if matches!(operator.get_flat_reference_name().unwrap_or_default(), "MUX" | "SEL") =>
+            {
+                let Some(args) = parameters else {
+                    return map
+                };
+                if let AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
+                    // skip the selector argument since it will never be assigned to the target type
+                    list.iter().skip(1).flat_map(|arg| {
+                        get_expression_types_and_locations(arg, context, lhs_is_signed_int, true)
+                    })
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                };
+            }
+            _ => {
+                if !(context.annotations.get_generic_nature(expression).is_none() || is_builtin_call) {
+                    return map
+                };
+                if let Some(dt) = context.annotations.get_type(expression, context.index) {
+                    map.entry(dt).or_default().push(expression.get_location());
+                }
+            }
+        };
+        map
     }
+
+    let lhs = left.get_type_information();
+    let lhs_size = lhs.get_size(context.index);
+    let results_in_truncation = |rhs: &DataType| {
+        let rhs = rhs.get_type_information();
+        let rhs_size = rhs.get_size(context.index);
+        lhs_size < rhs_size
+            || (lhs_size == rhs_size
+                && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
+    };
+
+    get_expression_types_and_locations(right, context, lhs.is_signed_int(), false)
+        .into_iter()
+        .filter(|(dt, _)| !dt.is_aggregate_type() && results_in_truncation(dt))
+        .for_each(|(dt, location)| {
+            location.into_iter().for_each(|loc| {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Implicit downcast from '{}' to '{}'.",
+                        get_datatype_name_or_slice(validator.context, dt),
+                        get_datatype_name_or_slice(validator.context, left)
+                    ))
+                    .with_error_code("E067")
+                    .with_location(loc),
+                );
+            })
+        });
 }
 
 mod helper {

@@ -1057,20 +1057,8 @@ pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
     pre_processor::pre_process(unit, id_provider)
 }
 impl Operator {
-    /// returns true, if this operator results in a bool value
-    pub fn is_bool_type(&self) -> bool {
-        matches!(
-            self,
-            Operator::Equal
-                | Operator::NotEqual
-                | Operator::Less
-                | Operator::Greater
-                | Operator::LessOrEqual
-                | Operator::GreaterOrEqual
-        )
-    }
-
-    /// returns true, if this operator is a comparison operator
+    /// returns true, if this operator is a comparison operator,
+    /// resulting in a bool value
     /// (=, <>, >, <, >=, <=)
     pub fn is_comparison_operator(&self) -> bool {
         matches!(

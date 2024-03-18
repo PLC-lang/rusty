@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: diagnostics
+---
+warning[E067]: Implicit downcast from 'LREAL' to 'LINT'.
+  ┌─ <internal>:8:13
+  │
+8 │         bar(lreal_);
+  │             ^^^^^^ Implicit downcast from 'LREAL' to 'LINT'.

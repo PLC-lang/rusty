@@ -30,7 +30,6 @@ mod variable;
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone)]
 pub struct ValidationContext<'s, T: AnnotationMap> {
     annotations: &'s T,
     index: &'s Index,
@@ -83,6 +82,17 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
 
     fn is_call(&self) -> bool {
         self.is_call
+    }
+}
+
+impl<'s, T: AnnotationMap> Clone for ValidationContext<'s, T> {
+    fn clone(&self) -> Self {
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: self.qualifier,
+            is_call: self.is_call,
+        }
     }
 }
 

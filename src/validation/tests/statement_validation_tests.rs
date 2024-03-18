@@ -1321,7 +1321,7 @@ fn passing_compatible_numeric_types_to_functions_is_allowed() {
     "#,
     );
 
-    assert!(diagnostics.is_empty());
+    assert_snapshot!(diagnostics);
 }
 
 #[test]

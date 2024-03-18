@@ -1,0 +1,15 @@
+---
+source: src/validation/tests/builtin_validation_tests.rs
+expression: diagnostics
+---
+warning[E067]: Implicit downcast from 'LREAL' to 'DINT'.
+  ┌─ <internal>:9:22
+  │
+9 │             res_i := ADD(i1, i2, f1, f2);
+  │                      ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'LREAL' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'LREAL' to 'DINT'.
+   ┌─ <internal>:11:22
+   │
+11 │             res_i := SUB(i1, f2);
+   │                      ^^^^^^^^^^^ Implicit downcast from 'LREAL' to 'DINT'.

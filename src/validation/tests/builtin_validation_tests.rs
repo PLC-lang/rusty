@@ -19,8 +19,7 @@ fn arithmetic_builtins_allow_mixing_of_fp_and_int_params() {
         END_FUNCTION
        ",
     );
-
-    assert!(diagnostics.is_empty());
+    assert_snapshot!(diagnostics);
 }
 
 #[test]

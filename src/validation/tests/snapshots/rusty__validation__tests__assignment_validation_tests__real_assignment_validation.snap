@@ -2,6 +2,24 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
+warning[E067]: Implicit downcast from 'LREAL' to 'REAL'.
+   ┌─ <internal>:29:15
+   │
+29 │     v_real := v_lreal; // valid
+   │               ^^^^^^^ Implicit downcast from 'LREAL' to 'REAL'.
+
+warning[E067]: Implicit downcast from 'TIME' to 'REAL'.
+   ┌─ <internal>:35:15
+   │
+35 │     v_real := v_time; // valid
+   │               ^^^^^^ Implicit downcast from 'TIME' to 'REAL'.
+
+warning[E067]: Implicit downcast from 'TIME' to 'REAL'.
+   ┌─ <internal>:36:15
+   │
+36 │     v_real := TIME#10h20m30s; // valid
+   │               ^^^^^^^^^^^^^^ Implicit downcast from 'TIME' to 'REAL'.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'REAL'
    ┌─ <internal>:39:5
    │
@@ -32,6 +50,18 @@ error[E037]: Invalid assignment: cannot assign 'CHAR' to 'REAL'
 43 │     v_real := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'REAL'
 
+warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'REAL'.
+   ┌─ <internal>:44:15
+   │
+44 │     v_real := v_tod; // valid
+   │               ^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'REAL'.
+
+warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'REAL'.
+   ┌─ <internal>:45:15
+   │
+45 │     v_real := TOD#15:36:30; // valid
+   │               ^^^^^^^^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'REAL'.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'REAL'
    ┌─ <internal>:47:5
    │
@@ -43,5 +73,3 @@ error[E037]: Invalid assignment: cannot assign 'STRING' to 'REAL'
    │
 49 │     v_real := v_arr_string_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'REAL'
-
-
