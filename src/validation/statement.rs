@@ -1434,7 +1434,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     Diagnostic::new(format!(
                         "Implicit downcast from '{}' to '{}'.",
                         get_datatype_name_or_slice(validator.context, dt),
-                        left.get_name()
+                        get_datatype_name_or_slice(validator.context, left)
                     ))
                     .with_error_code("E067")
                     .with_location(loc),
