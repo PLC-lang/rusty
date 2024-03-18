@@ -1431,13 +1431,92 @@
 <a href="#1431" id="1431">1431</a>
 <a href="#1432" id="1432">1432</a>
 <a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::control_statements::ForLoopStatement;
 <span class="kw">use </span>plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, DirectAccess, DirectAccessType, JumpStatement,
-        Operator, ReferenceAccess,
+        flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
+        DirectAccessType, JumpStatement, Operator, ReferenceAccess, UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -2266,10 +2345,9 @@
                     location.clone(),
                 ));
             }
-        } <span class="kw">else if </span>right.is_literal() {
-            <span class="comment">// TODO: See https://github.com/PLC-lang/rusty/issues/857
-            // validate_assignment_type_sizes(validator, left_type, right_type, location, context)
-        </span>}
+        } <span class="kw">else </span>{
+            validate_assignment_type_sizes(validator, left_type, right, context)
+        }
     }
 }
 
@@ -2776,26 +2854,106 @@
     }
 }
 
-<span class="kw">fn </span>_validate_assignment_type_sizes&lt;T: AnnotationMap&gt;(
+<span class="kw">fn </span>validate_assignment_type_sizes&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     left: <span class="kw-2">&amp;</span>DataType,
-    right: <span class="kw-2">&amp;</span>DataType,
-    location: <span class="kw-2">&amp;</span>SourceLocation,
+    right: <span class="kw-2">&amp;</span>AstNode,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
-    <span class="kw">if </span>left.get_type_information().get_size(context.index)
-        &lt; right.get_type_information().get_size(context.index)
-    {
-        validator.push_diagnostic(
-            Diagnostic::new(<span class="macro">format!</span>(
-                <span class="string">&quot;Potential loss of information due to assigning &#39;{}&#39; to variable of type &#39;{}&#39;.&quot;</span>,
-                left.get_name(),
-                right.get_name()
-            ))
-            .with_error_code(<span class="string">&quot;E067&quot;</span>)
-            .with_location(location.clone()),
-        )
+    <span class="kw">use </span>std::collections::HashMap;
+    <span class="kw">fn </span>get_expression_types_and_locations&lt;<span class="lifetime">&#39;b</span>, T: AnnotationMap&gt;(
+        expression: <span class="kw-2">&amp;</span>AstNode,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ValidationContext&lt;T&gt;,
+        lhs_is_signed_int: bool,
+        is_builtin_call: bool,
+    ) -&gt; HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>DataType, Vec&lt;SourceLocation&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>map: HashMap&lt;<span class="kw-2">&amp;</span>DataType, Vec&lt;SourceLocation&gt;&gt; = HashMap::new();
+        <span class="kw">match </span>expression.get_stmt_peeled() {
+            AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
+                <span class="kw">if </span>!operator.is_comparison_operator() =&gt;
+            {
+                get_expression_types_and_locations(left, context, lhs_is_signed_int, <span class="bool-val">false</span>)
+                    .into_iter()
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                <span class="comment">// the RHS type in a MOD expression has no impact on the resulting value type
+                </span><span class="kw">if </span><span class="macro">matches!</span>(operator, Operator::Modulo) {
+                    <span class="kw">return </span>map
+                };
+                get_expression_types_and_locations(right, context, lhs_is_signed_int, <span class="bool-val">false</span>)
+                    .into_iter()
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+            }
+            AstStatement::UnaryExpression(UnaryExpression { operator, value })
+                <span class="kw">if </span>!operator.is_comparison_operator() =&gt;
+            {
+                get_expression_types_and_locations(value, context, lhs_is_signed_int, <span class="bool-val">false</span>)
+                    .into_iter()
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+            }
+            <span class="comment">// `get_literal_actual_signed_type_name` will always return `LREAL` for FP literals, so they will be handled by the fall-through case according to their annotated type
+            </span>AstStatement::Literal(lit) <span class="kw">if </span>!<span class="macro">matches!</span>(lit, <span class="kw-2">&amp;</span>AstLiteral::Real(<span class="kw">_</span>)) =&gt; {
+                <span class="kw">if </span>!lit.is_numerical() {
+                    <span class="kw">return </span>map
+                }
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = get_literal_actual_signed_type_name(lit, lhs_is_signed_int)
+                    .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
+                {
+                    map.entry(dt).or_default().push(expression.get_location());
+                }
+            }
+            AstStatement::CallStatement(CallStatement { operator, parameters })
+                <span class="comment">// special handling for builtin selector functions MUX and SEL
+                </span><span class="kw">if </span><span class="macro">matches!</span>(operator.get_flat_reference_name().unwrap_or_default(), <span class="string">&quot;MUX&quot; </span>| <span class="string">&quot;SEL&quot;</span>) =&gt;
+            {
+                <span class="kw">let </span><span class="prelude-val">Some</span>(args) = parameters <span class="kw">else </span>{
+                    <span class="kw">return </span>map
+                };
+                <span class="kw">if let </span>AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
+                    <span class="comment">// skip the selector argument since it will never be assigned to the target type
+                    </span>list.iter().skip(<span class="number">1</span>).flat_map(|arg| {
+                        get_expression_types_and_locations(arg, context, lhs_is_signed_int, <span class="bool-val">true</span>)
+                    })
+                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+                };
+            }
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">if </span>!(context.annotations.get_generic_nature(expression).is_none() || is_builtin_call) {
+                    <span class="kw">return </span>map
+                };
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = context.annotations.get_type(expression, context.index) {
+                    map.entry(dt).or_default().push(expression.get_location());
+                }
+            }
+        };
+        map
     }
+
+    <span class="kw">let </span>lhs = left.get_type_information();
+    <span class="kw">let </span>lhs_size = lhs.get_size(context.index);
+    <span class="kw">let </span>results_in_truncation = |rhs: <span class="kw-2">&amp;</span>DataType| {
+        <span class="kw">let </span>rhs = rhs.get_type_information();
+        <span class="kw">let </span>rhs_size = rhs.get_size(context.index);
+        lhs_size &lt; rhs_size
+            || (lhs_size == rhs_size
+                &amp;&amp; ((lhs.is_signed_int() &amp;&amp; rhs.is_unsigned_int()) || (lhs.is_int() &amp;&amp; rhs.is_float())))
+    };
+
+    get_expression_types_and_locations(right, context, lhs.is_signed_int(), <span class="bool-val">false</span>)
+        .into_iter()
+        .filter(|(dt, <span class="kw">_</span>)| !dt.is_aggregate_type() &amp;&amp; results_in_truncation(dt))
+        .for_each(|(dt, location)| {
+            location.into_iter().for_each(|loc| {
+                validator.push_diagnostic(
+                    Diagnostic::new(<span class="macro">format!</span>(
+                        <span class="string">&quot;Implicit downcast from &#39;{}&#39; to &#39;{}&#39;.&quot;</span>,
+                        get_datatype_name_or_slice(validator.context, dt),
+                        get_datatype_name_or_slice(validator.context, left)
+                    ))
+                    .with_error_code(<span class="string">&quot;E067&quot;</span>)
+                    .with_location(loc),
+                );
+            })
+        });
 }
 
 <span class="kw">mod </span>helper {

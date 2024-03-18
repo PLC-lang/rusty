@@ -3515,7 +3515,7 @@
                             )
                         };
 
-                        <span class="kw">let </span>target_name = <span class="kw">if </span>data.operator.is_bool_type() {
+                        <span class="kw">let </span>target_name = <span class="kw">if </span>data.operator.is_comparison_operator() {
                             BOOL_TYPE.to_string()
                         } <span class="kw">else </span>{
                             bigger_type.get_name().to_string()

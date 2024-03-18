@@ -1610,18 +1610,6 @@
 <a href="#1610" id="1610">1610</a>
 <a href="#1611" id="1611">1611</a>
 <a href="#1612" id="1612">1612</a>
-<a href="#1613" id="1613">1613</a>
-<a href="#1614" id="1614">1614</a>
-<a href="#1615" id="1615">1615</a>
-<a href="#1616" id="1616">1616</a>
-<a href="#1617" id="1617">1617</a>
-<a href="#1618" id="1618">1618</a>
-<a href="#1619" id="1619">1619</a>
-<a href="#1620" id="1620">1620</a>
-<a href="#1621" id="1621">1621</a>
-<a href="#1622" id="1622">1622</a>
-<a href="#1623" id="1623">1623</a>
-<a href="#1624" id="1624">1624</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2681,20 +2669,8 @@
     pre_processor::pre_process(unit, id_provider)
 }
 <span class="kw">impl </span>Operator {
-    <span class="doccomment">/// returns true, if this operator results in a bool value
-    </span><span class="kw">pub fn </span>is_bool_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>,
-            Operator::Equal
-                | Operator::NotEqual
-                | Operator::Less
-                | Operator::Greater
-                | Operator::LessOrEqual
-                | Operator::GreaterOrEqual
-        )
-    }
-
-    <span class="doccomment">/// returns true, if this operator is a comparison operator
+    <span class="doccomment">/// returns true, if this operator is a comparison operator,
+    /// resulting in a bool value
     /// (=, &lt;&gt;, &gt;, &lt;, &gt;=, &lt;=)
     </span><span class="kw">pub fn </span>is_comparison_operator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
