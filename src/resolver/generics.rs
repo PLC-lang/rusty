@@ -9,7 +9,7 @@ use crate::{
     index::{Index, PouIndexEntry},
     resolver::AnnotationMap,
     typesystem::{
-        self, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
+        self, DataType, DataTypeInformation, StringEncoding, BYTE_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
         SINT_TYPE, STRING_TYPE, TIME_TYPE, USINT_TYPE, WSTRING_TYPE,
     },
 };
@@ -457,7 +457,7 @@ pub fn get_smallest_possible_type(nature: &TypeNature) -> &str {
         TypeNature::Unsigned => USINT_TYPE,
         TypeNature::Signed => SINT_TYPE,
         TypeNature::Duration => TIME_TYPE,
-        TypeNature::Bit => BOOL_TYPE,
+        TypeNature::Bit => BYTE_TYPE,
         TypeNature::Chars | TypeNature::Char => CHAR_TYPE,
         TypeNature::String => STRING_TYPE,
         TypeNature::Date => DATE_TYPE,
