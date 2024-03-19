@@ -12,6 +12,10 @@ pub fn internal_type_name<T: AsRef<str> + Display>(prefix: T, original_type_name
     format!("__{prefix}{original_type_name}")
 }
 
+pub fn generic_binding_type_name<T: AsRef<str> + Display>(pou: T, binding: T) -> String {
+    format!("__{pou}__{binding}")
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
