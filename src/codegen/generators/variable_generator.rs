@@ -15,6 +15,7 @@ use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
+    section_names,
 };
 use crate::codegen::debug::DebugBuilderEnum;
 use crate::index::FxIndexSet;
@@ -169,6 +170,18 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 }
             }
         }
+
+        let section = section_mangler::SectionMangler::variable(
+            global_variable.get_name(),
+            // FIXME: Can we unwrap here?
+            section_names::mangle_type(
+                self.global_index,
+                self.global_index.get_effective_type_by_name(global_variable.get_type_name()).unwrap(),
+            ),
+        )
+        .mangle();
+
+        global_ir_variable.set_section(Some(&section));
 
         Ok(global_ir_variable)
     }
