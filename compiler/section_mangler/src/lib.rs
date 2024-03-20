@@ -217,7 +217,6 @@ impl fmt::Display for Type {
             Type::Float { size } => write!(f, "f{size}"),
             Type::String { size, encoding } => write!(f, "s{encoding}{size}",),
             Type::Pointer { inner } => write!(f, "p{}", inner),
-            // -- Unimplemented
             Type::Struct { members } => {
                 write!(
                     f,
@@ -227,7 +226,8 @@ impl fmt::Display for Type {
                 )
             }
             Type::Enum { referenced_type, elements } => write!(f, "e{elements}{referenced_type}"),
-            Type::Array { .. } => todo!(),
+            Type::Array { inner } => write!(f, "a{inner}"),
+            // -- Unimplemented
             Type::SubRange {} => todo!(),
             Type::Alias {} => todo!(),
             Type::Generic {} => todo!(),
