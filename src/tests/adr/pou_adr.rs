@@ -233,7 +233,7 @@ fn codegen_of_a_program_pou() {
 
     %main_prg = type { i16, i16*, i16, i16 }
 
-    @main_prg_instance = global %main_prg zeroinitializer
+    @main_prg_instance = global %main_prg zeroinitializer, section "var-main_prg_instance:v"
 
     define void @main_prg(%main_prg* %0) section "fn-main_prg:v[i16][pi16][i16]" {
     entry:
@@ -271,7 +271,7 @@ fn calling_a_program() {
 
     %main_prg = type { i16, i16*, i16, i16 }
 
-    @main_prg_instance = global %main_prg zeroinitializer
+    @main_prg_instance = global %main_prg zeroinitializer, section "var-main_prg_instance:v"
 
     define i16 @foo() section "fn-foo:i16" {
     entry:
@@ -335,7 +335,7 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
 
     %main_fb = type { i16, i16*, i16, i16 }
 
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }, section "var-__main_fb__init:v"
 
     define void @main_fb(%main_fb* %0) section "fn-main_fb:v[i16][pi16][i16]" {
     entry:
@@ -375,8 +375,8 @@ fn calling_a_function_block() {
     %foo = type { i16, i16, %main_fb }
     %main_fb = type { i16, i16*, i16, i16 }
 
-    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }, section "var-foo_instance:v"
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }, section "var-__main_fb__init:v"
 
     define void @foo(%foo* %0) section "fn-foo:v" {
     entry:
@@ -475,7 +475,7 @@ fn calling_a_function() {
 
     %prg = type { i16, i8 }
 
-    @prg_instance = global %prg zeroinitializer
+    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
     define void @prg(%prg* %0) section "fn-prg:v" {
     entry:
@@ -537,7 +537,7 @@ fn return_a_complex_type_from_function() {
 
     %prg = type { [81 x i8] }
 
-    @prg_instance = global %prg zeroinitializer
+    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
     define void @foo([81 x i8]* %0) section "fn-foo:s8u81" {
@@ -620,8 +620,8 @@ fn passing_aggregate_types_to_functions_by_value() {
     %myStruct = type { i32, i32, i32, [81 x i8] }
     %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-    @main_instance = global %main zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-__myStruct__init:v"
+    @main_instance = global %main zeroinitializer, section "var-main_instance:v"
 
     define void @foo(i8* %0, i16* %1, i32* %2, %myStruct* %3) section "fn-foo:v[s8u81][s16u81][v][v]" {
     entry:
@@ -705,7 +705,7 @@ fn passing_by_ref_to_functions() {
 
     %main = type { [81 x i8], [81 x i8] }
 
-    @main_instance = global %main zeroinitializer
+    @main_instance = global %main zeroinitializer, section "var-main_instance:v"
 
     define i8 @StrEqual(i8* %0, i8* %1) section "fn-StrEqual:u8[ps8u81][ps8u81]" {
     entry:

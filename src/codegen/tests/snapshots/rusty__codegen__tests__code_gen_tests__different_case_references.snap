@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type { i16, i16, i32 }
 
-@prg_instance = global %prg { i16 0, i16 1, i32 2 }
+@prg_instance = global %prg { i16 0, i16 1, i32 2 }, section "var-prg_instance:v"
 
 define void @prg(%prg* %0) section "fn-prg:v" {
 entry:

@@ -1,13 +1,11 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [4 x i8] c"\07\07\07\07"
-@b = global [4 x i8] c"\02\07\07\03"
-@c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01"
-@d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02"
-
+@a = global [4 x i8] c"\07\07\07\07", section "var-a:v"
+@b = global [4 x i8] c"\02\07\07\03", section "var-b:v"
+@c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01", section "var-c:v"
+@d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02", section "var-d:v"

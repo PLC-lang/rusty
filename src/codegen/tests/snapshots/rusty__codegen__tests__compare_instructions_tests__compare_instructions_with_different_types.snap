@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { i16*, i16, i32, i8, i16, i32, i64, i8, i16, i32, i64 }
 
-@main_instance = global %main zeroinitializer
+@main_instance = global %main zeroinitializer, section "var-main_instance:v"
 
 define i64 @foo() section "fn-foo:i64" {
 entry:

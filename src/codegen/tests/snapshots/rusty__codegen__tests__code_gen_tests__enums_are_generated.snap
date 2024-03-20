@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x = global i32 0
-@MyEnum.red = unnamed_addr constant i32 0
-@MyEnum.yellow = unnamed_addr constant i32 1
-@MyEnum.green = unnamed_addr constant i32 2
+@x = global i32 0, section "var-x:v"
+@MyEnum.red = unnamed_addr constant i32 0, section "var-red:v"
+@MyEnum.yellow = unnamed_addr constant i32 1, section "var-yellow:v"
+@MyEnum.green = unnamed_addr constant i32 2, section "var-green:v"

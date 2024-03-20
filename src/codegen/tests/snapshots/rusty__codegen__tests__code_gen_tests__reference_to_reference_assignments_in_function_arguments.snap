@@ -9,15 +9,15 @@ source_filename = "main"
 %prog = type { %STRUCT_params*, %STRUCT_params* }
 %main = type {}
 
-@global1 = global %STRUCT_params zeroinitializer
-@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer
-@global2 = global %STRUCT_params zeroinitializer
-@global3 = global %STRUCT_params zeroinitializer
-@global4 = global i32 0
-@global5 = global [81 x i8] zeroinitializer
-@global6 = global float 0.000000e+00
-@prog_instance = global %prog zeroinitializer
-@main_instance = global %main zeroinitializer
+@global1 = global %STRUCT_params zeroinitializer, section "var-global1:v"
+@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer, section "var-__STRUCT_params__init:v"
+@global2 = global %STRUCT_params zeroinitializer, section "var-global2:v"
+@global3 = global %STRUCT_params zeroinitializer, section "var-global3:v"
+@global4 = global i32 0, section "var-global4:i32"
+@global5 = global [81 x i8] zeroinitializer, section "var-global5:s8u81"
+@global6 = global float 0.000000e+00, section "var-global6:f32"
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:v"
 
 define void @prog(%prog* %0) section "fn-prog:v[pv][pv]" {
 entry:

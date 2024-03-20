@@ -5,6 +5,5 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x = global [3 x i16] [i16 1, i16 2, i16 3]
-@__MyArray__init = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3]
-
+@x = global [3 x i16] [i16 1, i16 2, i16 3], section "var-x:v"
+@__MyArray__init = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3], section "var-__MyArray__init:v"

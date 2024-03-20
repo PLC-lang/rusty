@@ -8,8 +8,8 @@ source_filename = "main"
 %foo = type { i32* }
 %prg = type { i32 }
 
-@foo_instance = global %foo zeroinitializer
-@prg_instance = global %prg zeroinitializer
+@foo_instance = global %foo zeroinitializer, section "var-foo_instance:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define void @foo(%foo* %0) section "fn-foo:v[pi32]" {
 entry:

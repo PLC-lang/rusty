@@ -22,10 +22,10 @@ fn enums_generate_a_global_constants_for_each_element() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    @myColor = global i32 0
-    @Color.red = unnamed_addr constant i32 0
-    @Color.yellow = unnamed_addr constant i32 1
-    @Color.green = unnamed_addr constant i32 2
+    @myColor = global i32 0, section "var-myColor:v"
+    @Color.red = unnamed_addr constant i32 0, section "var-red:v"
+    @Color.yellow = unnamed_addr constant i32 1, section "var-yellow:v"
+    @Color.green = unnamed_addr constant i32 2, section "var-green:v"
     "###);
 }
 
@@ -52,16 +52,16 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    @myColor = global i32 0
-    @myState = global i8 0
-    @Color.red = unnamed_addr constant i32 1
-    @Color.yellow = unnamed_addr constant i32 2
-    @Color.green = unnamed_addr constant i32 4
-    @Color.blue = unnamed_addr constant i32 8
-    @State.open = unnamed_addr constant i8 1
-    @State.closed = unnamed_addr constant i8 4
-    @State.idle = unnamed_addr constant i8 5
-    @State.running = unnamed_addr constant i8 6
+    @myColor = global i32 0, section "var-myColor:v"
+    @myState = global i8 0, section "var-myState:v"
+    @Color.red = unnamed_addr constant i32 1, section "var-red:v"
+    @Color.yellow = unnamed_addr constant i32 2, section "var-yellow:v"
+    @Color.green = unnamed_addr constant i32 4, section "var-green:v"
+    @Color.blue = unnamed_addr constant i32 8, section "var-blue:v"
+    @State.open = unnamed_addr constant i8 1, section "var-open:v"
+    @State.closed = unnamed_addr constant i8 4, section "var-closed:v"
+    @State.idle = unnamed_addr constant i8 5, section "var-idle:v"
+    @State.running = unnamed_addr constant i8 6, section "var-running:v"
     "###);
 }
 
@@ -80,14 +80,14 @@ fn inline_declaration_of_enum_types() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    @frontColor = global i32 0
-    @backColor = global i32 0
-    @__global_frontColor.red = unnamed_addr constant i32 0
-    @__global_frontColor.green = unnamed_addr constant i32 1
-    @__global_frontColor.yellow = unnamed_addr constant i32 2
-    @__global_backColor.red = unnamed_addr constant i32 0
-    @__global_backColor.green = unnamed_addr constant i32 1
-    @__global_backColor.yellow = unnamed_addr constant i32 2
+    @frontColor = global i32 0, section "var-frontColor:v"
+    @backColor = global i32 0, section "var-backColor:v"
+    @__global_frontColor.red = unnamed_addr constant i32 0, section "var-red:v"
+    @__global_frontColor.green = unnamed_addr constant i32 1, section "var-green:v"
+    @__global_frontColor.yellow = unnamed_addr constant i32 2, section "var-yellow:v"
+    @__global_backColor.red = unnamed_addr constant i32 0, section "var-red:v"
+    @__global_backColor.green = unnamed_addr constant i32 1, section "var-green:v"
+    @__global_backColor.yellow = unnamed_addr constant i32 2, section "var-yellow:v"
     "###);
 }
 
@@ -121,13 +121,13 @@ fn using_enums() {
 
     %prg = type { i32, i32, i32 }
 
-    @prg_instance = global %prg zeroinitializer
-    @ProcessState.open = unnamed_addr constant i32 1
-    @ProcessState.closed = unnamed_addr constant i32 4
-    @ProcessState.idle = unnamed_addr constant i32 5
-    @ProcessState.running = unnamed_addr constant i32 6
-    @Door.open = unnamed_addr constant i32 8
-    @Door.closed = unnamed_addr constant i32 16
+    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+    @ProcessState.open = unnamed_addr constant i32 1, section "var-open:v"
+    @ProcessState.closed = unnamed_addr constant i32 4, section "var-closed:v"
+    @ProcessState.idle = unnamed_addr constant i32 5, section "var-idle:v"
+    @ProcessState.running = unnamed_addr constant i32 6, section "var-running:v"
+    @Door.open = unnamed_addr constant i32 8, section "var-open:v"
+    @Door.closed = unnamed_addr constant i32 16, section "var-closed:v"
 
     define void @prg(%prg* %0) section "fn-prg:v" {
     entry:

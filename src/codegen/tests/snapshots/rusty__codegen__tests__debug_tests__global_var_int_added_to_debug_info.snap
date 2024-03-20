@@ -5,14 +5,14 @@ expression: codegen
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global i8 0, !dbg !0
-@b = global i8 0, !dbg !4
-@c = global i16 0, !dbg !7
-@d = global i16 0, !dbg !10
-@e = global i32 0, !dbg !13
-@f = global i32 0, !dbg !16
-@g = global i64 0, !dbg !19
-@h = global i64 0, !dbg !22
+@a = global i8 0, section "var-a:i8", !dbg !0
+@b = global i8 0, section "var-b:u8", !dbg !4
+@c = global i16 0, section "var-c:i16", !dbg !7
+@d = global i16 0, section "var-d:u16", !dbg !10
+@e = global i32 0, section "var-e:i32", !dbg !13
+@f = global i32 0, section "var-f:u32", !dbg !16
+@g = global i64 0, section "var-g:i64", !dbg !19
+@h = global i64 0, section "var-h:u64", !dbg !22
 
 !llvm.module.flags = !{!25, !26}
 !llvm.dbg.cu = !{!27}
@@ -46,4 +46,3 @@ source_filename = "main"
 !26 = !{i32 2, !"Debug Info Version", i32 3}
 !27 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !28, splitDebugInlining: false)
 !28 = !{!0, !4, !7, !10, !13, !16, !19, !22}
-

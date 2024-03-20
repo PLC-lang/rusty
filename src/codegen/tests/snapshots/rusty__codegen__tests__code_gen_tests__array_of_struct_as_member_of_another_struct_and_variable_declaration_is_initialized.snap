@@ -9,9 +9,9 @@ source_filename = "main"
 %STRUCT1 = type { i16, [5 x %STRUCT2] }
 %STRUCT2 = type { i8, i32 }
 
-@mainProg_instance = global %mainProg { [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer] }
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
-@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer
+@mainProg_instance = global %mainProg { [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer] }, section "var-mainProg_instance:v"
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-__STRUCT1__init:v"
+@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "var-__STRUCT2__init:v"
 @__mainProg.var_str1__init = unnamed_addr constant [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer]
 
 define void @mainProg(%mainProg* %0) section "fn-mainProg:v" {

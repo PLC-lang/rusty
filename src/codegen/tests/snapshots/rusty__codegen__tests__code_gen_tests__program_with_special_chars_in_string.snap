@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type { [81 x i8], [81 x i8], [81 x i16], [81 x i16] }
 
-@prg_instance = global %prg zeroinitializer
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 @utf08_literal_0 = private unnamed_addr constant [19 x i8] c"\0043 $\22no replace$\22\00"
 @utf08_literal_1 = private unnamed_addr constant [41 x i8] c"a\0A\0A b\0A\0A c\0C\0C d\0D\0D e\09\09 $ 'single' W\F0\9F\92\96\F0\9F\92\96\00"
 @utf16_literal_0 = private unnamed_addr constant [19 x i16] [i16 36, i16 52, i16 51, i16 32, i16 36, i16 39, i16 110, i16 111, i16 32, i16 114, i16 101, i16 112, i16 108, i16 97, i16 99, i16 101, i16 36, i16 39, i16 0]

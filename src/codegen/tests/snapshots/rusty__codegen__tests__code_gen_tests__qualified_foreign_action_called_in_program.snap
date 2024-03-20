@@ -8,8 +8,8 @@ source_filename = "main"
 %bar = type {}
 %prg = type { i32 }
 
-@bar_instance = global %bar zeroinitializer
-@prg_instance = global %prg zeroinitializer
+@bar_instance = global %bar zeroinitializer, section "var-bar_instance:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define void @bar(%bar* %0) section "fn-bar:v" {
 entry:

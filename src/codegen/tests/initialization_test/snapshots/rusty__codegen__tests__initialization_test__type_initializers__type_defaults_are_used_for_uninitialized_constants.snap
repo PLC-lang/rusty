@@ -5,8 +5,7 @@ expression: result.unwrap()
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = unnamed_addr constant i16 7
-@b = unnamed_addr constant i16 21
-@c = unnamed_addr constant i32 2
-@d = unnamed_addr constant i32 30
-
+@a = unnamed_addr constant i16 7, section "var-a:i16"
+@b = unnamed_addr constant i16 21, section "var-b:i16"
+@c = unnamed_addr constant i32 2, section "var-c:i32"
+@d = unnamed_addr constant i32 30, section "var-d:i32"

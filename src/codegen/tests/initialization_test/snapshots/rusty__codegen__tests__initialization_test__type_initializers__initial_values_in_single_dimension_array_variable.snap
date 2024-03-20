@@ -1,18 +1,15 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
-assertion_line: 159
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [3 x i8] c"\01\02\03"
-@b = global [3 x i16] [i16 1, i16 2, i16 3]
-@c = global [3 x i32] [i32 1, i32 2, i32 3]
-@d = global [3 x i64] [i64 1, i64 2, i64 3]
-@e = global [3 x i8] c"\01\02\03"
-@f = global [3 x i16] [i16 1, i16 2, i16 3]
-@g = global [3 x i64] [i64 1, i64 2, i64 3]
-@h = global [3 x i8] [i8 true, i8 false, i8 true]
-
+@a = global [3 x i8] c"\01\02\03", section "var-a:v"
+@b = global [3 x i16] [i16 1, i16 2, i16 3], section "var-b:v"
+@c = global [3 x i32] [i32 1, i32 2, i32 3], section "var-c:v"
+@d = global [3 x i64] [i64 1, i64 2, i64 3], section "var-d:v"
+@e = global [3 x i8] c"\01\02\03", section "var-e:v"
+@f = global [3 x i16] [i16 1, i16 2, i16 3], section "var-f:v"
+@g = global [3 x i64] [i64 1, i64 2, i64 3], section "var-g:v"
+@h = global [3 x i8] [i8 true, i8 false, i8 true], section "var-h:v"

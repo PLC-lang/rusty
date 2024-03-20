@@ -8,9 +8,9 @@ source_filename = "main"
 %myStruct = type { i32, %myStruct2 }
 %myStruct2 = type { i32, double }
 
-@gStruct = global %myStruct zeroinitializer, !dbg !0
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !13
-@__myStruct2__init = unnamed_addr constant %myStruct2 zeroinitializer, !dbg !15
+@gStruct = global %myStruct zeroinitializer, section "var-gStruct:v", !dbg !0
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-__myStruct__init:v", !dbg !13
+@__myStruct2__init = unnamed_addr constant %myStruct2 zeroinitializer, section "var-__myStruct2__init:v", !dbg !15
 
 !llvm.module.flags = !{!17, !18}
 !llvm.dbg.cu = !{!19}
@@ -36,4 +36,3 @@ source_filename = "main"
 !18 = !{i32 2, !"Debug Info Version", i32 3}
 !19 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !20, splitDebugInlining: false)
 !20 = !{!0, !13, !15}
-

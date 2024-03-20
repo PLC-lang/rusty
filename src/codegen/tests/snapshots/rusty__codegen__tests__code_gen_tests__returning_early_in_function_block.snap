@@ -7,7 +7,7 @@ source_filename = "main"
 
 %abcdef = type { i8 }
 
-@__abcdef__init = unnamed_addr constant %abcdef zeroinitializer
+@__abcdef__init = unnamed_addr constant %abcdef zeroinitializer, section "var-__abcdef__init:v"
 
 define void @abcdef(%abcdef* %0) section "fn-abcdef:v[i8]" {
 entry:

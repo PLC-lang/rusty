@@ -8,8 +8,8 @@ source_filename = "main"
 %main = type { %file_t, %file_t* }
 %file_t = type { i8, i8 }
 
-@main_instance = global %main zeroinitializer
-@__file_t__init = unnamed_addr constant %file_t zeroinitializer
+@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@__file_t__init = unnamed_addr constant %file_t zeroinitializer, section "var-__file_t__init:v"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:
