@@ -44,6 +44,8 @@
 
 use std::fmt;
 
+mod parser;
+
 /// The main builder type of this crate. Use it to create mangling contexts, in
 /// order to encode and decode binary type information.
 // TODO: Add example code for using this builder
