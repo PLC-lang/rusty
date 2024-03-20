@@ -383,6 +383,9 @@ lazy_static! {
     E094,
     Error,
     include_str!("./error_codes/E094.md"),
+    E095,
+    Error,
+    include_str!("./error_codes/E095.md"), // Action call without `()`
 );
 }
 

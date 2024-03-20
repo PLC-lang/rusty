@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: diagnostics
+---
+error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'
+  ┌─ <internal>:7:28
+  │
+7 │             address := ADR(fb1.FOO);
+  │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'
