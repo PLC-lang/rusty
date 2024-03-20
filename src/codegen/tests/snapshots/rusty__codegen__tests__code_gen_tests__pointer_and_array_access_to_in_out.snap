@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @main(i16** %0, i16* %1) section "fn-main:i16[ppi16][pv]" {
+define i16 @main(i16** %0, i16* %1) section "fn-main:i16[ppi16][pai16]" {
 entry:
   %main = alloca i16, align 2
   %a = alloca i16**, align 8

@@ -7,11 +7,11 @@ source_filename = "main"
 
 %main = type { i32 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
-@TrafficLight.White = unnamed_addr constant i32 0, section "var-White:v"
-@TrafficLight.Red = unnamed_addr constant i32 1, section "var-Red:v"
-@TrafficLight.Yellow = unnamed_addr constant i32 2, section "var-Yellow:v"
-@TrafficLight.Green = unnamed_addr constant i32 3, section "var-Green:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r1e4i32"
+@TrafficLight.White = unnamed_addr constant i32 0, section "var-White:e4i32"
+@TrafficLight.Red = unnamed_addr constant i32 1, section "var-Red:e4i32"
+@TrafficLight.Yellow = unnamed_addr constant i32 2, section "var-Yellow:e4i32"
+@TrafficLight.Green = unnamed_addr constant i32 3, section "var-Green:e4i32"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:

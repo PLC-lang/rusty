@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type { i16, i16 }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2i16i16"
 
 define i32 @MAX__DINT(i32 %0, i32 %1) section "fn-MAX__DINT:i32[i32][i32]" {
 entry:

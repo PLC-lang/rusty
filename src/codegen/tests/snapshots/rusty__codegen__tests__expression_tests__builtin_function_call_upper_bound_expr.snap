@@ -9,8 +9,8 @@ source_filename = "main"
 %__foo_vla = type { i32*, [2 x i32] }
 
 @MY_CONST = unnamed_addr constant i32 10, section "var-MY_CONST:i32"
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-____foo_vla__init:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r2ai32i32"
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-____foo_vla__init:r2pai32ai32"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:
@@ -31,7 +31,7 @@ entry:
   ret void
 }
 
-define i32 @foo(%__foo_vla* %0) section "fn-foo:i32[pv]" {
+define i32 @foo(%__foo_vla* %0) section "fn-foo:i32[pr2pai32ai32]" {
 entry:
   %foo = alloca i32, align 4
   %vla = alloca %__foo_vla*, align 8

@@ -8,9 +8,9 @@ source_filename = "main"
 %MyFB = type { i16 }
 %prg = type { %MyFB }
 
-@x = global %MyFB { i16 77 }, section "var-x:v"
-@__MyFB__init = unnamed_addr constant %MyFB { i16 77 }, section "var-__MyFB__init:v"
-@prg_instance = global %prg { %MyFB { i16 77 } }, section "var-prg_instance:v"
+@x = global %MyFB { i16 77 }, section "var-x:r1i16"
+@__MyFB__init = unnamed_addr constant %MyFB { i16 77 }, section "var-__MyFB__init:r1i16"
+@prg_instance = global %prg { %MyFB { i16 77 } }, section "var-prg_instance:r1r1i16"
 
 define void @MyFB(%MyFB* %0) section "fn-MyFB:v" {
 entry:

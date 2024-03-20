@@ -7,7 +7,7 @@ source_filename = "main"
 
 %myStruct = type { i8 }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }, section "var-__myStruct__init:v"
+@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }, section "var-__myStruct__init:r1u8"
 
 define i16 @main() section "fn-main:i16" {
 entry:

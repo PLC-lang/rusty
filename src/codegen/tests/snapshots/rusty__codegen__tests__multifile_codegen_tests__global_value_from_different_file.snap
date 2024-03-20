@@ -22,7 +22,7 @@ source_filename = "prog.st"
 
 %prog = type {}
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r0"
 @c = external global i32, section "var-c:i32"
 @x = external global i32, section "var-x:i32"
 

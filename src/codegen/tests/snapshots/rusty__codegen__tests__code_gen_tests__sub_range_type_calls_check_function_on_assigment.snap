@@ -7,7 +7,7 @@ source_filename = "main"
 
 %Main = type { i16 }
 
-@Main_instance = global %Main zeroinitializer, section "var-Main_instance:v"
+@Main_instance = global %Main zeroinitializer, section "var-Main_instance:r1i16"
 
 define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) section "fn-CheckRangeSigned:i16[i16][i16][i16]" {
 entry:

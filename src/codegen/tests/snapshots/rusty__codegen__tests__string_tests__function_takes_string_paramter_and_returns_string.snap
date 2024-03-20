@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { [81 x i8] }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r1s8u81"
 @utf08_literal_0 = private unnamed_addr constant [154 x i8] c"abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc\00"
 
 define void @read_string([81 x i8]* %0, i8* %1) section "fn-read_string:s8u81[s8u81]" {

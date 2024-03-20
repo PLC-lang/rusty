@@ -8,7 +8,7 @@ source_filename = "main"
 %main = type { [81 x i8] }
 
 @const_str = unnamed_addr constant [81 x i8] c"global constant string\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-const_str:s8u81"
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r1s8u81"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:

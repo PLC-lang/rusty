@@ -7,7 +7,7 @@ source_filename = "main"
 
 %MyStruct = type { i32, i16 }
 
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:v"
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:r2i32i16"
 
 define i16 @foo_int() section "fn-foo_int:i16" {
 entry:
@@ -27,7 +27,7 @@ entry:
   ret void
 }
 
-define void @foo_arr([10 x float]* %0) section "fn-foo_arr:v" {
+define void @foo_arr([10 x float]* %0) section "fn-foo_arr:af32" {
 entry:
   %foo_arr = alloca [10 x float]*, align 8
   store [10 x float]* %0, [10 x float]** %foo_arr, align 8
@@ -37,7 +37,7 @@ entry:
   ret void
 }
 
-define void @foo_struct(%MyStruct* %0) section "fn-foo_struct:v" {
+define void @foo_struct(%MyStruct* %0) section "fn-foo_struct:r2i32i16" {
 entry:
   %foo_struct = alloca %MyStruct*, align 8
   store %MyStruct* %0, %MyStruct** %foo_struct, align 8

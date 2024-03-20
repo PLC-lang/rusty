@@ -7,14 +7,14 @@ source_filename = "myStruct.st"
 
 %myStruct = type { i32, i16 }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i32 6, i16 2 }, section "var-__myStruct__init:v"
+@__myStruct__init = unnamed_addr constant %myStruct { i32 6, i16 2 }, section "var-__myStruct__init:r2i32i16"
 
 ; ModuleID = 'myStruct2.st'
 source_filename = "myStruct2.st"
 
 %myStruct2 = type { i32, i16 }
 
-@__myStruct2__init = unnamed_addr constant %myStruct2 { i32 6, i16 2 }, section "var-__myStruct2__init:v"
+@__myStruct2__init = unnamed_addr constant %myStruct2 { i32 6, i16 2 }, section "var-__myStruct2__init:r2i32i16"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
@@ -23,9 +23,9 @@ source_filename = "prog.st"
 %myStruct.2 = type { i32, i16 }
 %myStruct2.3 = type { i32, i16 }
 
-@prog_instance = global %prog { %myStruct.2 { i32 5, i16 2 }, %myStruct2.3 { i32 6, i16 2 } }, section "var-prog_instance:v"
-@__myStruct__init = external global %myStruct.2, section "var-__myStruct__init:v"
-@__myStruct2__init = external global %myStruct2.3, section "var-__myStruct2__init:v"
+@prog_instance = global %prog { %myStruct.2 { i32 5, i16 2 }, %myStruct2.3 { i32 6, i16 2 } }, section "var-prog_instance:r2r2i32i16r2i32i16"
+@__myStruct__init = external global %myStruct.2, section "var-__myStruct__init:r2i32i16"
+@__myStruct2__init = external global %myStruct2.3, section "var-__myStruct2__init:r2i32i16"
 @__prog.x__init = unnamed_addr constant %myStruct.2 { i32 5, i16 2 }
 
 define void @prog(%prog* %0) section "fn-prog:v" {

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prog = type { i64 }
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r1i64"
 
 define i64 @func() section "fn-func:i64" {
 entry:

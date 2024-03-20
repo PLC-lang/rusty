@@ -18,7 +18,7 @@ fn declaring_an_array() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    @d = global [10 x i32] zeroinitializer, section "var-d:v"
+    @d = global [10 x i32] zeroinitializer, section "var-d:ai32"
     "###);
 }
 
@@ -40,8 +40,8 @@ fn initializing_an_array() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-d:v"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-__Data__init:v"
+    @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-d:ai32"
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-__Data__init:ai32"
     "###);
 }
 
@@ -70,8 +70,8 @@ fn assigning_full_arrays() {
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }, section "var-prg_instance:v"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-__Data__init:v"
+    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }, section "var-prg_instance:r2ai32ai32"
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-__Data__init:ai32"
 
     define void @prg(%prg* %0) section "fn-prg:v" {
     entry:
@@ -122,8 +122,8 @@ fn accessing_array_elements() {
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }, section "var-prg_instance:v"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-__Data__init:v"
+    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }, section "var-prg_instance:r2ai32ai32"
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-__Data__init:ai32"
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
     define void @prg(%prg* %0) section "fn-prg:v" {

@@ -6,10 +6,10 @@ expression: function
 source_filename = "main"
 
 @x = global i32 10, section "var-x:i32"
-@__foo_position.x = unnamed_addr constant i32 1, section "var-x:v"
-@__bar_position.x = unnamed_addr constant i32 3, section "var-x:v"
-@__foo_position.y = unnamed_addr constant i32 2, section "var-y:v"
-@__bar_position.y = unnamed_addr constant i32 4, section "var-y:v"
+@__foo_position.x = unnamed_addr constant i32 1, section "var-x:e2i32"
+@__bar_position.x = unnamed_addr constant i32 3, section "var-x:e2i32"
+@__foo_position.y = unnamed_addr constant i32 2, section "var-y:e2i32"
+@__bar_position.y = unnamed_addr constant i32 4, section "var-y:e2i32"
 
 define i32 @foo() section "fn-foo:i32" {
 entry:
