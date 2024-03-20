@@ -4,6 +4,8 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use section_mangler::{StringEncoding as SectionStringEncoding, Type};
 
 pub fn mangle_type(index: &Index, ty: &typesystem::DataType) -> Result<section_mangler::Type, Diagnostic> {
+    let access_inner = |ty_name| mangle_type(index, index.get_effective_type_by_name(ty_name)?);
+
     // TODO: This is a bit ugly because we keep dereferencing references to Copy types like
     // bool, u32, etc, because `DataTypeInformation::Pointer` keeps a `String` which is not
     // Copy. the alternative is for section_mangle::Type to keep references everywhere, and
@@ -23,8 +25,20 @@ pub fn mangle_type(index: &Index, ty: &typesystem::DataType) -> Result<section_m
 
             Type::String { size: *size as usize, encoding }
         }
-        DataTypeInformation::Pointer { inner_type_name, .. } => Type::Pointer {
-            inner: Box::new(mangle_type(index, index.get_effective_type_by_name(inner_type_name)?)?),
+        DataTypeInformation::Pointer { inner_type_name, .. } => {
+            Type::Pointer { inner: Box::new(access_inner(inner_type_name)?) }
+        }
+        DataTypeInformation::Enum { referenced_type, variants, .. } => {
+            Type::Enum { referenced_type: Box::new(access_inner(referenced_type)?), elements: variants.len() }
+        }
+        DataTypeInformation::Struct { members, .. } => Type::Struct {
+            members: members.iter().try_fold(Vec::new(), |mut acc, m| -> Result<Vec<Type>, Diagnostic> {
+                let inner = access_inner(m.get_type_name())?;
+
+                acc.push(inner);
+
+                Ok(acc)
+            })?,
         },
         // FIXME: For now, encode all unknown types as "void" since this is not required for
         // execution. Not doing so (and doing an `unreachable!()` for example) obviously causes
