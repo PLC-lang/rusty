@@ -47,12 +47,14 @@ pub fn mangle_type(index: &Index, ty: &typesystem::DataType) -> Result<section_m
         // For code generation, the actual range does not matter - it is not a breaking change
         // if a variable's range changes, at least not for codegen, since the underlying type will stay
         // the same. Therefore, only encode it as its underlying type.
-        DataTypeInformation::SubRange { referenced_type, .. } => access_inner(referenced_type)?,
-        DataTypeInformation::Generic { .. } | DataTypeInformation::Alias { .. } => {
+        DataTypeInformation::SubRange { referenced_type, .. }
+        // Similarly, we do not care about the alias - only the type which is being codegen'd
+        | DataTypeInformation::Alias { referenced_type, .. } => access_inner(referenced_type)?,
+        DataTypeInformation::Generic { .. } => {
             // FIXME: Is that correct?
-            unreachable!("generic types and type aliases should not exist at codegen")
+            unreachable!("generic types should not exist at codegen")
         }
-        // FIXME: For now, encode all unknown types as "void" since this is not required for
+         // FIXME: For now, encode all unknown types as "void" since this is not required for
         // execution. Not doing so (and doing an `unreachable!()` for example) obviously causes
         // failures, because complex types are already implemented in the compiler.
         _ => Type::Void,
