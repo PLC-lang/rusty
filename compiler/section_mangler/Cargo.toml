@@ -4,3 +4,4 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
+nom = "7.1"
