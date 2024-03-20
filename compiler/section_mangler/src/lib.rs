@@ -160,7 +160,9 @@ pub enum Type {
         semantic_size: Option<u32>,
     },
     /// Encoded as `f<size>`
-    Float { size: u32 },
+    Float {
+        size: u32,
+    },
     /// Encoded as `s<encoding><size>`
     String {
         size: usize, // FIXME: Is that okay? will all the constant expressions be folded at that point? Can we have TypeSize::Undetermined still?
@@ -172,23 +174,12 @@ pub enum Type {
         // TODO: Is changing the `auto_deref` mode an ABI break?
         // auto_deref: bool,
     },
-
-    // --- UNIMPLEMENTED
-
-    // FIXME: Do we need any info here? How are structs codegened?
     Struct {
-        // name: TypeId,
-        // members: Vec<VariableIndexEntry>,
-        // source: StructSource,
+        members: Vec<Type>,
     },
-
-    // FIXME: Same here
     Enum {
-        // name: TypeId,
-        // referenced_type: TypeId,
-        // // TODO: Would it make sense to store `VariableIndexEntry`s similar to how the `Struct` variant does?
-        // //       This would allow us to pattern match in the index `find_member` method
-        // elements: Vec<String>,
+        referenced_type: Box<Type>,
+        elements: usize,
     },
     Array {
         inner: Box<Type>,
@@ -227,8 +218,15 @@ impl fmt::Display for Type {
             Type::String { size, encoding } => write!(f, "s{encoding}{size}",),
             Type::Pointer { inner } => write!(f, "p{}", inner),
             // -- Unimplemented
-            Type::Struct {} => todo!(),
-            Type::Enum {} => todo!(),
+            Type::Struct { members } => {
+                write!(
+                    f,
+                    "r{}{}",
+                    members.len(),
+                    members.iter().fold(String::new(), |acc, m| format!("{acc}{m}"))
+                )
+            }
+            Type::Enum { referenced_type, elements } => write!(f, "e{elements}{referenced_type}"),
             Type::Array { .. } => todo!(),
             Type::SubRange {} => todo!(),
             Type::Alias {} => todo!(),
