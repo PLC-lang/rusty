@@ -495,7 +495,7 @@ fn validate_reference<T: AnnotationMap>(
             {
                 // we parsed a reference expression to an action but we are not in a call-context: likely an action call without parentheses
                 validator.push_diagnostic(
-                    Diagnostic::new(format!("A reference to {} exists, but it is an ACTION.\nIf you meant to call `{}`, add `()` to the statement: `{}()`", qualified_name, qualified_name, qualified_name))
+                    Diagnostic::new(format!("A reference to {qualified_name} exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `{qualified_name}()`"))
                         .with_error_code("E095")
                         .with_location(location.clone())
                 );

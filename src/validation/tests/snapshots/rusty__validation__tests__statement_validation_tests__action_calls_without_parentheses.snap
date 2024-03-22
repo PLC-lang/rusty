@@ -2,18 +2,14 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-error[E095]: A reference to fb1.FOO exists, but it is an ACTION.
-If you meant to call `fb1.FOO`, add `()` to the statement: `fb1.FOO()`
+error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
   ┌─ <internal>:3:13
   │
 3 │             FOO;
-  │             ^^^ A reference to fb1.FOO exists, but it is an ACTION.
-If you meant to call `fb1.FOO`, add `()` to the statement: `fb1.FOO()`
+  │             ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
 
-error[E095]: A reference to fb1.BAR exists, but it is an ACTION.
-If you meant to call `fb1.BAR`, add `()` to the statement: `fb1.BAR()`
+error[E095]: A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
   ┌─ <internal>:4:13
   │
 4 │             BAR;
-  │             ^^^ A reference to fb1.BAR exists, but it is an ACTION.
-If you meant to call `fb1.BAR`, add `()` to the statement: `fb1.BAR()`
+  │             ^^^ A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`

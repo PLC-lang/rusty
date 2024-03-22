@@ -1589,7 +1589,7 @@ fn action_calls_without_parentheses() {
             BAR;
         END_FUNCTION_BLOCK
 
-        ACTIONS 
+        ACTIONS
             ACTION FOO
             END_ACTION
 
@@ -1620,7 +1620,7 @@ fn action_as_reference_does_not_cause_parentheses_diagnostic() {
         FUNCTION_BLOCK fb1
         END_FUNCTION_BLOCK
 
-        ACTIONS 
+        ACTIONS
             ACTION FOO
             END_ACTION
         END_ACTIONS
@@ -1629,6 +1629,34 @@ fn action_as_reference_does_not_cause_parentheses_diagnostic() {
 
     // we expect no missing parentheses diagnostic
     assert_snapshot!(diagnostics);
-    // XXX: change assertion to `assert!(diagnostics.is_empty())` once 
+    // XXX: change assertion to `assert!(diagnostics.is_empty())` once
     // https://github.com/PLC-lang/rusty/issues/1165 is resolved
+}
+
+#[test]
+fn action_assignment_attempt_does_not_report_missing_parentheses() {
+    // Given a qualified action reference,
+    // when trying to assign it to a variable
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prog
+        VAR
+            fb : fb1;
+            address: LWORD;
+        END_VAR
+            address := fb1.FOO;
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb1
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+            ACTION FOO
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    // we expect no missing parentheses diagnostic
+    assert_snapshot!(diagnostics);
 }
