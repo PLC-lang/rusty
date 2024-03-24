@@ -2049,7 +2049,7 @@ impl ResolvingScope {
                     // look for variable, enum with name "qualifier.name"
                     index
                         .find_member(qualifier, name)
-                        .or_else(|| index.find_qualified_enum_element(format!("{qualifier}.{name}").as_str()))
+                        .or_else(|| index.find_enum_element(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } else {
                     // look for member variable with name "pou.name"

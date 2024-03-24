@@ -1142,26 +1142,23 @@ impl Index {
 
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
-    pub fn find_enum_element(&self, enum_name: &str, element_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&qualified_name(enum_name, element_name).to_lowercase())
+    pub fn find_enum_element(&self, name: &str, variant: &str) -> Option<&VariableIndexEntry> {
+        self.type_index.find_type(name)?.find_member(variant)
+        // self.enum_qualified_variables.get(&qualified_name(name, variant).to_lowercase())
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_qualified_enum_element(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&qualified_name.to_lowercase())
+        let (name, variant) = qualified_name.split('.').next_tuple()?;
+        self.find_enum_element(name, variant)
     }
 
     /// Returns all enum variants of the given variable.
     pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
-        let qualified_name = variable.data_type_name.to_lowercase();
-
-        // Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
-        self.enum_qualified_variables
-            .keys()
-            .filter(|key| key.split('.').next().is_some_and(|prefix| prefix == qualified_name))
-            .filter_map(|key| self.enum_qualified_variables.get(key))
-            .collect()
+        let Some(var) = self.type_index.find_type(&variable.data_type_name) else { return vec![] };
+        let DataTypeInformation::Enum { variants, .. } = var.get_type_information() else { return vec![] };
+        variants.iter().collect()
     }
 
     /// Returns all enum variants and their respective constant value for the given variable.
@@ -1194,7 +1191,7 @@ impl Index {
         self.get_enum_variants_in_pou(pou)
             .into_iter()
             .find(|it| it.name == variant)
-            .or(self.find_qualified_enum_element(&format!("{pou}.{variant}")))
+            .or(self.find_enum_element(pou, variant))
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
