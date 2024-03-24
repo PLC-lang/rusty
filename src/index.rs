@@ -908,6 +908,15 @@ impl Index {
                                 .collect::<Vec<_>>();
                             members.append(&mut variables);
                         }
+                        DataTypeInformation::Enum { variants, .. } => {
+                            let mut variables = variants
+                                .drain(..)
+                                .map(|variable| {
+                                    self.transfer_constants(variable, &mut other.constant_expressions)
+                                })
+                                .collect::<Vec<_>>();
+                            variants.append(&mut variables);
+                        }
                         _ => {}
                     }
 
@@ -1478,15 +1487,16 @@ impl Index {
         enum_type_name: &str,
         initial_value: Option<ConstId>,
         source_location: SourceLocation,
-    ) {
+    ) -> VariableIndexEntry {
         let qualified_name = qualified_name(enum_type_name, element_name);
         let entry =
             VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
                 .set_constant(true)
                 .set_initial_value(initial_value);
-        self.enum_global_variables.insert(element_name.to_lowercase(), entry.clone());
 
-        self.enum_qualified_variables.insert(qualified_name.to_lowercase(), entry);
+        self.enum_global_variables.insert(element_name.to_lowercase(), entry.clone());
+        self.enum_qualified_variables.insert(qualified_name.to_lowercase(), entry.clone());
+        entry
     }
 
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {

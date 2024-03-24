@@ -190,9 +190,9 @@ fn get_default_initializer(
             DataTypeInformation::Integer { .. } => {
                 Some(AstFactory::create_literal(AstLiteral::new_integer(0), location.clone(), id))
             }
-            DataTypeInformation::Enum { name, elements, .. } => elements
+            DataTypeInformation::Enum { name, variants: elements, .. } => elements
                 .first()
-                .and_then(|default_enum| index.find_enum_element(name, default_enum))
+                .and_then(|default_enum| index.find_enum_element(name, default_enum.get_name()))
                 .and_then(|enum_element| enum_element.initial_value)
                 .and_then(|initial_val| {
                     index.get_const_expressions().get_resolved_constant_statement(&initial_val)

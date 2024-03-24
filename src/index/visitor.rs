@@ -329,12 +329,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
 
         DataType::EnumType { name: Some(name), elements, numeric_type, .. } => {
             let enum_name = name.as_str();
-
-            let information = DataTypeInformation::Enum {
-                name: enum_name.to_string(),
-                elements: ast::get_enum_element_names(elements),
-                referenced_type: numeric_type.clone(),
-            };
+            let mut variants = Vec::new();
 
             for ele in ast::flatten_expression_list(elements) {
                 let element_name = ast::get_enum_element_name(ele);
@@ -344,17 +339,30 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                         numeric_type.clone(),
                         scope.clone(),
                     );
-                    index.register_enum_element(&element_name, enum_name, Some(init), ele.get_location())
+
+                    variants.push(index.register_enum_element(
+                        &element_name,
+                        enum_name,
+                        Some(init),
+                        ele.get_location(),
+                    ))
                 } else {
                     unreachable!("the preprocessor should have provided explicit assignments for enum values")
                 }
             }
+
+            let information = DataTypeInformation::Enum {
+                name: enum_name.to_string(),
+                variants,
+                referenced_type: numeric_type.clone(),
+            };
 
             let init = index.get_mut_const_expressions().maybe_add_constant_expression(
                 type_declaration.initializer.clone(),
                 enum_name,
                 scope.clone(),
             );
+
             index.register_type(typesystem::DataType {
                 name: enum_name.to_string(),
                 initial_value: init,
