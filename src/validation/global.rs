@@ -110,17 +110,19 @@ impl GlobalValidator {
                 }
             }
         }
-        //check enums
-        let duplication_enums =
-            index.get_global_qualified_enums().entries().filter(|(_, vars)| vars.len() > 1).map(
-                |(_, variables)| {
-                    (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location))
-                },
-            );
-
-        for (name, locations) in duplication_enums {
-            self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
-        }
+        // TODO: Use the type_index here, go through the variants and check if there are two or more
+        //       variants with the same name
+        // //check enums
+        // let duplication_enums =
+        //     index.get_global_qualified_enums().entries().filter(|(_, vars)| vars.len() > 1).map(
+        //         |(_, variables)| {
+        //             (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location))
+        //         },
+        //     );
+        //
+        // for (name, locations) in duplication_enums {
+        //     self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
+        // }
     }
 
     ///validates uniqueness of datatypes (types + functionblocks + classes)

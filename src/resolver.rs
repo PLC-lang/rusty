@@ -764,9 +764,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we should try to resolve and type-annotate them here as well
-        for enum_element in
-            index.get_global_qualified_enums().values().filter(|it| it.is_in_unit(&unit.file_name))
-        {
+        for enum_element in index.get_all_enum_variants().iter().filter(|it| it.is_in_unit(&unit.file_name)) {
             //Add to dependency map
             visitor.dependencies.insert(Dependency::Variable(enum_element.get_qualified_name().to_string()));
             if let Some((Some(statement), scope)) =

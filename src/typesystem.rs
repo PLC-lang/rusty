@@ -198,8 +198,8 @@ impl DataType {
             DataTypeInformation::Struct { members, .. } => {
                 members.iter().find(|member| member.get_name().eq_ignore_ascii_case(name))
             }
-            DataTypeInformation::Enum { variants: variants, .. } => {
-                variants.iter().find(|member| member.get_name().eq_ignore_ascii_case(name))
+            DataTypeInformation::Enum { variants, .. } => {
+                variants.iter().find(|variant| variant.get_name().eq_ignore_ascii_case(name))
             }
             _ => None,
         }
@@ -419,6 +419,10 @@ pub enum DataTypeInformation {
 }
 
 impl DataTypeInformation {
+    // pub fn temp_get_variants(&self) -> &Vec<VariableIndexEntry> {
+    //     let DataTypeInformation::Enum { variants, .. } = self.get_type_information() else { todo!() };
+    //     variants
+    // }
     pub fn get_name(&self) -> &str {
         match self {
             DataTypeInformation::Struct { name, .. }

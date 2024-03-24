@@ -861,10 +861,6 @@ impl Index {
                 .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
                 .collect::<Vec<_>>();
 
-            for e in elements.iter() {
-                self.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
-            }
-
             self.enum_qualified_variables.insert_many(qualified_name, elements);
         }
 
@@ -915,6 +911,10 @@ impl Index {
                                     self.transfer_constants(variable, &mut other.constant_expressions)
                                 })
                                 .collect::<Vec<_>>();
+
+                            for e in variables.iter() {
+                                self.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
+                            }
                             variants.append(&mut variables);
                         }
                         _ => {}
@@ -1387,6 +1387,10 @@ impl Index {
 
     pub fn get_global_qualified_enums(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.enum_qualified_variables
+    }
+
+    pub fn get_all_enum_variants(&self) -> Vec<&VariableIndexEntry> {
+        self.enum_global_variables.values().collect()
     }
 
     pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
