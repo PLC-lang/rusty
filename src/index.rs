@@ -814,9 +814,6 @@ pub struct Index {
     /// all enum-members with their names
     enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
-    /// all enum-members with their qualified names <enum-type>.<element-name>
-    enum_qualified_variables: SymbolMap<String, VariableIndexEntry>,
-
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
 
@@ -852,16 +849,6 @@ impl Index {
                 .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
                 .collect::<Vec<_>>();
             self.global_variables.insert_many(name, entries);
-        }
-
-        //enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
-        for (qualified_name, elements) in other.enum_qualified_variables.drain(..) {
-            let elements = elements
-                .into_iter()
-                .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
-                .collect::<Vec<_>>();
-
-            self.enum_qualified_variables.insert_many(qualified_name, elements);
         }
 
         //initializers
@@ -1144,7 +1131,6 @@ impl Index {
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_enum_element(&self, name: &str, variant: &str) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(name)?.find_member(variant)
-        // self.enum_qualified_variables.get(&qualified_name(name, variant).to_lowercase())
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
@@ -1385,10 +1371,6 @@ impl Index {
         &self.global_initializers
     }
 
-    pub fn get_global_qualified_enums(&self) -> &SymbolMap<String, VariableIndexEntry> {
-        &self.enum_qualified_variables
-    }
-
     pub fn get_all_enum_variants(&self) -> Vec<&VariableIndexEntry> {
         self.enum_global_variables.values().collect()
     }
@@ -1496,7 +1478,6 @@ impl Index {
                 .set_initial_value(initial_value);
 
         self.enum_global_variables.insert(element_name.to_lowercase(), entry.clone());
-        self.enum_qualified_variables.insert(qualified_name.to_lowercase(), entry.clone());
         entry
     }
 
