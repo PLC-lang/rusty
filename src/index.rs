@@ -1129,15 +1129,15 @@ impl Index {
 
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
-    pub fn find_enum_element(&self, name: &str, variant: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_enum_variant(&self, name: &str, variant: &str) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(name)?.find_member(variant)
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
     /// or None if the requested Enum-Type or -Element does not exist
-    pub fn find_qualified_enum_element(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
+    pub fn find_qualified_enum_variant(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
         let (name, variant) = qualified_name.split('.').next_tuple()?;
-        self.find_enum_element(name, variant)
+        self.find_enum_variant(name, variant)
     }
 
     /// Returns all enum variants of the given variable.
@@ -1177,7 +1177,7 @@ impl Index {
         self.get_enum_variants_in_pou(pou)
             .into_iter()
             .find(|it| it.name == variant)
-            .or(self.find_enum_element(pou, variant))
+            .or(self.find_enum_variant(pou, variant))
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
@@ -1464,20 +1464,19 @@ impl Index {
         .set_varargs(member_info.varargs)
     }
 
-    pub fn register_enum_element(
+    pub fn register_enum_variant(
         &mut self,
-        element_name: &str,
-        enum_type_name: &str,
+        name: &str,
+        variant: &str,
         initial_value: Option<ConstId>,
         source_location: SourceLocation,
     ) -> VariableIndexEntry {
-        let qualified_name = qualified_name(enum_type_name, element_name);
-        let entry =
-            VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
-                .set_constant(true)
-                .set_initial_value(initial_value);
+        let qualified_name = qualified_name(name, variant);
+        let entry = VariableIndexEntry::create_global(variant, &qualified_name, name, source_location)
+            .set_constant(true)
+            .set_initial_value(initial_value);
 
-        self.enum_global_variables.insert(element_name.to_lowercase(), entry.clone());
+        self.enum_global_variables.insert(variant.to_lowercase(), entry.clone());
         entry
     }
 

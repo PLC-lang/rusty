@@ -192,7 +192,7 @@ fn get_default_initializer(
             }
             DataTypeInformation::Enum { name, variants: elements, .. } => elements
                 .first()
-                .and_then(|default_enum| index.find_enum_element(name, default_enum.get_name()))
+                .and_then(|default_enum| index.find_enum_variant(name, default_enum.get_name()))
                 .and_then(|enum_element| enum_element.initial_value)
                 .and_then(|initial_val| {
                     index.get_const_expressions().get_resolved_constant_statement(&initial_val)
@@ -387,7 +387,7 @@ fn evaluate_with_target_hint(
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
                     if let AstStatement::Identifier(ref_name) = target.get_stmt() {
                         return index
-                            .find_enum_element(enum_name, ref_name)
+                            .find_enum_variant(enum_name, ref_name)
                             .ok_or_else(|| {
                                 UnresolvableKind::Misc(format!(
                                     "Cannot resolve constant enum {enum_name}#{ref_name}."
