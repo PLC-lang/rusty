@@ -415,10 +415,6 @@ pub enum DataTypeInformation {
 }
 
 impl DataTypeInformation {
-    // pub fn temp_get_variants(&self) -> &Vec<VariableIndexEntry> {
-    //     let DataTypeInformation::Enum { variants, .. } = self.get_type_information() else { todo!() };
-    //     variants
-    // }
     pub fn get_name(&self) -> &str {
         match self {
             DataTypeInformation::Struct { name, .. }
