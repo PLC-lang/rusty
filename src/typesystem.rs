@@ -195,11 +195,9 @@ impl DataType {
 
     pub fn find_member(&self, name: &str) -> Option<&VariableIndexEntry> {
         match self.get_type_information() {
-            DataTypeInformation::Struct { members, .. } => {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } => {
                 members.iter().find(|member| member.get_name().eq_ignore_ascii_case(name))
-            }
-            DataTypeInformation::Enum { variants, .. } => {
-                variants.iter().find(|variant| variant.get_name().eq_ignore_ascii_case(name))
             }
             _ => None,
         }
@@ -368,6 +366,11 @@ pub enum DataTypeInformation {
         members: Vec<VariableIndexEntry>,
         source: StructSource,
     },
+    Enum {
+        name: TypeId,
+        referenced_type: TypeId,
+        variants: Vec<VariableIndexEntry>,
+    },
     Array {
         name: TypeId,
         inner_type_name: TypeId,
@@ -385,13 +388,6 @@ pub enum DataTypeInformation {
         size: u32,
         /// the numer of bits represented by this type (may differ from the num acutally stored)
         semantic_size: Option<u32>,
-    },
-    Enum {
-        name: TypeId,
-        referenced_type: TypeId,
-        // TODO: Would it make sense to store `VariableIndexEntry`s similar to how the `Struct` variant does?
-        //       This would allow us to pattern match in the index `find_member` method
-        variants: Vec<VariableIndexEntry>,
     },
     Float {
         name: TypeId,

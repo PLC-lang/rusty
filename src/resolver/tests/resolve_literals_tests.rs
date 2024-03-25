@@ -259,58 +259,67 @@ fn enum_literals_are_annotated() {
     )
 }
 
-// #[test]
-// fn enum_literals_target_are_annotated() {
-//     let id_provider = IdProvider::default();
-//     let (unit, index) = index_with_ids(
-//         "
-//             TYPE Color: (Green, Yellow, Red) := 0; END_TYPE
-//
-//             PROGRAM PRG
-//                 VAR Red: BYTE; END_VAR
-//                 Color#Red;  //we should resolve to the enum, not the local!
-//             END_PROGRAM",
-//         id_provider.clone(),
-//     );
-//     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-//     let color_red = &unit.implementations[0].statements[0];
-//
-//     assert_eq!(
-//         &DataTypeInformation::Enum {
-//             name: "Color".into(),
-//             elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
-//             referenced_type: DINT_TYPE.into(),
-//         },
-//         annotations.get_type_or_void(color_red, &index).get_type_information()
-//     );
-//
-//     if let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }) =
-//         color_red.get_stmt()
-//     {
-//         // right type gets annotated
-//         assert_eq!(
-//             &DataTypeInformation::Enum {
-//                 name: "Color".into(),
-//                 elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
-//                 referenced_type: DINT_TYPE.into(),
-//             },
-//             annotations.get_type_or_void(target, &index).get_type_information()
-//         );
-//         // Red gets annoatted to the declared variable, not only the type
-//         assert_eq!(
-//             Some(&StatementAnnotation::Variable {
-//                 resulting_type: "Color".into(),
-//                 qualified_name: "Color.Red".into(),
-//                 constant: true,
-//                 argument_type: ArgumentType::ByVal(crate::index::VariableType::Global),
-//                 is_auto_deref: false
-//             }),
-//             annotations.get(target)
-//         );
-//     } else {
-//         panic!("no cast statement")
-//     }
-// }
+#[test]
+fn enum_literals_target_are_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+            TYPE Color: (Green, Yellow, Red) := 0; END_TYPE
+
+            PROGRAM PRG
+                VAR Red: BYTE; END_VAR
+                Color#Red;  //we should resolve to the enum, not the local!
+            END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let color_red = &unit.implementations[0].statements[0];
+
+    let DataTypeInformation::Enum { name, variants, referenced_type } =
+        annotations.get_type_or_void(color_red, &index).get_type_information()
+    else {
+        unreachable!()
+    };
+
+    assert_eq!(name, "Color");
+    assert_eq!(
+        variants.iter().map(|variant| variant.get_name()).collect::<Vec<_>>(),
+        vec!["Green", "Yellow", "Red"]
+    );
+    assert_eq!(referenced_type, DINT_TYPE);
+
+    if let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }) =
+        color_red.get_stmt()
+    {
+        let DataTypeInformation::Enum { name, variants, referenced_type } =
+            annotations.get_type_or_void(target, &index).get_type_information()
+        else {
+            unreachable!();
+        };
+
+        // right type gets annotated
+        assert_eq!(name, "Color");
+        assert_eq!(
+            variants.iter().map(|variant| variant.get_name()).collect::<Vec<_>>(),
+            vec!["Green", "Yellow", "Red"]
+        );
+        assert_eq!(referenced_type, DINT_TYPE);
+
+        // Red gets annotated to the declared variable, not only the type
+        assert_eq!(
+            Some(&StatementAnnotation::Variable {
+                resulting_type: "Color".into(),
+                qualified_name: "Color.Red".into(),
+                constant: true,
+                argument_type: ArgumentType::ByVal(crate::index::VariableType::Global),
+                is_auto_deref: false
+            }),
+            annotations.get(target)
+        );
+    } else {
+        panic!("no cast statement")
+    }
+}
 
 #[test]
 fn casted_inner_literals_are_annotated() {
