@@ -896,7 +896,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
     };
 
     let Some(variable) = context.index.find_fully_qualified_variable(qualified_name) else { return };
-    let variants = context.index.get_enum_variant_values(variable);
+    let variants = helper::get_enum_variant_values(context.index, variable);
 
     match variants.iter().find(|(_, value_lhs)| *value_lhs == value_rhs) {
         Some((variant, _)) => {
@@ -1450,6 +1450,7 @@ mod helper {
     use plc_ast::ast::{AstNode, DirectAccessType};
     use plc_index::GlobalContext;
 
+    use crate::index::VariableIndexEntry;
     use crate::resolver::AnnotationMap;
     use crate::typesystem::DataType;
     use crate::validation::ValidationContext;
@@ -1508,5 +1509,21 @@ mod helper {
             .get_const_expressions()
             .maybe_get_constant_statement(&element.initial_value)
             .and_then(AstNode::get_literal_integer_value)
+    }
+
+    pub fn get_enum_variant_values<'idx>(
+        index: &'idx Index,
+        variable: &VariableIndexEntry,
+    ) -> Vec<(&'idx VariableIndexEntry, i128)> {
+        let mut variant_const_values = Vec::new();
+        for variant in index.get_enum_variants_by_variable(variable) {
+            if let Some(ref const_id) = variant.initial_value {
+                if let Ok(init) = index.get_const_expressions().get_constant_int_statement_value(const_id) {
+                    variant_const_values.push((variant, init));
+                }
+            }
+        }
+
+        variant_const_values
     }
 }

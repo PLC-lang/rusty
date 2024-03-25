@@ -262,7 +262,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // try to find a constant variable
             .find_variable(None, &qualified_name.split('.').collect::<Vec<_>>())
             // or else try to find an enum element
-            .or_else(|| self.index.find_qualified_enum_variant(qualified_name))
+            .or_else(|| self.index.find_enum_variant_by_qualified_name(qualified_name))
             // if this is no constant we have a problem
             .filter(|v| v.is_constant())
             .and_then(|v| v.initial_value)

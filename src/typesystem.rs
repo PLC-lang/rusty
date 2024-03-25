@@ -258,6 +258,10 @@ impl DataType {
             _ => false,
         }
     }
+
+    pub fn get_enum_variants(&self) -> Option<&Vec<VariableIndexEntry>> {
+        self.information.get_enum_variants()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -725,6 +729,14 @@ impl DataTypeInformation {
         }
 
         Some((arr_size / inner_type_size) as usize)
+    }
+
+    pub fn get_enum_variants(&self) -> Option<&Vec<VariableIndexEntry>> {
+        if let DataTypeInformation::Enum { variants, .. } = self {
+            return Some(variants);
+        }
+
+        None
     }
 }
 

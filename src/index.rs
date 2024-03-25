@@ -1127,49 +1127,23 @@ impl Index {
             .and_then(|(_, it)| it)
     }
 
-    /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
-    /// or None if the requested Enum-Type or -Element does not exist
+    /// Returns the index entry of the enum variant or [`None`] if it does not exist.
     pub fn find_enum_variant(&self, name: &str, variant: &str) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(name)?.find_member(variant)
     }
 
-    /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
-    /// or None if the requested Enum-Type or -Element does not exist
-    pub fn find_qualified_enum_variant(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
+    /// Returns the index entry of the enum variant by its qualified name or [`None`] if it does not
+    /// exist.
+    pub fn find_enum_variant_by_qualified_name(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
         let (name, variant) = qualified_name.split('.').next_tuple()?;
         self.find_enum_variant(name, variant)
     }
 
     /// Returns all enum variants of the given variable.
-    pub fn get_enum_variants(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
+    pub fn get_enum_variants_by_variable(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
         let Some(var) = self.type_index.find_type(&variable.data_type_name) else { return vec![] };
         let DataTypeInformation::Enum { variants, .. } = var.get_type_information() else { return vec![] };
         variants.iter().collect()
-    }
-
-    /// Returns all enum variants and their respective constant value for the given variable.
-    ///
-    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` will return three tuples,
-    /// namely `(red, 0)`, `(green, 1)` and `(blue, 5)` where the first element of the tuple is a
-    /// [`VariableIndexEntry`].
-    pub fn get_enum_variant_values(&self, variable: &VariableIndexEntry) -> Vec<(&VariableIndexEntry, i128)> {
-        let variants = self.get_enum_variants(variable);
-
-        let mut variant_const_values = Vec::new();
-        for variant in variants {
-            if let Some(ref const_id) = variant.initial_value {
-                if let Ok(init) = self.constant_expressions.get_constant_int_statement_value(const_id) {
-                    variant_const_values.push((variant, init));
-                }
-            }
-        }
-
-        variant_const_values
-    }
-
-    /// Returns all enum variants defined in the given POU
-    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
-        self.get_pou_members(pou).iter().flat_map(|member| self.get_enum_variants(member)).collect()
     }
 
     /// Tries to return an enum variant defined within a POU
@@ -1178,6 +1152,14 @@ impl Index {
             .into_iter()
             .find(|it| it.name == variant)
             .or(self.find_enum_variant(pou, variant))
+    }
+
+    /// Returns all enum variants defined in the given POU
+    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+        self.get_pou_members(pou)
+            .iter()
+            .flat_map(|member| self.get_enum_variants_by_variable(member))
+            .collect()
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
