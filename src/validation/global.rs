@@ -2,7 +2,9 @@ use itertools::Itertools;
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use std::collections::HashMap;
 
+use crate::index::VariableIndexEntry;
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
@@ -110,19 +112,21 @@ impl GlobalValidator {
                 }
             }
         }
-        // TODO: Use the type_index here, go through the variants and check if there are two or more
-        //       variants with the same name
-        // //check enums
-        // let duplication_enums =
-        //     index.get_global_qualified_enums().entries().filter(|(_, vars)| vars.len() > 1).map(
-        //         |(_, variables)| {
-        //             (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location))
-        //         },
-        //     );
-        //
-        // for (name, locations) in duplication_enums {
-        //     self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
-        // }
+
+        // TODO: Improve this; maybe export into function?
+        let mut groups: HashMap<&str, Vec<&VariableIndexEntry>> = HashMap::new();
+        for item in index.get_all_enum_variants() {
+            let group = groups.entry(item.get_qualified_name()).or_default();
+            group.push(item);
+        }
+
+        for duplicates in groups.values().filter(|vec| vec.len() > 1) {
+            self.report_name_conflict(
+                duplicates[0].get_qualified_name(),
+                &duplicates.iter().map(|duplicate| &duplicate.source_location).collect_vec(),
+                None,
+            );
+        }
     }
 
     ///validates uniqueness of datatypes (types + functionblocks + classes)
