@@ -1,14 +1,11 @@
-use std::collections::HashMap;
-
 use itertools::Itertools;
 
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use crate::index::VariableIndexEntry;
 use crate::{
-    index::{symbol::SymbolMap, Index, PouIndexEntry},
+    index::{Index, PouIndexEntry, symbol::SymbolMap},
     typesystem::{DataTypeInformation, StructSource},
 };
 
@@ -99,7 +96,7 @@ impl GlobalValidator {
             let members = ty
                 .get_members()
                 .iter()
-                .chain(index.get_enum_variants_in_pou(ty.get_name()))
+                // .chain(index.get_enum_variants_in_pou(ty.get_name()))
                 .sorted_by_key(|it| it.get_name().to_lowercase())
                 .collect_vec();
             for (_, mut vars) in &members.iter().group_by(|it| it.get_name().to_lowercase()) {
@@ -113,24 +110,6 @@ impl GlobalValidator {
                     }
                 }
             }
-        }
-
-        // We create groups of "buckets", where the key of a group is the enum variant name and the
-        // value of the group is the bucket declared as a vector storing the enum variant Index entries.
-        // If the size of the bucket is >1, we know duplicates are present which we can subsequently report.
-        // For example `Color : (red, green, blue, red)` would yield the group `__color_red, vec![IndexEntry1, IndexEntry2]`
-        let mut groups: HashMap<&str, Vec<&VariableIndexEntry>> = HashMap::new();
-        for item in index.get_all_enum_variants() {
-            let group = groups.entry(item.get_qualified_name()).or_default();
-            group.push(item);
-        }
-
-        for duplicates in groups.values().filter(|vec| vec.len() > 1) {
-            self.report_name_conflict(
-                duplicates[0].get_qualified_name(),
-                &duplicates.iter().map(|duplicate| &duplicate.source_location).collect_vec(),
-                None,
-            );
         }
     }
 

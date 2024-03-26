@@ -204,10 +204,10 @@ impl DataType {
     }
 
     pub fn get_members(&self) -> &[VariableIndexEntry] {
-        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
-            members
-        } else {
-            &[]
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } => members,
+            _ => &[],
         }
     }
 
