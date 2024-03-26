@@ -1510,6 +1510,27 @@
 <a href="#1510" id="1510">1510</a>
 <a href="#1511" id="1511">1511</a>
 <a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::control_statements::ForLoopStatement;
@@ -1525,6 +1546,7 @@
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use super</span>::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+<span class="kw">use </span><span class="kw">crate</span>::index::ImplementationType;
 <span class="kw">use </span><span class="kw">crate</span>::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -1972,27 +1994,47 @@
                 );
             }
         }
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
-        context.annotations.get(statement)
-    {
-        <span class="comment">// check if we&#39;re accessing a private variable AND the variable&#39;s qualifier is not the
-        // POU we&#39;re accessing it from
-        </span><span class="kw">if </span>argument_type.is_private()
-            &amp;&amp; context
-                .qualifier
-                .and_then(|qualifier| context.index.find_pou(qualifier))
-                .map(|pou| (pou.get_name(), pou.get_container())) <span class="comment">// get the container pou (for actions this is the program/fb)
-                </span>.map_or(<span class="bool-val">false</span>, |(pou, container)| {
-                    !qualified_name.starts_with(pou) &amp;&amp; !qualified_name.starts_with(container)
-                })
-        {
-            validator.push_diagnostic(
-                <span class="comment">//TODO: maybe default to warning?
-                </span>Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Illegal access to private member {qualified_name}&quot;</span>))
-                    .with_error_code(<span class="string">&quot;E049&quot;</span>)
-                    .with_location(location.clone()),
-            );
+
+        <span class="kw">return</span>;
+    }
+
+    <span class="kw">match </span>context.annotations.get(statement) {
+        <span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =&gt; {
+            <span class="comment">// check if we&#39;re accessing a private variable AND the variable&#39;s qualifier is not the
+            // POU we&#39;re accessing it from
+            </span><span class="kw">if </span>argument_type.is_private()
+                &amp;&amp; context
+                    .qualifier
+                    .and_then(|qualifier| context.index.find_pou(qualifier))
+                    .map(|pou| (pou.get_name(), pou.get_container())) <span class="comment">// get the container pou (for actions this is the program/fb)
+                    </span>.map_or(<span class="bool-val">false</span>, |(pou, container)| {
+                        !qualified_name.starts_with(pou) &amp;&amp; !qualified_name.starts_with(container)
+                    })
+            {
+                validator.push_diagnostic(
+                    <span class="comment">//TODO: maybe default to warning?
+                    </span>Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Illegal access to private member {qualified_name}&quot;</span>))
+                        .with_error_code(<span class="string">&quot;E049&quot;</span>)
+                        .with_location(location.clone()),
+                );
+            }
         }
+        <span class="prelude-val">Some</span>(StatementAnnotation::Program { qualified_name }) =&gt; {
+            <span class="kw">if </span>!context.is_call()
+                &amp;&amp; context
+                    .index
+                    .find_implementation_by_name(qualified_name)
+                    .is_some_and(|it| <span class="macro">matches!</span>(it.get_implementation_type(), ImplementationType::Action))
+            {
+                <span class="comment">// we parsed a reference expression to an action but we are not in a call-context: likely an action call without parentheses
+                </span>validator.push_diagnostic(
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;A reference to {qualified_name} exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `{qualified_name}()`&quot;</span>))
+                        .with_error_code(<span class="string">&quot;E095&quot;</span>)
+                        .with_location(location.clone())
+                );
+            }
+        }
+        <span class="kw">_ </span>=&gt; (),
     }
 }
 

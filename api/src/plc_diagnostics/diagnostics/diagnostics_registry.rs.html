@@ -443,6 +443,9 @@
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Returns a diagnostics map with the error code, default severity and a description
 </span><span class="kw">use </span>std::collections::HashMap;
 
@@ -828,7 +831,10 @@
     E094,
     Error,
     <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E094.md&quot;</span>),
-);
+    E095,
+    Error,
+    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E095.md&quot;</span>), <span class="comment">// Action call without `()`
+</span>);
 }
 
 <span class="attr">#[cfg(test)]
