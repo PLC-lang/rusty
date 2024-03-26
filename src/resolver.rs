@@ -11,6 +11,7 @@ use std::{
 };
 
 use indexmap::{IndexMap, IndexSet};
+
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
@@ -25,9 +26,6 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-pub mod const_evaluator;
-pub mod generics;
-
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -38,6 +36,9 @@ use crate::{
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
+
+pub mod const_evaluator;
+pub mod generics;
 
 #[cfg(test)]
 mod tests;
@@ -770,10 +771,6 @@ impl<'i> TypeAnnotator<'i> {
             if let Some((Some(statement), scope)) =
                 enum_element.initial_value.map(|i| index.get_const_expressions().find_expression(&i))
             {
-                if visitor.annotation_map.get(statement).is_none() {
-                    panic!("new expression we did not visit yet")
-                }
-
                 if let Some(scope) = scope {
                     visitor.visit_statement(&ctx.with_pou(scope), statement);
                 } else {
