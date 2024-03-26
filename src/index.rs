@@ -1,11 +1,6 @@
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    builtins::{self, BuiltIn},
-    datalayout::DataLayout,
-    typesystem::{self, *},
-};
 use indexmap::IndexMap;
 use itertools::Itertools;
+
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
     TypeNature,
@@ -13,6 +8,13 @@ use plc_ast::ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
+
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::{
+    builtins::{self, BuiltIn},
+    datalayout::DataLayout,
+    typesystem::{self, *},
+};
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
@@ -1132,8 +1134,7 @@ impl Index {
         self.type_index.find_type(name)?.find_member(variant)
     }
 
-    /// Returns the index entry of the enum variant by its qualified name or [`None`] if it does not
-    /// exist.
+    /// Returns the index entry of the enum variant by its qualified name or [`None`] if it does not exist.
     pub fn find_enum_variant_by_qualified_name(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
         let (name, variant) = qualified_name.split('.').next_tuple()?;
         self.find_enum_variant(name, variant)

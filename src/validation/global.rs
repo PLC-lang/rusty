@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
+
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use std::collections::HashMap;
 
 use crate::index::VariableIndexEntry;
 use crate::{
@@ -113,7 +115,10 @@ impl GlobalValidator {
             }
         }
 
-        // TODO: Improve this; maybe export into function?
+        // We create groups of "buckets", where the key of a group is the enum variant name and the
+        // value of the group is the bucket declared as a vector storing the enum variant Index entries.
+        // If the size of the bucket is >1, we know duplicates are present which we can subsequently report.
+        // For example `Color : (red, green, blue, red)` would yield the group `__color_red, vec![IndexEntry1, IndexEntry2]`
         let mut groups: HashMap<&str, Vec<&VariableIndexEntry>> = HashMap::new();
         for item in index.get_all_enum_variants() {
             let group = groups.entry(item.get_qualified_name()).or_default();
