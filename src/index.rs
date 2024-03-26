@@ -1,3 +1,5 @@
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use indexmap::IndexMap;
 use itertools::Itertools;
 
@@ -9,7 +11,6 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
