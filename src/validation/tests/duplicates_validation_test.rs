@@ -612,6 +612,7 @@ fn duplicate_enum_inline_variants() {
     "###);
 }
 
+// https://github.com/PLC-lang/rusty/issues/1156
 #[test]
 fn multiple_enum_instances_in_var_block_wont_trigger_duplicate_check() {
     let diagnostics = parse_and_validate_buffered(
