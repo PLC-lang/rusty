@@ -13,6 +13,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+use crate::index::ImplementationType;
 use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
     builtins::{self, BuiltIn},
@@ -460,27 +461,47 @@ fn validate_reference<T: AnnotationMap>(
                 );
             }
         }
-    } else if let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
-        context.annotations.get(statement)
-    {
-        // check if we're accessing a private variable AND the variable's qualifier is not the
-        // POU we're accessing it from
-        if argument_type.is_private()
-            && context
-                .qualifier
-                .and_then(|qualifier| context.index.find_pou(qualifier))
-                .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
-                .map_or(false, |(pou, container)| {
-                    !qualified_name.starts_with(pou) && !qualified_name.starts_with(container)
-                })
-        {
-            validator.push_diagnostic(
-                //TODO: maybe default to warning?
-                Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
-                    .with_error_code("E049")
-                    .with_location(location.clone()),
-            );
+
+        return;
+    }
+
+    match context.annotations.get(statement) {
+        Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) => {
+            // check if we're accessing a private variable AND the variable's qualifier is not the
+            // POU we're accessing it from
+            if argument_type.is_private()
+                && context
+                    .qualifier
+                    .and_then(|qualifier| context.index.find_pou(qualifier))
+                    .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
+                    .map_or(false, |(pou, container)| {
+                        !qualified_name.starts_with(pou) && !qualified_name.starts_with(container)
+                    })
+            {
+                validator.push_diagnostic(
+                    //TODO: maybe default to warning?
+                    Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
+                        .with_error_code("E049")
+                        .with_location(location.clone()),
+                );
+            }
         }
+        Some(StatementAnnotation::Program { qualified_name }) => {
+            if !context.is_call()
+                && context
+                    .index
+                    .find_implementation_by_name(qualified_name)
+                    .is_some_and(|it| matches!(it.get_implementation_type(), ImplementationType::Action))
+            {
+                // we parsed a reference expression to an action but we are not in a call-context: likely an action call without parentheses
+                validator.push_diagnostic(
+                    Diagnostic::new(format!("A reference to {qualified_name} exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `{qualified_name}()`"))
+                        .with_error_code("E095")
+                        .with_location(location.clone())
+                );
+            }
+        }
+        _ => (),
     }
 }
 
