@@ -1,4 +1,3 @@
-use insta::_macro_support::assert_snapshot;
 use insta::assert_snapshot;
 
 use plc_ast::{
@@ -611,6 +610,27 @@ fn duplicate_enum_inline_variants() {
       │                        see also
 
     "###);
+}
+
+#[test]
+fn multiple_enum_instances_in_var_block_wont_trigger_duplicate_check() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        TYPE
+            Foo : (A, B, C);
+        END_TYPE
+
+        FUNCTION main
+            VAR
+                fooA : Foo;
+                fooB : Foo;
+                fooC : Foo;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty());
 }
 
 // #[test]

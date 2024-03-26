@@ -5,7 +5,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::{Index, PouIndexEntry, symbol::SymbolMap},
+    index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
 };
 
