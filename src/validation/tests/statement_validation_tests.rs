@@ -1600,7 +1600,20 @@ fn action_calls_without_parentheses() {
     );
 
     // we expect a validation error for each "call"-statement
-    assert_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics, @r###"
+    error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+      ┌─ <internal>:3:13
+      │
+    3 │             FOO;
+      │             ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+
+    error[E095]: A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
+      ┌─ <internal>:4:13
+      │
+    4 │             BAR;
+      │             ^^^ A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
+
+    "###);
 }
 
 #[test]
@@ -1628,7 +1641,14 @@ fn action_as_reference_does_not_cause_parentheses_diagnostic() {
     );
 
     // we expect no missing parentheses diagnostic
-    assert_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'
+      ┌─ <internal>:7:28
+      │
+    7 │             address := ADR(fb1.FOO);
+      │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'
+
+    "###);
     // XXX: change assertion to `assert!(diagnostics.is_empty())` once
     // https://github.com/PLC-lang/rusty/issues/1165 is resolved
 }
@@ -1658,5 +1678,18 @@ fn action_assignment_attempt_does_not_report_missing_parentheses() {
     );
 
     // we expect no missing parentheses diagnostic
-    assert_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics, @r###"
+    error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+      ┌─ <internal>:7:28
+      │
+    7 │             address := fb1.FOO;
+      │                            ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+
+    error[E037]: Invalid assignment: cannot assign 'FOO' to 'LWORD'
+      ┌─ <internal>:7:13
+      │
+    7 │             address := fb1.FOO;
+      │             ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'LWORD'
+
+    "###);
 }
