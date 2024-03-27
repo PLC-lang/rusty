@@ -1577,3 +1577,119 @@ fn while_loop_triggers_error_if_condition_is_not_boolean() {
 
     "###);
 }
+
+#[test]
+fn action_calls_without_parentheses() {
+    // Given a POU with defined actions,
+    // when trying to call them without parentheses
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb1
+            FOO;
+            BAR;
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+            ACTION FOO
+            END_ACTION
+
+            ACTION BAR
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    // we expect a validation error for each "call"-statement
+    assert_snapshot!(diagnostics, @r###"
+    error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+      ┌─ <internal>:3:13
+      │
+    3 │             FOO;
+      │             ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+
+    error[E095]: A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
+      ┌─ <internal>:4:13
+      │
+    4 │             BAR;
+      │             ^^^ A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
+
+    "###);
+}
+
+#[test]
+fn action_as_reference_does_not_cause_parentheses_diagnostic() {
+    // Given a POU with defined actions,
+    // when getting the address of a qualified action reference
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prog
+        VAR
+            fb : fb1;
+            address: LWORD;
+        END_VAR
+            address := ADR(fb1.FOO);
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb1
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+            ACTION FOO
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    // we expect no missing parentheses diagnostic
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'
+      ┌─ <internal>:7:28
+      │
+    7 │             address := ADR(fb1.FOO);
+      │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'
+
+    "###);
+    // XXX: change assertion to `assert!(diagnostics.is_empty())` once
+    // https://github.com/PLC-lang/rusty/issues/1165 is resolved
+}
+
+#[test]
+fn action_assignment_attempt_does_not_report_missing_parentheses() {
+    // Given a qualified action reference,
+    // when trying to assign it to a variable
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prog
+        VAR
+            fb : fb1;
+            address: LWORD;
+        END_VAR
+            address := fb1.FOO;
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb1
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+            ACTION FOO
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    // we expect no missing parentheses diagnostic
+    assert_snapshot!(diagnostics, @r###"
+    error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+      ┌─ <internal>:7:28
+      │
+    7 │             address := fb1.FOO;
+      │                            ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+
+    error[E037]: Invalid assignment: cannot assign 'FOO' to 'LWORD'
+      ┌─ <internal>:7:13
+      │
+    7 │             address := fb1.FOO;
+      │             ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'LWORD'
+
+    "###);
+}
