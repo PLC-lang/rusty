@@ -609,22 +609,6 @@ fn duplicate_enum_inline_variants() {
       │                        │         
       │                        see also
 
-    error[E004]: __main_foo.a: Duplicate symbol.
-      ┌─ <internal>:4:24
-      │
-    4 │                 foo : (a, b, c, a);
-      │                        ^        - see also
-      │                        │         
-      │                        __main_foo.a: Duplicate symbol.
-
-    error[E004]: __main_foo.a: Duplicate symbol.
-      ┌─ <internal>:4:33
-      │
-    4 │                 foo : (a, b, c, a);
-      │                        -        ^ __main_foo.a: Duplicate symbol.
-      │                        │         
-      │                        see also
-
     "###);
 }
 

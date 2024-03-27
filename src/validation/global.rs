@@ -1,9 +1,10 @@
-use itertools::Itertools;
+use std::collections::HashMap;
 
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
+use crate::index::VariableIndexEntry;
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
@@ -92,23 +93,17 @@ impl GlobalValidator {
 
         self.check_uniqueness_of_cluster(globals.chain(prgs), Some("Ambiguous global variable."));
 
+        // Variables in general
         for ty in index.get_types().values().chain(index.get_pou_types().values()) {
-            let members = ty
-                .get_members()
-                .iter()
-                .chain(index.get_enum_variants_in_pou(ty.get_name()))
-                .sorted_by_key(|it| it.get_name().to_lowercase())
-                .collect_vec();
-            for (_, mut vars) in &members.iter().group_by(|it| it.get_name().to_lowercase()) {
-                if let Some(first) = vars.next() {
-                    if let Some(second) = vars.next() {
-                        //Collect remaining
-                        let mut locations: Vec<_> = vars.map(|it| &it.source_location).collect();
-                        locations.push(&first.source_location);
-                        locations.push(&second.source_location);
-                        self.report_name_conflict(first.get_qualified_name(), locations.as_slice(), None)
-                    }
-                }
+            let mut groups: HashMap<&str, Vec<&VariableIndexEntry>> = HashMap::new();
+            for variable in ty.get_members() {
+                let group = groups.entry(variable.get_qualified_name()).or_default();
+                group.push(variable);
+            }
+
+            for duplicates in groups.values().filter(|it| it.len() > 1) {
+                let locations = duplicates.iter().map(|it| &it.source_location).collect::<Vec<_>>();
+                self.report_name_conflict(duplicates[0].get_qualified_name(), &locations, None);
             }
         }
     }
