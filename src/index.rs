@@ -1121,15 +1121,9 @@ impl Index {
             None => self.find_global_variable(segments[0]),
         };
 
-        segments
-            .iter()
-            .skip(1)
-            .try_fold((segments[0], init), |accum, current| match accum {
-                (_, Some(context)) => Some((*current, self.find_member(&context.data_type_name, current))),
-                // The variable could be in a block that has no global variable (Function block)
-                (name, None) => Some((*current, self.find_member(name, current))),
-            })
-            .and_then(|(_, it)| it)
+        segments.iter().skip(1).fold(init, |context, current| {
+            context.and_then(|context| self.find_member(&context.data_type_name, current))
+        })
     }
 
     /// Returns the index entry of the enum variant or [`None`] if it does not exist.
