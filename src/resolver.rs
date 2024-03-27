@@ -644,6 +644,7 @@ impl AnnotationMapImpl {
         self.type_hint_map.extend(other.type_hint_map);
         self.hidden_function_calls.extend(other.hidden_function_calls);
         self.new_index.import(other.new_index);
+        self.generic_nature_map.extend(other.generic_nature_map);
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name

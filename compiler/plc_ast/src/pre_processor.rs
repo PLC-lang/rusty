@@ -179,7 +179,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
     let mut generic_types = HashMap::new();
     let mut types = vec![];
     for binding in &pou.generics {
-        let new_name = format!("__{}__{}", pou.name, binding.name); // TODO: Naming convention (see plc_util/src/convention.rs)
+        let new_name = plc_util::convention::generic_binding_type_name(&pou.name, &binding.name);
 
         //Generate a type for the generic
         let data_type = UserTypeDeclaration {
