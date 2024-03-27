@@ -203,6 +203,13 @@ impl DataType {
         }
     }
 
+    pub fn get_struct_members(&self) -> &[VariableIndexEntry] {
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. } => members,
+            _ => &[],
+        }
+    }
+
     pub fn get_members(&self) -> &[VariableIndexEntry] {
         match self.get_type_information() {
             DataTypeInformation::Struct { members, .. }
