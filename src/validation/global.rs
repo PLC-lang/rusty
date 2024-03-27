@@ -96,7 +96,7 @@ impl GlobalValidator {
             let members = ty
                 .get_members()
                 .iter()
-                // .chain(index.get_enum_variants_in_pou(ty.get_name()))
+                .chain(index.get_enum_variants_in_pou(ty.get_name()))
                 .sorted_by_key(|it| it.get_name().to_lowercase())
                 .collect_vec();
             for (_, mut vars) in &members.iter().group_by(|it| it.get_name().to_lowercase()) {
