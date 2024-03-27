@@ -18,6 +18,7 @@ fn parse_prefix(input: &str) -> ParseResult<Prefix> {
     let fn_prefix = tag("fn").map(|_| Prefix::Fn);
     let var_prefix = tag("var").map(|_| Prefix::Var);
 
+    let (input, _) = tag(crate::PREFIX)(input)?;
     let (input, prefix) = alt((fn_prefix, var_prefix))(input)?;
 
     Ok((input, prefix))
@@ -87,8 +88,12 @@ mod tests {
 
     #[test]
     fn parse_prefix_valid() {
-        assert!(parse_prefix("fn").is_ok());
-        assert!(parse_prefix("var").is_ok());
+        assert!(parse_prefix("$RUSTY$fn").is_ok());
+        assert!(parse_prefix("$RUSTY$var").is_ok());
+
+        assert!(parse_prefix("$RUSTY$random").is_err());
+        assert!(parse_prefix("fn").is_err());
+        assert!(parse_prefix("var").is_err());
 
         assert!(parse_prefix("").is_err());
         assert!(parse_prefix("a random prefix").is_err());
@@ -137,5 +142,10 @@ mod tests {
 
         assert!(type_pointer("p").is_err());
         assert!(type_pointer("i0").is_err());
+    }
+
+    #[test]
+    fn parse_variable() {
+        SectionMangler::from("$RUSTY$var-name:u8");
     }
 }
