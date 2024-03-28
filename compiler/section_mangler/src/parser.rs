@@ -1,9 +1,12 @@
 use crate::{SectionMangler, Type};
 
+use std::str;
+
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_until1};
 use nom::character::complete::{char, digit1};
 use nom::combinator::map_res;
+use nom::multi::many_m_n;
 use nom::sequence::delimited;
 use nom::{IResult, Parser};
 
@@ -32,7 +35,7 @@ fn type_void(input: &str) -> ParseResult<Type> {
     char('v').map(|_| Type::Void).parse(input)
 }
 
-fn take_u32(input: &str) -> ParseResult<u32> {
+fn number<T: str::FromStr>(input: &str) -> ParseResult<T> {
     map_res(digit1, str::parse)(input)
 }
 
@@ -45,21 +48,27 @@ fn type_integer(input: &str) -> ParseResult<Type> {
     }
 
     parse_signedness
-        .and(take_u32)
+        .and(number::<u32>)
         .map(|(signed, size)| Type::Integer { signed, size, semantic_size: None })
         .parse(input)
 }
 
 fn type_float(input: &str) -> ParseResult<Type> {
-    char('f').and(take_u32).map(|(_, size)| Type::Float { size }).parse(input)
+    char('f').and(number::<u32>).map(|(_, size)| Type::Float { size }).parse(input)
 }
 
 fn type_pointer(input: &str) -> ParseResult<Type> {
     char('p').and(parse_type).map(|(_, inner)| Type::Pointer { inner: Box::new(inner) }).parse(input)
 }
 
+fn type_struct(input: &str) -> ParseResult<Type> {
+    let (input, (_, n)) = char('r').and(number::<usize>).parse(input)?;
+
+    many_m_n(n, n, parse_type).map(|members| Type::Struct { members }).parse(input)
+}
+
 fn parse_type(input: &str) -> ParseResult<Type> {
-    alt((type_void, type_integer, type_float, type_pointer))(input)
+    alt((type_void, type_integer, type_float, type_pointer, type_struct))(input)
 }
 
 fn parse_var_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionMangler> {
@@ -145,7 +154,24 @@ mod tests {
     }
 
     #[test]
+    fn parse_struct() {
+        assert!(type_struct("r1u8").is_ok());
+        assert!(type_struct("r1r2u8u49").is_ok());
+        assert!(type_struct("r5pu8r1u8u32u32pv").is_ok());
+
+        // these are fine - we parse a struct which is valid, but we have remaining input.
+        // this needs to be handled by the toplevel parse function
+        assert!(type_struct("r0u8u8").is_ok());
+        assert!(type_struct("r1u8u8").is_ok());
+
+        // invalid number of elements
+        assert!(type_struct("r15u8").is_err());
+        assert!(type_struct("r1").is_err());
+        assert!(type_struct("r2r1u8").is_err());
+    }
+
+    #[test]
     fn parse_variable() {
-        SectionMangler::from("$RUSTY$var-name:u8");
+        let _ = SectionMangler::from("$RUSTY$var-name:u8");
     }
 }
