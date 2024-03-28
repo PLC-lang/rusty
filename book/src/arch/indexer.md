@@ -16,7 +16,6 @@ Depending on the type of element, we store different meta-information alongside 
 |---------------------------|------------------------------------------|
 | global_variables          |  All global variables accessible via their name.  |
 | enum_global_variables     |  All enum elements accessible via their name (as if they were global variables, e.g. 'RED')  |
-| enum_qualified_variables  |  All enum elements accessible via their qualified name (e.g. 'COLOR.RED').                             |
 | member_variables          |  Member variables of structured types (Structs,Functionblocks, etc. This map allows to query all members of a container by name.) |
 | implementations           |  All callable implementations (Programs, Functions, Actions, Functionblocks) accessible by their name.    |
 | pous                      |  All pous (Programs, Functions, Functionblocks) with additional information.    |

@@ -11,6 +11,7 @@ use std::{
 };
 
 use indexmap::{IndexMap, IndexSet};
+
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
@@ -25,9 +26,6 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-pub mod const_evaluator;
-pub mod generics;
-
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -38,6 +36,9 @@ use crate::{
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
+
+pub mod const_evaluator;
+pub mod generics;
 
 #[cfg(test)]
 mod tests;
@@ -764,18 +765,12 @@ impl<'i> TypeAnnotator<'i> {
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we should try to resolve and type-annotate them here as well
-        for enum_element in
-            index.get_global_qualified_enums().values().filter(|it| it.is_in_unit(&unit.file_name))
-        {
+        for enum_element in index.get_all_enum_variants().iter().filter(|it| it.is_in_unit(&unit.file_name)) {
             //Add to dependency map
             visitor.dependencies.insert(Dependency::Variable(enum_element.get_qualified_name().to_string()));
             if let Some((Some(statement), scope)) =
                 enum_element.initial_value.map(|i| index.get_const_expressions().find_expression(&i))
             {
-                if visitor.annotation_map.get(statement).is_none() {
-                    panic!("new expression we did not visit yet")
-                }
-
                 if let Some(scope) = scope {
                     visitor.visit_statement(&ctx.with_pou(scope), statement);
                 } else {
@@ -2049,7 +2044,7 @@ impl ResolvingScope {
                     // look for variable, enum with name "qualifier.name"
                     index
                         .find_member(qualifier, name)
-                        .or_else(|| index.find_qualified_enum_element(format!("{qualifier}.{name}").as_str()))
+                        .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } else {
                     // look for member variable with name "pou.name"

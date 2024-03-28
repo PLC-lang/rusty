@@ -1,6 +1,9 @@
 /// Returns a diagnostics map with the error code, default severity and a description
 use std::collections::HashMap;
 
+use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
+
 use crate::diagnostician::DiagnosticAssessor;
 
 use super::{
@@ -97,8 +100,6 @@ impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
     }
 }
 
-use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize};
 lazy_static! {
     static ref DIAGNOSTICS: HashMap<&'static str, DiagnosticEntry> = add_diagnostic!(
     E001,
@@ -372,7 +373,7 @@ lazy_static! {
     Warning,
     include_str!("./error_codes/E090.md"), //Incompatible reference Assignment
     E091,
-    Error,
+    Warning,
     include_str!("./error_codes/E091.md"),
     E092,
     Info,
