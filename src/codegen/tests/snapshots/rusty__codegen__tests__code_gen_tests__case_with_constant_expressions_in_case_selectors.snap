@@ -9,7 +9,7 @@ source_filename = "main"
 @UP = unnamed_addr constant i32 8
 @DOWN = unnamed_addr constant i32 15
 
-define i32 @drive() {
+define i32 @drive() section "fn-drive:i32" {
 entry:
   %drive = alloca i32, align 4
   %input = alloca i32, align 4
@@ -58,4 +58,3 @@ continue:                                         ; preds = %else, %case6, %case
   %drive_ret = load i32, i32* %drive, align 4
   ret i32 %drive_ret
 }
-

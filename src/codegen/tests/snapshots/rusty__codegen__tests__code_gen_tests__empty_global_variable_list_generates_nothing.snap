@@ -9,8 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   ret void
 }
-

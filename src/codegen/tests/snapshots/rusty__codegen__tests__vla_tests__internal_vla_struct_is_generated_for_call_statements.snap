@@ -9,14 +9,14 @@ source_filename = "main"
 
 @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
-define void @foo(%__foo_vla %0) {
+define void @foo(%__foo_vla %0) section "fn-foo:v[v]" {
 entry:
   %vla = alloca %__foo_vla, align 8
   store %__foo_vla %0, %__foo_vla* %vla, align 8
   ret void
 }
 
-define void @bar() {
+define void @bar() section "fn-bar:v" {
 entry:
   %arr = alloca [2 x i16], align 2
   %0 = bitcast [2 x i16]* %arr to i8*
@@ -37,4 +37,3 @@ entry:
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-

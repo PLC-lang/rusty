@@ -9,7 +9,7 @@ source_filename = "main"
 
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
-define void @func(%myStruct* %0, %myStruct* %1) {
+define void @func(%myStruct* %0, %myStruct* %1) section "fn-func:v[pv]" {
 entry:
   %func = alloca %myStruct*, align 8
   store %myStruct* %0, %myStruct** %func, align 8
@@ -25,4 +25,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-

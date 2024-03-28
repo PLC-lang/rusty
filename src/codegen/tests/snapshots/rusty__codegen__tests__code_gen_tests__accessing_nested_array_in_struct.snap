@@ -11,7 +11,7 @@ source_filename = "main"
 @Main_instance = global %Main zeroinitializer
 @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
-define void @Main(%Main* %0) {
+define void @Main(%Main* %0) section "fn-Main:v" {
 entry:
   %m = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %field1 = getelementptr inbounds %MyStruct, %MyStruct* %m, i32 0, i32 0
@@ -19,4 +19,3 @@ entry:
   store i16 7, i16* %tmpVar, align 2
   ret void
 }
-

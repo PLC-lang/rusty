@@ -11,7 +11,7 @@ source_filename = "main"
 @mainProg_instance = global %mainProg zeroinitializer
 @__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
 
-define void @mainProg(%mainProg* %0) {
+define void @mainProg(%mainProg* %0) section "fn-mainProg:v" {
 entry:
   %fb = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 1
@@ -35,7 +35,7 @@ entry:
   ret void
 }
 
-define void @fb_t(%fb_t* %0) {
+define void @fb_t(%fb_t* %0) section "fn-fb_t:v[u8][pu8][u8][pu8]" {
 entry:
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
@@ -45,7 +45,7 @@ entry:
   ret void
 }
 
-define void @fb_t.foo(%fb_t* %0) {
+define void @fb_t.foo(%fb_t* %0) section "fn-fb_t.foo:v" {
 entry:
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
@@ -58,4 +58,3 @@ entry:
   store i8 %load_myOtherInOut, i8* %deref, align 1
   ret void
 }
-

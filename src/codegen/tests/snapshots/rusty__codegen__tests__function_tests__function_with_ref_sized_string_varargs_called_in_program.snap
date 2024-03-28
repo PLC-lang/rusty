@@ -12,9 +12,9 @@ source_filename = "main"
 @utf08_literal_1 = private unnamed_addr constant [4 x i8] c"abc\00"
 @utf08_literal_2 = private unnamed_addr constant [7 x i8] c"abcdef\00"
 
-declare i32 @foo(i32, i8**)
+declare i32 @foo(i32, i8**) section "fn-foo:i32"
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %1 = alloca [3 x i8*], align 8
@@ -29,4 +29,3 @@ entry:
   store i32 %call, i32* %x, align 4
   ret void
 }
-

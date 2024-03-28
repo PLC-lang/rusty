@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @main() {
+define i32 @main() section "fn-main:i32" {
 entry:
   %main = alloca i32, align 4
   %i = alloca i32, align 4
@@ -23,4 +23,3 @@ entry:
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }
-

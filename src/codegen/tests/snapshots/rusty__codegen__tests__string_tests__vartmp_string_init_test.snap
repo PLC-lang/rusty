@@ -10,7 +10,7 @@ source_filename = "main"
 @prg_instance = global %prg zeroinitializer
 @__prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %y = alloca [16 x i8], align 1
   %z = alloca [31 x i8], align 1
@@ -29,4 +29,3 @@ declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
-

@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer
 @__myArray__init = unnamed_addr constant [4 x i32] [i32 1, i32 2, i32 3, i32 4]
 
-define void @target([4 x i32]* %0) {
+define void @target([4 x i32]* %0) section "fn-target:v" {
 entry:
   %target = alloca [4 x i32]*, align 8
   store [4 x i32]* %0, [4 x i32]** %target, align 8
@@ -23,7 +23,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -42,4 +42,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-

@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -20,4 +20,3 @@ entry:
   %tmpVar = fadd double %1, %2
   ret void
 }
-

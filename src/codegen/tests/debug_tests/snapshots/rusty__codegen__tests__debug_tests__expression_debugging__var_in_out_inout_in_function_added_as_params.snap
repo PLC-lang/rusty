@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @myFunc(i16* %0) !dbg !4 {
+define i32 @myFunc(i16* %0) section "fn-myFunc:i32[pi16]" !dbg !4 {
 entry:
   %myFunc = alloca i32, align 4, !dbg !10
   %x = alloca i16*, align 8, !dbg !10
@@ -46,4 +46,3 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !13 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !14, align: 32)
 !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !15 = !DILocation(line: 2, column: 17, scope: !4)
-

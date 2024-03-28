@@ -13,7 +13,7 @@ source_filename = "main"
 @__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer
 @__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer
 
-define void @Main(%Main* %0) {
+define void @Main(%Main* %0) section "fn-Main:v" {
 entry:
   %m = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
@@ -24,4 +24,3 @@ entry:
   store i16 7, i16* %inner2, align 2
   ret void
 }
-

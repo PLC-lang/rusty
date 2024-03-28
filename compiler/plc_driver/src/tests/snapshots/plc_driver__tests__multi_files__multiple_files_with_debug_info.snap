@@ -9,7 +9,7 @@ source_filename = "file1.st"
 
 @mainProg_instance = external global %mainProg, !dbg !0
 
-define i16 @main() !dbg !10 {
+define i16 @main() section "fn-main:i16" !dbg !10 {
 entry:
   %main = alloca i16, align 2, !dbg !14
   call void @llvm.dbg.declare(metadata i16* %main, metadata !15, metadata !DIExpression()), !dbg !17
@@ -19,7 +19,7 @@ entry:
   ret i16 %main_ret, !dbg !14
 }
 
-declare !dbg !18 void @mainProg(%mainProg*)
+declare !dbg !18 void @mainProg(%mainProg*) section "fn-mainProg:v"
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -56,7 +56,7 @@ source_filename = "file2.st"
 
 @mainProg_instance = global %mainProg zeroinitializer, !dbg !0
 
-define void @mainProg(%mainProg* %0) !dbg !10 {
+define void @mainProg(%mainProg* %0) section "fn-mainProg:v" !dbg !10 {
 entry:
   call void @llvm.dbg.declare(metadata %mainProg* %0, metadata !13, metadata !DIExpression()), !dbg !14
   ret void, !dbg !14
@@ -85,4 +85,3 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !12 = !{null}
 !13 = !DILocalVariable(name: "mainProg", scope: !10, file: !2, line: 2, type: !3)
 !14 = !DILocation(line: 5, column: 4, scope: !10)
-

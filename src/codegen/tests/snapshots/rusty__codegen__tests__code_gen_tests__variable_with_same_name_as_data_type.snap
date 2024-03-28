@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prog_instance = global %prog zeroinitializer
 
-define i64 @func() {
+define i64 @func() section "fn-func:i64" {
 entry:
   %func = alloca i64, align 8
   %TIME = alloca i64, align 8
@@ -19,9 +19,8 @@ entry:
   ret i64 %func_ret
 }
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v" {
 entry:
   %TIME = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void
 }
-

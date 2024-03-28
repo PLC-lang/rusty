@@ -11,7 +11,7 @@ source_filename = "main"
 @__prg.s__init = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-define i16 @foo([81 x i8] %0) {
+define i16 @foo([81 x i8] %0) section "fn-foo:i16[s8u81]" {
 entry:
   %foo = alloca i16, align 2
   %s = alloca [81 x i8], align 1
@@ -25,7 +25,7 @@ buffer_block:                                     ; No predecessors!
   ret i16 %foo_ret1
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -60,4 +60,3 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) 
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
 attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-

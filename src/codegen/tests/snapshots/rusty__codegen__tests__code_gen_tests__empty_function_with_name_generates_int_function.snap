@@ -5,11 +5,10 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @foo() {
+define i16 @foo() section "fn-foo:i16" {
 entry:
   %foo = alloca i16, align 2
   store i16 0, i16* %foo, align 2
   %foo_ret = load i16, i16* %foo, align 2
   ret i16 %foo_ret
 }
-

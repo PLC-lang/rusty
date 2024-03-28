@@ -235,7 +235,7 @@ fn codegen_of_a_program_pou() {
 
     @main_prg_instance = global %main_prg zeroinitializer
 
-    define void @main_prg(%main_prg* %0) {
+    define void @main_prg(%main_prg* %0) section "fn-main_prg:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
@@ -273,7 +273,7 @@ fn calling_a_program() {
 
     @main_prg_instance = global %main_prg zeroinitializer
 
-    define i16 @foo() {
+    define i16 @foo() section "fn-foo:i16" {
     entry:
       %foo = alloca i16, align 2
       %x = alloca i16, align 2
@@ -290,7 +290,7 @@ fn calling_a_program() {
       ret i16 %foo_ret
     }
 
-    define void @main_prg(%main_prg* %0) {
+    define void @main_prg(%main_prg* %0) section "fn-main_prg:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
@@ -337,7 +337,7 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
 
     @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
-    define void @main_fb(%main_fb* %0) {
+    define void @main_fb(%main_fb* %0) section "fn-main_fb:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
@@ -378,7 +378,7 @@ fn calling_a_function_block() {
     @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }
     @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
-    define void @foo(%foo* %0) {
+    define void @foo(%foo* %0) section "fn-foo:v" {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
@@ -394,7 +394,7 @@ fn calling_a_function_block() {
       ret void
     }
 
-    define void @main_fb(%main_fb* %0) {
+    define void @main_fb(%main_fb* %0) section "fn-main_fb:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
@@ -431,7 +431,7 @@ fn function_get_a_method_with_by_ref_parameters() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
+    define i32 @main_fun(i16 %0, i8* %1, i64* %2) section "fn-main_fun:i32[i16][pi8][pi64]" {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
@@ -477,7 +477,7 @@ fn calling_a_function() {
 
     @prg_instance = global %prg zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(%prg* %0) section "fn-prg:v" {
     entry:
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -487,7 +487,7 @@ fn calling_a_function() {
       ret void
     }
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
+    define i32 @main_fun(i16 %0, i8* %1, i64* %2) section "fn-main_fun:i32[i16][pi8][pi64]" {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
@@ -540,7 +540,7 @@ fn return_a_complex_type_from_function() {
     @prg_instance = global %prg zeroinitializer
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
-    define void @foo([81 x i8]* %0) {
+    define void @foo([81 x i8]* %0) section "fn-foo:s8u81" {
     entry:
       %foo = alloca [81 x i8]*, align 8
       store [81 x i8]* %0, [81 x i8]** %foo, align 8
@@ -553,7 +553,7 @@ fn return_a_complex_type_from_function() {
       ret void
     }
 
-    define void @prg(%prg* %0) {
+    define void @prg(%prg* %0) section "fn-prg:v" {
     entry:
       %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %1 = alloca [81 x i8], align 1
@@ -610,7 +610,7 @@ fn passing_by_ref_to_functions() {
 
     @main_instance = global %main zeroinitializer
 
-    define i8 @StrEqual(i8* %0, i8* %1) {
+    define i8 @StrEqual(i8* %0, i8* %1) section "fn-StrEqual:u8[ps8u81][ps8u81]" {
     entry:
       %StrEqual = alloca i8, align 1
       %o1 = alloca i8*, align 8
@@ -622,7 +622,7 @@ fn passing_by_ref_to_functions() {
       ret i8 %StrEqual_ret
     }
 
-    define void @main(%main* %0) {
+    define void @main(%main* %0) section "fn-main:v" {
     entry:
       %str1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %str2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1

@@ -19,7 +19,7 @@ source_filename = "main"
 @prog_instance = global %prog zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v[pv][pv][pv]" {
 entry:
   %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %input2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
@@ -27,7 +27,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
   store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
@@ -39,4 +39,3 @@ entry:
   call void @prog(%prog* @prog_instance)
   ret void
 }
-

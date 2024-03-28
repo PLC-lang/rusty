@@ -13,18 +13,17 @@ source_filename = "main"
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 
-define void @TON(%TON* %0) {
+define void @TON(%TON* %0) section "fn-TON:v[i16][i16]" {
 entry:
   %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
   %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %TEN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   %struct2 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
   ret void
 }
-

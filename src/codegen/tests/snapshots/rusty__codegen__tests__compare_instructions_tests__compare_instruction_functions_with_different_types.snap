@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define float @foo() {
+define float @foo() section "fn-foo:f32" {
 entry:
   %foo = alloca float, align 4
   store float 0.000000e+00, float* %foo, align 4
@@ -17,7 +17,7 @@ entry:
   ret float %foo_ret
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %ptr_float = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -125,4 +125,3 @@ entry:
   %38 = zext i1 %tmpVar35 to i8
   ret void
 }
-

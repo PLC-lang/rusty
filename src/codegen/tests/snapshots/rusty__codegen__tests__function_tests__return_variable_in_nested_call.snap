@@ -5,7 +5,7 @@ expression: codegen(src)
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @main() {
+define i32 @main() section "fn-main:i32" {
 entry:
   %main = alloca i32, align 4
   %x1 = alloca i32, align 4
@@ -20,7 +20,7 @@ entry:
   ret i32 %main_ret
 }
 
-define i32 @SMC_Read(i64 %0) {
+define i32 @SMC_Read(i64 %0) section "fn-SMC_Read:i32[u64]" {
 entry:
   %SMC_Read = alloca i32, align 4
   %ValAddr = alloca i64, align 8
@@ -29,4 +29,3 @@ entry:
   %SMC_Read_ret = load i32, i32* %SMC_Read, align 4
   ret i32 %SMC_Read_ret
 }
-

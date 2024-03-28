@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main { i16 10, i16 20, i16* null, i8 0 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -60,4 +60,3 @@ entry:
   store i8 %18, i8* %comp, align 1
   ret void
 }
-

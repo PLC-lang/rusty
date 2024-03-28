@@ -5,7 +5,7 @@ expression: prog
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @main() {
+define i16 @main() section "fn-main:i16" {
 entry:
   %main = alloca i16, align 2
   %c = alloca i32, align 4
@@ -18,4 +18,3 @@ entry:
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret
 }
-

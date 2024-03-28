@@ -11,7 +11,7 @@ source_filename = "main"
 @foo_instance = global %foo { i16 7 }
 @prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) {
+define void @foo(%foo* %0) section "fn-foo:v" {
 entry:
   %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %y = alloca i16, align 2
@@ -26,9 +26,8 @@ entry:
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   call void @foo(%foo* @foo_instance)
   ret void
 }
-

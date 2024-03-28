@@ -25,7 +25,7 @@ source_filename = "main"
 @cLDT_SHORT = unnamed_addr constant i64 172799123000000
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %t1 = alloca i64, align 8
   %t2 = alloca i64, align 8
@@ -77,4 +77,3 @@ entry:
   store i64 172799123000000, i64* %ldt2, align 4
   ret void
 }
-

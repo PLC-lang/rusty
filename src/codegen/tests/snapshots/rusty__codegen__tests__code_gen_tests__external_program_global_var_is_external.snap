@@ -9,5 +9,4 @@ source_filename = "main"
 
 @prg_instance = external global %prg
 
-declare void @prg(%prg*)
-
+declare void @prg(%prg*) section "fn-prg:v"

@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/expression_tests.rs
-assertion_line: 538
 expression: result
 ---
 ; ModuleID = 'main'
@@ -10,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %cmp1 = alloca i8, align 1
   %cmp2 = alloca i8, align 1
@@ -38,4 +37,3 @@ entry:
   store i8 1, i8* %cmp8, align 1
   ret void
 }
-
