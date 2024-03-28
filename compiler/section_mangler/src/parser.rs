@@ -67,8 +67,16 @@ fn type_struct(input: &str) -> ParseResult<Type> {
     many_m_n(n, n, parse_type).map(|members| Type::Struct { members }).parse(input)
 }
 
+fn type_enum(input: &str) -> ParseResult<Type> {
+    char('e')
+        .and(number::<usize>)
+        .and(parse_type)
+        .map(|((_, elements), ty)| Type::Enum { referenced_type: Box::new(ty), elements })
+        .parse(input)
+}
+
 fn parse_type(input: &str) -> ParseResult<Type> {
-    alt((type_void, type_integer, type_float, type_pointer, type_struct))(input)
+    alt((type_void, type_integer, type_float, type_pointer, type_struct, type_enum))(input)
 }
 
 fn parse_var_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionMangler> {
@@ -168,6 +176,15 @@ mod tests {
         assert!(type_struct("r15u8").is_err());
         assert!(type_struct("r1").is_err());
         assert!(type_struct("r2r1u8").is_err());
+    }
+
+    #[test]
+    fn parse_enum() {
+        assert!(type_enum("e15u8").is_ok());
+        assert!(type_enum("e12pv").is_ok());
+
+        assert!(type_enum("e1").is_err());
+        assert!(type_enum("eu8").is_err());
     }
 
     #[test]
