@@ -49,20 +49,20 @@ mod parser;
 /// The main builder type of this crate. Use it to create mangling contexts, in
 /// order to encode and decode binary type information.
 // TODO: Add example code for using this builder
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum SectionMangler {
     Function(FunctionMangler),
     Variable(VariableMangler),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FunctionMangler {
     name: String,
     parameters: Vec<FunctionArgument>,
     return_type: Option<Type>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct VariableMangler {
     name: String,
     ty: Type,
@@ -118,7 +118,7 @@ impl SectionMangler {
 // NOTE: This is called `variable_linkage` in the `MemberInfo` struct.
 
 /// We have to encode this because if it changes, the function needs to be reloaded - this is an ABI breakage
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum FunctionArgument {
     ByValue(Type),
     ByRef(Type),
@@ -135,7 +135,7 @@ impl fmt::Display for FunctionArgument {
 }
 
 // TODO: Do we have to encode this? Does that affect ABI? Probably
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum StringEncoding {
     // TODO: Should we encode this differently? this could cause problems compared to encoding unsigned types
     /// Encoded as `8u`
@@ -155,7 +155,7 @@ impl fmt::Display for StringEncoding {
 
 // This maps directly to the [`DataTypeInformation`] enum in RuSTy - we simply remove some fields and add the ability to encode/decode serialize/deserialize
 // TODO: Do we have to handle Generic?
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     /// Encoded as `v`
     Void,
