@@ -77,6 +77,13 @@ impl SectionMangler {
         SectionMangler::Variable(VariableMangler { name: name.into(), ty })
     }
 
+    pub fn name(&self) -> &str {
+        match self {
+            SectionMangler::Function(FunctionMangler { name, .. })
+            | SectionMangler::Variable(VariableMangler { name, .. }) => name,
+        }
+    }
+
     pub fn with_parameter(self, param: FunctionArgument) -> SectionMangler {
         match self {
             SectionMangler::Function(f) => {
