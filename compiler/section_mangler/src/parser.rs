@@ -1,4 +1,4 @@
-use crate::{SectionMangler, Type};
+use crate::{FunctionArgument, SectionMangler, Type};
 
 use std::str;
 
@@ -6,7 +6,7 @@ use nom::branch::alt;
 use nom::bytes::complete::{tag, take_until1};
 use nom::character::complete::{char, digit1};
 use nom::combinator::map_res;
-use nom::multi::many_m_n;
+use nom::multi::{many0, many_m_n};
 use nom::sequence::delimited;
 use nom::{IResult, Parser};
 
@@ -85,6 +85,23 @@ fn parse_var_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionM
     Ok((input, SectionMangler::variable(name, ty)))
 }
 
+fn parse_fn_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionMangler> {
+    let (input, return_type) = parse_type(input)?;
+    let (input, parameters) = delimited(char('['), many0(parse_type), char(']'))(input)?;
+
+    // TODO: Do not always encode parameters as ByValue
+    let mangler = parameters
+        .into_iter()
+        .fold(SectionMangler::function(name).with_return_type(Some(return_type)), |mangler, param| {
+            mangler.with_parameter(FunctionArgument::ByValue(param))
+        });
+
+    // TODO: Would it be better for the function to encode the number of arguments it has?
+    // or just parse what is in between `[]` like we do currently?
+
+    Ok((input, mangler))
+}
+
 // We don't need to handle any kind of errors, because an invalid mangled string can only be
 // caused by a programming error or a mismatch in versions
 impl From<&str> for SectionMangler {
@@ -94,7 +111,7 @@ impl From<&str> for SectionMangler {
 
         match prefix {
             Prefix::Var => parse_var_content(input, name).unwrap().1,
-            Prefix::Fn => todo!(),
+            Prefix::Fn => parse_fn_content(input, name).unwrap().1,
         }
     }
 }
@@ -190,5 +207,25 @@ mod tests {
     #[test]
     fn parse_variable() {
         let _ = SectionMangler::from("$RUSTY$var-name:u8");
+    }
+
+    #[test]
+    fn parse_function() {
+        let _ = SectionMangler::from("$RUSTY$fn-foo:u8[]");
+        let _ = SectionMangler::from("$RUSTY$fn-foo:v[]");
+        let _ = SectionMangler::from("$RUSTY$fn-foo:v[pvu8]");
+        let _ = SectionMangler::from("$RUSTY$fn-foo:e156u394[pvu8r1e12u8]");
+    }
+
+    #[test]
+    #[should_panic]
+    fn parse_function_invalid_no_return_type() {
+        let _ = SectionMangler::from("$RUSTY$fn-no_return_type:[]");
+    }
+
+    #[test]
+    #[should_panic]
+    fn parse_function_invalid_no_arguments() {
+        let _ = SectionMangler::from("$RUSTY$fn-no_arguments:u16u8");
     }
 }
