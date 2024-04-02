@@ -23,10 +23,11 @@ use std::collections::HashMap;
 /// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
-use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
+use crate::index::{ArgumentType, ImplementationIndexEntry, VariableIndexEntry};
 
 use crate::index::Index;
 use indexmap::{IndexMap, IndexSet};
+use inkwell::types::PointerType;
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -165,11 +166,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .iter()
             .enumerate()
             .map(|(i, p)| match declared_parameters.get(i) {
-                Some(v)
-                    if v.is_in_parameter_by_ref() &&
-                    // parameters by ref will always be a pointer
-                    p.into_pointer_type().get_element_type().is_array_type() =>
-                {
+                Some(v) if p.into_pointer_type().get_element_type().is_array_type() => {
                     // for array types we will generate a pointer to the arrays element type
                     // not a pointer to array
                     let ty = p
@@ -487,9 +484,35 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .next()
                     .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
 
-                let ptr = self
-                    .llvm
-                    .create_local_variable(m.get_name(), &index.get_associated_type(m.get_type_name())?);
+                // byval & aggregate type
+                // - alloca mit der richtigen size
+                // -> inner_Type_name
+                // vs
+                // byref & aggregate type
+                // - as is
+
+                // let ty = if matches!(m.argument_type, ArgumentType::ByVal(_)) {
+                //
+                //     // get size
+                //     todo!()
+                // } else {
+                //     index.get_associated_type(m.get_type_name())?
+                // };
+
+                let mut xx: Option<BasicTypeEnum> = None;
+                if let Some(ty) = self.index.find_type(m.get_type_name()) {
+                    if let Some(inner_ty) = ty.get_type_information().get_inner_pointer_type_name() {
+                        let inner_ty = index.get_associated_type(inner_ty)?;
+                        let tyx = inner_ty.as_basic_type_enum();
+
+                        xx = Some(tyx);
+                    }
+                }
+
+                let ptr = self.llvm.create_local_variable(
+                    m.get_name(),
+                    &xx.unwrap_or(index.get_associated_type(m.get_type_name())?),
+                );
 
                 if let Some(block) = self.llvm.builder.get_insert_block() {
                     debug.add_variable_declaration(
@@ -501,7 +524,31 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         m.source_location.get_column(),
                     );
                 }
-                self.llvm.builder.build_store(ptr, ptr_value);
+
+                if xx.is_some_and(|it| it.is_array_type()) {
+                    // bitcast the allocated array to i8*
+                    // memcpy the array to the allocated array
+
+                    let ptr = self.llvm.builder.build_bitcast(
+                        ptr,
+                        ptr.get_type()
+                            .get_element_type()
+                            .into_array_type()
+                            .get_element_type()
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                        // self.llvm.context.i8_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                        "bitcast",
+                    );
+                    self.llvm.builder.build_memcpy(
+                        ptr.into_pointer_value(),
+                        1,
+                        ptr_value.into_pointer_value(),
+                        1,
+                        index.get_associated_type(m.get_type_name())?.size_of().unwrap(),
+                    );
+                } else {
+                    self.llvm.builder.build_store(ptr, ptr_value);
+                }
 
                 (parameter_name, ptr)
             } else {

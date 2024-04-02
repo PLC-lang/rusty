@@ -1,4 +1,5 @@
 use crate::test_utils::tests::codegen;
+use insta::assert_snapshot;
 
 #[test]
 fn function_all_parameters_assigned() {
@@ -685,4 +686,32 @@ fn var_in_out_params_can_be_out_of_order() {
     );
 
     insta::assert_snapshot!(res);
+}
+
+#[test]
+fn aggregate_types_do_call_memcpy_instead_of_store() {
+    let result = codegen(
+        r#"
+        FUNCTION bar : DINT
+            VAR_INPUT
+                val : STRING[65536];
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define i32 @bar(i8* %0) {
+    entry:
+      %bar = alloca i32, align 4
+      %val = alloca [65537 x i8], align 1
+      store i8* %0, [65537 x i8]* %val, align 8
+      store i32 0, i32* %bar, align 4
+      %bar_ret = load i32, i32* %bar, align 4
+      ret i32 %bar_ret
+    }
+    "###);
 }

@@ -405,7 +405,10 @@ impl Variable {
 
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
+    /// Datatypes defined in a `TYPE` block, i.e. aliases (TODO: Is this correct)
     DataTypeReference { referenced_type: String, location: SourceLocation },
+
+    /// Datatypes known by the compiler, i.e. built-in types
     DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
 }
 
