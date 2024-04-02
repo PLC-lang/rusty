@@ -19,7 +19,7 @@ use self::{
 use crate::{
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
-    DebugLevel, OptimizationLevel, Target,
+    ConfigFormat, DebugLevel, OptimizationLevel, Target,
 };
 
 use super::index::*;
@@ -71,6 +71,8 @@ pub struct CodeGen<'ink> {
     /// the debugging module creates debug information at appropriate locations
     pub debug: DebugBuilderEnum<'ink>,
 
+    pub got_layout_file: Option<(String, ConfigFormat)>,
+
     pub module_location: String,
 }
 
@@ -88,13 +90,14 @@ impl<'ink> CodeGen<'ink> {
         context: &'ink CodegenContext,
         root: Option<&Path>,
         module_location: &str,
+        got_layout_file: Option<(String, ConfigFormat)>,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
-        CodeGen { module, debug, module_location: module_location.to_string() }
+        CodeGen { module, debug, got_layout_file, module_location: module_location.to_string() }
     }
 
     pub fn generate_llvm_index(
@@ -117,8 +120,15 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
-        let mut variable_generator =
-            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
+        let mut variable_generator = VariableGenerator::new(
+            &self.module,
+            &llvm,
+            global_index,
+            annotations,
+            &index,
+            &mut self.debug,
+            self.got_layout_file.clone(),
+        );
 
         //Generate global variables
         let llvm_gv_index =

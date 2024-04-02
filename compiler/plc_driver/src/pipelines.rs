@@ -273,6 +273,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             context,
             compile_options.root.as_deref(),
             &unit.file_name,
+            compile_options.got_layout_file.clone().zip(compile_options.got_layout_format),
             compile_options.optimization,
             compile_options.debug_level,
         );
