@@ -11,7 +11,6 @@ source_filename = "main"
 @empty_string = unnamed_addr constant [81 x i8] zeroinitializer
 @null_ptr = unnamed_addr constant i16* null
 @zero_enum = unnamed_addr constant i32 0
-@a = unnamed_addr constant i32 0
-@b = unnamed_addr constant i32 1
-@c = unnamed_addr constant i32 2
-
+@myEnum.a = unnamed_addr constant i32 0
+@myEnum.b = unnamed_addr constant i32 1
+@myEnum.c = unnamed_addr constant i32 2

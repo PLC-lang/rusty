@@ -6,9 +6,9 @@ expression: result
 source_filename = "main"
 
 @BASE = unnamed_addr constant i32 7
-@FORWARD = unnamed_addr constant i32 7
-@UP = unnamed_addr constant i32 8
-@DOWN = unnamed_addr constant i32 28
+@Direction.FORWARD = unnamed_addr constant i32 7
+@Direction.UP = unnamed_addr constant i32 8
+@Direction.DOWN = unnamed_addr constant i32 28
 
 define i32 @drive() {
 entry:
@@ -59,4 +59,3 @@ continue:                                         ; preds = %else, %case6, %case
   %drive_ret = load i32, i32* %drive, align 4
   ret i32 %drive_ret
 }
-

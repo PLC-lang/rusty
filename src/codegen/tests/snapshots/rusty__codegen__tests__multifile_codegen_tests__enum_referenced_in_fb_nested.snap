@@ -5,9 +5,9 @@ expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
 ; ModuleID = 'myEnum.st'
 source_filename = "myEnum.st"
 
-@a = unnamed_addr constant i32 1
-@b = unnamed_addr constant i32 2
-@c = unnamed_addr constant i32 3
+@myEnum.a = unnamed_addr constant i32 1
+@myEnum.b = unnamed_addr constant i32 2
+@myEnum.c = unnamed_addr constant i32 3
 
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
@@ -63,4 +63,3 @@ define void @fb3(%fb3* %0) {
 entry:
   ret void
 }
-
