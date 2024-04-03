@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
@@ -1154,14 +1154,14 @@ impl Index {
 
     /// Returns all enum variants defined in the given POU
     pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
-        let mut hm: HashMap<&str, &VariableIndexEntry> = HashMap::new();
+        let mut hs: HashSet<&VariableIndexEntry> = HashSet::new();
         for member in self.get_pou_members(pou) {
             if self.type_index.find_type(member.get_type_name()).is_some_and(|it| it.is_enum()) {
-                hm.insert(member.get_type_name(), member);
+                hs.insert(member);
             }
         }
 
-        hm.values().flat_map(|variable| self.get_enum_variants_by_variable(variable)).collect()
+        hs.iter().flat_map(|variable| self.get_enum_variants_by_variable(variable)).collect()
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
